@@ -1,24 +1,24 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/frontend/node_modules
-/frontend/.pnp
-/frontend/pnp.*
-/frontend/.yarn/*
-!/frontend/.yarn/patches
-!/frontend/.yarn/plugins
-!/frontend/.yarn/releases
-!/frontend/.yarn/versions
+/front/node_modules
+/front/.pnp
+/front/pnp.*
+/front/.yarn/*
+!/front/.yarn/patches
+!/front/.yarn/plugins
+!/front/.yarn/releases
+!/front/.yarn/versions
 
 # testing
-/frontend/coverage
+/front/coverage
 
 # next.js
-/frontend/.next/
-/frontend/out/
+/front/.next/
+/front/out/
 
 # production
-/frontend/build
+/front/build
 
 # misc
 .DS_Store
@@ -34,11 +34,11 @@ yarn-error.log*
 .env*
 
 # vercel
-/frontend/.vercel
+/front/.vercel
 
 # typescript
-/frontend/*.tsbuildinfo
-/frontend/next-env.d.ts
+/front/*.tsbuildinfo
+/front/next-env.d.ts
 
 # Bunko Shelf specific
 /library/
