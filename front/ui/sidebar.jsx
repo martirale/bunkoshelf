@@ -30,7 +30,7 @@ export default function Sidebar() {
       {/* Sidebar para móvil */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
+          className="fixed inset-0 z-50 bg-black md:hidden"
           onClick={() => setOpen(false)}
         >
           <aside
@@ -61,7 +61,7 @@ export default function Sidebar() {
       {/* Botón hamburguesa */}
       <button
         onClick={() => setOpen(true)}
-        className="md:hidden absolute top-4 left-4 z-50 bg-onix p-2 rounded"
+        className="md:hidden absolute top-4 left-4 z-40 bg-onix p-2 rounded"
         aria-label="Abrir menú"
       >
         &#9776;
