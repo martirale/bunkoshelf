@@ -5,6 +5,7 @@ import { Menu } from "lucide-react";
 import { LibraryBig } from "lucide-react";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
+import SidebarLogo from "./siebarLogo";
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
@@ -14,9 +15,10 @@ export default function Sidebar() {
       {/* Sidebar para escritorio */}
       <aside className="hidden md:flex md:w-2/12 bg-blackamber flex-col justify-between p-4">
         <div>
-          <h1 className="text-2xl font-bold">Bunko Shelf</h1>
+          <h1 className="hidden">Bunko Shelf</h1>
+          <SidebarLogo />
         </div>
-        <nav className="mt-6 space-y-4 flex-1 text-lg">
+        <nav className="mt-8 space-y-4 flex-1 text-lg">
           <a
             href="/"
             className="flex items-center px-4 py-3 border border-blackamber hover:border-lilah hover:bg-onix rounded-lg leading-none"
