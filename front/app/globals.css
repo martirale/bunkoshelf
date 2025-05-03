@@ -28,6 +28,6 @@
 /* Estilos básicos para el cuerpo */
 body {
   background: var(--color-background);
-  color: var(--color-foreground);
+  color: var(--color-sand);
   font-family: var(--font-sans);
 }
