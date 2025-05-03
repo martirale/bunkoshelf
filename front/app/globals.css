@@ -3,7 +3,7 @@
 
 /* Variables globales */
 :root {
-  --background: #151515; /* Blackamber */
+  --background: #151515; /* Onix */
   --foreground: #f7f2ec; /* Pearl */
   --font-sans: "Arial", Helvetica, sans-serif;
   --font-mono: "Courier New", Courier, monospace;
@@ -21,8 +21,8 @@
   --color-ash: #738298; /* Ash */
   --color-pearl: #f7f2ec; /* Pearl */
   --color-sand: #e5e0dc; /* Sand */
-  --color-blackamber: #151515; /* Blackamber */
-  --color-onix: #2b2b2b; /* Onix */
+  --color-blackamber: #0c0c0c; /* Blackamber */
+  --color-onix: #151515; /* Onix */
 }
 
 /* Estilos básicos para el cuerpo */
