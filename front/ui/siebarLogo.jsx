@@ -10,7 +10,7 @@ export default function SidebarLogo() {
   const isBooks = pathname.startsWith("/books");
 
   const logoSrc = isBooks
-    ? "/logos/BunkoShelfDenim.svg"
+    ? "/logos/BunkoShelfAsh.svg"
     : "/logos/BunkoShelfLilah.svg";
 
   return (
