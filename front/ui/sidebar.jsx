@@ -1,9 +1,5 @@
 "use client";
-import { House } from "lucide-react";
-import { BookHeart } from "lucide-react";
-import { Menu } from "lucide-react";
-import { LibraryBig } from "lucide-react";
-import { LogOut } from "lucide-react";
+import { Menu, House, LibraryBig, BookHeart, LogOut } from "lucide-react";
 import { useState } from "react";
 import SidebarLogo from "./siebarLogo";
 
@@ -69,7 +65,8 @@ export default function Sidebar() {
             onClick={(e) => e.stopPropagation()}
           >
             <div>
-              <h1 className="text-2xl font-bold">Bunko Shelf</h1>
+              <h2 className="hidden">Bunko Shelf</h2>
+              <SidebarLogo />
             </div>
             <nav className="mt-6 space-y-4 flex-1 text-lg">
               <a
