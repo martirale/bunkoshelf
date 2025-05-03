@@ -1,8 +1,10 @@
+import { Roboto_Condensed } from "next/font/google";
 import "./globals.css";
-import { Boldonse } from "next/font/google";
 
-const boldonse = Boldonse({
+const robotoCondensed = Roboto_Condensed({
+  weight: ["400", "700"],
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata = {
@@ -12,7 +14,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" className={boldonse.className}>
+    <html lang="es" className={robotoCondensed.className}>
       <body>{children}</body>
     </html>
   );
