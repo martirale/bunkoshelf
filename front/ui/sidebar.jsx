@@ -1,6 +1,14 @@
 "use client";
 import SidebarLogo from "./siebarLogo";
-import { Menu, House, LibraryBig, BookHeart, LogOut } from "lucide-react";
+import {
+  Menu,
+  House,
+  LibraryBig,
+  ChevronDown,
+  ChevronUp,
+  BookHeart,
+  LogOut,
+} from "lucide-react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -12,6 +20,10 @@ export default function Sidebar() {
   const isMangas = pathname.startsWith("/mangas");
   const isBooks = pathname.startsWith("/books");
   const isFavorites = pathname.startsWith("/favorites");
+  const isLibrary = isMangas || isBooks;
+
+  const [openLibraryMenu, setOpenLibraryMenu] = useState(isLibrary);
+  const shouldShowLibraryMenu = openLibraryMenu || isLibrary;
 
   return (
     <>
@@ -21,7 +33,8 @@ export default function Sidebar() {
           <h1 className="hidden">Bunko Shelf</h1>
           <SidebarLogo />
         </div>
-        <nav className="mt-8 flex-1 text-lg">
+        <nav className="mt-8 space-y-2 flex-1 text-lg">
+          {/* HOME */}
           <a
             href="/"
             className={`flex items-center p-4 rounded-lg leading-none border ${
@@ -33,17 +46,55 @@ export default function Sidebar() {
             <House className="w-5 h-5 mr-2" />
             Inicio
           </a>
-          <a
-            href="/mangas"
-            className={`flex items-center p-4 rounded-lg leading-none border ${
-              isMangas
-                ? "border-lilah bg-onix"
-                : "border-blackamber hover:border-pearl hover:bg-onix"
-            } transition-all duration-300`}
-          >
-            <LibraryBig className="w-5 h-5 mr-2" />
-            Biblioteca
-          </a>
+          {/* LIBRARY (DROP DOWN */}
+          <div className="relative">
+            <button
+              onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
+              className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
+                isLibrary
+                  ? isMangas
+                    ? "border-lilah bg-onix"
+                    : "border-ash bg-onix"
+                  : "border-blackamber hover:border-pearl hover:bg-onix"
+              } transition-all duration-300`}
+            >
+              <span className="flex items-center">
+                <LibraryBig className="w-5 h-5 mr-2" />
+                Biblioteca
+              </span>
+              {shouldShowLibraryMenu ? (
+                <ChevronUp className="w-5 h-5 ml-2" />
+              ) : (
+                <ChevronDown className="w-5 h-5 ml-2" />
+              )}
+            </button>
+
+            {openLibraryMenu && (
+              <div className="mt-2 space-y-2">
+                <a
+                  href="/mangas"
+                  className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
+                    isMangas
+                      ? "bg-onix text-lilah"
+                      : "border-blackamber hover:border-pearl hover:bg-onix"
+                  }`}
+                >
+                  Mangas
+                </a>
+                <a
+                  href="/books"
+                  className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
+                    isBooks
+                      ? "bg-onix text-ash"
+                      : "border-blackamber hover:border-pearl hover:bg-onix"
+                  }`}
+                >
+                  Libros
+                </a>
+              </div>
+            )}
+          </div>
+          {/* OTHER OPTIONS */}
           <a
             href="/favorites"
             className={`flex items-center p-4 rounded-lg leading-none border ${
@@ -73,7 +124,7 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* Sidebar para móvil */}
+      {/* MOBILE SIDEBAR */}
       {open && (
         <div
           className="fixed inset-0 z-50 bg-black md:hidden"
@@ -87,29 +138,74 @@ export default function Sidebar() {
               <h2 className="hidden">Bunko Shelf</h2>
               <SidebarLogo />
             </div>
-            <nav className="mt-6 space-y-2 flex-1 text-lg">
+            <nav className="mt-8 space-y-2 flex-1 text-lg">
+              {/* HOME */}
               <a
                 href="/"
-                className={`flex items-center px-4 py-4 rounded-lg leading-none border ${
-                  isHome ? "border-lilah bg-onix" : "border-blackamber"
+                className={`flex items-center p-4 rounded-lg leading-none border ${
+                  isHome
+                    ? "border-lilah bg-onix"
+                    : "border-blackamber hover:border-pearl hover:bg-onix"
                 }`}
               >
                 <House className="w-5 h-5 mr-2" />
                 Inicio
               </a>
-              <a
-                href="/mangas"
-                className={`flex items-center px-4 py-4 rounded-lg leading-none border ${
-                  isMangas ? "border-lilah bg-onix" : "border-blackamber"
-                }`}
-              >
-                <LibraryBig className="w-5 h-5 mr-2" />
-                Biblioteca
-              </a>
+              {/* LIBRARY (DROP DOWN */}
+              <div className="relative">
+                <button
+                  onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
+                  className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
+                    isLibrary
+                      ? isMangas
+                        ? "border-lilah bg-onix"
+                        : "border-ash bg-onix"
+                      : "border-blackamber hover:border-pearl hover:bg-onix"
+                  }`}
+                >
+                  <span className="flex items-center">
+                    <LibraryBig className="w-5 h-5 mr-2" />
+                    Biblioteca
+                  </span>
+                  {shouldShowLibraryMenu ? (
+                    <ChevronUp className="w-5 h-5 ml-2" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 ml-2" />
+                  )}
+                </button>
+
+                {openLibraryMenu && (
+                  <div className="mt-2 space-y-2">
+                    <a
+                      href="/mangas"
+                      className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
+                        isMangas
+                          ? "bg-onix text-lilah"
+                          : "border-blackamber hover:border-pearl hover:bg-onix"
+                      }`}
+                    >
+                      Mangas
+                    </a>
+                    <a
+                      href="/books"
+                      className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
+                        isBooks
+                          ? "bg-onix text-ash"
+                          : "border-blackamber hover:border-pearl hover:bg-onix"
+                      }`}
+                    >
+                      Libros
+                    </a>
+                  </div>
+                )}
+              </div>
+              {/* OTHER OPTIONS */}
               <a
                 href="/favorites"
-                className={`flex items-center px-4 py-4 rounded-lg leading-none border ${
-                  isFavorites ? "border-lilah bg-onix" : "border-blackamber"
+                className={`flex items-center p-4 rounded-lg leading-none border ${
+                  isFavorites
+                    ? "border-lilah bg-onix"
+                    : "border-blackamber hover:border-pearl hover:bg-onix"
                 }`}
               >
                 <BookHeart className="w-5 h-5 mr-2" />
