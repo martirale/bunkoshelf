@@ -1,4 +1,5 @@
 "use client";
+import { LogOut } from "lucide-react";
 import { useState } from "react";
 
 export default function Sidebar() {
@@ -12,18 +13,30 @@ export default function Sidebar() {
           <h1 className="text-2xl font-bold">Bunko Shelf</h1>
         </div>
         <nav className="mt-6 space-y-4 flex-1">
-          <a href="#" className="block hover:text-sand">
+          <a href="#" className="block hover:text-pearl">
             Inicio
           </a>
-          <a href="#" className="block hover:text-sand">
+          <a href="#" className="block hover:text-pearl">
             Biblioteca
           </a>
-          <a href="#" className="block hover:text-sand">
+          <a href="#" className="block hover:text-pearl">
             Favoritos
           </a>
         </nav>
-        <div>
-          <p className="text-sm">itsmrtr</p>
+        <div className="flex justify-between items-center">
+          <p className="text-sm">v0.1.0</p>
+
+          {/* Logout Button */}
+          <button
+            className="hover:text-pearl"
+            aria-label="Logout"
+            onClick={() => {
+              // AQUÍ LÓGICA CIERRE SESIÓN
+              console.log("Logged out");
+            }}
+          >
+            <LogOut className="w-5 h05" />
+          </button>
         </div>
       </aside>
 
@@ -41,13 +54,13 @@ export default function Sidebar() {
               <h1 className="text-2xl font-bold">Bunko Shelf</h1>
             </div>
             <nav className="mt-6 space-y-4 flex-1">
-              <a href="#" className="block hover:text-sand">
+              <a href="#" className="block hover:text-pearl">
                 Inicio
               </a>
-              <a href="#" className="block hover:text-sand">
+              <a href="#" className="block hover:text-pearl">
                 Biblioteca
               </a>
-              <a href="#" className="block hover:text-sand">
+              <a href="#" className="block hover:text-pearl">
                 Favoritos
               </a>
             </nav>
