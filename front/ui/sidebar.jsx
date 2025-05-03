@@ -1,10 +1,17 @@
 "use client";
+import SidebarLogo from "./siebarLogo";
 import { Menu, House, LibraryBig, BookHeart, LogOut } from "lucide-react";
 import { useState } from "react";
-import SidebarLogo from "./siebarLogo";
+import { usePathname } from "next/navigation";
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
+
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+  const isMangas = pathname.startsWith("/mangas");
+  const isBooks = pathname.startsWith("/books");
+  const isFavorites = pathname.startsWith("/favorites");
 
   return (
     <>
@@ -14,24 +21,36 @@ export default function Sidebar() {
           <h1 className="hidden">Bunko Shelf</h1>
           <SidebarLogo />
         </div>
-        <nav className="mt-8 space-y-4 flex-1 text-lg">
+        <nav className="mt-8 flex-1 text-lg">
           <a
             href="/"
-            className="flex items-center px-4 py-3 border border-blackamber hover:border-lilah hover:bg-onix rounded-lg leading-none"
+            className={`flex items-center p-4 rounded-lg leading-none border ${
+              isHome
+                ? "border-lilah bg-onix"
+                : "border-blackamber hover:border-pearl hover:bg-onix"
+            } transition-all duration-300`}
           >
             <House className="w-5 h-5 mr-2" />
             Inicio
           </a>
           <a
-            href="#"
-            className="flex items-center px-4 py-3 border border-blackamber hover:border-lilah hover:bg-onix rounded-lg leading-none"
+            href="/mangas"
+            className={`flex items-center p-4 rounded-lg leading-none border ${
+              isMangas
+                ? "border-lilah bg-onix"
+                : "border-blackamber hover:border-pearl hover:bg-onix"
+            } transition-all duration-300`}
           >
             <LibraryBig className="w-5 h-5 mr-2" />
             Biblioteca
           </a>
           <a
-            href="#"
-            className="flex items-center px-4 py-3 border border-blackamber hover:border-lilah hover:bg-onix rounded-lg leading-none"
+            href="/favorites"
+            className={`flex items-center p-4 rounded-lg leading-none border ${
+              isFavorites
+                ? "border-lilah bg-onix"
+                : "border-blackamber hover:border-pearl hover:bg-onix"
+            } transition-all duration-300`}
           >
             <BookHeart className="w-5 h-5 mr-2" />
             Favoritos
@@ -42,7 +61,7 @@ export default function Sidebar() {
 
           {/* Logout Button */}
           <button
-            className="border border-blackamber hover:border-lilah hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer"
+            className="border border-onix hover:border-lilah hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300"
             aria-label="Logout"
             onClick={() => {
               // AQUÍ LÓGICA CIERRE SESIÓN
@@ -61,31 +80,37 @@ export default function Sidebar() {
           onClick={() => setOpen(false)}
         >
           <aside
-            className="absolute left-0 top-0 w-3/4 h-full bg-onix flex flex-col justify-between p-4"
+            className="absolute left-0 top-0 w-3/4 h-full bg-blackamber flex flex-col justify-between p-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div>
               <h2 className="hidden">Bunko Shelf</h2>
               <SidebarLogo />
             </div>
-            <nav className="mt-6 space-y-4 flex-1 text-lg">
+            <nav className="mt-6 space-y-2 flex-1 text-lg">
               <a
                 href="/"
-                className="flex items-center px-4 py-3 border border-onix hover:border-lilah hover:bg-onix rounded-lg leading-none"
+                className={`flex items-center px-4 py-4 rounded-lg leading-none border ${
+                  isHome ? "border-lilah bg-onix" : "border-blackamber"
+                }`}
               >
                 <House className="w-5 h-5 mr-2" />
                 Inicio
               </a>
               <a
-                href="#"
-                className="flex items-center px-4 py-3 border border-onix hover:border-lilah hover:bg-onix rounded-lg leading-none"
+                href="/mangas"
+                className={`flex items-center px-4 py-4 rounded-lg leading-none border ${
+                  isMangas ? "border-lilah bg-onix" : "border-blackamber"
+                }`}
               >
                 <LibraryBig className="w-5 h-5 mr-2" />
                 Biblioteca
               </a>
               <a
-                href="#"
-                className="flex items-center px-4 py-3 border border-onix hover:border-lilah hover:bg-onix rounded-lg leading-none"
+                href="/favorites"
+                className={`flex items-center px-4 py-4 rounded-lg leading-none border ${
+                  isFavorites ? "border-lilah bg-onix" : "border-blackamber"
+                }`}
               >
                 <BookHeart className="w-5 h-5 mr-2" />
                 Favoritos
@@ -96,7 +121,7 @@ export default function Sidebar() {
 
               {/* Logout Button */}
               <button
-                className="border border-onix hover:border-lilah hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer"
+                className="border border-onix rounded-lg p-2 cursor-pointer"
                 aria-label="Logout"
                 onClick={() => {
                   // AQUÍ LÓGICA CIERRE SESIÓN
