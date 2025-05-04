@@ -18,10 +18,14 @@ export default function Sidebar() {
   const [open, setOpen] = useState(false);
 
   const pathname = usePathname();
-  const isHome = pathname === "/";
-  const isMangas = pathname.startsWith("/mangas");
-  const isBooks = pathname.startsWith("/books");
-  const isFavorites = pathname.startsWith("/favorites");
+  const isHome = pathname === "/es" || pathname === "/en";
+  const isMangas =
+    pathname.startsWith("/es/mangas") || pathname.startsWith("/en/mangas");
+  const isBooks =
+    pathname.startsWith("/es/books") || pathname.startsWith("/en/books");
+  const isFavorites =
+    pathname.startsWith("/es/favorites") ||
+    pathname.startsWith("/en/favorites");
   const isLibrary = isMangas || isBooks;
 
   const [openLibraryMenu, setOpenLibraryMenu] = useState(isLibrary);
@@ -29,7 +33,7 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Sidebar para escritorio */}
+      {/* DESKTOP SIDEBAR */}
       <aside className="hidden md:flex md:w-2/12 bg-blackamber flex-col justify-between p-4">
         <div>
           <h1 className="hidden">Bunko Shelf</h1>
