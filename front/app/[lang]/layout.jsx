@@ -1,6 +1,6 @@
 import { robotoCondensed, boldonse } from "../fonts";
 import "../globals.css";
-import Sidebar from "@/ui/sidebar";
+import Sidebar from "@/components/sidebar/sidebar";
 
 export const metadata = {
   title: "Bunko Shelf",
