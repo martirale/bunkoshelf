@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import SidebarLogo from "./siebarLogo";
 import {
   Menu,
@@ -9,10 +9,11 @@ import {
   ChevronDown,
   ChevronUp,
   BookHeart,
+  Languages,
   LogOut,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useParams } from "next/navigation";
+import { usePathname, useParams, useRouter } from "next/navigation";
 import { useClientDictionary } from "@/lib/i18n/clientDictionary";
 
 export default function Sidebar() {
@@ -20,12 +21,23 @@ export default function Sidebar() {
   const currentLang = params.lang || "es";
   const pathname = usePathname();
 
+  const router = useRouter();
+
+  const handleLanguageSwitch = () => {
+    const segments = pathname.split("/");
+    const currentLang = segments[1];
+    const newLang = currentLang === "es" ? "en" : "es";
+    segments[1] = newLang;
+    const newPath = segments.join("/") || "/";
+    router.push(newPath);
+  };
+
   // State for sidebar
   const [open, setOpen] = useState(false);
 
   // Check current routes
   const isHome = pathname === `/${currentLang}`;
-  const isMangas = pathname.startsWith(`/${currentLang}/mangas`);
+  const isMangas = pathname.startsWith(`/${currentLang}/manga`);
   const isBooks = pathname.startsWith(`/${currentLang}/books`);
   const isFavorites = pathname.startsWith(`/${currentLang}/favorites`);
   const isLibrary = isMangas || isBooks;
@@ -109,7 +121,7 @@ export default function Sidebar() {
             {openLibraryMenu && (
               <div className="mt-2 space-y-2">
                 <Link
-                  href={`/${currentLang}/mangas`}
+                  href={`/${currentLang}/manga`}
                   className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
                     isMangas
                       ? "bg-onix text-lilah"
@@ -147,17 +159,27 @@ export default function Sidebar() {
         <div className="flex justify-between items-center px-2">
           <p className="text-sm">v0.1.0</p>
 
-          {/* Logout Button */}
-          <button
-            className="border border-onix hover:border-lilah hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300"
-            aria-label="Logout"
-            onClick={() => {
-              // AQUÍ LÓGICA CIERRE SESIÓN
-              console.log("Logged out");
-            }}
-          >
-            <LogOut className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Language Switcher */}
+            <button
+              className="border border-onix hover:border-lilah hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300"
+              aria-label="Switch Language"
+              onClick={handleLanguageSwitch}
+            >
+              <Languages className="w-5 h-5" />
+            </button>
+
+            {/* Logout Button */}
+            <button
+              className="border border-onix hover:border-lilah hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300"
+              aria-label="Logout"
+              onClick={() => {
+                console.log("Logged out");
+              }}
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -214,7 +236,7 @@ export default function Sidebar() {
                 {openLibraryMenu && (
                   <div className="mt-2 space-y-2">
                     <Link
-                      href={`/${currentLang}/mangas`}
+                      href={`/${currentLang}/manga`}
                       className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
                         isMangas
                           ? "bg-onix text-lilah"
@@ -252,17 +274,29 @@ export default function Sidebar() {
             <div className="flex justify-between items-center pl-4">
               <p className="text-sm">v0.1.0</p>
 
-              {/* Logout Button */}
-              <button
-                className="border border-onix rounded-lg p-2 cursor-pointer"
-                aria-label="Logout"
-                onClick={() => {
-                  // AQUÍ LÓGICA CIERRE SESIÓN
-                  console.log("Logged out");
-                }}
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  {/* Language Switcher */}
+                  <button
+                    className="border border-onix rounded-lg p-2 cursor-pointer"
+                    aria-label="Switch Language"
+                    onClick={handleLanguageSwitch}
+                  >
+                    <Languages className="w-5 h-5" />
+                  </button>
+
+                  {/* Logout Button */}
+                  <button
+                    className="border border-onix rounded-lg p-2 cursor-pointer"
+                    aria-label="Logout"
+                    onClick={() => {
+                      console.log("Logged out");
+                    }}
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </aside>
         </div>
