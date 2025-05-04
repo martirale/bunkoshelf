@@ -15,14 +15,17 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-  --color-lilah: #8a6fdc; /* Lilah */
-  --color-heather: #8a79b2; /* Heather */
-  --color-denim: #3d4e72; /* Denim */
-  --color-ash: #738298; /* Ash */
-  --color-pearl: #f7f2ec; /* Pearl */
-  --color-sand: #e5e0dc; /* Sand */
+  /* BRAND COLORS */
+  --color-pearl: #f7f2ec; /* Pearl (Main) */
+  --color-sand: #e5e0dc; /* Sand (Second) */
   --color-blackamber: #0c0c0c; /* Blackamber */
   --color-onix: #151515; /* Onix */
+  /* MANGA LIBRARY */
+  --color-lilah: #8a6fdc; /* Lilah (Main) */
+  --color-heather: #8a79b2; /* Heather (Second) */
+  /* BOOKS LIBRARY */
+  --color-ash: #738298; /* Ash (Main) */
+  --color-denim: #3d4e72; /* Denim (Second) */
 }
 
 /* Basic body styles */
