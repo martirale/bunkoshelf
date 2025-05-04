@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Bunko Shelf",
   description: "Full web manga and book reader and library.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({ children }) {
