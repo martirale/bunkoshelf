@@ -4,7 +4,8 @@
     "library": "Biblioteca",
     "manga": "Manga",
     "books": "Libros",
-    "favorites": "Favoritos"
+    "favorites": "Favoritos",
+    "settings": "Ajustes"
   },
   "hero": {
     "keepreading": "Seguir leyendo",

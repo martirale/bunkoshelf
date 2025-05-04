@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
   BookHeart,
+  Settings2,
   CircleHelp,
   Languages,
   LogOut,
@@ -43,6 +44,7 @@ export default function Sidebar() {
   const isBooks = pathname.startsWith(`/${currentLang}/books`);
   const isFavorites = pathname.startsWith(`/${currentLang}/favorites`);
   const isLibrary = isManga || isBooks;
+  const isSettings = pathname.startsWith(`/${currentLang}/settings`);
 
   // State for library dropdown
   const [openLibraryMenu, setOpenLibraryMenu] = useState(isLibrary);
@@ -159,6 +161,17 @@ export default function Sidebar() {
           >
             <BookHeart className="w-5 h-5 mr-2" />
             {sidebar.favorites}
+          </Link>
+          <Link
+            href={`/${currentLang}/settings`}
+            className={`flex items-center p-4 rounded-lg leading-none border ${
+              isSettings
+                ? "border-sand bg-onix"
+                : `border-blackamber hover:bg-onix ${hoverBorder}`
+            } transition-all duration-300`}
+          >
+            <Settings2 className="w-5 h-5 mr-2" />
+            {sidebar.settings}
           </Link>
         </nav>
         <div className="flex justify-between items-center">
@@ -287,6 +300,17 @@ export default function Sidebar() {
               >
                 <BookHeart className="w-5 h-5 mr-2" />
                 {sidebar.favorites}
+              </Link>
+              <Link
+                href={`/${currentLang}/settings`}
+                className={`flex items-center p-4 rounded-lg leading-none border ${
+                  isSettings
+                    ? "border-sand bg-onix"
+                    : `border-blackamber hover:bg-onix ${hoverBorder}`
+                }`}
+              >
+                <Settings2 className="w-5 h-5 mr-2" />
+                {sidebar.settings}
               </Link>
             </nav>
             <div className="flex justify-between items-center">
