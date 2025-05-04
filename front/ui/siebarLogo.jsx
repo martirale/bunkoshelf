@@ -7,12 +7,16 @@ import { usePathname } from "next/navigation";
 export default function SidebarLogo() {
   const pathname = usePathname();
 
+  const isManga =
+    pathname.startsWith("/es/manga") || pathname.startsWith("/en/manga");
   const isBooks =
-    pathname.startsWith("/en/books") || pathname.startsWith("/es/books");
+    pathname.startsWith("/es/books") || pathname.startsWith("/en/books");
 
-  const logoSrc = isBooks
+  const logoSrc = isManga
+    ? "/logos/BunkoShelfLilah.svg"
+    : isBooks
     ? "/logos/BunkoShelfAsh.svg"
-    : "/logos/BunkoShelfLilah.svg";
+    : "/logos/BunkoShelfPearl.svg";
 
   const lang = pathname.split("/")[1] === "en" ? "en" : "es";
 
