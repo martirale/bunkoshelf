@@ -6,7 +6,12 @@
     "books": "Libros",
     "favorites": "Favoritos"
   },
-  "home": {
-    "hero": "Seguir leyendo"
+  "hero": {
+    "keepreading": "Seguir leyendo",
+    "ondeck": "En curso",
+    "recommended": "Recomendado",
+    "series": "Series",
+    "manga": "Manga",
+    "readlist": "Lista de lectura"
   }
 }
