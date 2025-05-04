@@ -25,7 +25,7 @@ export default function RootLayout({ children, params }) {
         <div className="flex h-screen">
           <Sidebar />
 
-          <main className="md:flex md:w-10/12 flex-col p-4">{children}</main>
+          <main className="md:flex md:w-10/12 flex-col">{children}</main>
         </div>
       </body>
     </html>
