@@ -15,5 +15,11 @@
     "manga": "Manga",
     "books": "Libros",
     "readlist": "Lista de lectura"
+  },
+  "libraries": {
+    "inprogress": "En curso",
+    "recentlyadded": "añadidos recientemente",
+    "recentlyupdatedseries": "Series actualizadas recientemente",
+    "recentlyread": "Leídos recientemente"
   }
 }
