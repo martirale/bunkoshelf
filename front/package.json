@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@formatjs/intl-localematcher": "^0.6.1",
     "lucide-react": "^0.507.0",
+    "negotiator": "^1.0.0",
     "next": "15.3.1",
     "react": "19.1.0",
     "react-dom": "19.1.0"

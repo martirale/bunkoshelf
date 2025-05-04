@@ -1,5 +1,5 @@
-import { robotoCondensed, boldonse } from "./fonts";
-import "./globals.css";
+import { robotoCondensed, boldonse } from "../fonts";
+import "../globals.css";
 import Sidebar from "@/ui/sidebar";
 
 export const metadata = {
@@ -11,10 +11,14 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export async function generateStaticParams() {
+  return [{ lang: "es" }, { lang: "en" }];
+}
+
+export default function RootLayout({ children, params }) {
   return (
     <html
-      lang="es"
+      lang={params.lang}
       className={`${robotoCondensed.variable} ${boldonse.variable}`}
     >
       <body>
