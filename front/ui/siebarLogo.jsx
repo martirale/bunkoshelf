@@ -14,7 +14,7 @@ export default function SidebarLogo() {
     : "/logos/BunkoShelfLilah.svg";
 
   return (
-    <div className="mt-2 px-4">
+    <div className="px-4">
       <Link href="/" className="inline-block">
         <Image
           src={logoSrc}
