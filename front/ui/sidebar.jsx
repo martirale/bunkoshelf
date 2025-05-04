@@ -37,10 +37,10 @@ export default function Sidebar() {
 
   // Check current routes
   const isHome = pathname === `/${currentLang}`;
-  const isMangas = pathname.startsWith(`/${currentLang}/manga`);
+  const isManga = pathname.startsWith(`/${currentLang}/manga`);
   const isBooks = pathname.startsWith(`/${currentLang}/books`);
   const isFavorites = pathname.startsWith(`/${currentLang}/favorites`);
-  const isLibrary = isMangas || isBooks;
+  const isLibrary = isManga || isBooks;
 
   // State for library dropdown
   const [openLibraryMenu, setOpenLibraryMenu] = useState(isLibrary);
@@ -88,7 +88,7 @@ export default function Sidebar() {
             href={`/${currentLang}`}
             className={`flex items-center p-4 rounded-lg leading-none border ${
               isHome
-                ? "border-lilah bg-onix"
+                ? "border-pearl bg-onix"
                 : "border-blackamber hover:border-pearl hover:bg-onix"
             } transition-all duration-300`}
           >
@@ -101,7 +101,7 @@ export default function Sidebar() {
               onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
               className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
                 isLibrary
-                  ? isMangas
+                  ? isManga
                     ? "border-lilah bg-onix"
                     : "border-ash bg-onix"
                   : "border-blackamber hover:border-pearl hover:bg-onix"
@@ -123,7 +123,7 @@ export default function Sidebar() {
                 <Link
                   href={`/${currentLang}/manga`}
                   className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
-                    isMangas
+                    isManga
                       ? "bg-onix text-lilah"
                       : "border-blackamber hover:border-pearl hover:bg-onix"
                   }`}
@@ -216,7 +216,7 @@ export default function Sidebar() {
                   onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
                   className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
                     isLibrary
-                      ? isMangas
+                      ? isManga
                         ? "border-lilah bg-onix"
                         : "border-ash bg-onix"
                       : "border-blackamber hover:border-pearl hover:bg-onix"
@@ -238,7 +238,7 @@ export default function Sidebar() {
                     <Link
                       href={`/${currentLang}/manga`}
                       className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
-                        isMangas
+                        isManga
                           ? "bg-onix text-lilah"
                           : "border-blackamber hover:border-pearl hover:bg-onix"
                       }`}
