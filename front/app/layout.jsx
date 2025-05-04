@@ -1,16 +1,6 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { robotoCondensed, boldonse } from "./fonts";
 import "./globals.css";
 import Sidebar from "@/ui/sidebar";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata = {
   title: "Bunko Shelf",
@@ -23,10 +13,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html
+      lang="es"
+      className={`${robotoCondensed.variable} ${boldonse.variable}`}
+    >
+      <body>
         <div className="flex h-screen">
           <Sidebar />
 

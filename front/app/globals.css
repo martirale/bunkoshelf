@@ -5,8 +5,8 @@
 :root {
   --background: #151515; /* Onix */
   --foreground: #f7f2ec; /* Pearl */
-  --font-sans: "Arial", Helvetica, sans-serif;
-  --font-mono: "Courier New", Courier, monospace;
+  --font-sans: var(--font-roboto-condensed), Arial, Helvetica, sans-serif;
+  --font-display: var(--font-boldonse), Georgia, serif;
 }
 
 /* Definición del tema utilizando Tailwind (modo oscuro solamente) */
@@ -30,4 +30,13 @@ body {
   background: var(--color-background);
   color: var(--color-sand);
   font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
 }
