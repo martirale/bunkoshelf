@@ -21,12 +21,12 @@ export default function RootLayout({ children, params }) {
       lang={params.lang}
       className={`${robotoCondensed.variable} ${boldonse.variable}`}
     >
-      <body>
-        <div className="flex h-screen">
-          <Sidebar />
+      <body className="flex h-screen overflow-hidden">
+        <Sidebar />
 
-          <main className="w-full md:w-10/12 flex flex-col">{children}</main>
-        </div>
+        <main className="w-full md:w-10/12 flex flex-col overflow-y-auto">
+          {children}
+        </main>
       </body>
     </html>
   );
