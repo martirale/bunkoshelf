@@ -1,1 +1,1 @@
-export default function Mangas() {}
+export default function MangaPage() {}
