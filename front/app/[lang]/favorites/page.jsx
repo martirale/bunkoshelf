@@ -4,5 +4,9 @@ export default async function FavoritesPage({ params }) {
   const { lang } = params;
   const intl = await getDictionary(lang);
 
-  return <></>;
+  return (
+    <>
+      <h1>{intl.sidebar.favorites}</h1>
+    </>
+  );
 }
