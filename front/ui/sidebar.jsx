@@ -1,9 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import SidebarLogo from "./siebarLogo";
 import {
   Menu,
-  House,
+  HomeIcon as House,
   LibraryBig,
   ChevronDown,
   ChevronUp,
@@ -11,25 +12,55 @@ import {
   LogOut,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
+import { useClientDictionary } from "@/lib/i18n/clientDictionary";
 
 export default function Sidebar() {
+  const params = useParams();
+  const currentLang = params.lang || "es";
+  const pathname = usePathname();
+
+  // State for sidebar
   const [open, setOpen] = useState(false);
 
-  const pathname = usePathname();
-  const isHome = pathname === "/es" || pathname === "/en";
-  const isMangas =
-    pathname.startsWith("/es/mangas") || pathname.startsWith("/en/mangas");
-  const isBooks =
-    pathname.startsWith("/es/books") || pathname.startsWith("/en/books");
-  const isFavorites =
-    pathname.startsWith("/es/favorites") ||
-    pathname.startsWith("/en/favorites");
+  // Check current routes
+  const isHome = pathname === `/${currentLang}`;
+  const isMangas = pathname.startsWith(`/${currentLang}/mangas`);
+  const isBooks = pathname.startsWith(`/${currentLang}/books`);
+  const isFavorites = pathname.startsWith(`/${currentLang}/favorites`);
   const isLibrary = isMangas || isBooks;
 
+  // State for library dropdown
   const [openLibraryMenu, setOpenLibraryMenu] = useState(isLibrary);
-  const shouldShowLibraryMenu = openLibraryMenu || isLibrary;
+
+  // Get translations
+  const { intl, loading } = useClientDictionary(currentLang);
+
+  // Fallback content while loading
+  if (loading || !intl) {
+    return (
+      <>
+        <aside className="hidden md:flex md:w-2/12 bg-blackamber flex-col justify-between p-4">
+          <div className="p-4">Cargando...</div>
+        </aside>
+        <button
+          className="md:hidden absolute top-4 left-4 z-40 bg-onix p-2 rounded"
+          aria-label="Abrir menú"
+        >
+          <Menu className="w-7 h-7" />
+        </button>
+      </>
+    );
+  }
+
+  // Fallback for missing translations
+  const sidebar = intl.sidebar || {
+    home: "Inicio",
+    library: "Biblioteca",
+    manga: "Manga",
+    books: "Libros",
+    favorites: "Favoritos",
+  };
 
   return (
     <>
@@ -42,7 +73,7 @@ export default function Sidebar() {
         <nav className="mt-8 space-y-2 flex-1 text-lg">
           {/* HOME */}
           <Link
-            href="/"
+            href={`/${currentLang}`}
             className={`flex items-center p-4 rounded-lg leading-none border ${
               isHome
                 ? "border-lilah bg-onix"
@@ -50,7 +81,7 @@ export default function Sidebar() {
             } transition-all duration-300`}
           >
             <House className="w-5 h-5 mr-2" />
-            Inicio
+            {sidebar.home}
           </Link>
           {/* LIBRARY (DROP DOWN */}
           <div className="relative">
@@ -66,9 +97,9 @@ export default function Sidebar() {
             >
               <span className="flex items-center">
                 <LibraryBig className="w-5 h-5 mr-2" />
-                Biblioteca
+                {sidebar.library}
               </span>
-              {shouldShowLibraryMenu ? (
+              {openLibraryMenu ? (
                 <ChevronUp className="w-5 h-5 ml-2" />
               ) : (
                 <ChevronDown className="w-5 h-5 ml-2" />
@@ -78,31 +109,31 @@ export default function Sidebar() {
             {openLibraryMenu && (
               <div className="mt-2 space-y-2">
                 <Link
-                  href="/mangas"
+                  href={`/${currentLang}/mangas`}
                   className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
                     isMangas
                       ? "bg-onix text-lilah"
                       : "border-blackamber hover:border-pearl hover:bg-onix"
                   }`}
                 >
-                  Mangas
+                  {sidebar.manga}
                 </Link>
                 <Link
-                  href="/books"
+                  href={`/${currentLang}/books`}
                   className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
                     isBooks
                       ? "bg-onix text-ash"
                       : "border-blackamber hover:border-pearl hover:bg-onix"
                   }`}
                 >
-                  Libros
+                  {sidebar.books}
                 </Link>
               </div>
             )}
           </div>
           {/* OTHER OPTIONS */}
-          <a
-            href="/favorites"
+          <Link
+            href={`/${currentLang}/favorites`}
             className={`flex items-center p-4 rounded-lg leading-none border ${
               isFavorites
                 ? "border-lilah bg-onix"
@@ -110,8 +141,8 @@ export default function Sidebar() {
             } transition-all duration-300`}
           >
             <BookHeart className="w-5 h-5 mr-2" />
-            Favoritos
-          </a>
+            {sidebar.favorites}
+          </Link>
         </nav>
         <div className="flex justify-between items-center px-2">
           <p className="text-sm">v0.1.0</p>
@@ -147,7 +178,7 @@ export default function Sidebar() {
             <nav className="mt-8 space-y-2 flex-1 text-lg">
               {/* HOME */}
               <Link
-                href="/"
+                href={`/${currentLang}`}
                 className={`flex items-center p-4 rounded-lg leading-none border ${
                   isHome
                     ? "border-lilah bg-onix"
@@ -155,7 +186,7 @@ export default function Sidebar() {
                 }`}
               >
                 <House className="w-5 h-5 mr-2" />
-                Inicio
+                {sidebar.home}
               </Link>
               {/* LIBRARY (DROP DOWN */}
               <div className="relative">
@@ -171,9 +202,9 @@ export default function Sidebar() {
                 >
                   <span className="flex items-center">
                     <LibraryBig className="w-5 h-5 mr-2" />
-                    Biblioteca
+                    {sidebar.library}
                   </span>
-                  {shouldShowLibraryMenu ? (
+                  {openLibraryMenu ? (
                     <ChevronUp className="w-5 h-5 ml-2" />
                   ) : (
                     <ChevronDown className="w-5 h-5 ml-2" />
@@ -183,31 +214,31 @@ export default function Sidebar() {
                 {openLibraryMenu && (
                   <div className="mt-2 space-y-2">
                     <Link
-                      href="/mangas"
+                      href={`/${currentLang}/mangas`}
                       className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
                         isMangas
                           ? "bg-onix text-lilah"
                           : "border-blackamber hover:border-pearl hover:bg-onix"
                       }`}
                     >
-                      Mangas
+                      {sidebar.manga}
                     </Link>
                     <Link
-                      href="/books"
+                      href={`/${currentLang}/books`}
                       className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
                         isBooks
                           ? "bg-onix text-ash"
                           : "border-blackamber hover:border-pearl hover:bg-onix"
                       }`}
                     >
-                      Libros
+                      {sidebar.books}
                     </Link>
                   </div>
                 )}
               </div>
               {/* OTHER OPTIONS */}
               <Link
-                href="/favorites"
+                href={`/${currentLang}/favorites`}
                 className={`flex items-center p-4 rounded-lg leading-none border ${
                   isFavorites
                     ? "border-lilah bg-onix"
@@ -215,7 +246,7 @@ export default function Sidebar() {
                 }`}
               >
                 <BookHeart className="w-5 h-5 mr-2" />
-                Favoritos
+                {sidebar.favorites}
               </Link>
             </nav>
             <div className="flex justify-between items-center pl-4">

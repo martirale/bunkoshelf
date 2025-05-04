@@ -1,12 +1,12 @@
-import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getDictionary } from "@/lib/i18n/serverDictionary";
 
 export default async function Home({ params }) {
   const { lang } = params;
-  const dict = await getDictionary(lang);
+  const intl = await getDictionary(lang);
 
   return (
     <>
-      <h2>{dict.home.hero}</h2>
+      <h2>{intl.home.hero}</h2>
     </>
   );
 }
