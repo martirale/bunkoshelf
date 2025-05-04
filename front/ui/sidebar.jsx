@@ -1,4 +1,5 @@
 "use client";
+
 import SidebarLogo from "./siebarLogo";
 import {
   Menu,
@@ -9,6 +10,7 @@ import {
   BookHeart,
   LogOut,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -35,7 +37,7 @@ export default function Sidebar() {
         </div>
         <nav className="mt-8 space-y-2 flex-1 text-lg">
           {/* HOME */}
-          <a
+          <Link
             href="/"
             className={`flex items-center p-4 rounded-lg leading-none border ${
               isHome
@@ -45,7 +47,7 @@ export default function Sidebar() {
           >
             <House className="w-5 h-5 mr-2" />
             Inicio
-          </a>
+          </Link>
           {/* LIBRARY (DROP DOWN */}
           <div className="relative">
             <button
@@ -71,7 +73,7 @@ export default function Sidebar() {
 
             {openLibraryMenu && (
               <div className="mt-2 space-y-2">
-                <a
+                <Link
                   href="/mangas"
                   className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
                     isMangas
@@ -80,8 +82,8 @@ export default function Sidebar() {
                   }`}
                 >
                   Mangas
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/books"
                   className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
                     isBooks
@@ -90,7 +92,7 @@ export default function Sidebar() {
                   }`}
                 >
                   Libros
-                </a>
+                </Link>
               </div>
             )}
           </div>
@@ -140,7 +142,7 @@ export default function Sidebar() {
             </div>
             <nav className="mt-8 space-y-2 flex-1 text-lg">
               {/* HOME */}
-              <a
+              <Link
                 href="/"
                 className={`flex items-center p-4 rounded-lg leading-none border ${
                   isHome
@@ -150,7 +152,7 @@ export default function Sidebar() {
               >
                 <House className="w-5 h-5 mr-2" />
                 Inicio
-              </a>
+              </Link>
               {/* LIBRARY (DROP DOWN */}
               <div className="relative">
                 <button
@@ -176,7 +178,7 @@ export default function Sidebar() {
 
                 {openLibraryMenu && (
                   <div className="mt-2 space-y-2">
-                    <a
+                    <Link
                       href="/mangas"
                       className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
                         isMangas
@@ -185,8 +187,8 @@ export default function Sidebar() {
                       }`}
                     >
                       Mangas
-                    </a>
-                    <a
+                    </Link>
+                    <Link
                       href="/books"
                       className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
                         isBooks
@@ -195,12 +197,12 @@ export default function Sidebar() {
                       }`}
                     >
                       Libros
-                    </a>
+                    </Link>
                   </div>
                 )}
               </div>
               {/* OTHER OPTIONS */}
-              <a
+              <Link
                 href="/favorites"
                 className={`flex items-center p-4 rounded-lg leading-none border ${
                   isFavorites
@@ -210,7 +212,7 @@ export default function Sidebar() {
               >
                 <BookHeart className="w-5 h-5 mr-2" />
                 Favoritos
-              </a>
+              </Link>
             </nav>
             <div className="flex justify-between items-center pl-4">
               <p className="text-sm">v0.1.0</p>
