@@ -19,7 +19,7 @@
   "libraries": {
     "inprogress": "En curso",
     "recentlyadded": "Añadidos recientemente",
-    "recentlyupdated": "Series actualizadas recientemente",
+    "recentlyupdated": "Series actualizadas",
     "recentlyread": "Leídos recientemente"
   }
 }

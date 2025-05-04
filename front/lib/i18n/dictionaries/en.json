@@ -19,7 +19,7 @@
   "libraries": {
     "inprogress": "In Progress",
     "recentlyadded": "Recently Added",
-    "recentlyupdated": "Recently Updated Series",
+    "recentlyupdated": "Recently Updated",
     "recentlyread": "Recently Read"
   }
 }
