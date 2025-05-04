@@ -17,6 +17,7 @@ import { usePathname, useParams, useRouter } from "next/navigation";
 import { useClientDictionary } from "@/lib/i18n/clientDictionary";
 
 export default function Sidebar() {
+  // Lang options
   const params = useParams();
   const currentLang = params.lang || "es";
   const pathname = usePathname();
@@ -74,6 +75,13 @@ export default function Sidebar() {
     favorites: "Favoritos",
   };
 
+  // Hover options
+  const hoverBorder = isManga
+    ? "hover:border-lilah"
+    : isBooks
+    ? "hover:border-ash"
+    : "hover:border-pearl";
+
   return (
     <>
       {/* DESKTOP SIDEBAR */}
@@ -88,8 +96,8 @@ export default function Sidebar() {
             href={`/${currentLang}`}
             className={`flex items-center p-4 rounded-lg leading-none border ${
               isHome
-                ? "border-pearl bg-onix"
-                : "border-blackamber hover:border-pearl hover:bg-onix"
+                ? "border-sand bg-onix"
+                : `border-blackamber hover:bg-onix ${hoverBorder}`
             } transition-all duration-300`}
           >
             <House className="w-5 h-5 mr-2" />
@@ -123,9 +131,7 @@ export default function Sidebar() {
                 <Link
                   href={`/${currentLang}/manga`}
                   className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
-                    isManga
-                      ? "bg-onix text-lilah"
-                      : "border-blackamber hover:border-pearl hover:bg-onix"
+                    isManga ? "bg-onix text-lilah" : "hover:bg-onix"
                   }`}
                 >
                   {sidebar.manga}
@@ -133,9 +139,7 @@ export default function Sidebar() {
                 <Link
                   href={`/${currentLang}/books`}
                   className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
-                    isBooks
-                      ? "bg-onix text-ash"
-                      : "border-blackamber hover:border-pearl hover:bg-onix"
+                    isBooks ? "bg-onix text-ash" : "hover:bg-onix"
                   }`}
                 >
                   {sidebar.books}
@@ -148,8 +152,8 @@ export default function Sidebar() {
             href={`/${currentLang}/favorites`}
             className={`flex items-center p-4 rounded-lg leading-none border ${
               isFavorites
-                ? "border-lilah bg-onix"
-                : "border-blackamber hover:border-pearl hover:bg-onix"
+                ? "border-sand bg-onix"
+                : `border-blackamber hover:bg-onix ${hoverBorder}`
             } transition-all duration-300`}
           >
             <BookHeart className="w-5 h-5 mr-2" />
@@ -162,7 +166,7 @@ export default function Sidebar() {
           <div className="flex items-center gap-2">
             {/* Language Switcher */}
             <button
-              className="border border-onix hover:border-lilah hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300"
+              className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
               aria-label="Switch Language"
               onClick={handleLanguageSwitch}
             >
@@ -171,7 +175,7 @@ export default function Sidebar() {
 
             {/* Logout Button */}
             <button
-              className="border border-onix hover:border-lilah hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300"
+              className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
               aria-label="Logout"
               onClick={() => {
                 console.log("Logged out");
@@ -203,8 +207,8 @@ export default function Sidebar() {
                 href={`/${currentLang}`}
                 className={`flex items-center p-4 rounded-lg leading-none border ${
                   isHome
-                    ? "border-lilah bg-onix"
-                    : "border-blackamber hover:border-pearl hover:bg-onix"
+                    ? "border-sand bg-onix"
+                    : `border-blackamber hover:bg-onix ${hoverBorder}`
                 }`}
               >
                 <House className="w-5 h-5 mr-2" />
@@ -238,9 +242,7 @@ export default function Sidebar() {
                     <Link
                       href={`/${currentLang}/manga`}
                       className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
-                        isManga
-                          ? "bg-onix text-lilah"
-                          : "border-blackamber hover:border-pearl hover:bg-onix"
+                        isManga ? "bg-onix text-lilah" : "hover:bg-onix"
                       }`}
                     >
                       {sidebar.manga}
@@ -248,9 +250,7 @@ export default function Sidebar() {
                     <Link
                       href={`/${currentLang}/books`}
                       className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
-                        isBooks
-                          ? "bg-onix text-ash"
-                          : "border-blackamber hover:border-pearl hover:bg-onix"
+                        isBooks ? "bg-onix text-ash" : "hover:bg-onix"
                       }`}
                     >
                       {sidebar.books}
@@ -263,8 +263,8 @@ export default function Sidebar() {
                 href={`/${currentLang}/favorites`}
                 className={`flex items-center p-4 rounded-lg leading-none border ${
                   isFavorites
-                    ? "border-lilah bg-onix"
-                    : "border-blackamber hover:border-pearl hover:bg-onix"
+                    ? "border-sand bg-onix"
+                    : `border-blackamber hover:bg-onix ${hoverBorder}`
                 }`}
               >
                 <BookHeart className="w-5 h-5 mr-2" />
