@@ -1,4 +1,4 @@
-# dependencies
+# frontebd dependencies
 /front/node_modules
 /front/.pnp
 /front/pnp.*
@@ -8,9 +8,10 @@
 !/front/.yarn/releases
 !/front/.yarn/versions
 
+# backend dependencies
 /back/node_modules
 
-# Ignore Prisma generated node_modules
+# Prisma
 /back/prisma/node_modules/
 /back/prisma/data.db
 
