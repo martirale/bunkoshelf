@@ -1,4 +1,5 @@
 import { getDictionary } from "@/lib/i18n/serverDictionary";
+import LoginForm from "./LoginForm";
 
 export default async function LoginPage({ params }) {
   const { lang } = params;
@@ -6,7 +7,7 @@ export default async function LoginPage({ params }) {
 
   return (
     <div className="p-4">
-      <h2>{intl.sidebar.settings}</h2>
+      <LoginForm lang={lang} intl={intl} />
     </div>
   );
 }

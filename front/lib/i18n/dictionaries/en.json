@@ -26,5 +26,9 @@
     "users": "Users",
     "library": "Library Settings"
   },
-  "login": {}
+  "login": {
+    "username": "Username",
+    "password": "Password",
+    "loginbtn": "Login"
+  }
 }
