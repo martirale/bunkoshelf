@@ -12,6 +12,7 @@
 
 # Ignore Prisma generated node_modules
 /back/prisma/node_modules/
+/back/prisma/data.db
 
 # testing
 /front/coverage
