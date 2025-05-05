@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.js";
 import { PrismaClient } from "@prisma/client";
 
@@ -12,7 +13,14 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+
+app.use(cookieParser());
 app.use(express.json());
 
 // Create the admin user if it does not exist

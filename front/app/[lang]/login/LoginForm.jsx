@@ -18,15 +18,12 @@ export default function LoginForm({ lang, intl }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
+        credentials: "include",
       });
 
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || "Error de autenticación");
-
-      // Stores the token as a secure cookie
-      // document.cookie = `token=${data.token}; path=/; SameSite=Lax; HttpOnly`;
-      document.cookie = `token=${data.token}; path=/; SameSite=Lax; Secure`;
 
       router.push(`/${lang}/`);
     } catch (err) {

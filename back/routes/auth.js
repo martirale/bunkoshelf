@@ -23,7 +23,14 @@ router.post("/login", async (req, res) => {
       JWT_SECRET,
       { expiresIn: "1d" }
     );
-    res.json({ token });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 año
+    });
+    res.status(200).json({ message: "Login exitoso" });
   } catch (err) {
     res.status(500).json({ error: "Error en el servidor" });
   }
