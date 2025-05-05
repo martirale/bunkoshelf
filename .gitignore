@@ -10,6 +10,9 @@
 
 /back/node_modules
 
+# Ignore Prisma generated node_modules
+/back/prisma/node_modules/
+
 # testing
 /front/coverage
 
