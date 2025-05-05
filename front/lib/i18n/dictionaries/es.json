@@ -7,19 +7,23 @@
     "favorites": "Favoritos",
     "settings": "Ajustes"
   },
-  "hero": {
-    "keepreading": "Seguir leyendo",
-    "ondeck": "En curso",
-    "recommended": "Recomendado",
-    "series": "Series",
+  "libraries": {
     "manga": "Manga",
     "books": "Libros",
-    "readlist": "Lista de lectura"
-  },
-  "libraries": {
+    "series": "Series",
+    "readlist": "Lista de lectura",
+    "keepreading": "Seguir leyendo",
     "inprogress": "En curso",
     "recentlyadded": "Añadidos recientemente",
     "recentlyupdated": "Series actualizadas",
     "recentlyread": "Leídos recientemente"
+  },
+  "favorites": {
+    "title": "Favoritos"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "users": "Usuarios",
+    "library": "Ajustes de biblioteca"
   }
 }

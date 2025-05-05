@@ -9,7 +9,7 @@ export default async function HomePage({ params }) {
       {/* HERO SECTION */}
       <section className="p-4 bg-pearl">
         <div className="pb-4">
-          <h2 className="text-onix">{intl.hero.keepreading}</h2>
+          <h2 className="text-onix">{intl.libraries.keepreading}</h2>
         </div>
       </section>
 

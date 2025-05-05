@@ -6,7 +6,7 @@ export default async function SettingsUsersPage({ params }) {
 
   return (
     <div className="p-4">
-      <h2>{intl.sidebar.settings}</h2>
+      <h2>{intl.settings.users}</h2>
     </div>
   );
 }

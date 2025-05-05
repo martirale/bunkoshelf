@@ -6,7 +6,7 @@ export default async function FavoritesPage({ params }) {
 
   return (
     <div className="p-4">
-      <h2>{intl.sidebar.favorites}</h2>
+      <h2>{intl.favorites.title}</h2>
     </div>
   );
 }

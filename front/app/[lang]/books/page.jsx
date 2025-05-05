@@ -8,7 +8,7 @@ export default async function BooksPage({ params }) {
     <>
       <section className="w-full p-4 bg-ash">
         <div className="pb-4">
-          <h2 className="text-sand">{intl.hero.keepreading}</h2>
+          <h2 className="text-sand">{intl.libraries.keepreading}</h2>
         </div>
       </section>
 
