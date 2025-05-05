@@ -2,14 +2,12 @@ services:
   bunkoshelf:
     image: itsmrtr/bunkoshelf:latest
     container_name: bunkoshelf
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
     ports:
-      - "5050:3000" # Cambia 5050 por otro puerto si ya está en uso
+      - "3000:3000"
+      - "4000:4000"
     volumes:
+      - /path/to/your/library:/app/library
       - ./data:/app/data
-      - ./path/to/your/books:/app/library # Biblioteca donde tengas tus libros
     environment:
       - NODE_ENV=production
     restart: unless-stopped
