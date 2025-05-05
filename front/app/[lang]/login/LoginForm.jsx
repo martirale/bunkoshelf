@@ -34,7 +34,7 @@ export default function LoginForm({ lang, intl }) {
   };
 
   return (
-    <div className="flex md:justify-center">
+    <div className="flex md:justify-center mt-16">
       <form onSubmit={handleLogin} className="max-w-screen md:max-w-sm w-full">
         <div className="mb-4">
           <input
