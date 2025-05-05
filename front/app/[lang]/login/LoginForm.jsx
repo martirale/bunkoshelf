@@ -14,7 +14,7 @@ export default function LoginForm({ lang, intl }) {
     setError("");
 
     try {
-      const res = await fetch("/api/auth", {
+      const res = await fetch("http://localhost:3001/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -25,7 +25,8 @@ export default function LoginForm({ lang, intl }) {
       if (!res.ok) throw new Error(data.error || "Error de autenticación");
 
       // Stores the token as a secure cookie
-      document.cookie = `token=${data.token}; path=/; SameSite=Lax`;
+      // document.cookie = `token=${data.token}; path=/; SameSite=Lax; HttpOnly`;
+      document.cookie = `token=${data.token}; path=/; SameSite=Lax; Secure`;
 
       router.push(`/${lang}/`);
     } catch (err) {

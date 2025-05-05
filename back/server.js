@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import authRoutes from "./routes/auth.js";
 import { PrismaClient } from "@prisma/client";
 
@@ -23,10 +24,12 @@ async function createAdminIfNotExists() {
 
     if (!adminExists) {
       // If it does not exist, create the admin user with a temporary password
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+
       await prisma.user.create({
         data: {
           username: "bunko",
-          password: "admin123",
+          password: hashedPassword,
           isAdmin: true,
         },
       });
