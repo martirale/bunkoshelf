@@ -3,8 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import cookieParser from "cookie-parser";
-import authRoutes from "./routes/auth.js";
 import { PrismaClient } from "@prisma/client";
+import authRoutes from "./routes/auth.js";
+import logoutRoutes from "./routes/logout.js";
 
 const prisma = new PrismaClient();
 
@@ -56,6 +57,7 @@ createAdminIfNotExists();
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/logout", logoutRoutes);
 
 // Test ping
 app.get("/api/ping", (req, res) => {

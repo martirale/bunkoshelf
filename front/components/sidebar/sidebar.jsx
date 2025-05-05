@@ -35,6 +35,24 @@ export default function Sidebar() {
     router.push(newPath);
   };
 
+  // Loguot options
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:3001/api/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        router.push(`/${currentLang}/login`);
+      } else {
+        console.error("Error al cerrar sesión:", await res.text());
+      }
+    } catch (err) {
+      console.error("Error de red:", err);
+    }
+  };
+
   // State for sidebar
   const [open, setOpen] = useState(false);
 
@@ -208,9 +226,7 @@ export default function Sidebar() {
             <button
               className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
               aria-label="Logout"
-              onClick={() => {
-                console.log("Logged out");
-              }}
+              onClick={handleLogout}
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -348,9 +364,7 @@ export default function Sidebar() {
                   <button
                     className="border border-onix rounded-lg p-2 cursor-pointer"
                     aria-label="Logout"
-                    onClick={() => {
-                      console.log("Logged out");
-                    }}
+                    onClick={handleLogout}
                   >
                     <LogOut className="w-5 h-5" />
                   </button>
