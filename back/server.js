@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-// import authRoutes from "./routes/auth.js";
+import authRoutes from "./routes/auth.js";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -44,7 +44,7 @@ async function createAdminIfNotExists() {
 createAdminIfNotExists();
 
 // Routes
-// app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 // Test ping
 app.get("/api/ping", (req, res) => {
