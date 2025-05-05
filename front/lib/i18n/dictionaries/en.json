@@ -25,5 +25,6 @@
     "title": "Settings",
     "users": "Users",
     "library": "Library Settings"
-  }
+  },
+  "login": {}
 }
