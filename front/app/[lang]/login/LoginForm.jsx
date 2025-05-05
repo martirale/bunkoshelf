@@ -14,7 +14,7 @@ export default function LoginForm({ lang, intl }) {
     setError("");
 
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
