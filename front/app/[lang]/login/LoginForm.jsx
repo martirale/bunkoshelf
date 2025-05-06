@@ -32,7 +32,7 @@ export default function LoginForm({ lang, intl }) {
   };
 
   return (
-    <div className="flex md:justify-center mt-16">
+    <div className="mt-8 w-full max-w-sm">
       <form onSubmit={handleLogin} className="max-w-screen md:max-w-sm w-full">
         <div className="mb-4">
           <input
@@ -40,7 +40,7 @@ export default function LoginForm({ lang, intl }) {
             value={username}
             placeholder={intl.login.username}
             onChange={(e) => setUsername(e.target.value)}
-            className="text-blackamber bg-sand border border-sand hover:bg-pearl rounded-lg w-full py-2 px-3"
+            className="text-sand bg-blackamber border border-sand rounded-lg w-full px-8 py-3 transition-all duration-300"
             required
           />
         </div>
@@ -51,7 +51,7 @@ export default function LoginForm({ lang, intl }) {
             value={password}
             placeholder={intl.login.password}
             onChange={(e) => setPassword(e.target.value)}
-            className="text-blackamber bg-sand border border-sand hover:bg-pearl rounded-lg w-full py-2 px-3"
+            className="text-sand bg-blackamber border border-sand rounded-lg w-full px-8 py-3 transition-all duration-300"
             required
           />
         </div>
@@ -61,7 +61,7 @@ export default function LoginForm({ lang, intl }) {
         <div className="flex items-center justify-between">
           <button
             type="submit"
-            className="font-bold px-8 py-4 rounded-lg leading-none bg-onix border border-blackamber hover:bg-blackamber hover:border-pearl transition-all duration-300 focus:outline-none cursor-pointer"
+            className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-blackamber bg-sand border border-sand hover:bg-pearl transition-all duration-300 cursor-pointer"
           >
             {intl.login.loginbtn}
           </button>
