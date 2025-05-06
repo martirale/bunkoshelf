@@ -54,3 +54,4 @@ yarn-error.log*
 # Bunko Shelf specific
 /library/
 start.bat
+/back/scripts/
