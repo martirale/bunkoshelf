@@ -23,7 +23,11 @@
     "title": "Favorites"
   },
   "profile": {
-    "title": "Profile"
+    "title": "Profile",
+    "name": "Name",
+    "lastname": "Lastname",
+    "password": "New Password",
+    "save": "Save Changes"
   },
   "settings": {
     "title": "Settings",
