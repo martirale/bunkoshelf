@@ -7,6 +7,7 @@ import { PrismaClient } from "@prisma/client";
 import authRoutes from "./routes/auth.js";
 import logoutRoutes from "./routes/logout.js";
 import sessionRoutes from "./routes/session.js";
+import usersRoutes from "./routes/users.js";
 
 const prisma = new PrismaClient();
 
@@ -60,6 +61,7 @@ createAdminIfNotExists();
 app.use("/api/auth", authRoutes);
 app.use("/api/logout", logoutRoutes);
 app.use("/api/session", sessionRoutes);
+app.use("/api/users", usersRoutes);
 
 // Test ping
 app.get("/api/ping", (req, res) => {
