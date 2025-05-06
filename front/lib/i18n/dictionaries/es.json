@@ -30,5 +30,8 @@
     "username": "Nombre de usuario",
     "password": "Contraseña",
     "loginbtn": "Iniciar sesión"
+  },
+  "noauth": {
+    "guide": "Guía de inicio"
   }
 }

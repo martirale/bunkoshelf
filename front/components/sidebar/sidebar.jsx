@@ -11,6 +11,7 @@ import {
   CircleHelp,
   Languages,
   LogOut,
+  BookOpen,
 } from "lucide-react";
 import SidebarLogo from "./siebarLogo";
 import Link from "next/link";
@@ -119,9 +120,35 @@ export default function Sidebar() {
           <h1 className="hidden">Bunko Shelf</h1>
           <SidebarLogo />
         </div>
+
+        {/* NO AUTH OPTIONS */}
+        {!isAuthenticated && (
+          <div className="mt-8 space-y-2 flex-1 text-lg">
+            <Link
+              href="#"
+              target="_blank"
+              rel="noopener"
+              className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
+            >
+              <BookOpen className="w-5 h-5 mr-2" />
+              {intl.noauth.guide}
+            </Link>
+            {/* <Link
+              href="#"
+              target="_blank"
+              rel="noopener"
+              className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
+            >
+              <BookHeart className="w-5 h-5 mr-2" />
+              {intl.noauth.lorem}
+            </Link> */}
+          </div>
+        )}
+        {/* END NO AUTH OPTIONS */}
+
+        {/* MAIN NAV */}
         {isAuthenticated && (
           <nav className="mt-8 space-y-2 flex-1 text-lg">
-            {/* HOME */}
             <Link
               href={`/${currentLang}`}
               className={`flex items-center p-4 rounded-lg leading-none border ${
@@ -133,7 +160,7 @@ export default function Sidebar() {
               <House className="w-5 h-5 mr-2" />
               {sidebar.home}
             </Link>
-            {/* LIBRARY (DROP DOWN */}
+            {/* Library (Drop Down) */}
             <div className="relative">
               <button
                 onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
@@ -155,7 +182,6 @@ export default function Sidebar() {
                   <ChevronDown className="w-5 h-5 ml-2" />
                 )}
               </button>
-
               {openLibraryMenu && (
                 <div className="mt-2 space-y-2">
                   <Link
@@ -177,9 +203,7 @@ export default function Sidebar() {
                 </div>
               )}
             </div>
-
-            {/* OTHER OPTIONS */}
-
+            {/* End Library (Drop Down) */}
             <Link
               href={`/${currentLang}/favorites`}
               className={`flex items-center p-4 rounded-lg leading-none border ${
@@ -206,6 +230,8 @@ export default function Sidebar() {
             )}
           </nav>
         )}
+        {/* END MAIN NAV */}
+
         {/* FOOTER BUTTONS */}
         <div className="flex justify-between items-center">
           <Link
@@ -216,7 +242,6 @@ export default function Sidebar() {
           >
             v0.1.0-alpha
           </Link>
-
           <div className="flex items-center gap-2">
             {/* Language Switcher */}
             <button
@@ -226,7 +251,6 @@ export default function Sidebar() {
             >
               <Languages className="w-5 h-5" />
             </button>
-
             {/* Help */}
             <Link
               href="#"
@@ -236,7 +260,6 @@ export default function Sidebar() {
             >
               <CircleHelp className="w-5 h-5" />
             </Link>
-
             {/* Logout Button */}
             {isAuthenticated && (
               <button
@@ -249,6 +272,7 @@ export default function Sidebar() {
             )}
           </div>
         </div>
+        {/* END FOOTER BUTTONS */}
       </aside>
 
       {/* MOBILE SIDEBAR */}
@@ -265,9 +289,35 @@ export default function Sidebar() {
               <h2 className="hidden">Bunko Shelf</h2>
               <SidebarLogo />
             </div>
+
+            {/* NO AUTH OPTIONS */}
+            {!isAuthenticated && (
+              <div className="mt-8 space-y-2 flex-1 text-lg">
+                <Link
+                  href="#"
+                  target="_blank"
+                  rel="noopener"
+                  className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
+                >
+                  <BookHeart className="w-5 h-5 mr-2" />
+                  {intl.noauth.lorem}
+                </Link>
+                <Link
+                  href="#"
+                  target="_blank"
+                  rel="noopener"
+                  className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
+                >
+                  <BookHeart className="w-5 h-5 mr-2" />
+                  {intl.noauth.lorem}
+                </Link>
+              </div>
+            )}
+            {/* END NO AUTH OPTIONS */}
+
+            {/* MAIN NAV */}
             {isAuthenticated && (
               <nav className="mt-8 space-y-2 flex-1 text-lg">
-                {/* HOME */}
                 <Link
                   href={`/${currentLang}`}
                   className={`flex items-center p-4 rounded-lg leading-none border ${
@@ -279,7 +329,7 @@ export default function Sidebar() {
                   <House className="w-5 h-5 mr-2" />
                   {sidebar.home}
                 </Link>
-                {/* LIBRARY (DROP DOWN */}
+                {/* Library (Drop Down) */}
                 <div className="relative">
                   <button
                     onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
@@ -301,7 +351,6 @@ export default function Sidebar() {
                       <ChevronDown className="w-5 h-5 ml-2" />
                     )}
                   </button>
-
                   {openLibraryMenu && (
                     <div className="mt-2 space-y-2">
                       <Link
@@ -323,7 +372,7 @@ export default function Sidebar() {
                     </div>
                   )}
                 </div>
-                {/* OTHER OPTIONS */}
+                {/* End Library (Drop Down) */}
                 <Link
                   href={`/${currentLang}/favorites`}
                   className={`flex items-center p-4 rounded-lg leading-none border ${
@@ -348,6 +397,8 @@ export default function Sidebar() {
                 </Link>
               </nav>
             )}
+            {/* END MAIN NAV */}
+
             {/* FOOTER BUTTONS */}
             <div className="flex justify-between items-center">
               <Link
@@ -358,7 +409,6 @@ export default function Sidebar() {
               >
                 v0.1.0-alpha
               </Link>
-
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2">
                   {/* Language Switcher */}
@@ -369,7 +419,6 @@ export default function Sidebar() {
                   >
                     <Languages className="w-5 h-5" />
                   </button>
-
                   {/* Help */}
                   <Link
                     href="#"
@@ -379,7 +428,6 @@ export default function Sidebar() {
                   >
                     <CircleHelp className="w-5 h-5" />
                   </Link>
-
                   {/* Logout Button */}
                   {isAuthenticated && (
                     <button
@@ -393,6 +441,7 @@ export default function Sidebar() {
                 </div>
               </div>
             </div>
+            {/* END FOOTER BUTTONS */}
           </aside>
         </div>
       )}
