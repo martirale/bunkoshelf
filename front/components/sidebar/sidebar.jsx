@@ -21,7 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function Sidebar() {
   // Users verify
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, refetchAuth } = useAuth();
 
   // Lang options
   const params = useParams();
@@ -46,6 +46,8 @@ export default function Sidebar() {
         method: "POST",
         credentials: "include",
       });
+
+      refetchAuth();
 
       if (res.ok) {
         router.push(`/${currentLang}/login`);
