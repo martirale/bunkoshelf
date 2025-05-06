@@ -191,17 +191,19 @@ export default function Sidebar() {
               <BookHeart className="w-5 h-5 mr-2" />
               {sidebar.favorites}
             </Link>
-            <Link
-              href={`/${currentLang}/settings`}
-              className={`flex items-center p-4 rounded-lg leading-none border ${
-                isSettings
-                  ? "border-sand bg-onix"
-                  : `border-blackamber hover:bg-onix ${hoverBorder}`
-              } transition-all duration-300`}
-            >
-              <Settings2 className="w-5 h-5 mr-2" />
-              {sidebar.settings}
-            </Link>
+            {isAdmin && (
+              <Link
+                href={`/${currentLang}/settings`}
+                className={`flex items-center p-4 rounded-lg leading-none border ${
+                  isSettings
+                    ? "border-sand bg-onix"
+                    : `border-blackamber hover:bg-onix ${hoverBorder}`
+                } transition-all duration-300`}
+              >
+                <Settings2 className="w-5 h-5 mr-2" />
+                {sidebar.settings}
+              </Link>
+            )}
           </nav>
         )}
         {/* FOOTER BUTTONS */}
