@@ -42,7 +42,10 @@ yarn-error.log*
 /back/.env
 
 # SQLite database
-/back/src/db/*.db
+/back/prisma/*.db
+/back/prisma/*.db-journal
+/back/prisma/*.db-shm
+/back/prisma/*.db-wal
 
 # vercel
 /front/.vercel
