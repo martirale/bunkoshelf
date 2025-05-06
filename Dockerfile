@@ -1,51 +1,63 @@
 # Etapa 1: Construcción del frontend (Next.js)
 FROM node:20-alpine AS frontend-build
-
-# Establecer directorio de trabajo
-WORKDIR /app
+WORKDIR /front
 
 # Instalar PNPM
 RUN npm install -g pnpm
 
-# Copiar el código del frontend y backend
-COPY front/package.json front/pnpm-lock.yaml ./
+# Copiar archivos necesarios y construir
+COPY front/pnpm-lock.yaml front/package.json ./
 RUN pnpm install
 
 COPY front/ ./
 RUN pnpm run build
 
-# Etapa 2: Backend (Express)
+# Etapa 2: Preparar backend (Express)
 FROM node:20-alpine AS backend-build
+WORKDIR /back
 
-# Establecer directorio de trabajo para el backend
+# Instalar PNPM
+RUN npm install -g pnpm
+
+# Copiar archivos necesarios y construir
+COPY back/pnpm-lock.yaml back/package.json ./
+RUN pnpm install --prod
+
+COPY back/ ./
+
+# Genera el cliente Prisma
+RUN pnpm prisma generate
+
+# Etapa 3: Imagen final de producción
+FROM node:20-alpine
+
+# Crear carpetas para frontend y backend
 WORKDIR /app
 
 # Instalar PNPM
 RUN npm install -g pnpm
 
-# Copiar el código del backend
-COPY backend/package.json backend/pnpm-lock.yaml ./
-RUN pnpm install
+# Copiar frontend compilado
+COPY --from=frontend-build /front/.next ./front/.next
+COPY --from=frontend-build /front/public ./front/public
+COPY --from=frontend-build /front/next.config.js ./front/next.config.js
+COPY --from=frontend-build /front/package.json ./front/package.json
+COPY --from=frontend-build /front/pnpm-lock.yaml ./front/pnpm-lock.yaml
+RUN cd front && pnpm install --prod
 
-COPY backend/ ./
+# Copiar backend listo para producción
+COPY --from=backend-build /back ./back
 
-# Etapa 3: Creación de la imagen final
-FROM node:20-alpine
+# Copiar variables de entorno
+COPY front/.env ./front/.env
+COPY back/.env ./back/.env
 
-# Establecer directorio de trabajo para el contenedor final
-WORKDIR /app
+# Copiar script de inicio
+COPY start.sh ./start.sh
+RUN chmod +x start.sh
 
-# Copiar el frontend construido
-COPY --from=frontend-build /app/.next /app/.next
-
-# Copiar el backend
-COPY --from=backend-build /app /app
-
-# Instalar dependencias (aunque ya debería estar hecho, pero por si acaso)
-RUN pnpm install --prod
-
-# Exponer el puerto para la app (frontend + backend)
+# Exponer puertos de Next y Express
 EXPOSE 3000 4000
 
-# Comando para iniciar tanto el frontend como el backend
-CMD ["pnpm", "run", "start"]
+# Comando final
+CMD ["./start.sh"]
