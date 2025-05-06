@@ -6,8 +6,6 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 const router = express.Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || "bunkoshelf-secret";
-
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -20,8 +18,8 @@ router.post("/login", async (req, res) => {
 
     const token = jwt.sign(
       { id: user.id, username: user.username, isAdmin: user.isAdmin },
-      JWT_SECRET,
-      { expiresIn: "180d" }
+      process.env.JWT_SECRET,
+      { expiresIn: "180d", algorithm: "HS256" }
     );
     res.cookie("token", token, {
       httpOnly: true,

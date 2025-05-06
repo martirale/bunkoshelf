@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 export default async function SettingsLibraryPage({ params }) {
   const { lang } = params;
   const { isAdmin } = await checkAdminAccess();
-  if (!isAdmin) redirect(`/${lang}`);
+  if (!isAdmin) {
+    redirect(`/${lang}`);
+  }
   const intl = await getDictionary(lang);
 
   return (

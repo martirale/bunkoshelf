@@ -1,23 +1,27 @@
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { createSecretKey } from "crypto";
 
-const JWT_SECRET = process.env.JWT_SECRET || "bunkoshelf-secret";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "a-string-secret-at-least-256-bits-long";
+
+const key = createSecretKey(Buffer.from(JWT_SECRET, "utf-8"));
 
 export async function checkAdminAccess() {
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
 
+  // Si no hay token, retornamos early
   if (!token) return { isAdmin: false, lang: null };
 
   try {
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(JWT_SECRET)
-    );
+    const { payload } = await jwtVerify(token, key, {
+      algorithms: ["HS256"],
+    });
 
     return {
       isAdmin: !!payload.isAdmin,
-      lang: payload.lang || "es", // o extraerlo de otra fuente si no lo tienes en el token
+      lang: payload.lang || "es",
     };
   } catch (err) {
     return { isAdmin: false, lang: null };
