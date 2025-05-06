@@ -13,7 +13,7 @@ function getLocale(request) {
   return match(languages, locales, defaultLocale);
 }
 
-export function handleI18nMiddleware(request) {
+export function i18nMiddleware(request) {
   const pathname = request.nextUrl.pathname;
 
   const pathnameHasLocale = locales.some(

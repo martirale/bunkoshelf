@@ -19,16 +19,16 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Credenciales inválidas" });
 
     const token = jwt.sign(
-      { id: user.id, username: user.username },
+      { id: user.id, username: user.username, isAdmin: user.isAdmin },
       JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "180d" }
     );
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 año
+      maxAge: 180 * 24 * 60 * 60 * 1000, // half-year
     });
     res.status(200).json({ message: "Login exitoso" });
   } catch (err) {
