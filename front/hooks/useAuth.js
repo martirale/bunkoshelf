@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 
-export const useAuth = () => {
+export const useAuth = ({ watchPathname = false } = {}) => {
   const [auth, setAuth] = useState({
     isAuthenticated: false,
     isAdmin: false,
   });
+
+  const pathname = usePathname();
 
   const fetchAuth = useCallback(async () => {
     try {
@@ -31,6 +34,12 @@ export const useAuth = () => {
   useEffect(() => {
     fetchAuth();
   }, [fetchAuth]);
+
+  useEffect(() => {
+    if (watchPathname) {
+      fetchAuth();
+    }
+  }, [pathname, watchPathname, fetchAuth]);
 
   return { ...auth, refetchAuth: fetchAuth };
 };

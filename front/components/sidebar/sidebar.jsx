@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import SidebarLogo from "./siebarLogo";
 import {
   Menu,
   HomeIcon as House,
@@ -14,14 +12,18 @@ import {
   Languages,
   LogOut,
 } from "lucide-react";
+import SidebarLogo from "./siebarLogo";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import { useClientDictionary } from "@/lib/i18n/clientDictionary";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Sidebar() {
   // Users verify
-  const { isAuthenticated, isAdmin, refetchAuth } = useAuth();
+  const { isAuthenticated, isAdmin, refetchAuth } = useAuth({
+    watchPathname: true,
+  });
 
   // Lang options
   const params = useParams();
