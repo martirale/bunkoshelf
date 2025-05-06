@@ -251,14 +251,14 @@ export default function Sidebar() {
             >
               <Languages className="w-5 h-5" />
             </button>
-            {/* Help */}
+            {/* Guides */}
             <Link
               href="#"
               target="_blank"
               rel="noopener"
               className={`border border-onix rounded-lg p-2 hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
             >
-              <CircleHelp className="w-5 h-5" />
+              <BookOpen className="w-5 h-5" />
             </Link>
             {/* Logout Button */}
             {isAuthenticated && (
@@ -419,14 +419,14 @@ export default function Sidebar() {
                   >
                     <Languages className="w-5 h-5" />
                   </button>
-                  {/* Help */}
+                  {/* Guides */}
                   <Link
                     href="#"
                     target="_blank"
                     rel="noopener"
                     className="border border-onix rounded-lg p-2"
                   >
-                    <CircleHelp className="w-5 h-5" />
+                    <BookOpen className="w-5 h-5" />
                   </Link>
                   {/* Logout Button */}
                   {isAuthenticated && (
