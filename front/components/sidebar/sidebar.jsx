@@ -7,8 +7,8 @@ import {
   ChevronDown,
   ChevronUp,
   BookHeart,
+  CircleUser,
   Settings2,
-  CircleHelp,
   Languages,
   LogOut,
   BookOpen,
@@ -69,8 +69,9 @@ export default function Sidebar() {
   const isHome = pathname === `/${currentLang}`;
   const isManga = pathname.startsWith(`/${currentLang}/manga`);
   const isBooks = pathname.startsWith(`/${currentLang}/books`);
-  const isFavorites = pathname.startsWith(`/${currentLang}/favorites`);
   const isLibrary = isManga || isBooks;
+  const isFavorites = pathname.startsWith(`/${currentLang}/favorites`);
+  const isProfile = pathname.startsWith(`/${currentLang}/profile`);
   const isSettings = pathname.startsWith(`/${currentLang}/settings`);
 
   // State for library dropdown
@@ -206,6 +207,18 @@ export default function Sidebar() {
               <BookHeart className="w-5 h-5 mr-2" />
               {sidebar.favorites}
             </Link>
+            <Link
+              href={`/${currentLang}/profile`}
+              className={`flex items-center p-4 rounded-lg leading-none border ${
+                isProfile
+                  ? "border-sand bg-onix"
+                  : `border-blackamber hover:bg-onix ${hoverBorder}`
+              } transition-all duration-300`}
+            >
+              <CircleUser className="w-5 h-5 mr-2" />
+              {sidebar.profile}
+            </Link>
+            {/* Admin Options */}
             {isAdmin && (
               <Link
                 href={`/${currentLang}/settings`}
@@ -219,6 +232,7 @@ export default function Sidebar() {
                 {sidebar.settings}
               </Link>
             )}
+            {/* End Admin Options */}
           </nav>
         )}
         {/* END MAIN NAV */}
@@ -366,6 +380,18 @@ export default function Sidebar() {
                   <BookHeart className="w-5 h-5 mr-2" />
                   {sidebar.favorites}
                 </Link>
+                <Link
+                  href={`/${currentLang}/profile`}
+                  className={`flex items-center p-4 rounded-lg leading-none border ${
+                    isProfile
+                      ? "border-sand bg-onix"
+                      : `border-blackamber hover:bg-onix ${hoverBorder}`
+                  }`}
+                >
+                  <CircleUser className="w-5 h-5 mr-2" />
+                  {sidebar.profile}
+                </Link>
+                {/* Admin Options */}
                 {isAdmin && (
                   <Link
                     href={`/${currentLang}/settings`}
@@ -379,6 +405,7 @@ export default function Sidebar() {
                     {sidebar.settings}
                   </Link>
                 )}
+                {/* End Admin Options */}
               </nav>
             )}
             {/* END MAIN NAV */}

@@ -5,6 +5,7 @@
     "manga": "Manga",
     "books": "Books",
     "favorites": "Favorites",
+    "profile": "Profile",
     "settings": "Settings"
   },
   "libraries": {
@@ -20,6 +21,9 @@
   },
   "favorites": {
     "title": "Favorites"
+  },
+  "profile": {
+    "title": "Profile"
   },
   "settings": {
     "title": "Settings",
