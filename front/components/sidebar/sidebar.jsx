@@ -133,15 +133,6 @@ export default function Sidebar() {
               <BookOpen className="w-5 h-5 mr-2" />
               {intl.noauth.guide}
             </Link>
-            {/* <Link
-              href="#"
-              target="_blank"
-              rel="noopener"
-              className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
-            >
-              <BookHeart className="w-5 h-5 mr-2" />
-              {intl.noauth.lorem}
-            </Link> */}
           </div>
         )}
         {/* END NO AUTH OPTIONS */}
@@ -299,17 +290,8 @@ export default function Sidebar() {
                   rel="noopener"
                   className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
                 >
-                  <BookHeart className="w-5 h-5 mr-2" />
-                  {intl.noauth.lorem}
-                </Link>
-                <Link
-                  href="#"
-                  target="_blank"
-                  rel="noopener"
-                  className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
-                >
-                  <BookHeart className="w-5 h-5 mr-2" />
-                  {intl.noauth.lorem}
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  {intl.noauth.guide}
                 </Link>
               </div>
             )}
