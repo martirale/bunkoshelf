@@ -27,7 +27,7 @@ export default function ProfileForm({ user, lang, intl }) {
     setMessage(null);
 
     try {
-      const res = await fetch("http://localhost:3001/api/users/me/update", {
+      const res = await fetch("http://localhost:4000/api/users/me/update", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

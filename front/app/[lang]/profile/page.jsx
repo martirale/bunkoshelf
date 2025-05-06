@@ -6,7 +6,7 @@ export default async function ProfilePage({ params }) {
   const { lang } = params;
   const intl = await getDictionary(lang);
 
-  const res = await fetch("http://localhost:3001/api/users/me", {
+  const res = await fetch("http://localhost:4000/api/users/me", {
     headers: {
       Cookie: (await cookies()).toString(),
     },

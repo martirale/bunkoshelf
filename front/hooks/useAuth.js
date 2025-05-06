@@ -13,7 +13,7 @@ export const useAuth = ({ watchPathname = false } = {}) => {
 
   const fetchAuth = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:3001/api/session/check", {
+      const res = await fetch("http://localhost:4000/api/session/check", {
         method: "GET",
         credentials: "include",
       });
