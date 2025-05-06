@@ -17,8 +17,12 @@ import {
 import Link from "next/link";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import { useClientDictionary } from "@/lib/i18n/clientDictionary";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Sidebar() {
+  // Users verify
+  const { isAuthenticated, isAdmin } = useAuth();
+
   // Lang options
   const params = useParams();
   const currentLang = params.lang || "es";
@@ -223,13 +227,15 @@ export default function Sidebar() {
             </Link>
 
             {/* Logout Button */}
-            <button
-              className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
-              aria-label="Logout"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+            {isAuthenticated && (
+              <button
+                className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
+                aria-label="Logout"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
       </aside>

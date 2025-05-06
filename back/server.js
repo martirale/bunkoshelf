@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { PrismaClient } from "@prisma/client";
 import authRoutes from "./routes/auth.js";
 import logoutRoutes from "./routes/logout.js";
+import sessionRoutes from "./routes/session.js";
 
 const prisma = new PrismaClient();
 
@@ -58,6 +59,7 @@ createAdminIfNotExists();
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/logout", logoutRoutes);
+app.use("/api/session", sessionRoutes);
 
 // Test ping
 app.get("/api/ping", (req, res) => {
