@@ -1,57 +1,16 @@
-# Etapa 1: Construcción del frontend (Next.js)
-FROM node:20-alpine AS frontend-build
-WORKDIR /front
-
-# Instalar PNPM
-RUN npm install -g pnpm
-
-# Copiar todo el frontend antes de instalar
-COPY front/ ./
-
-# Instalar dependencias y construir
-RUN pnpm install
-RUN pnpm run build
-RUN ls -l ./ && ls -l .next || echo "❌ No se generó .next"
-
-# Etapa 2: Preparar backend (Express)
-FROM node:20-alpine AS backend-build
-WORKDIR /back
-
-# Instalar PNPM
-RUN npm install -g pnpm
-
-# Copiar todo el backend antes de instalar
-COPY back/ ./ 
-
-# Instalar solo dependencias de producción
-RUN pnpm install --prod
-
-# Generar el cliente de Prisma
-RUN pnpm prisma generate
-
-# Etapa 3: Imagen final de producción
 FROM node:20-alpine
 
-# Crear carpetas para frontend y backend
-WORKDIR /app
-
-# Instalar PNPM
+# Instalar PNPM globalmente
 RUN npm install -g pnpm
 
-# Copiar frontend compilado
-COPY --from=frontend-build /front/.next ./front/.next
-COPY --from=frontend-build /front/public ./front/public
-COPY --from=frontend-build /front/next.config.js ./front/next.config.js
-COPY --from=frontend-build /front/package.json ./front/package.json
-COPY --from=frontend-build /front/pnpm-lock.yaml ./front/pnpm-lock.yaml
-RUN cd front && pnpm install --prod
+# Definir directorio de trabajo
+WORKDIR /app
 
-# Copiar backend listo para producción
-COPY --from=backend-build /back ./back
+# Copiar frontend (Next.js)
+COPY ./front /app/front
 
-# Copiar variables de entorno
-COPY front/.env ./front/.env
-COPY back/.env ./back/.env
+# Copiar backend (Express)
+COPY ./back /app/back
 
 # Copiar script de inicio
 COPY start.sh ./start.sh
