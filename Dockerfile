@@ -5,12 +5,13 @@ WORKDIR /front
 # Instalar PNPM
 RUN npm install -g pnpm
 
-# Copiar archivos necesarios y construir
-COPY front/pnpm-lock.yaml front/package.json ./
-RUN pnpm install
-
+# Copiar todo el frontend antes de instalar
 COPY front/ ./
+
+# Instalar dependencias y construir
+RUN pnpm install
 RUN pnpm run build
+RUN ls -l ./ && ls -l .next || echo "❌ No se generó .next"
 
 # Etapa 2: Preparar backend (Express)
 FROM node:20-alpine AS backend-build
@@ -19,13 +20,13 @@ WORKDIR /back
 # Instalar PNPM
 RUN npm install -g pnpm
 
-# Copiar archivos necesarios y construir
-COPY back/pnpm-lock.yaml back/package.json ./
+# Copiar todo el backend antes de instalar
+COPY back/ ./ 
+
+# Instalar solo dependencias de producción
 RUN pnpm install --prod
 
-COPY back/ ./
-
-# Genera el cliente Prisma
+# Generar el cliente de Prisma
 RUN pnpm prisma generate
 
 # Etapa 3: Imagen final de producción
