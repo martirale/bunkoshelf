@@ -15,6 +15,7 @@ COPY ./back /app/back
 
 # Copia el script de entrada
 COPY entrypoint.sh /app/entrypoint.sh
+COPY process.yml /app/process.yml
 
 # Da permisos de ejecución al script
 RUN chmod +x /app/entrypoint.sh
@@ -23,4 +24,4 @@ RUN chmod +x /app/entrypoint.sh
 EXPOSE 3000 4000
 
 # Ejecuta el script de entrada
-ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["pm2-runtime", "process.yml"]
