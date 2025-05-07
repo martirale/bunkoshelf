@@ -1,23 +1,20 @@
-FROM node:20-alpine
+FROM node:20-slim
 
-# Instalar PNPM globalmente
-RUN npm install -g pnpm
+RUN apt-get update && apt-get install -y openssl
 
-# Definir directorio de trabajo
+RUN npm install -g pnpm pm2
+
 WORKDIR /app
 
-# Copiar frontend (Next.js)
 COPY ./front /app/front
-
-# Copiar backend (Express)
 COPY ./back /app/back
+COPY ecosystem.config.cjs /app/ecosystem.config.cjs
 
-# Copiar script de inicio
-COPY start.sh ./start.sh
-RUN chmod +x start.sh
+WORKDIR /app/back
+RUN pnpm install && pnpm exec prisma generate
 
-# Exponer puertos de Next y Express
+WORKDIR /app
+
 EXPOSE 3000 4000
 
-# Comando final
-CMD ["./start.sh"]
+CMD ["pm2-runtime", "ecosystem.config.cjs"]
