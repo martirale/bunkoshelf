@@ -1,10 +1,17 @@
 import express from "express";
-import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 const router = express.Router();
-const prisma = new PrismaClient();
+
+let prisma;
+async function getPrisma() {
+  if (!prisma) {
+    const { PrismaClient } = await import("@prisma/client");
+    prisma = new PrismaClient();
+  }
+  return prisma;
+}
 
 // Middleware para verificar si el usuario está logeado
 const requireAuth = (req, res, next) => {
@@ -29,7 +36,8 @@ const requireAdmin = (req, res, next) => {
 
 // GET todos los usuarios (solo admin)
 router.get("/", requireAuth, requireAdmin, async (req, res) => {
-  const users = await prisma.user.findMany({
+  const prismaClient = await getPrisma();
+  const users = await prismaClient.user.findMany({
     select: {
       id: true,
       username: true,
@@ -44,7 +52,8 @@ router.get("/", requireAuth, requireAdmin, async (req, res) => {
 
 // GET perfil del usuario autenticado
 router.get("/me", requireAuth, async (req, res) => {
-  const user = await prisma.user.findUnique({
+  const prismaClient = await getPrisma();
+  const user = await prismaClient.user.findUnique({
     where: { id: req.user.id },
     select: {
       id: true,
@@ -60,11 +69,9 @@ router.get("/me", requireAuth, async (req, res) => {
 
 // PUT actualizar perfil propio
 router.put("/me/update", requireAuth, async (req, res) => {
+  const prismaClient = await getPrisma();
   const { name, lastname, password } = req.body;
-  const dataToUpdate = {
-    name,
-    lastname,
-  };
+  const dataToUpdate = { name, lastname };
 
   if (password) {
     const salt = await bcrypt.genSalt(10);
@@ -72,11 +79,10 @@ router.put("/me/update", requireAuth, async (req, res) => {
   }
 
   try {
-    const updated = await prisma.user.update({
+    const updated = await prismaClient.user.update({
       where: { id: req.user.id },
       data: dataToUpdate,
     });
-
     res.json(updated);
   } catch (err) {
     console.error(err);
@@ -86,7 +92,8 @@ router.put("/me/update", requireAuth, async (req, res) => {
 
 // GET usuario por ID (solo admin)
 router.get("/:id", requireAuth, requireAdmin, async (req, res) => {
-  const user = await prisma.user.findUnique({
+  const prismaClient = await getPrisma();
+  const user = await prismaClient.user.findUnique({
     where: { id: parseInt(req.params.id) },
   });
   res.json(user);
@@ -94,8 +101,9 @@ router.get("/:id", requireAuth, requireAdmin, async (req, res) => {
 
 // PUT actualizar usuario por ID (solo admin)
 router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
+  const prismaClient = await getPrisma();
   const data = req.body;
-  const updated = await prisma.user.update({
+  const updated = await prismaClient.user.update({
     where: { id: parseInt(req.params.id) },
     data,
   });

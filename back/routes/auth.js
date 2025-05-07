@@ -1,15 +1,25 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+let prisma;
+
+async function getPrisma() {
+  if (!prisma) {
+    const { PrismaClient } = await import("@prisma/client");
+    prisma = new PrismaClient();
+  }
+  return prisma;
+}
+
 const router = express.Router();
 
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
-    const user = await prisma.user.findUnique({ where: { username } });
+    const prismaClient = await getPrisma();
+
+    const user = await prismaClient.user.findUnique({ where: { username } });
     if (!user) return res.status(401).json({ error: "Credenciales inválidas" });
 
     const valid = await bcrypt.compare(password, user.password);

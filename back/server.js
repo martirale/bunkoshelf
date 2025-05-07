@@ -3,13 +3,20 @@ import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import cookieParser from "cookie-parser";
-import { PrismaClient } from "@prisma/client";
 import authRoutes from "./routes/auth.js";
 import logoutRoutes from "./routes/logout.js";
 import sessionRoutes from "./routes/session.js";
 import usersRoutes from "./routes/users.js";
 
-const prisma = new PrismaClient();
+let prisma;
+
+async function getPrisma() {
+  if (!prisma) {
+    const { PrismaClient } = await import("@prisma/client");
+    prisma = new PrismaClient();
+  }
+  return prisma;
+}
 
 dotenv.config();
 
@@ -29,15 +36,16 @@ app.use(express.json());
 // Create the admin user if it does not exist
 async function createAdminIfNotExists() {
   try {
-    const adminExists = await prisma.user.findUnique({
+    const prismaClient = await getPrisma();
+
+    const adminExists = await prismaClient.user.findUnique({
       where: { username: "bunko" },
     });
 
     if (!adminExists) {
-      // If it does not exist, create the admin user with a temporary password
       const hashedPassword = await bcrypt.hash("admin123", 10);
 
-      await prisma.user.create({
+      await prismaClient.user.create({
         data: {
           username: "bunko",
           password: hashedPassword,
