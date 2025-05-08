@@ -1,8 +1,12 @@
 import { i18nMiddleware } from "./middlewares/i18n.js";
+import { authMiddleware } from "./middlewares/auth.js";
 
-export function middleware(request) {
+export async function middleware(request) {
   const i18nRedirect = i18nMiddleware(request);
   if (i18nRedirect) return i18nRedirect;
+
+  const authRedirect = await authMiddleware(request);
+  if (authRedirect) return authRedirect;
 
   return null;
 }
