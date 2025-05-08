@@ -116,7 +116,7 @@ export default function Sidebar() {
   return (
     <>
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden md:flex md:w-2/12 bg-blackamber flex-col justify-between p-4">
+      <aside className="hidden md:flex md:w-3/12 2xl:w-2/12 bg-blackamber flex-col justify-between p-4">
         <div>
           <h1 className="hidden">Bunko Shelf</h1>
           <SidebarLogo />
