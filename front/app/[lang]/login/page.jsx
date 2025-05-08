@@ -4,6 +4,11 @@ import MainLogo from "@/ui/MainLogo";
 
 export default async function LoginPage({ params }) {
   const { lang } = params;
+
+  await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/initAdmin`, {
+    cache: "no-store",
+  });
+
   const intl = await getDictionary(lang);
 
   return (
