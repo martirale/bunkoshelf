@@ -42,6 +42,10 @@ yarn-error.log*
 /back/.env
 
 # SQLite database
+/front/prisma/*.db
+/front/prisma/*.db-journal
+/front/prisma/*.db-shm
+/front/prisma/*.db-wal
 /back/prisma/*.db
 /back/prisma/*.db-journal
 /back/prisma/*.db-shm
