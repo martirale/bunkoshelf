@@ -18,14 +18,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import { useClientDictionary } from "@/lib/i18n/clientDictionary";
-import { useAuth } from "@/hooks/useAuth";
 
 export default function Sidebar() {
-  // Users verify
-  const { isAuthenticated, isAdmin, refetchAuth } = useAuth({
-    watchPathname: true,
-  });
-
   // Lang options
   const params = useParams();
   const currentLang = params.lang || "es";
@@ -43,24 +37,24 @@ export default function Sidebar() {
   };
 
   // Loguot options
-  const handleLogout = async () => {
-    try {
-      const res = await fetch("http://localhost:4000/api/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+  // const handleLogout = async () => {
+  //   try {
+  //     const res = await fetch("http://localhost:4000/api/logout", {
+  //       method: "POST",
+  //       credentials: "include",
+  //     });
 
-      refetchAuth();
+  //     refetchAuth();
 
-      if (res.ok) {
-        router.push(`/${currentLang}/login`);
-      } else {
-        console.error("Error al cerrar sesión:", await res.text());
-      }
-    } catch (err) {
-      console.error("Error de red:", err);
-    }
-  };
+  //     if (res.ok) {
+  //       router.push(`/${currentLang}/login`);
+  //     } else {
+  //       console.error("Error al cerrar sesión:", await res.text());
+  //     }
+  //   } catch (err) {
+  //     console.error("Error de red:", err);
+  //   }
+  // };
 
   // State for sidebar
   const [open, setOpen] = useState(false);
@@ -123,118 +117,118 @@ export default function Sidebar() {
         </div>
 
         {/* NO AUTH OPTIONS */}
-        {!isAuthenticated && (
-          <div className="mt-8 space-y-2 flex-1 text-lg">
-            <Link
-              href="#"
-              target="_blank"
-              rel="noopener"
-              className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
-            >
-              <BookOpen className="w-5 h-5 mr-2" />
-              {intl.noauth.guide}
-            </Link>
-          </div>
-        )}
+        {/* {!isAuthenticated && ( */}
+        <div className="mt-8 space-y-2 flex-1 text-lg">
+          <Link
+            href="#"
+            target="_blank"
+            rel="noopener"
+            className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
+          >
+            <BookOpen className="w-5 h-5 mr-2" />
+            {intl.noauth.guide}
+          </Link>
+        </div>
+        {/* )} */}
         {/* END NO AUTH OPTIONS */}
 
         {/* MAIN NAV */}
-        {isAuthenticated && (
-          <nav className="mt-8 space-y-2 flex-1 text-lg">
-            <Link
-              href={`/${currentLang}`}
-              className={`flex items-center p-4 rounded-lg leading-none border ${
-                isHome
-                  ? "border-sand bg-onix"
-                  : `border-blackamber hover:bg-onix ${hoverBorder}`
+        {/* {isAuthenticated && ( */}
+        <nav className="mt-8 space-y-2 flex-1 text-lg">
+          <Link
+            href={`/${currentLang}`}
+            className={`flex items-center p-4 rounded-lg leading-none border ${
+              isHome
+                ? "border-sand bg-onix"
+                : `border-blackamber hover:bg-onix ${hoverBorder}`
+            } transition-all duration-300`}
+          >
+            <House className="w-5 h-5 mr-2" />
+            {sidebar.home}
+          </Link>
+          {/* Library (Drop Down) */}
+          <div className="relative">
+            <button
+              onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
+              className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
+                isLibrary
+                  ? isManga
+                    ? "border-lilah bg-onix"
+                    : "border-ash bg-onix"
+                  : "border-blackamber hover:border-pearl hover:bg-onix"
               } transition-all duration-300`}
             >
-              <House className="w-5 h-5 mr-2" />
-              {sidebar.home}
-            </Link>
-            {/* Library (Drop Down) */}
-            <div className="relative">
-              <button
-                onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
-                className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
-                  isLibrary
-                    ? isManga
-                      ? "border-lilah bg-onix"
-                      : "border-ash bg-onix"
-                    : "border-blackamber hover:border-pearl hover:bg-onix"
-                } transition-all duration-300`}
-              >
-                <span className="flex items-center">
-                  <LibraryBig className="w-5 h-5 mr-2" />
-                  {sidebar.library}
-                </span>
-                {openLibraryMenu ? (
-                  <ChevronUp className="w-5 h-5 ml-2" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 ml-2" />
-                )}
-              </button>
-              {openLibraryMenu && (
-                <div className="mt-2 space-y-2">
-                  <Link
-                    href={`/${currentLang}/manga`}
-                    className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
-                      isManga ? "bg-onix text-lilah" : "hover:bg-onix"
-                    }`}
-                  >
-                    {sidebar.manga}
-                  </Link>
-                  <Link
-                    href={`/${currentLang}/books`}
-                    className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
-                      isBooks ? "bg-onix text-ash" : "hover:bg-onix"
-                    }`}
-                  >
-                    {sidebar.books}
-                  </Link>
-                </div>
+              <span className="flex items-center">
+                <LibraryBig className="w-5 h-5 mr-2" />
+                {sidebar.library}
+              </span>
+              {openLibraryMenu ? (
+                <ChevronUp className="w-5 h-5 ml-2" />
+              ) : (
+                <ChevronDown className="w-5 h-5 ml-2" />
               )}
-            </div>
-            {/* End Library (Drop Down) */}
-            <Link
-              href={`/${currentLang}/favorites`}
-              className={`flex items-center p-4 rounded-lg leading-none border ${
-                isFavorites
-                  ? "border-sand bg-onix"
-                  : `border-blackamber hover:bg-onix ${hoverBorder}`
-              } transition-all duration-300`}
-            >
-              <BookHeart className="w-5 h-5 mr-2" />
-              {sidebar.favorites}
-            </Link>
-            <Link
-              href={`/${currentLang}/profile`}
-              className={`flex items-center p-4 rounded-lg leading-none border ${
-                isProfile
-                  ? "border-sand bg-onix"
-                  : `border-blackamber hover:bg-onix ${hoverBorder}`
-              } transition-all duration-300`}
-            >
-              <CircleUser className="w-5 h-5 mr-2" />
-              {sidebar.profile}
-            </Link>
-            {/* Admin Options */}
-            {isAdmin && (
-              <Link
-                href={`/${currentLang}/settings`}
-                className={`flex items-center p-4 rounded-lg leading-none border ${
-                  isSettings
-                    ? "border-sand bg-onix"
-                    : `border-blackamber hover:bg-onix ${hoverBorder}`
-                } transition-all duration-300`}
-              >
-                <Settings2 className="w-5 h-5 mr-2" />
-                {sidebar.settings}
-              </Link>
+            </button>
+            {openLibraryMenu && (
+              <div className="mt-2 space-y-2">
+                <Link
+                  href={`/${currentLang}/manga`}
+                  className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
+                    isManga ? "bg-onix text-lilah" : "hover:bg-onix"
+                  }`}
+                >
+                  {sidebar.manga}
+                </Link>
+                <Link
+                  href={`/${currentLang}/books`}
+                  className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
+                    isBooks ? "bg-onix text-ash" : "hover:bg-onix"
+                  }`}
+                >
+                  {sidebar.books}
+                </Link>
+              </div>
             )}
-            {/* End Admin Options */}
-          </nav>
-        )}
+          </div>
+          {/* End Library (Drop Down) */}
+          <Link
+            href={`/${currentLang}/favorites`}
+            className={`flex items-center p-4 rounded-lg leading-none border ${
+              isFavorites
+                ? "border-sand bg-onix"
+                : `border-blackamber hover:bg-onix ${hoverBorder}`
+            } transition-all duration-300`}
+          >
+            <BookHeart className="w-5 h-5 mr-2" />
+            {sidebar.favorites}
+          </Link>
+          <Link
+            href={`/${currentLang}/profile`}
+            className={`flex items-center p-4 rounded-lg leading-none border ${
+              isProfile
+                ? "border-sand bg-onix"
+                : `border-blackamber hover:bg-onix ${hoverBorder}`
+            } transition-all duration-300`}
+          >
+            <CircleUser className="w-5 h-5 mr-2" />
+            {sidebar.profile}
+          </Link>
+          {/* Admin Options */}
+          {/* {isAdmin && ( */}
+          <Link
+            href={`/${currentLang}/settings`}
+            className={`flex items-center p-4 rounded-lg leading-none border ${
+              isSettings
+                ? "border-sand bg-onix"
+                : `border-blackamber hover:bg-onix ${hoverBorder}`
+            } transition-all duration-300`}
+          >
+            <Settings2 className="w-5 h-5 mr-2" />
+            {sidebar.settings}
+          </Link>
+          {/* )} */}
+          {/* End Admin Options */}
+        </nav>
+        {/* )} */}
         {/* END MAIN NAV */}
 
         {/* FOOTER BUTTONS */}
@@ -266,15 +260,15 @@ export default function Sidebar() {
               <BookOpen className="w-5 h-5" />
             </Link>
             {/* Logout Button */}
-            {isAuthenticated && (
-              <button
-                className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
-                aria-label="Logout"
-                onClick={handleLogout}
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            )}
+            {/* {isAuthenticated && (
+            <button
+              className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
+              aria-label="Logout"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+            )} */}
           </div>
         </div>
         {/* END FOOTER BUTTONS */}
@@ -294,122 +288,119 @@ export default function Sidebar() {
               <h2 className="hidden">Bunko Shelf</h2>
               <SidebarLogo />
             </div>
-
             {/* NO AUTH OPTIONS */}
-            {!isAuthenticated && (
-              <div className="mt-8 space-y-2 flex-1 text-lg">
-                <Link
-                  href="#"
-                  target="_blank"
-                  rel="noopener"
-                  className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
-                >
-                  <BookOpen className="w-5 h-5 mr-2" />
-                  {intl.noauth.guide}
-                </Link>
-              </div>
-            )}
+            {/* {!isAuthenticated && ( */}
+            <div className="mt-8 space-y-2 flex-1 text-lg">
+              <Link
+                href="#"
+                target="_blank"
+                rel="noopener"
+                className="flex items-center p-4 rounded-lg leading-none border border-blackamber hover:bg-onix hover:border-pearl transition-all duration-300"
+              >
+                <BookOpen className="w-5 h-5 mr-2" />
+                {intl.noauth.guide}
+              </Link>
+            </div>
+            {/* )} */}
             {/* END NO AUTH OPTIONS */}
-
             {/* MAIN NAV */}
-            {isAuthenticated && (
-              <nav className="mt-8 space-y-2 flex-1 text-lg">
-                <Link
-                  href={`/${currentLang}`}
-                  className={`flex items-center p-4 rounded-lg leading-none border ${
-                    isHome
-                      ? "border-sand bg-onix"
-                      : `border-blackamber hover:bg-onix ${hoverBorder}`
+            {/* {isAuthenticated && ( */}
+            <nav className="mt-8 space-y-2 flex-1 text-lg">
+              <Link
+                href={`/${currentLang}`}
+                className={`flex items-center p-4 rounded-lg leading-none border ${
+                  isHome
+                    ? "border-sand bg-onix"
+                    : `border-blackamber hover:bg-onix ${hoverBorder}`
+                }`}
+              >
+                <House className="w-5 h-5 mr-2" />
+                {sidebar.home}
+              </Link>
+              {/* Library (Drop Down) */}
+              <div className="relative">
+                <button
+                  onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
+                  className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
+                    isLibrary
+                      ? isManga
+                        ? "border-lilah bg-onix"
+                        : "border-ash bg-onix"
+                      : "border-blackamber hover:border-pearl hover:bg-onix"
                   }`}
                 >
-                  <House className="w-5 h-5 mr-2" />
-                  {sidebar.home}
-                </Link>
-                {/* Library (Drop Down) */}
-                <div className="relative">
-                  <button
-                    onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
-                    className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
-                      isLibrary
-                        ? isManga
-                          ? "border-lilah bg-onix"
-                          : "border-ash bg-onix"
-                        : "border-blackamber hover:border-pearl hover:bg-onix"
-                    }`}
-                  >
-                    <span className="flex items-center">
-                      <LibraryBig className="w-5 h-5 mr-2" />
-                      {sidebar.library}
-                    </span>
-                    {openLibraryMenu ? (
-                      <ChevronUp className="w-5 h-5 ml-2" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 ml-2" />
-                    )}
-                  </button>
-                  {openLibraryMenu && (
-                    <div className="mt-2 space-y-2">
-                      <Link
-                        href={`/${currentLang}/manga`}
-                        className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
-                          isManga ? "bg-onix text-lilah" : "hover:bg-onix"
-                        }`}
-                      >
-                        {sidebar.manga}
-                      </Link>
-                      <Link
-                        href={`/${currentLang}/books`}
-                        className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
-                          isBooks ? "bg-onix text-ash" : "hover:bg-onix"
-                        }`}
-                      >
-                        {sidebar.books}
-                      </Link>
-                    </div>
+                  <span className="flex items-center">
+                    <LibraryBig className="w-5 h-5 mr-2" />
+                    {sidebar.library}
+                  </span>
+                  {openLibraryMenu ? (
+                    <ChevronUp className="w-5 h-5 ml-2" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 ml-2" />
                   )}
-                </div>
-                {/* End Library (Drop Down) */}
-                <Link
-                  href={`/${currentLang}/favorites`}
-                  className={`flex items-center p-4 rounded-lg leading-none border ${
-                    isFavorites
-                      ? "border-sand bg-onix"
-                      : `border-blackamber hover:bg-onix ${hoverBorder}`
-                  }`}
-                >
-                  <BookHeart className="w-5 h-5 mr-2" />
-                  {sidebar.favorites}
-                </Link>
-                <Link
-                  href={`/${currentLang}/profile`}
-                  className={`flex items-center p-4 rounded-lg leading-none border ${
-                    isProfile
-                      ? "border-sand bg-onix"
-                      : `border-blackamber hover:bg-onix ${hoverBorder}`
-                  }`}
-                >
-                  <CircleUser className="w-5 h-5 mr-2" />
-                  {sidebar.profile}
-                </Link>
-                {/* Admin Options */}
-                {isAdmin && (
-                  <Link
-                    href={`/${currentLang}/settings`}
-                    className={`flex items-center p-4 rounded-lg leading-none border ${
-                      isSettings
-                        ? "border-sand bg-onix"
-                        : `border-blackamber hover:bg-onix ${hoverBorder}`
-                    }`}
-                  >
-                    <Settings2 className="w-5 h-5 mr-2" />
-                    {sidebar.settings}
-                  </Link>
+                </button>
+                {openLibraryMenu && (
+                  <div className="mt-2 space-y-2">
+                    <Link
+                      href={`/${currentLang}/manga`}
+                      className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
+                        isManga ? "bg-onix text-lilah" : "hover:bg-onix"
+                      }`}
+                    >
+                      {sidebar.manga}
+                    </Link>
+                    <Link
+                      href={`/${currentLang}/books`}
+                      className={`block pl-12 pr-4 py-4 rounded-lg leading-none ${
+                        isBooks ? "bg-onix text-ash" : "hover:bg-onix"
+                      }`}
+                    >
+                      {sidebar.books}
+                    </Link>
+                  </div>
                 )}
-                {/* End Admin Options */}
-              </nav>
-            )}
+              </div>
+              {/* End Library (Drop Down) */}
+              <Link
+                href={`/${currentLang}/favorites`}
+                className={`flex items-center p-4 rounded-lg leading-none border ${
+                  isFavorites
+                    ? "border-sand bg-onix"
+                    : `border-blackamber hover:bg-onix ${hoverBorder}`
+                }`}
+              >
+                <BookHeart className="w-5 h-5 mr-2" />
+                {sidebar.favorites}
+              </Link>
+              <Link
+                href={`/${currentLang}/profile`}
+                className={`flex items-center p-4 rounded-lg leading-none border ${
+                  isProfile
+                    ? "border-sand bg-onix"
+                    : `border-blackamber hover:bg-onix ${hoverBorder}`
+                }`}
+              >
+                <CircleUser className="w-5 h-5 mr-2" />
+                {sidebar.profile}
+              </Link>
+              {/* Admin Options */}
+              {/* {isAdmin && ( */}
+              <Link
+                href={`/${currentLang}/settings`}
+                className={`flex items-center p-4 rounded-lg leading-none border ${
+                  isSettings
+                    ? "border-sand bg-onix"
+                    : `border-blackamber hover:bg-onix ${hoverBorder}`
+                }`}
+              >
+                <Settings2 className="w-5 h-5 mr-2" />
+                {sidebar.settings}
+              </Link>
+              {/* )} */}
+              {/* End Admin Options */}
+            </nav>
+            {/* )} */}
             {/* END MAIN NAV */}
-
             {/* FOOTER BUTTONS */}
             <div className="flex justify-between items-center">
               <Link
@@ -440,15 +431,15 @@ export default function Sidebar() {
                     <BookOpen className="w-5 h-5" />
                   </Link>
                   {/* Logout Button */}
-                  {isAuthenticated && (
-                    <button
-                      className="border border-onix rounded-lg p-2 cursor-pointer"
-                      aria-label="Logout"
-                      onClick={handleLogout}
-                    >
-                      <LogOut className="w-5 h-5" />
-                    </button>
-                  )}
+                  {/* {isAuthenticated && (
+                  <button
+                    className="border border-onix rounded-lg p-2 cursor-pointer"
+                    aria-label="Logout"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                  )} */}
                 </div>
               </div>
             </div>
