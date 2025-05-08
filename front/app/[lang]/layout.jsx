@@ -4,7 +4,7 @@ import Sidebar from "@/components/sidebar/sidebar";
 
 export const metadata = {
   title: "Bunko Shelf",
-  description: "Full web manga and book reader and library.",
+  description: "Full web manga and book server, reader and library.",
   icons: {
     icon: "/favicon.png",
     apple: "/apple-touch-icon.png",
@@ -15,10 +15,12 @@ export async function generateStaticParams() {
   return [{ lang: "es" }, { lang: "en" }];
 }
 
-export default function RootLayout({ children, params }) {
+export default async function RootLayout({ children, params }) {
+  const { lang } = await params;
+
   return (
     <html
-      lang={params.lang}
+      lang={lang || "es"}
       className={`${robotoCondensed.variable} ${boldonse.variable}`}
     >
       <body className="flex h-screen overflow-hidden">

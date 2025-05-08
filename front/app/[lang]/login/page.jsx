@@ -3,7 +3,7 @@ import LoginForm from "./LoginForm";
 import MainLogo from "@/ui/MainLogo";
 
 export default async function LoginPage({ params }) {
-  const { lang } = params;
+  const { lang = "es" } = await params;
 
   await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/initAdmin`, {
     cache: "no-store",
