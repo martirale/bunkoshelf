@@ -1,23 +1,18 @@
-"use server";
-
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 
-export async function login(formData) {
-  const username = formData.get("username");
-  const password = formData.get("password");
-
+export async function login({ username, password, lang = "es" }) {
   if (!username || !password) {
-    return { error: "Faltan datos" };
+    throw new Error("missing");
   }
 
   try {
     const user = await prisma.user.findUnique({ where: { username } });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return { error: "Credenciales inválidas" };
+      throw new Error("invalid");
     }
 
     const token = jwt.sign(
@@ -38,12 +33,12 @@ export async function login(formData) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 180 * 24 * 60 * 60, // in seconds (180 days)
+      maxAge: 180 * 24 * 60 * 60, // Six months
     });
 
     return { success: true };
   } catch (err) {
     console.error(err);
-    return { error: "Error en el servidor" };
+    throw new Error("server");
   }
 }

@@ -1,22 +1,58 @@
-import { login } from "@/app/actions/login";
-import { redirect } from "next/navigation";
-import { useFormState } from "next/forms";
+"use client";
 
-export default async function LoginForm({ lang, intl }) {
-  const [state, formAction] = useFormState(login);
-  if (state?.success) {
-    redirect(`/${lang}/`);
-  }
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function LoginForm({ lang, intl }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
+  const router = useRouter();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    const data = {
+      username,
+      password,
+      lang,
+    };
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        setErrorMessage(result.error || "Server error");
+        return;
+      }
+
+      // Si el login es exitoso, redirigimos a la página principal
+      router.push(`/${lang}/`);
+    } catch (error) {
+      console.error("Login error:", error);
+      setErrorMessage("An unexpected error occurred. Please try again.");
+    }
+  };
 
   return (
     <div className="mt-8 w-full max-w-sm">
-      <form onSubmit={formAction} className="max-w-screen md:max-w-sm w-full">
+      <form onSubmit={handleLogin} className="max-w-screen md:max-w-sm w-full">
         <div className="mb-4">
           <input
             type="text"
             name="username"
             placeholder={intl.login.username}
             className="text-sand bg-blackamber border border-sand rounded-lg w-full px-8 py-3 transition-all duration-300"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
@@ -27,12 +63,14 @@ export default async function LoginForm({ lang, intl }) {
             name="password"
             placeholder={intl.login.password}
             className="text-sand bg-blackamber border border-sand rounded-lg w-full px-8 py-3 transition-all duration-300"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
 
-        {state?.error && (
-          <p className="text-red-500 text-xs italic mb-4">{state.error}</p>
+        {errorMessage && (
+          <div className="text-red-500 text-sm">{errorMessage}</div>
         )}
 
         <div className="flex items-center justify-between">
