@@ -14,6 +14,7 @@
 # Prisma
 /back/prisma/node_modules/
 /back/prisma/data.db
+/front/lib/generated/
 
 # testing
 /front/coverage
@@ -42,10 +43,10 @@ yarn-error.log*
 /back/.env
 
 # SQLite database
-/front/prisma/*.db
-/front/prisma/*.db-journal
-/front/prisma/*.db-shm
-/front/prisma/*.db-wal
+/front/prisma/data/*.db
+/front/prisma/data/*.db-journal
+/front/prisma/data/*.db-shm
+/front/prisma/data/*.db-wal
 /back/prisma/*.db
 /back/prisma/*.db-journal
 /back/prisma/*.db-shm
