@@ -15,4 +15,5 @@ model User {
   isAdmin   Boolean  @default(false)
   name      String?
   lastname  String?
+  birthYear Int?
 }
