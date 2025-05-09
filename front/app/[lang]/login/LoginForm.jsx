@@ -35,7 +35,7 @@ export default function LoginForm({ lang, intl }) {
       }
 
       // Si el login es exitoso, redirigimos a la página principal
-      router.push(`/${lang}/`);
+      window.location.href = `/${lang}/`;
     } catch (error) {
       console.error("Login error:", error);
       setErrorMessage("An unexpected error occurred. Please try again.");
