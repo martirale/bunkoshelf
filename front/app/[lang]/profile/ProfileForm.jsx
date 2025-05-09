@@ -29,6 +29,7 @@ export default function ProfileForm({ user, lang, intl }) {
     });
 
     if (res.ok) {
+      setFormData((prevData) => ({ ...prevData, password: "" }));
       router.refresh();
     } else {
       console.error("Error al actualizar los datos");
