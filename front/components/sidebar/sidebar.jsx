@@ -15,7 +15,7 @@ export default async function Sidebar({ lang }) {
       <aside className="hidden md:flex md:w-3/12 2xl:w-2/12 bg-blackamber flex-col justify-between p-4">
         <h1 className="hidden">Bunko Shelf</h1>
 
-        <SidebarLogo className="flex-1" />
+        <SidebarLogo />
 
         {!user && <SecondNav intl={intl} className="flex-1" />}
 
