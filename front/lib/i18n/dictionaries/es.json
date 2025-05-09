@@ -27,7 +27,8 @@
     "name": "Nombre",
     "lastname": "Apellido",
     "password": "Nueva contraseña",
-    "save": "Guardar cambios"
+    "save": "Guardar cambios",
+    "greeting": "¡Hola,"
   },
   "settings": {
     "title": "Ajustes",
