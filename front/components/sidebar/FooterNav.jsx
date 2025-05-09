@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Languages, LogOut, BookOpen } from "lucide-react";
 import { usePathname, useParams, useRouter } from "next/navigation";
+import SessionStatus from "@/hooks/SessionStatus";
 
 export default function FooterNav() {
   // Lang options
@@ -38,6 +39,9 @@ export default function FooterNav() {
     }
   };
 
+  // Session status
+  const isLoggedIn = SessionStatus();
+
   return (
     <>
       <div className="flex justify-between items-center">
@@ -68,13 +72,15 @@ export default function FooterNav() {
             <BookOpen className="w-5 h-5" />
           </Link>
           {/* Logout Button */}
-          <button
-            className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
-            aria-label="Logout"
-            onClick={handleLogout}
-          >
-            <LogOut className="w-5 h-5" />
-          </button>
+          {isLoggedIn && (
+            <button
+              className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
+              aria-label="Logout"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
     </>
