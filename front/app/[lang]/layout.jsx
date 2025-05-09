@@ -24,7 +24,7 @@ export default async function RootLayout({ children, params }) {
       className={`${robotoCondensed.variable} ${boldonse.variable}`}
     >
       <body className="flex h-screen overflow-hidden">
-        <Sidebar />
+        <Sidebar lang={lang} />
 
         <main className="w-full md:w-9/12 2xl:w-10/12 flex flex-col overflow-y-auto">
           {children}
