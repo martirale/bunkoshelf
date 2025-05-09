@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function ProfileForm({ user, lang, intl }) {
+export default function ProfileForm({ user, intl }) {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
