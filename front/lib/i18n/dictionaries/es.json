@@ -28,7 +28,8 @@
     "lastname": "Apellido",
     "password": "Nueva contraseña",
     "save": "Guardar cambios",
-    "greeting": "¡Hola,"
+    "greeting": "¡Hola,",
+    "updateprofile": "Actualizar perfil"
   },
   "settings": {
     "title": "Ajustes",

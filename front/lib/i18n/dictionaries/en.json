@@ -28,7 +28,8 @@
     "lastname": "Lastname",
     "password": "New Password",
     "save": "Save Changes",
-    "greeting": "Hi,"
+    "greeting": "Hi,",
+    "updateprofile": "Update Profile"
   },
   "settings": {
     "title": "Settings",
