@@ -58,6 +58,7 @@ export default function FooterNav() {
           <button
             className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
             aria-label="Switch Language"
+            title="Cambiar idioma"
             onClick={toggleLang}
           >
             <Languages className="w-5 h-5" />
@@ -67,6 +68,7 @@ export default function FooterNav() {
             href="#"
             target="_blank"
             rel="noopener"
+            title="Guía de inicio"
             className={`border border-onix rounded-lg p-2 hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
           >
             <BookOpen className="w-5 h-5" />
@@ -76,6 +78,7 @@ export default function FooterNav() {
             <button
               className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
               aria-label="Logout"
+              title="Cerrar sesión"
               onClick={handleLogout}
             >
               <LogOut className="w-5 h-5" />
