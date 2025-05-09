@@ -1,10 +1,10 @@
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import prisma from "@/lib/prisma";
 
 export async function verifySession() {
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get("yomimono_key")?.value;
+    const token = cookies().get("yomimono_key")?.value;
     if (!token) return null;
 
     const { payload } = await jwtVerify(
@@ -12,13 +12,18 @@ export async function verifySession() {
       new TextEncoder().encode(process.env.JWT_SECRET)
     );
 
-    return {
-      id: payload.id,
-      username: payload.username,
-      isAdmin: payload.isAdmin,
-      name: payload.name,
-      lastname: payload.lastname,
-    };
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: {
+        id: true,
+        username: true,
+        isAdmin: true,
+        name: true,
+        lastname: true,
+      },
+    });
+
+    return user;
   } catch {
     return null;
   }
