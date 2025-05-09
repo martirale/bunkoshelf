@@ -43,7 +43,7 @@ export default function ProfileForm({ user, lang, intl }) {
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
           placeholder={intl.profile.name}
         />
       </div>
@@ -53,7 +53,7 @@ export default function ProfileForm({ user, lang, intl }) {
           name="lastname"
           value={formData.lastname}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
           placeholder={intl.profile.lastname}
         />
       </div>
@@ -64,12 +64,15 @@ export default function ProfileForm({ user, lang, intl }) {
           type="password"
           value={formData.password}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
           placeholder={intl.profile.password}
         />
       </div>
 
-      <button type="submit" className="bg-black text-white px-4 py-2 rounded">
+      <button
+        type="submit"
+        className="font-bold text-lg px-8 py-4 rounded-lg leading-none uppercase text-blackamber bg-sand border border-sand hover:bg-pearl transition-all duration-300 cursor-pointer"
+      >
         {intl.profile.save}
       </button>
     </form>
