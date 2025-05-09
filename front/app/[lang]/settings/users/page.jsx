@@ -1,5 +1,6 @@
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 import SidebarMisc from "@/ui/SidebarMisc";
+import SettingsNav from "@/components/settings/SettingsNav";
 
 export default async function SettingsUsersPage({ params }) {
   const { lang = "es" } = await params;
@@ -9,6 +10,8 @@ export default async function SettingsUsersPage({ params }) {
     <div className="flex">
       <SidebarMisc>
         <h2 className="text-onix">{intl.settings.users}</h2>
+
+        <SettingsNav intl={intl} />
       </SidebarMisc>
 
       <div className="w-full md:w-8/12 2xl:w-9/12 p-4"></div>
