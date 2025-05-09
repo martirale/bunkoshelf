@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function LoginForm({ lang, intl }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
-  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,7 +17,7 @@ export default function LoginForm({ lang, intl }) {
     };
 
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
