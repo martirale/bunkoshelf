@@ -6,7 +6,7 @@ export async function authMiddleware(request) {
   const langMatch = pathname.match(/^\/(es|en)/);
   const lang = langMatch?.[1] || "es";
 
-  const token = request.cookies.get("token")?.value;
+  const token = request.cookies.get("yomimono_key")?.value;
 
   const isLoginPage = pathname === `/${lang}/login`;
 

@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 export async function verifySession() {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
+    const token = cookieStore.get("yomimono_key")?.value;
     if (!token) return null;
 
     const { payload } = await jwtVerify(
