@@ -25,7 +25,6 @@ export default function MainNav({ intl }) {
   const isLibrary = isManga || isBooks;
   const isFavorites = pathname.startsWith(`/${currentLang}/favorites`);
   const isProfile = pathname.startsWith(`/${currentLang}/profile`);
-  const isSettings = pathname.startsWith(`/${currentLang}/settings`);
 
   // Drop down
   const [openLibraryMenu, setOpenLibraryMenu] = useState(isLibrary);

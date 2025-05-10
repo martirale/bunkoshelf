@@ -33,6 +33,7 @@
   },
   "settings": {
     "title": "Ajustes",
+    "overview": "Descripción general",
     "users": "Usuarios",
     "library": "Ajustes de biblioteca",
     "username": "Usuario",

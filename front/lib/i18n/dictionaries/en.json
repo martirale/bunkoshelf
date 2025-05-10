@@ -33,6 +33,7 @@
   },
   "settings": {
     "title": "Settings",
+    "overview": "Overview",
     "users": "Users",
     "library": "Library Settings",
     "username": "Username",
