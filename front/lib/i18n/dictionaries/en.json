@@ -42,12 +42,13 @@
     "name": "Name",
     "lastname": "Lastname",
     "age": "Age",
-    "createUser": "Create User",
     "nameOpt": "Name (optional)",
     "lastnameOpt": "Lastname (optional)",
     "birthYearOpt": "Birth year (optional)",
     "isAdmin": "Admin Privileges",
+    "createUser": "Create User",
     "updateUser": "Update User",
+    "deleteUser": "Delete User",
     "passwordNew": "New Password"
   },
   "login": {
@@ -60,9 +61,12 @@
   },
   "alerts": {
     "successUserUpdate": "User successfully updated",
-    "errorUserUpdate": "Error updating data",
+    "errorUserUpdate": "Error updating user",
     "successCreateUser": "User created successfully",
     "errorCreateUser": "Error creating user",
+    "successDelete": "User successfully deleted",
+    "errorDeleteUser": "Error deleting user",
+    "confirmDelete": "Are you sure you want to delete the user?",
     "loginFail": "Invalid Credentials",
     "serverError": "Invalid server response"
   }

@@ -42,12 +42,13 @@
     "name": "Nombre",
     "lastname": "Apellido",
     "age": "Edad",
-    "createUser": "Crear usuario",
     "nameOpt": "Nombre (opcional)",
     "lastnameOpt": "Apellido (opcional)",
     "birthYearOpt": "Año de nacimiento (opcional)",
     "isAdmin": "Privilegios de admin",
+    "createUser": "Crear usuario",
     "updateUser": "Actualizar usuario",
+    "deleteUser": "Eliminar usuario",
     "passwordNew": "Nueva contraseña"
   },
   "login": {
@@ -60,9 +61,12 @@
   },
   "alerts": {
     "successUserUpdate": "Usuario actualizado exitosamente",
-    "errorUserUpdate": "Error al actualizar los datos",
+    "errorUserUpdate": "Error al actualizar el usuario",
     "successCreateUser": "Usuario creado exitosamente",
     "errorCreateUser": "Error al crear usuario",
+    "successDelete": "Usuario eliminado exitosamente",
+    "errorDeleteUser": "Error al eliminar el usuario",
+    "confirmDelete": "¿Seguro qué quieres eliminar el usuario?",
     "loginFail": "Credenciales inválidas",
     "serverError": "Respuesta del servidor no válida"
   }

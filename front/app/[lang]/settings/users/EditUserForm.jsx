@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserRoundPen } from "lucide-react";
+import { UserRoundPen, UserRoundMinus } from "lucide-react";
 
 export default function EditUserForm({ user, intl, onSuccess }) {
   const [username, setUsername] = useState("");
@@ -54,6 +54,28 @@ export default function EditUserForm({ user, intl, onSuccess }) {
     }
   };
 
+  const handleDelete = async () => {
+    const confirm = window.confirm(intl.alerts.confirmDelete);
+    if (!confirm) return;
+
+    const res = await fetch("/api/users/deleteUser", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: user.id }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert(intl.alerts.successDelete);
+      window.location.reload();
+    } else {
+      alert(intl.alerts.successDelete);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       <h2 className="flex items-center mb-4">
@@ -63,7 +85,7 @@ export default function EditUserForm({ user, intl, onSuccess }) {
 
       {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-x-4 space-y-4">
         <input
           type="text"
           value={username}
@@ -114,6 +136,13 @@ export default function EditUserForm({ user, intl, onSuccess }) {
           className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer"
         >
           {intl.settings.updateUser}
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-red-700 border border-red-700 hover:bg-red-800 transition-all duration-300 cursor-pointer"
+        >
+          {intl.settings.deleteUser}
         </button>
       </form>
     </div>
