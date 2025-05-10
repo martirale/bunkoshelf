@@ -111,7 +111,7 @@ export default function EditUserForm({ user, intl, onSuccess }) {
         </div>
         <button
           type="submit"
-          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand hover:text-sand hover:bg-onix transition-all duration-300 cursor-pointer"
+          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer"
         >
           {intl.settings.updateUser}
         </button>

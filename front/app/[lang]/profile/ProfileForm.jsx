@@ -64,7 +64,7 @@ export default function ProfileForm({ user, intl }) {
         />
         <button
           type="submit"
-          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-blackamber hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer"
+          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300 cursor-pointer"
         >
           {intl.profile.save}
         </button>
