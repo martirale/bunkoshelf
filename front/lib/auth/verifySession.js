@@ -20,6 +20,7 @@ export async function verifySession() {
         isAdmin: true,
         name: true,
         lastname: true,
+        birthYear: true,
       },
     });
 
