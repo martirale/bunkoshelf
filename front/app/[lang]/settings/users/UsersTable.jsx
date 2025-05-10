@@ -5,7 +5,7 @@ import { useState } from "react";
 import Modal from "@/ui/Modal";
 import EditUserForm from "./EditUserForm";
 
-export default function UsersTable({ users, intl }) {
+export default function UsersTable({ users, intl, currentUserId }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [userList, setUserList] = useState(users);
 
@@ -66,6 +66,7 @@ export default function UsersTable({ users, intl }) {
       <Modal isOpen={!!selectedUser} onClose={handleClose}>
         <EditUserForm
           user={selectedUser}
+          currentUserId={currentUserId}
           intl={intl}
           onSuccess={updateUserList}
         />

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserRoundPen, UserRoundMinus } from "lucide-react";
+import { UserRoundPen } from "lucide-react";
 
-export default function EditUserForm({ user, intl, onSuccess }) {
+export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -11,6 +11,8 @@ export default function EditUserForm({ user, intl, onSuccess }) {
   const [birthYear, setBirthYear] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [error] = useState(null);
+
+  const isSelf = user?.id === currentUserId;
 
   useEffect(() => {
     if (user) {
@@ -137,13 +139,15 @@ export default function EditUserForm({ user, intl, onSuccess }) {
         >
           {intl.settings.updateUser}
         </button>
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-red-700 border border-red-700 hover:bg-red-800 transition-all duration-300 cursor-pointer"
-        >
-          {intl.settings.deleteUser}
-        </button>
+        {!isSelf && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-red-700 border border-red-700 hover:bg-red-800 transition-all duration-300 cursor-pointer"
+          >
+            {intl.settings.deleteUser}
+          </button>
+        )}
       </form>
     </div>
   );

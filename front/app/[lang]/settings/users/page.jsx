@@ -4,10 +4,13 @@ import SettingsNav from "@/components/settings/SettingsNav";
 import prisma from "@/lib/prisma";
 import { Settings2, UsersRound } from "lucide-react";
 import UsersTable from "./UsersTable";
+import { verifySession } from "@/lib/auth/verifySession";
 
 export default async function SettingsUsersPage({ params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
+
+  const currentUser = await verifySession();
 
   const users = await prisma.user.findMany({
     select: {
@@ -40,7 +43,7 @@ export default async function SettingsUsersPage({ params }) {
           {intl.settings.users}
         </h2>
 
-        <UsersTable users={users} intl={intl} />
+        <UsersTable users={users} currentUserId={currentUser?.id} intl={intl} />
       </div>
     </div>
   );
