@@ -2,6 +2,7 @@ import { getDictionary } from "@/lib/i18n/serverDictionary";
 import SidebarMisc from "@/ui/SidebarMisc";
 import SettingsNav from "@/components/settings/SettingsNav";
 import prisma from "@/lib/prisma";
+import { Settings2, UsersRound } from "lucide-react";
 
 export default async function SettingsUsersPage({ params }) {
   const { lang = "es" } = await params;
@@ -24,12 +25,20 @@ export default async function SettingsUsersPage({ params }) {
   return (
     <div className="flex">
       <SidebarMisc>
-        <h2 className="text-onix">{intl.settings.users}</h2>
+        <h2 className="flex items-center text-onix">
+          <Settings2 className="w-7 h-7 mr-2" />
+          {intl.settings.title}
+        </h2>
 
         <SettingsNav intl={intl} />
       </SidebarMisc>
 
       <div className="w-full md:w-8/12 2xl:w-9/12 p-4">
+        <h2 className="flex items-center mb-4">
+          <UsersRound className="w-7 h-7 mr-2" />
+          {intl.settings.users}
+        </h2>
+
         <div className="space-y-4">
           <table className="table-fixed w-full text-left">
             <thead className="uppercase">

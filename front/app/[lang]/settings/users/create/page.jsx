@@ -2,7 +2,7 @@ import { getDictionary } from "@/lib/i18n/serverDictionary";
 import SidebarMisc from "@/ui/SidebarMisc";
 import SettingsNav from "@/components/settings/SettingsNav";
 import CreateUserForm from "./CreateUserForm";
-import { UserRoundPlus } from "lucide-react";
+import { Settings2, UserRoundPlus } from "lucide-react";
 
 export default async function SettingsUsersCreatePage({ params }) {
   const { lang = "es" } = await params;
@@ -11,13 +11,16 @@ export default async function SettingsUsersCreatePage({ params }) {
   return (
     <div className="flex">
       <SidebarMisc>
-        <h2 className="text-onix">{intl.settings.users}</h2>
+        <h2 className="flex items-center text-onix">
+          <Settings2 className="w-7 h-7 mr-2" />
+          {intl.settings.title}
+        </h2>
 
         <SettingsNav intl={intl} />
       </SidebarMisc>
 
       <div className="w-full md:w-8/12 2xl:w-9/12 p-4">
-        <h2 className="flex mb-4 items-center">
+        <h2 className="flex items-center mb-4">
           <UserRoundPlus className="w-6 h-6 mr-2" />
           {intl.settings.createUser}
         </h2>

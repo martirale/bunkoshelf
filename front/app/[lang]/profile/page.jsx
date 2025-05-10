@@ -3,7 +3,7 @@ import { verifySession } from "@/lib/auth/verifySession";
 import ProfileForm from "./ProfileForm";
 import SidebarMisc from "@/ui/SidebarMisc";
 import ProfileNav from "@/components/profile/ProfileNav";
-import { UserRoundPen } from "lucide-react";
+import { UserRound, UserRoundPen } from "lucide-react";
 
 export default async function ProfilePage({ params }) {
   const { lang = "es" } = await params;
@@ -17,7 +17,8 @@ export default async function ProfilePage({ params }) {
         {!user || !user.name ? (
           <h2>Bunko</h2>
         ) : (
-          <h2 className="text-onix">
+          <h2 className="flex items-center mb-4 text-onix">
+            <UserRound className="w-7 h-7 mr-2" />
             {intl.profile.greeting} {user.name}!
           </h2>
         )}
@@ -26,8 +27,8 @@ export default async function ProfilePage({ params }) {
       </SidebarMisc>
 
       <div className="w-full md:w-8/12 2xl:w-9/12 p-4">
-        <h2 className="flex mb-4 items-center">
-          <UserRoundPen className="w-6 h-6 mr-2" />
+        <h2 className="flex items-center mb-4">
+          <UserRoundPen className="w-7 h-7 mr-2" />
           {intl.profile.updateProfile}
         </h2>
 
