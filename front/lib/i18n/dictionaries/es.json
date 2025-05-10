@@ -57,5 +57,13 @@
   },
   "noauth": {
     "guide": "Guía de inicio"
+  },
+  "alerts": {
+    "successUserUpdate": "Usuario actualizado exitosamente",
+    "errorUserUpdate": "Error al actualizar los datos",
+    "successCreateUser": "Usuario creado exitosamente",
+    "errorCreateUser": "Error al crear usuario",
+    "loginFail": "Credenciales inválidas",
+    "serverError": "Respuesta del servidor no válida"
   }
 }

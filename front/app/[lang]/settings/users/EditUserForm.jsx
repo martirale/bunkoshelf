@@ -10,7 +10,7 @@ export default function EditUserForm({ user, intl, onSuccess }) {
   const [lastname, setLastname] = useState("");
   const [birthYear, setBirthYear] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -36,25 +36,21 @@ export default function EditUserForm({ user, intl, onSuccess }) {
       isAdmin,
     };
 
-    try {
-      const res = await fetch("/api/users/adminUpdateUser", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
+    const res = await fetch("/api/users/adminUpdateUser", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (res.ok) {
-        alert("Usuario actualizado exitosamente");
-        onSuccess(data.user); // Pasa el usuario actualizado al callback
-      } else {
-        setError(data.error || "Hubo un error al actualizar el usuario");
-      }
-    } catch (err) {
-      setError("Hubo un error inesperado");
+    if (res.ok) {
+      alert(intl.alerts.successUserUpdate);
+      onSuccess(data.user);
+    } else {
+      console.error(intl.alerts.errorUserUpdate);
     }
   };
 

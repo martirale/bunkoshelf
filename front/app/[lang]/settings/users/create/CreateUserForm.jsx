@@ -23,30 +23,28 @@ export default function CreateUserForm({ intl }) {
       isAdmin,
     };
 
-    try {
-      const res = await fetch("/api/users/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
+    const res = await fetch("/api/users/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (res.ok) {
-        alert("Usuario creado exitosamente");
-        setUsername("");
-        setPassword("");
-        setName("");
-        setLastname("");
-        setBirthYear("");
-        setIsAdmin(false);
-      } else {
-        setError(data.error || "Hubo un error al crear el usuario");
-      }
-    } catch (err) {
-      setError("Hubo un error inesperado");
+    if (res.ok) {
+      alert(intl.alerts.successCreateUser);
+      setUsername("");
+      setPassword("");
+      setName("");
+      setLastname("");
+      setBirthYear("");
+      setIsAdmin(false);
+      setError(null);
+    } else {
+      console.error(intl.alerts.errorCreateUser);
+      setError(data?.error || intl.alerts.errorCreateUser);
     }
   };
 

@@ -16,27 +16,28 @@ export default function LoginForm({ lang, intl }) {
       lang,
     };
 
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    let result = {};
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        setErrorMessage(result.error || "Server error");
-        return;
-      }
-
-      window.location.href = `/${lang}/`;
-    } catch (error) {
-      console.error("Login error:", error);
-      setErrorMessage("An unexpected error occurred. Please try again.");
+      result = await res.json();
+    } catch {
+      setErrorMessage(intl.alerts.serverError);
+      return;
     }
+
+    if (!res.ok) {
+      setErrorMessage(intl.alerts.loginFail);
+      return;
+    }
+
+    window.location.href = `/${lang}/`;
   };
 
   return (
@@ -67,7 +68,7 @@ export default function LoginForm({ lang, intl }) {
         </div>
 
         {errorMessage && (
-          <div className="text-red-500 text-sm">{errorMessage}</div>
+          <div className="text-red-500 text-sm mb-2">{errorMessage}</div>
         )}
 
         <div className="flex items-center justify-between">
