@@ -8,5 +8,5 @@ export async function GET() {
     expires: new Date(0),
   });
 
-  return NextResponse.redirect(new URL("/", process.env.NEXT_PUBLIC_SITE_URL));
+  return NextResponse.json({ success: true });
 }
