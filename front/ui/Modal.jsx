@@ -35,7 +35,7 @@ export default function Modal({ isOpen, onClose, children }) {
           onClick={onClose}
           className="absolute top-4 right-4 text-onix cursor-pointer"
         >
-          <Minimize2 className="w-7 h-7" />
+          <Minimize2 className="w-7 h-7 opacity-50 hover:opacity-100 transition-all duration-300" />
         </button>
         <div className="my-5 md:m-4">{children}</div>
       </div>
