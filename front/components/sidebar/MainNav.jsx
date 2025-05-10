@@ -7,7 +7,7 @@ import {
   ChevronDown,
   ChevronUp,
   BookHeart,
-  CircleUser,
+  UserRound,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname, useParams } from "next/navigation";
@@ -119,7 +119,7 @@ export default function MainNav({ intl }) {
               : `border-blackamber hover:bg-onix ${hoverBorder}`
           } transition-all duration-300`}
         >
-          <CircleUser className="w-5 h-5 mr-2" />
+          <UserRound className="w-5 h-5 mr-2" />
           {intl.sidebar.profile}
         </Link>
       </nav>

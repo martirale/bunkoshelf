@@ -2,7 +2,6 @@ import { getDictionary } from "@/lib/i18n/serverDictionary";
 import SidebarMisc from "@/ui/SidebarMisc";
 import SettingsNav from "@/components/settings/SettingsNav";
 import prisma from "@/lib/prisma";
-import { verifySession } from "@/lib/auth/verifySession";
 
 export default async function SettingsUsersPage({ params }) {
   const { lang = "es" } = await params;
