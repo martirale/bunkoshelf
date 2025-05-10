@@ -34,7 +34,12 @@
   "settings": {
     "title": "Ajustes",
     "users": "Usuarios",
-    "library": "Ajustes de biblioteca"
+    "library": "Ajustes de biblioteca",
+    "username": "Usuario",
+    "type": "Tipo",
+    "name": "Nombre",
+    "lastname": "Apellido",
+    "age": "Edad"
   },
   "login": {
     "username": "Nombre de usuario",

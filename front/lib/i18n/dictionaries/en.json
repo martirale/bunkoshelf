@@ -34,7 +34,12 @@
   "settings": {
     "title": "Settings",
     "users": "Users",
-    "library": "Library Settings"
+    "library": "Library Settings",
+    "username": "Username",
+    "type": "Type",
+    "name": "Name",
+    "lastname": "Lastname",
+    "age": "Age"
   },
   "login": {
     "username": "Username",

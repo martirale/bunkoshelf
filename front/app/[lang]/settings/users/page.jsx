@@ -32,14 +32,14 @@ export default async function SettingsUsersPage({ params }) {
 
       <div className="w-full md:w-8/12 2xl:w-9/12 p-4">
         <div className="space-y-4">
-          <table className="w-full text-left">
+          <table className="table-fixed w-full text-left">
             <thead className="uppercase">
               <tr>
-                <th className="p-2 border-b">Usuario</th>
-                <th className="p-2 border-b">Tipo</th>
-                <th className="p-2 border-b">Nombre</th>
-                <th className="p-2 border-b">Apellido</th>
-                <th className="p-2 border-b">Edad</th>
+                <th className="p-2 border-b">{intl.settings.username}</th>
+                <th className="p-2 border-b">{intl.settings.type}</th>
+                <th className="p-2 border-b">{intl.settings.name}</th>
+                <th className="p-2 border-b">{intl.settings.lastname}</th>
+                <th className="p-2 border-b">{intl.settings.age}</th>
               </tr>
             </thead>
             <tbody>
