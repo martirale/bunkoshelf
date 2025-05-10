@@ -3,8 +3,9 @@ import SidebarMisc from "@/ui/SidebarMisc";
 import SettingsNav from "@/components/settings/SettingsNav";
 import prisma from "@/lib/prisma";
 import { Settings2, UsersRound } from "lucide-react";
-import UsersTable from "./UsersTable";
+import UsersTable from "@/components/settings/UsersTable";
 import { verifySession } from "@/lib/auth/verifySession";
+import AddUserButton from "@/components/settings/AddUserButton";
 
 export default async function SettingsUsersPage({ params }) {
   const { lang = "es" } = await params;
@@ -38,10 +39,14 @@ export default async function SettingsUsersPage({ params }) {
       </SidebarMisc>
 
       <div className="w-full md:w-8/12 2xl:w-9/12 p-4">
-        <h2 className="flex items-center mb-4">
-          <UsersRound className="w-7 h-7 mr-2" />
-          {intl.settings.users}
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="flex items-center">
+            <UsersRound className="w-7 h-7 mr-2" />
+            {intl.settings.users}
+          </h2>
+
+          <AddUserButton intl={intl} />
+        </div>
 
         <UsersTable users={users} currentUserId={currentUser?.id} intl={intl} />
       </div>

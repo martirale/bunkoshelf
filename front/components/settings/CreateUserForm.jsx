@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { UserRoundPlus } from "lucide-react";
 
 export default function CreateUserForm({ intl }) {
   const [username, setUsername] = useState("");
@@ -42,14 +43,20 @@ export default function CreateUserForm({ intl }) {
       setBirthYear("");
       setIsAdmin(false);
       setError(null);
+      window.location.reload();
     } else {
       console.error(intl.alerts.errorCreateUser);
-      setError(data?.error || intl.alerts.errorCreateUser);
+      setError(intl.alerts.errorCreateUser);
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 bg-blackamber rounded-lg">
+    <div className="max-w-7xl mx-auto p-2">
+      <h2 className="flex items-center mb-4">
+        <UserRoundPlus className="w-7 h-7 mr-2" />
+        {intl.settings.createUser}
+      </h2>
+
       {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -58,7 +65,7 @@ export default function CreateUserForm({ intl }) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder={intl.settings.username}
-          className="text-sand bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
           required
         />
         <input
@@ -66,7 +73,7 @@ export default function CreateUserForm({ intl }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={intl.settings.password}
-          className="text-sand bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
           required
         />
         <input
@@ -74,21 +81,21 @@ export default function CreateUserForm({ intl }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={intl.settings.nameOpt}
-          className="text-sand bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
         />
         <input
           type="text"
           value={lastname}
           onChange={(e) => setLastname(e.target.value)}
           placeholder={intl.settings.lastnameOpt}
-          className="text-sand bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
         />
         <input
           type="number"
           value={birthYear}
           onChange={(e) => setBirthYear(e.target.value)}
           placeholder={intl.settings.birthYearOpt}
-          className="text-sand bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
         />
         <div className="flex items-center space-x-2">
           <input
@@ -96,15 +103,12 @@ export default function CreateUserForm({ intl }) {
             checked={isAdmin}
             onChange={() => setIsAdmin(!isAdmin)}
             id="isAdmin"
-            className="text-sand"
           />
-          <label htmlFor="isAdmin" className="text-sand">
-            {intl.settings.isAdmin}
-          </label>
+          <label htmlFor="isAdmin">{intl.settings.isAdmin}</label>
         </div>
         <button
           type="submit"
-          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-blackamber bg-sand border border-sand hover:bg-pearl transition-all duration-300 cursor-pointer"
+          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer"
         >
           {intl.settings.createUser}
         </button>
