@@ -24,6 +24,7 @@
   },
   "profile": {
     "title": "Perfil",
+    "overview": "Descripción general",
     "name": "Nombre",
     "lastname": "Apellido",
     "password": "Nueva contraseña",
