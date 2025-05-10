@@ -23,7 +23,7 @@ export default async function RootLayout({ children, params }) {
       lang={lang || "es"}
       className={`${robotoCondensed.variable} ${boldonse.variable}`}
     >
-      <body className="flex h-screen overflow-hidden">
+      <body className="flex h-screen overflow-hidden text-lg">
         <Sidebar lang={lang} />
 
         <main className="w-full md:w-9/12 2xl:w-10/12 flex flex-col overflow-y-auto">

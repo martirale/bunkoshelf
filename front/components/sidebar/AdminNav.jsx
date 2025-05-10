@@ -24,7 +24,7 @@ export default function AdminNav({ intl }) {
 
   return (
     <>
-      <div className="mt-2 space-y-2 text-lg">
+      <div className="mt-2 space-y-2">
         <Link
           href={`/${currentLang}/settings`}
           className={`flex items-center p-4 rounded-lg leading-none border ${

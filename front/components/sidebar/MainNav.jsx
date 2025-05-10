@@ -44,7 +44,7 @@ export default function MainNav({ intl }) {
 
   return (
     <>
-      <nav className="mt-8 space-y-2 text-xl md:text-lg">
+      <nav className="mt-8 space-y-2">
         <Link
           href={`/${currentLang}`}
           className={`flex items-center p-4 rounded-lg leading-none border ${

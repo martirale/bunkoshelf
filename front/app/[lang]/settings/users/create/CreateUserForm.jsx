@@ -51,7 +51,7 @@ export default function CreateUserForm({ intl }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 bg-blackamber rounded-lg shadow-lg">
+    <div className="max-w-7xl mx-auto p-4 bg-blackamber rounded-lg">
       {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -60,7 +60,7 @@ export default function CreateUserForm({ intl }) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder={intl.settings.username}
-          className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="text-sand bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
           required
         />
         <input
@@ -68,7 +68,7 @@ export default function CreateUserForm({ intl }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={intl.settings.password}
-          className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="text-sand bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
           required
         />
         <input
@@ -76,21 +76,21 @@ export default function CreateUserForm({ intl }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={intl.settings.nameOpt}
-          className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="text-sand bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
         />
         <input
           type="text"
           value={lastname}
           onChange={(e) => setLastname(e.target.value)}
           placeholder={intl.settings.lastnameOpt}
-          className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="text-sand bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
         />
         <input
           type="number"
           value={birthYear}
           onChange={(e) => setBirthYear(e.target.value)}
           placeholder={intl.settings.birthYearOpt}
-          className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="text-sand bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
         />
         <div className="flex items-center space-x-2">
           <input
@@ -100,13 +100,13 @@ export default function CreateUserForm({ intl }) {
             id="isAdmin"
             className="text-sand"
           />
-          <label htmlFor="isAdmin" className="text-sand text-lg">
+          <label htmlFor="isAdmin" className="text-sand">
             {intl.settings.isAdmin}
           </label>
         </div>
         <button
           type="submit"
-          className="font-bold text-lg px-8 py-4 rounded-lg leading-none uppercase text-blackamber bg-sand border border-sand hover:bg-pearl transition-all duration-300 cursor-pointer"
+          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-blackamber bg-sand border border-sand hover:bg-pearl transition-all duration-300 cursor-pointer"
         >
           {intl.settings.createUser}
         </button>

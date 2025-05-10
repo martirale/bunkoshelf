@@ -4,7 +4,7 @@ import { BookOpen } from "lucide-react";
 export default async function SecondNav({ intl, className }) {
   return (
     <>
-      <div className={`mt-8 space-y-2 text-lg ${className}`}>
+      <div className={`mt-8 space-y-2 ${className}`}>
         <Link
           href="#"
           target="_blank"
