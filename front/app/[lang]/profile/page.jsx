@@ -14,11 +14,14 @@ export default async function ProfilePage({ params }) {
     <div className="flex">
       <SidebarMisc>
         {!user || !user.name ? (
-          <h2>Bunko</h2>
+          <h2 className="flex items-center text-onix">
+            <UserRound className="w-7 h-7 mr-2" />
+            {intl.profile.title}
+          </h2>
         ) : (
           <h2 className="flex items-center text-onix">
             <UserRound className="w-7 h-7 mr-2" />
-            {intl.profile.greeting} {user.name}!
+            {intl.profile.greeting} {user.name}
           </h2>
         )}
 
