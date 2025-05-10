@@ -23,7 +23,7 @@ export default function CreateUserForm({ intl }) {
       isAdmin,
     };
 
-    const res = await fetch("/api/users/create", {
+    const res = await fetch("/api/users/createUser", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
