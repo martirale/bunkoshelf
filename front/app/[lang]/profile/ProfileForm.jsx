@@ -37,8 +37,8 @@ export default function ProfileForm({ user, intl }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
+    <div className="max-w-7xl mx-auto p-4 bg-blackamber rounded-lg shadow-lg">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           name="name"
           value={formData.name}
@@ -46,9 +46,6 @@ export default function ProfileForm({ user, intl }) {
           className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
           placeholder={intl.profile.name}
         />
-      </div>
-
-      <div>
         <input
           name="lastname"
           value={formData.lastname}
@@ -56,9 +53,6 @@ export default function ProfileForm({ user, intl }) {
           className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
           placeholder={intl.profile.lastname}
         />
-      </div>
-
-      <div>
         <input
           name="password"
           type="password"
@@ -67,14 +61,13 @@ export default function ProfileForm({ user, intl }) {
           className="text-sand text-lg bg-blackamber border border-sand rounded-lg w-full px-5 py-3 transition-all duration-300"
           placeholder={intl.profile.password}
         />
-      </div>
-
-      <button
-        type="submit"
-        className="font-bold text-lg px-8 py-4 rounded-lg leading-none uppercase text-blackamber bg-sand border border-sand hover:bg-pearl transition-all duration-300 cursor-pointer"
-      >
-        {intl.profile.save}
-      </button>
-    </form>
+        <button
+          type="submit"
+          className="font-bold text-lg px-8 py-4 rounded-lg leading-none uppercase text-blackamber bg-sand border border-sand hover:bg-pearl transition-all duration-300 cursor-pointer"
+        >
+          {intl.profile.save}
+        </button>
+      </form>
+    </div>
   );
 }
