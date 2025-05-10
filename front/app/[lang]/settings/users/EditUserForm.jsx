@@ -124,15 +124,17 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
           placeholder={intl.settings.birthYearOpt}
           className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
         />
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={isAdmin}
-            onChange={() => setIsAdmin(!isAdmin)}
-            id="isAdmin"
-          />
-          <label htmlFor="isAdmin">{intl.settings.isAdmin}</label>
-        </div>
+        {!isSelf && (
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={isAdmin}
+              onChange={() => setIsAdmin(!isAdmin)}
+              id="isAdmin"
+            />
+            <label htmlFor="isAdmin">{intl.settings.isAdmin}</label>
+          </div>
+        )}
         <button
           type="submit"
           className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer"
