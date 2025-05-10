@@ -35,9 +35,9 @@ export default function Modal({ isOpen, onClose, children }) {
           onClick={onClose}
           className="absolute top-4 right-4 text-onix cursor-pointer"
         >
-          <Minimize2 className="w-5 h-5" />
+          <Minimize2 className="w-7 h-7" />
         </button>
-        <div className="p-4">{children}</div>
+        <div className="m-4">{children}</div>
       </div>
     </div>
   );
