@@ -29,11 +29,15 @@ export default function LoginForm({ lang, intl }) {
       result = await res.json();
     } catch {
       setErrorMessage(intl.alerts.serverError);
+      setUsername("");
+      setPassword("");
       return;
     }
 
     if (!res.ok) {
       setErrorMessage(intl.alerts.loginFail);
+      setUsername("");
+      setPassword("");
       return;
     }
 
@@ -74,7 +78,7 @@ export default function LoginForm({ lang, intl }) {
         <div className="flex items-center justify-between">
           <button
             type="submit"
-            className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-blackamber hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer"
+            className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300 cursor-pointer"
           >
             {intl.login.login}
           </button>
