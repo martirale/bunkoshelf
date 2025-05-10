@@ -4,7 +4,8 @@ import prisma from "@/lib/prisma";
 
 export async function verifySession() {
   try {
-    const token = cookies().get("yomimono_key")?.value;
+    const cookiesInstance = await cookies();
+    const token = cookiesInstance.get("yomimono_key")?.value;
     if (!token) return null;
 
     const { payload } = await jwtVerify(
@@ -25,7 +26,8 @@ export async function verifySession() {
     });
 
     return user;
-  } catch {
+  } catch (error) {
+    console.error("Error en verifySession:", error);
     return null;
   }
 }

@@ -28,7 +28,8 @@ export async function login({ username, password, lang = "es" }) {
       }
     );
 
-    cookies().set("yomimono_key", token, {
+    const cookiesStore = await cookies();
+    cookiesStore.set("yomimono_key", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
