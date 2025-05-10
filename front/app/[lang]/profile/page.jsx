@@ -25,7 +25,7 @@ export default async function ProfilePage({ params }) {
       </SidebarMisc>
 
       <div className="w-full md:w-8/12 2xl:w-9/12 p-4">
-        <h2 className="mb-8">{intl.profile.updateprofile}</h2>
+        <h2 className="mb-4">{intl.profile.updateProfile}</h2>
 
         <ProfileForm user={user} intl={intl} />
       </div>

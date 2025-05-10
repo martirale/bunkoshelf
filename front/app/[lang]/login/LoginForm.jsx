@@ -75,7 +75,7 @@ export default function LoginForm({ lang, intl }) {
             type="submit"
             className="font-bold text-lg px-8 py-4 rounded-lg leading-none uppercase text-blackamber bg-sand border border-sand hover:bg-pearl transition-all duration-300 cursor-pointer"
           >
-            {intl.login.loginbtn}
+            {intl.login.login}
           </button>
         </div>
       </form>

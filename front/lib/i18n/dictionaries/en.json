@@ -12,12 +12,12 @@
     "manga": "Manga",
     "books": "Books",
     "series": "Series",
-    "readlist": "Read List",
-    "keepreading": "Keep Reading",
-    "inprogress": "In Progress",
-    "recentlyadded": "Recently Added",
-    "recentlyupdated": "Recently Updated",
-    "recentlyread": "Recently Read"
+    "readList": "Read List",
+    "keepReading": "Keep Reading",
+    "inProgress": "In Progress",
+    "recentlyAdded": "Recently Added",
+    "recentlyUpdated": "Recently Updated",
+    "recentlyRead": "Recently Read"
   },
   "favorites": {
     "title": "Favorites"
@@ -29,22 +29,28 @@
     "password": "New Password",
     "save": "Save Changes",
     "greeting": "Hi,",
-    "updateprofile": "Update Profile"
+    "updateProfile": "Update Profile"
   },
   "settings": {
     "title": "Settings",
     "users": "Users",
     "library": "Library Settings",
     "username": "Username",
+    "password": "Password",
     "type": "Type",
     "name": "Name",
     "lastname": "Lastname",
-    "age": "Age"
+    "age": "Age",
+    "createUser": "Create User",
+    "nameOpt": "Name (optional)",
+    "lastnameOpt": "Lastname (optional)",
+    "birthYearOpt": "Birth year (optional)",
+    "isAdmin": "Admin Privileges"
   },
   "login": {
     "username": "Username",
     "password": "Password",
-    "loginbtn": "Login"
+    "login": "Login"
   },
   "noauth": {
     "guide": "Getting Started"
