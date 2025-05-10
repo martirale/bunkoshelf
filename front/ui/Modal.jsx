@@ -37,7 +37,7 @@ export default function Modal({ isOpen, onClose, children }) {
         >
           <Minimize2 className="w-7 h-7" />
         </button>
-        <div className="m-4">{children}</div>
+        <div className="my-5 md:m-4">{children}</div>
       </div>
     </div>
   );

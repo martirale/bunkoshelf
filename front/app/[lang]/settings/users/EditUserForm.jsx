@@ -59,7 +59,7 @@ export default function EditUserForm({ user, intl, onSuccess }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 rounded-lg">
+    <div className="max-w-7xl mx-auto">
       <h2 className="flex items-center mb-4">
         <UserRoundPen className="w-7 h-7 mr-2" />
         {intl.settings.updateUser}
