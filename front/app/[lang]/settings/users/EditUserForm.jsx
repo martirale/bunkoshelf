@@ -80,7 +80,7 @@ export default function EditUserForm({ user, intl, onSuccess }) {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder={intl.settings.passwordOpt}
+          placeholder={intl.settings.passwordNew}
           className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
         />
         <input

@@ -47,7 +47,8 @@
     "lastnameOpt": "Apellido (opcional)",
     "birthYearOpt": "Año de nacimiento (opcional)",
     "isAdmin": "Privilegios de admin",
-    "updateUser": "Actualizar usuario"
+    "updateUser": "Actualizar usuario",
+    "passwordNew": "Nueva contraseña"
   },
   "login": {
     "username": "Nombre de usuario",
