@@ -1,8 +1,7 @@
 apps:
-  - name: express
-    script: server.js
-    cwd: /app/back
   - name: next
     script: pnpm
     args: start
-    cwd: /app/front
+    cwd: /app
+    env:
+      JWT_SECRET: ${JWT_SECRET}
