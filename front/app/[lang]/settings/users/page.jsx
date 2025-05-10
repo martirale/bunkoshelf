@@ -3,6 +3,7 @@ import SidebarMisc from "@/ui/SidebarMisc";
 import SettingsNav from "@/components/settings/SettingsNav";
 import prisma from "@/lib/prisma";
 import { Settings2, UsersRound } from "lucide-react";
+import UsersTable from "./UsersTable";
 
 export default async function SettingsUsersPage({ params }) {
   const { lang = "es" } = await params;
@@ -39,34 +40,7 @@ export default async function SettingsUsersPage({ params }) {
           {intl.settings.users}
         </h2>
 
-        <div className="space-y-4">
-          <table className="table-fixed w-full text-left">
-            <thead className="uppercase">
-              <tr>
-                <th className="p-2 border-b">{intl.settings.username}</th>
-                <th className="p-2 border-b">{intl.settings.type}</th>
-                <th className="p-2 border-b">{intl.settings.name}</th>
-                <th className="p-2 border-b">{intl.settings.lastname}</th>
-                <th className="p-2 border-b">{intl.settings.age}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => {
-                const currentYear = new Date().getFullYear();
-                const age = user.birthYear ? currentYear - user.birthYear : "—";
-                return (
-                  <tr key={user.id} className="border-t">
-                    <td className="p-2">{user.username}</td>
-                    <td className="p-2">{user.isAdmin ? "Admin" : "User"}</td>
-                    <td className="p-2">{user.name || "—"}</td>
-                    <td className="p-2">{user.lastname || "—"}</td>
-                    <td className="p-2">{age}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <UsersTable users={users} intl={intl} />
       </div>
     </div>
   );
