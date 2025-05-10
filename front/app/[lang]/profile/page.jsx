@@ -13,9 +13,13 @@ export default async function ProfilePage({ params }) {
   return (
     <div className="flex">
       <SidebarMisc>
-        <h2 className="text-onix">
-          {intl.profile.greeting} {user.name}!
-        </h2>
+        {!user || !user.name ? (
+          <h2>Bunko</h2>
+        ) : (
+          <h2 className="text-onix">
+            {intl.profile.greeting} {user.name}!
+          </h2>
+        )}
 
         <ProfileNav intl={intl} />
       </SidebarMisc>
