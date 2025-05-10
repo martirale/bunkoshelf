@@ -46,7 +46,8 @@
     "nameOpt": "Name (optional)",
     "lastnameOpt": "Lastname (optional)",
     "birthYearOpt": "Birth year (optional)",
-    "isAdmin": "Admin Privileges"
+    "isAdmin": "Admin Privileges",
+    "updateUser": "Update User"
   },
   "login": {
     "username": "Username",
