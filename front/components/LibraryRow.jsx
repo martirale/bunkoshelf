@@ -1,0 +1,132 @@
+"use client";
+
+import { useRef, useEffect, useState } from "react";
+import MangaCard from "./MangaCard";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+export default function LibraryRow({ intl, maxItems = 18 }) {
+  const scrollRef = useRef(null);
+  const [entries, setEntries] = useState([]);
+
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollStart = useRef(0);
+  const hasDragged = useRef(false);
+
+  // Fetch manga library
+  useEffect(() => {
+    async function fetchLibrary() {
+      const res = await fetch("/api/library/manga");
+      const data = await res.json();
+      setEntries(data);
+    }
+
+    fetchLibrary();
+  }, []);
+
+  // For drag
+  useEffect(() => {
+    const handleMouseUp = () => {
+      isDragging.current = false;
+      scrollRef.current?.classList.remove("dragging");
+    };
+
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  const handleMouseDown = (e) => {
+    isDragging.current = true;
+    hasDragged.current = false;
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollStart.current = scrollRef.current.scrollLeft;
+    scrollRef.current.classList.add("dragging");
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const delta = Math.abs(x - startX.current);
+    if (delta > 5) hasDragged.current = true;
+    const walk = (x - startX.current) * 1.5;
+    scrollRef.current.scrollLeft = scrollStart.current - walk;
+  };
+
+  const stopDragging = () => {
+    isDragging.current = false;
+    setTimeout(() => {
+      hasDragged.current = false;
+    }, 0);
+    scrollRef.current?.classList.remove("dragging");
+  };
+
+  // Scroll buttons
+  const scrollCards = (direction) => {
+    if (scrollRef.current) {
+      const container = scrollRef.current;
+      const card = container.querySelector("div > div");
+      const cardWidth = card?.offsetWidth || 200;
+      const scrollAmount = cardWidth * 2 * (direction === "left" ? -1 : 1);
+      container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  return (
+    <div className="relative">
+      {/* Controles arriba a la derecha */}
+      <div className="flex justify-end mb-4 gap-4">
+        <button onClick={() => scrollCards("left")} className="cursor-pointer">
+          <ChevronLeft className="w-7 h-7 hover:scale-110 transition-all duration-150" />
+        </button>
+        <button onClick={() => scrollCards("right")} className="cursor-pointer">
+          <ChevronRight className="w-7 h-7 hover:scale-110 transition-all duration-150" />
+        </button>
+      </div>
+
+      {/* Contenedor con scroll horizontal y drag */}
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto scrollbar-none flex gap-4"
+        style={{ WebkitOverflowScrolling: "touch", cursor: "grab" }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={stopDragging}
+        onMouseLeave={stopDragging}
+        onDragStart={(e) => e.preventDefault()}
+        onClickCapture={(e) => {
+          if (hasDragged.current) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
+      >
+        {entries.slice(0, maxItems).map((entry) => {
+          const isSeries = entry.volumes.length > 1 || entry.metadata;
+          const isOneshot = !isSeries;
+          const slug = entry.title.toLowerCase().replace(/\s+/g, "-");
+          const href = isSeries ? `/manga/${slug}` : `/manga/volume/${slug}`;
+
+          return (
+            <div
+              key={entry.title}
+              className="flex-shrink-0 w-1/2 md:w-1/4 lg:w-1/6 h-full"
+            >
+              <MangaCard
+                title={entry.title}
+                href={href}
+                isSeries={isSeries}
+                isOneshot={isOneshot}
+                volumeCount={isSeries ? entry.volumes.length : null}
+                cover={null}
+                intl={intl}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
