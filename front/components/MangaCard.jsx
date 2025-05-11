@@ -17,12 +17,12 @@ export default function MangaCard({
     >
       <div className="relative aspect-[7/10] w-full bg-zinc-800">
         {isOneshot && (
-          <span className="absolute top-2 right-2 z-10 bg-lilah text-xs uppercase py-0.5 px-1 rounded">
+          <span className="absolute top-2 right-2 z-10 bg-heather group-hover:bg-lilah text-xs uppercase py-0.5 px-1 rounded">
             Oneshot
           </span>
         )}
         <Image
-          src={cover || "/fallback-cover.jpg"}
+          src={cover || "/fallback-cover.png?v=1"}
           alt={`Cover for ${title}`}
           fill
           className="object-cover z-0"
@@ -30,7 +30,9 @@ export default function MangaCard({
       </div>
 
       <div className="p-3">
-        <h3 className="text-xs leading-6 line-clamp-2">{title}</h3>
+        <h3 className="text-xs leading-6 line-clamp-2 group-hover:text-heather transition-all duration-300">
+          {title}
+        </h3>
         {isSeries && volumeCount != null && (
           <p className="mt-1 text-xs uppercase">
             {volumeCount} {intl.manga.volumes}
