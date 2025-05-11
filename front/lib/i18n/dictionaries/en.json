@@ -19,6 +19,10 @@
     "recentlyUpdated": "Recently Updated",
     "recentlyRead": "Recently Read"
   },
+  "manga": {
+    "volumes": "Volumes"
+  },
+  "books": {},
   "favorites": {
     "title": "Favorites"
   },
