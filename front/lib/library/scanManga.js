@@ -88,13 +88,8 @@ export async function scanMangaLibrary(baseDir = LIBRARY_PATH) {
         title: volumeTitle,
         slug: toSlug(volumeTitle),
         path: baseDir,
-        volumes: [
-          {
-            filename: entry.name,
-            fullPath: volumePath,
-            slug: toSlug(volumeTitle),
-          },
-        ],
+        filename: entry.name,
+        fullPath: volumePath,
         metadata,
       });
     }
