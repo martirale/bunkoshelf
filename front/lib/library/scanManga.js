@@ -52,13 +52,17 @@ export async function scanMangaLibrary(baseDir = LIBRARY_PATH) {
         }
       }
 
+      // Identificar si es un oneshot por el sufijo '[oneshot]'
+      const isOneshot = entry.name.endsWith("[oneshot]");
+
       entries.push({
         type: "series",
-        title: entry.name,
+        title: entry.name.replace("[oneshot]", "").trim(), // Eliminar el sufijo '[oneshot]' para el frontend
         slug: toSlug(entry.name),
         path: entryPath,
         volumes,
         metadata,
+        isOneshot, // Marca si es oneshot
       });
     } else if (
       SUPPORTED_EXTENSIONS.includes(path.extname(entry.name).toLowerCase())

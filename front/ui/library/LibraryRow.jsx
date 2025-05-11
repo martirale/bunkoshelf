@@ -110,26 +110,23 @@ export default function LibraryRow({
         }}
       >
         {entries.slice(0, maxItems).map((entry) => {
-          const isSeries = entry.volumes.length > 1 || entry.metadata;
-          const isOneshot = !isSeries;
-          const slug = entry.title.toLowerCase().replace(/\s+/g, "-");
-          const href = isSeries ? `/manga/${slug}` : `/manga/volume/${slug}`;
+          const href = `/manga/${entry.slug}`;
 
           return (
             <div
-              key={entry.title}
+              key={entry.slug}
               className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/6"
             >
               <MangaCard
                 title={entry.title}
                 href={href}
-                isSeries={isSeries}
-                isOneshot={isOneshot}
-                volumeCount={isSeries ? entry.volumes.length : null}
+                isSeries={true}
+                isOneshot={entry.isOneshot}
+                volumeCount={entry.volumes.length}
                 cover={null}
                 intl={intl}
                 isDragging={isDragging}
-                className="text-[10px] leading-5 2xl:text-xs 2xl:leading-6"
+                className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
               />
             </div>
           );
