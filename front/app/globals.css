@@ -43,3 +43,12 @@ h5,
 h6 {
   font-family: var(--font-display);
 }
+
+/* Hidden scrollbars */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
