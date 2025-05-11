@@ -33,6 +33,8 @@ export default async function MangaPage({ params }) {
             {intl.libraries.inProgress}
           </h2>
         </div>
+
+        <LibraryGrid intl={intl} />
       </section>
 
       {/* RECENTLY ADDED */}
@@ -43,6 +45,8 @@ export default async function MangaPage({ params }) {
             {intl.libraries.recentlyAdded}
           </h2>
         </div>
+
+        <LibraryGrid intl={intl} />
       </section>
 
       {/* RECENTLY UPDATED SERIES */}
@@ -53,6 +57,8 @@ export default async function MangaPage({ params }) {
             {intl.libraries.recentlyUpdated}
           </h2>
         </div>
+
+        <LibraryGrid intl={intl} />
       </section>
 
       {/* RECENTLY READ */}
@@ -63,6 +69,8 @@ export default async function MangaPage({ params }) {
             {intl.libraries.recentlyRead}
           </h2>
         </div>
+
+        <LibraryGrid intl={intl} />
       </section>
     </>
   );
