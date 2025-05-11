@@ -1,4 +1,4 @@
-import LibraryRow from "@/components/LibraryRow";
+import LibraryRow from "@/ui/library/LibraryRow";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 import {
   LibraryBig,
