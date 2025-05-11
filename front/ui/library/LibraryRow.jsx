@@ -118,7 +118,7 @@ export default function LibraryRow({
           return (
             <div
               key={entry.title}
-              className="flex-shrink-0 w-1/2 md:w-1/4 lg:w-1/6 h-full"
+              className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/6"
             >
               <MangaCard
                 title={entry.title}
