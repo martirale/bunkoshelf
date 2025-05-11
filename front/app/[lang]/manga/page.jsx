@@ -14,63 +14,53 @@ export default async function MangaPage({ params }) {
 
   return (
     <>
+      {/* KEEP READING */}
       <section className="w-full p-4 bg-lilah">
-        <div className="pb-4">
-          <h2 className="flex items-center mb-4 text-sand">
-            <LibraryBig className="w-7 h-7 mr-2" />
-            {intl.libraries.keepReading}
-          </h2>
-        </div>
-
-        <LibraryRow intl={intl} />
+        <LibraryRow
+          intl={intl}
+          title={intl.libraries.keepReading}
+          icon={<LibraryBig />}
+        />
       </section>
 
       {/* IN PROGRESS */}
       <section className="p-4">
-        <div className="pb-4">
-          <h2 className="flex items-center mb-4">
-            <BookMarked className="w-7 h-7 mr-2" />
-            {intl.libraries.inProgress}
-          </h2>
-        </div>
-
-        <LibraryRow intl={intl} />
+        <LibraryRow
+          intl={intl}
+          title={intl.libraries.inProgress}
+          icon={<BookMarked />}
+          className="mt-8"
+        />
       </section>
 
       {/* RECENTLY ADDED */}
       <section className="p-4">
-        <div className="pb-4">
-          <h2 className="flex items-center mb-4">
-            <BookPlus className="w-7 h-7 mr-2" />
-            {intl.libraries.recentlyAdded}
-          </h2>
-        </div>
-
-        <LibraryRow intl={intl} />
+        <LibraryRow
+          intl={intl}
+          title={intl.libraries.recentlyAdded}
+          icon={<BookPlus />}
+          className="mt-8"
+        />
       </section>
 
       {/* RECENTLY UPDATED SERIES */}
       <section className="p-4">
-        <div className="pb-4">
-          <h2 className="flex items-center mb-4">
-            <BookDown className="w-7 h-7 mr-2" />
-            {intl.libraries.recentlyUpdated}
-          </h2>
-        </div>
-
-        <LibraryRow intl={intl} />
+        <LibraryRow
+          intl={intl}
+          title={intl.libraries.recentlyUpdated}
+          icon={<BookDown />}
+          className="mt-8"
+        />
       </section>
 
       {/* RECENTLY READ */}
       <section className="p-4">
-        <div className="pb-4">
-          <h2 className="flex items-center mb-4">
-            <BookCheck className="w-7 h-7 mr-2" />
-            {intl.libraries.recentlyRead}
-          </h2>
-        </div>
-
-        <LibraryRow intl={intl} />
+        <LibraryRow
+          intl={intl}
+          title={intl.libraries.recentlyRead}
+          icon={<BookCheck />}
+          className="mt-8"
+        />
       </section>
     </>
   );

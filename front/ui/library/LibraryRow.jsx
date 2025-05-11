@@ -1,10 +1,17 @@
 "use client";
 
+import React from "react";
 import { useRef, useEffect, useState } from "react";
 import MangaCard from "./MangaCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function LibraryRow({ intl, maxItems = 18 }) {
+export default function LibraryRow({
+  intl,
+  title,
+  icon,
+  className,
+  maxItems = 18,
+}) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -62,15 +69,27 @@ export default function LibraryRow({ intl, maxItems = 18 }) {
   };
 
   return (
-    <div className="relative">
-      {/* Controles arriba a la derecha */}
-      <div className="flex justify-end mb-4 gap-4">
-        <button onClick={() => scrollCards("left")} className="cursor-pointer">
-          <ChevronLeft className="w-7 h-7 hover:scale-110 transition-all duration-150" />
-        </button>
-        <button onClick={() => scrollCards("right")} className="cursor-pointer">
-          <ChevronRight className="w-7 h-7 hover:scale-110 transition-all duration-150" />
-        </button>
+    <div className={`relative ${className}`}>
+      {/* Encabezado y botones de desplazamiento */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="flex items-center">
+          {icon && React.cloneElement(icon, { className: "w-7 h-7 mr-2" })}
+          {title}
+        </h2>
+        <div className="flex gap-4">
+          <button
+            onClick={() => scrollCards("left")}
+            className="cursor-pointer"
+          >
+            <ChevronLeft className="w-7 h-7 hover:scale-110 transition-all duration-150" />
+          </button>
+          <button
+            onClick={() => scrollCards("right")}
+            className="cursor-pointer"
+          >
+            <ChevronRight className="w-7 h-7 hover:scale-110 transition-all duration-150" />
+          </button>
+        </div>
       </div>
 
       {/* Contenedor con scroll horizontal y drag */}
