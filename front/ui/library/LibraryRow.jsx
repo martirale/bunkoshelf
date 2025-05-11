@@ -129,6 +129,7 @@ export default function LibraryRow({
                 cover={null}
                 intl={intl}
                 isDragging={isDragging}
+                className="text-[10px] leading-5 2xl:text-xs 2xl:leading-6"
               />
             </div>
           );

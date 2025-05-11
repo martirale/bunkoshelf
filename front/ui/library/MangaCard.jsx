@@ -10,6 +10,7 @@ export default function MangaCard({
   cover,
   intl,
   isDragging,
+  className,
 }) {
   return (
     <Link
@@ -33,7 +34,9 @@ export default function MangaCard({
       </div>
 
       <div className="flex flex-col justify-between p-3 h-24">
-        <h3 className="text-xs leading-6 line-clamp-2 group-hover:text-lilah transition-all duration-300">
+        <h3
+          className={`line-clamp-2 group-hover:text-lilah transition-all duration-300 ${className}`}
+        >
           {title}
         </h3>
 
