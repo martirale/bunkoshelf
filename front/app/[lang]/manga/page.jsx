@@ -1,3 +1,4 @@
+import LibraryGrid from "@/components/LibraryGrid";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 import {
   LibraryBig,
@@ -20,6 +21,8 @@ export default async function MangaPage({ params }) {
             {intl.libraries.keepReading}
           </h2>
         </div>
+
+        <LibraryGrid intl={intl} />
       </section>
 
       {/* IN PROGRESS */}
