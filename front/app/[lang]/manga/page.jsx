@@ -1,4 +1,4 @@
-import LibraryGrid from "@/components/LibraryGrid";
+import LibraryRow from "@/components/LibraryRow";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 import {
   LibraryBig,
@@ -22,7 +22,7 @@ export default async function MangaPage({ params }) {
           </h2>
         </div>
 
-        <LibraryGrid intl={intl} />
+        <LibraryRow intl={intl} />
       </section>
 
       {/* IN PROGRESS */}
@@ -34,7 +34,7 @@ export default async function MangaPage({ params }) {
           </h2>
         </div>
 
-        <LibraryGrid intl={intl} />
+        <LibraryRow intl={intl} />
       </section>
 
       {/* RECENTLY ADDED */}
@@ -46,7 +46,7 @@ export default async function MangaPage({ params }) {
           </h2>
         </div>
 
-        <LibraryGrid intl={intl} />
+        <LibraryRow intl={intl} />
       </section>
 
       {/* RECENTLY UPDATED SERIES */}
@@ -58,7 +58,7 @@ export default async function MangaPage({ params }) {
           </h2>
         </div>
 
-        <LibraryGrid intl={intl} />
+        <LibraryRow intl={intl} />
       </section>
 
       {/* RECENTLY READ */}
@@ -70,7 +70,7 @@ export default async function MangaPage({ params }) {
           </h2>
         </div>
 
-        <LibraryGrid intl={intl} />
+        <LibraryRow intl={intl} />
       </section>
     </>
   );

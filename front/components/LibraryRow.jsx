@@ -7,8 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function LibraryRow({ intl, maxItems = 18 }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
-
-  const isDragging = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
   const scrollStart = useRef(0);
   const hasDragged = useRef(false);
@@ -24,29 +23,17 @@ export default function LibraryRow({ intl, maxItems = 18 }) {
     fetchLibrary();
   }, []);
 
-  // For drag
-  useEffect(() => {
-    const handleMouseUp = () => {
-      isDragging.current = false;
-      scrollRef.current?.classList.remove("dragging");
-    };
-
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, []);
-
+  // Manejo de arrastre
   const handleMouseDown = (e) => {
-    isDragging.current = true;
+    setIsDragging(true); // Inicia el arrastre
     hasDragged.current = false;
     startX.current = e.pageX - scrollRef.current.offsetLeft;
     scrollStart.current = scrollRef.current.scrollLeft;
-    scrollRef.current.classList.add("dragging");
+    document.body.style.cursor = "grabbing";
   };
 
   const handleMouseMove = (e) => {
-    if (!isDragging.current) return;
+    if (!isDragging) return;
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
     const delta = Math.abs(x - startX.current);
@@ -56,11 +43,11 @@ export default function LibraryRow({ intl, maxItems = 18 }) {
   };
 
   const stopDragging = () => {
-    isDragging.current = false;
+    setIsDragging(false); // Termina el arrastre
     setTimeout(() => {
       hasDragged.current = false;
     }, 0);
-    scrollRef.current?.classList.remove("dragging");
+    document.body.style.cursor = "default"; // Restablece el cursor
   };
 
   // Scroll buttons
@@ -122,6 +109,7 @@ export default function LibraryRow({ intl, maxItems = 18 }) {
                 volumeCount={isSeries ? entry.volumes.length : null}
                 cover={null}
                 intl={intl}
+                isDragging={isDragging}
               />
             </div>
           );

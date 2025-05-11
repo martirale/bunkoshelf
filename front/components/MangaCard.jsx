@@ -9,11 +9,14 @@ export default function MangaCard({
   volumeCount,
   cover,
   intl,
+  isDragging,
 }) {
   return (
     <Link
       href={href}
-      className="group flex flex-col overflow-hidden bg-blackamber border border-blackamber rounded-lg hover:bg-blackamber transition-all duration-300"
+      className={`group flex flex-col overflow-hidden bg-blackamber border border-blackamber rounded-lg hover:bg-blackamber transition-all duration-300 ${
+        isDragging ? "cursor-grabbing" : "cursor-pointer"
+      }`}
     >
       <div className="relative aspect-[7/10] w-full bg-zinc-800 flex-shrink-0">
         {isOneshot && (
