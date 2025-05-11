@@ -25,7 +25,7 @@ export default function MangaCard({
           </span>
         )}
         <Image
-          src={cover || "/fallback-cover.png?v=1"}
+          src={cover || "/placeholder.svg?=v1"}
           alt={`Cover for ${title}`}
           fill
           className="object-cover z-0"
