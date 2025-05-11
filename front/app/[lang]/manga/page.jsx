@@ -1,4 +1,5 @@
 import LibraryRow from "@/ui/library/LibraryRow";
+import LibraryRowHero from "@/ui/library/LibraryRowHero";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 import {
   LibraryBig,
@@ -16,7 +17,7 @@ export default async function MangaPage({ params }) {
     <>
       {/* KEEP READING */}
       <section className="w-full p-4 bg-lilah">
-        <LibraryRow
+        <LibraryRowHero
           intl={intl}
           title={intl.libraries.keepReading}
           icon={<LibraryBig />}
