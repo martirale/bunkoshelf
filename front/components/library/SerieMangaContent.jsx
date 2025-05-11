@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
 export default function SerieMangaContent() {
   const { series } = useParams();
@@ -17,7 +18,7 @@ export default function SerieMangaContent() {
         const data = await res.json();
 
         const serie = data.find(
-          (item) => item.title.toLowerCase().replace(/\s+/g, "-") === series
+          (item) => item.slug === series && item.type === "series"
         );
 
         if (serie) {
@@ -35,18 +36,24 @@ export default function SerieMangaContent() {
     fetchSerieData();
   }, [series]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!serieData) {
-    return <div>No data found for this series.</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (!serieData) return <div>No data found for this series.</div>;
 
   return (
     <div>
-      <h1>{serieData.title}</h1>
-      {/* Aquí puedes expandir con volúmenes, descripción, etc. */}
+      <h1 className="text-2xl font-bold mb-4">{serieData.title}</h1>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {serieData.volumes.map((volume, idx) => (
+          <Link
+            key={idx}
+            href={`/manga/volume/${volume.slug}`}
+            className="border rounded p-2 hover:shadow transition"
+          >
+            <div className="text-sm font-medium">{volume.filename}</div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

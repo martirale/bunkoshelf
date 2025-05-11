@@ -16,12 +16,34 @@ export default function VolumeMangaContent() {
         const res = await fetch("/api/library/manga");
         const data = await res.json();
 
-        const manga = data.find(
-          (item) => item.title.toLowerCase().replace(/\s+/g, "-") === slug
+        let volumeEntry = null;
+
+        // Caso 1: volumen individual
+        const directVolume = data.find(
+          (item) => item.type === "volume" && item.slug === slug
         );
 
-        if (manga) {
-          setVolumeData(manga);
+        if (directVolume) {
+          volumeEntry = directVolume;
+        } else {
+          // Caso 2: volumen dentro de una serie
+          for (const item of data) {
+            if (item.type === "series") {
+              const foundVolume = item.volumes.find((v) => v.slug === slug);
+              if (foundVolume) {
+                volumeEntry = {
+                  ...foundVolume,
+                  seriesTitle: item.title,
+                  type: "volume-in-series",
+                };
+                break;
+              }
+            }
+          }
+        }
+
+        if (volumeEntry) {
+          setVolumeData(volumeEntry);
         } else {
           console.error("Manga not found");
         }
@@ -45,7 +67,10 @@ export default function VolumeMangaContent() {
 
   return (
     <div>
-      <h1>{volumeData.title}</h1>
+      {volumeData.seriesTitle && (
+        <p style={{ fontStyle: "italic" }}>Serie: {volumeData.seriesTitle}</p>
+      )}
+      <h1>{volumeData.title || volumeData.filename}</h1>
     </div>
   );
 }
