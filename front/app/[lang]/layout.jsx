@@ -4,7 +4,7 @@ import Sidebar from "@/components/sidebar/sidebar";
 
 export const metadata = {
   title: "Bunko Shelf",
-  description: "Full web manga and book server, reader and library.",
+  description: "Self-hosted server for managing-reading manga & ebooks.",
   icons: {
     icon: "/favicon.png",
     apple: "/apple-touch-icon.png",
