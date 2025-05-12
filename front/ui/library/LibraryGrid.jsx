@@ -11,10 +11,10 @@ export default async function LibraryGrid({ lang, intl }) {
       {entries.map((entry) => {
         const isSeries = entry.volumes.length > 1 || entry.metadata;
         const isOneshot = !isSeries;
-        const slug = entry.title.toLowerCase().replace(/\s+/g, "-");
-        const href = isSeries
-          ? `/${lang}/manga/${slug}`
-          : `/${lang}/manga/volume/${slug}`;
+
+        const href = isOneshot
+          ? `/${lang}/manga/volume/${entry.volumeSlug}`
+          : `/${lang}/manga/${entry.slug}`;
 
         return (
           <MangaCard
