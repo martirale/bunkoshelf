@@ -49,7 +49,7 @@
     "age": "Age",
     "nameOpt": "Name (optional)",
     "lastnameOpt": "Lastname (optional)",
-    "birthYearOpt": "Birth year (optional)",
+    "birthYearOpt": "Birth Year (optional)",
     "isAdmin": "Admin Privileges",
     "createUser": "Create User",
     "updateUser": "Update User",
@@ -74,5 +74,8 @@
     "confirmDelete": "Are you sure you want to delete the user?",
     "loginFail": "Invalid Credentials",
     "serverError": "Invalid server response"
+  },
+  "misc": {
+    "coming": "Feature coming soon"
   }
 }

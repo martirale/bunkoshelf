@@ -74,5 +74,8 @@
     "confirmDelete": "¿Seguro qué quieres eliminar el usuario?",
     "loginFail": "Credenciales inválidas",
     "serverError": "Respuesta del servidor no válida"
+  },
+  "misc": {
+    "coming": "Característica disponible próximamente"
   }
 }
