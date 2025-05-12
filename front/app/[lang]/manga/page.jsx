@@ -1,5 +1,5 @@
-import LibraryRow from "@/ui/library/LibraryRow";
-import LibraryRowHero from "@/ui/library/LibraryRowHero";
+import LibraryRow from "@/ui/library/manga/LibraryRow";
+import LibraryRowHero from "@/ui/library/manga/LibraryRowHero";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 import {
   LibraryBig,
