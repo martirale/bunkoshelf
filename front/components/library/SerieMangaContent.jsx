@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Loader from "@/ui/Loader";
 
 export default function SerieMangaContent() {
   const { series } = useParams();
@@ -32,6 +33,7 @@ export default function SerieMangaContent() {
           setSerieData(serie);
         } else {
           console.error("Serie not found");
+          setSerieData(null);
         }
       } catch (error) {
         console.error("Failed to fetch serie data", error);
@@ -43,8 +45,8 @@ export default function SerieMangaContent() {
     fetchSerieData();
   }, [series, router]);
 
-  if (loading) return <div>Loading...</div>;
-  if (!serieData) return <div>No data found for this series.</div>;
+  if (loading) return <Loader />;
+  if (!serieData) return null;
 
   return (
     <div>
