@@ -11,57 +11,5 @@ export default async function HomePage({ params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
 
-  return (
-    <>
-      {/* HERO SECTION */}
-      <section className="p-4 bg-pearl">
-        <div className="pb-4">
-          <h2 className="flex items-center mb-4 text-onix">
-            <LibraryBig className="w-7 h-7 mr-2" />
-            {intl.libraries.keepReading}
-          </h2>
-        </div>
-      </section>
-
-      {/* IN PROGRESS */}
-      <section className="p-4">
-        <div className="pb-4">
-          <h2 className="flex items-center mb-4">
-            <BookMarked className="w-7 h-7 mr-2" />
-            {intl.libraries.inProgress}
-          </h2>
-        </div>
-      </section>
-
-      {/* RECENTLY ADDED */}
-      <section className="p-4">
-        <div className="pb-4">
-          <h2 className="flex items-center mb-4">
-            <BookPlus className="w-7 h-7 mr-2" />
-            {intl.libraries.recentlyAdded}
-          </h2>
-        </div>
-      </section>
-
-      {/* RECENTLY UPDATED SERIES */}
-      <section className="p-4">
-        <div className="pb-4">
-          <h2 className="flex items-center mb-4">
-            <BookDown className="w-7 h-7 mr-2" />
-            {intl.libraries.recentlyUpdated}
-          </h2>
-        </div>
-      </section>
-
-      {/* RECENTLY READ */}
-      <section className="p-4">
-        <div className="pb-4">
-          <h2 className="flex items-center mb-4">
-            <BookCheck className="w-7 h-7 mr-2" />
-            {intl.libraries.recentlyRead}
-          </h2>
-        </div>
-      </section>
-    </>
-  );
+  return <></>;
 }
