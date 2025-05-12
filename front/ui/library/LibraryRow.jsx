@@ -6,6 +6,7 @@ import MangaCard from "./MangaCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function LibraryRow({
+  lang,
   intl,
   title,
   icon,
@@ -110,11 +111,11 @@ export default function LibraryRow({
         }}
       >
         {entries.slice(0, maxItems).map((entry) => {
-          const href = `/manga/${entry.slug}`;
+          const href = `${lang}/manga/${entry.slug}`;
 
           return (
             <div
-              key={entry.slug}
+              key={entry.title}
               className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/6"
             >
               <MangaCard
