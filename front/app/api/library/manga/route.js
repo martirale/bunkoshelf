@@ -1,7 +1,20 @@
 import { NextResponse } from "next/server";
-import { scanMangaLibrary } from "@/lib/library/scanManga";
+import prisma from "@/lib/prisma";
 
 export async function GET() {
-  const manga = await scanMangaLibrary();
-  return NextResponse.json(manga);
+  try {
+    const series = await prisma.mangaSeries.findMany({
+      include: {
+        volumes: true,
+      },
+    });
+
+    return NextResponse.json({ success: true, data: series });
+  } catch (error) {
+    console.error("Error al obtener los datos desde la DB:", error);
+    return NextResponse.json(
+      { success: false, error: "Error al consultar la base de datos" },
+      { status: 500 }
+    );
+  }
 }
