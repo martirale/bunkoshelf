@@ -17,3 +17,30 @@ model User {
   lastname  String?
   birthYear Int?
 }
+
+model MangaSeries {
+  id          Int            @id @default(autoincrement())
+  slug        String         @unique
+  title       String
+  path        String
+  isOneshot   Boolean        @default(false)
+  metadata    Json?
+  volumes     MangaVolume[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model MangaVolume {
+  id           Int           @id @default(autoincrement())
+  slug         String        @unique
+  title        String
+  filename     String
+  fullPath     String
+  metadata     Json?
+  series       MangaSeries   @relation(fields: [seriesId], references: [id])
+  seriesId     Int
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
