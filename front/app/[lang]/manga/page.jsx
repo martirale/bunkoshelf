@@ -8,7 +8,6 @@ import {
   BookDown,
   BookCheck,
 } from "lucide-react";
-import LibraryGrid from "@/ui/library/LibraryGrid";
 
 export default async function MangaPage({ params }) {
   const { lang = "es" } = await params;
