@@ -4,7 +4,6 @@ import path from "path";
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library/manga");
 const SUPPORTED_EXTENSIONS = [".cbz"];
 
-// Utilidad para generar slugs
 function toSlug(str) {
   return str
     .normalize("NFD")
@@ -23,7 +22,7 @@ export async function scanMangaLibrary(baseDir = LIBRARY_PATH) {
 
     if (entry.isDirectory()) {
       const subFiles = await fs.readdir(entryPath);
-      const volumes = subFiles
+      const rawVolumes = subFiles
         .filter((f) =>
           SUPPORTED_EXTENSIONS.includes(path.extname(f).toLowerCase())
         )
@@ -33,7 +32,7 @@ export async function scanMangaLibrary(baseDir = LIBRARY_PATH) {
           slug: toSlug(path.basename(f, path.extname(f))),
         }));
 
-      if (volumes.length === 0) continue;
+      if (rawVolumes.length === 0) continue;
 
       let metadata = null;
       const bunkoFile = subFiles.find((f) => f.endsWith(".bunko.json"));
@@ -52,17 +51,29 @@ export async function scanMangaLibrary(baseDir = LIBRARY_PATH) {
         }
       }
 
-      // Identificar si es un oneshot por el sufijo '[oneshot]'
       const isOneshot = entry.name.endsWith("[oneshot]");
+      const dirStat = await fs.stat(entryPath);
+
+      const volumes = await Promise.all(
+        rawVolumes.map(async (v) => {
+          const stat = await fs.stat(v.fullPath);
+          return {
+            ...v,
+            mtime: stat.mtime,
+            size: stat.size,
+          };
+        })
+      );
 
       entries.push({
         type: "series",
-        title: entry.name.replace("[oneshot]", "").trim(), // Eliminar el sufijo '[oneshot]' para el frontend
+        title: entry.name.replace("[oneshot]", "").trim(),
         slug: toSlug(entry.name),
         path: entryPath,
+        mtime: dirStat.mtime,
         volumes,
         metadata,
-        isOneshot, // Marca si es oneshot
+        isOneshot,
       });
     } else if (
       SUPPORTED_EXTENSIONS.includes(path.extname(entry.name).toLowerCase())
@@ -70,7 +81,6 @@ export async function scanMangaLibrary(baseDir = LIBRARY_PATH) {
       const volumeTitle = path.basename(entry.name, path.extname(entry.name));
       const volumePath = path.join(baseDir, entry.name);
 
-      // Intentar cargar metadata asociada al archivo individual
       let metadata = null;
       const metaFilename = volumeTitle + ".bunko.json";
       try {
@@ -87,6 +97,8 @@ export async function scanMangaLibrary(baseDir = LIBRARY_PATH) {
         // No hay metadata
       }
 
+      const stat = await fs.stat(volumePath);
+
       entries.push({
         type: "volume",
         title: volumeTitle,
@@ -95,6 +107,8 @@ export async function scanMangaLibrary(baseDir = LIBRARY_PATH) {
         filename: entry.name,
         fullPath: volumePath,
         metadata,
+        mtime: stat.mtime,
+        size: stat.size,
       });
     }
   }
