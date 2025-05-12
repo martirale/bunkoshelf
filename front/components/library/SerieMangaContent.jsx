@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function SerieMangaContent({ serieData, intl }) {
+export default function SerieMangaContent({ serieData, lang, intl }) {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">{serieData.title}</h1>
@@ -9,7 +9,7 @@ export default function SerieMangaContent({ serieData, intl }) {
           serieData.volumes.map((volume, idx) => (
             <Link
               key={idx}
-              href={`/manga/volume/${volume.slug}`}
+              href={`/${lang}/manga/volume/${volume.slug}`}
               className="border rounded p-2 hover:shadow transition"
             >
               <div className="text-sm font-medium">{volume.filename}</div>

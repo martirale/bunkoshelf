@@ -24,7 +24,7 @@ export default async function VolumeMangaPage({ params }) {
       );
     }
 
-    return <SerieMangaContent serieData={serie} intl={intl} />;
+    return <SerieMangaContent serieData={serie} lang={lang} intl={intl} />;
   } catch (error) {
     console.error("Error al obtener datos de la serie:", error);
     return (
