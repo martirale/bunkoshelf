@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function SerieMangaContent() {
   const { series } = useParams();
+  const router = useRouter();
   const [serieData, setSerieData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -22,6 +23,12 @@ export default function SerieMangaContent() {
         );
 
         if (serie) {
+          if (serie.isOneshot && serie.volumes.length > 0) {
+            const firstVolumeSlug = serie.volumes[0].slug;
+            router.replace(`/manga/volume/${firstVolumeSlug}`);
+            return;
+          }
+
           setSerieData(serie);
         } else {
           console.error("Serie not found");
@@ -34,7 +41,7 @@ export default function SerieMangaContent() {
     };
 
     fetchSerieData();
-  }, [series]);
+  }, [series, router]);
 
   if (loading) return <div>Loading...</div>;
   if (!serieData) return <div>No data found for this series.</div>;
