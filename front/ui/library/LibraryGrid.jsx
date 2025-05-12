@@ -1,23 +1,10 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import MangaCard from "./MangaCard";
-import { usePathname } from "next/navigation";
 
-export default function LibraryGrid({ intl }) {
-  const [entries, setEntries] = useState([]);
-  const pathname = usePathname();
-  const lang = pathname.split("/")[1];
-
-  useEffect(() => {
-    async function fetchLibrary() {
-      const res = await fetch("/api/library/manga");
-      const data = await res.json();
-      setEntries(data);
-    }
-
-    fetchLibrary();
-  }, []);
+export default async function LibraryGrid({ lang, intl }) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SITE_URL}/api/library/manga`
+  );
+  const { data: entries } = await res.json();
 
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
@@ -39,6 +26,7 @@ export default function LibraryGrid({ intl }) {
             volumeCount={isSeries ? entry.volumes.length : null}
             cover={null}
             intl={intl}
+            className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
           />
         );
       })}
