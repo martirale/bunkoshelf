@@ -26,6 +26,7 @@ model MangaSeries {
   isOneshot   Boolean        @default(false)
   metadata    Json?
   volumes     MangaVolume[]
+  mtime       DateTime       @default(now())
 
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
@@ -40,6 +41,8 @@ model MangaVolume {
   metadata     Json?
   series       MangaSeries   @relation(fields: [seriesId], references: [id])
   seriesId     Int
+  size         Int           @default(0)
+  mtime        DateTime      @default(now())
 
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
