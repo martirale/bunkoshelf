@@ -8,6 +8,7 @@ import {
   BookDown,
   BookCheck,
 } from "lucide-react";
+import LibraryGrid from "@/ui/library/LibraryGrid";
 
 export default async function MangaPage({ params }) {
   const { lang = "es" } = await params;
@@ -18,6 +19,7 @@ export default async function MangaPage({ params }) {
       {/* KEEP READING */}
       <section className="w-full p-4 bg-lilah">
         <LibraryRowHero
+          lang={lang}
           intl={intl}
           title={intl.libraries.keepReading}
           icon={<LibraryBig />}
@@ -27,6 +29,7 @@ export default async function MangaPage({ params }) {
       {/* IN PROGRESS */}
       <section className="p-4">
         <LibraryRow
+          lang={lang}
           intl={intl}
           title={intl.libraries.inProgress}
           icon={<BookMarked />}
@@ -37,6 +40,7 @@ export default async function MangaPage({ params }) {
       {/* RECENTLY ADDED */}
       <section className="p-4">
         <LibraryRow
+          lang={lang}
           intl={intl}
           title={intl.libraries.recentlyAdded}
           icon={<BookPlus />}
@@ -47,6 +51,7 @@ export default async function MangaPage({ params }) {
       {/* RECENTLY UPDATED SERIES */}
       <section className="p-4">
         <LibraryRow
+          lang={lang}
           intl={intl}
           title={intl.libraries.recentlyUpdated}
           icon={<BookDown />}
@@ -57,6 +62,7 @@ export default async function MangaPage({ params }) {
       {/* RECENTLY READ */}
       <section className="p-4">
         <LibraryRow
+          lang={lang}
           intl={intl}
           title={intl.libraries.recentlyRead}
           icon={<BookCheck />}
