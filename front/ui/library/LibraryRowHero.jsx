@@ -20,20 +20,19 @@ export default function LibraryRowHero({
   const scrollStart = useRef(0);
   const hasDragged = useRef(false);
 
-  // Fetch manga library
+  // Nuevo fetch ajustado
   useEffect(() => {
     async function fetchLibrary() {
-      const res = await fetch("/api/library/manga");
-      const data = await res.json();
+      const res = await fetch("/api/library/manga/overall");
+      const { data } = await res.json();
       setEntries(data);
     }
 
     fetchLibrary();
   }, []);
 
-  // Manejo de arrastre
   const handleMouseDown = (e) => {
-    setIsDragging(true); // Inicia el arrastre
+    setIsDragging(true);
     hasDragged.current = false;
     startX.current = e.pageX - scrollRef.current.offsetLeft;
     scrollStart.current = scrollRef.current.scrollLeft;
@@ -51,14 +50,13 @@ export default function LibraryRowHero({
   };
 
   const stopDragging = () => {
-    setIsDragging(false); // Termina el arrastre
+    setIsDragging(false);
     setTimeout(() => {
       hasDragged.current = false;
     }, 0);
-    document.body.style.cursor = "default"; // Restablece el cursor
+    document.body.style.cursor = "default";
   };
 
-  // Scroll buttons
   const scrollCards = (direction) => {
     if (scrollRef.current) {
       const container = scrollRef.current;
@@ -71,7 +69,6 @@ export default function LibraryRowHero({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Encabezado y botones de desplazamiento */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="flex items-center">
           {icon && React.cloneElement(icon, { className: "w-7 h-7 mr-2" })}
@@ -93,7 +90,6 @@ export default function LibraryRowHero({
         </div>
       </div>
 
-      {/* Contenedor con scroll horizontal y drag */}
       <div
         ref={scrollRef}
         className="overflow-x-auto scrollbar-none flex gap-4"
@@ -111,7 +107,12 @@ export default function LibraryRowHero({
         }}
       >
         {entries.slice(0, maxItems).map((entry) => {
-          const href = `${lang}/manga/${entry.slug}`;
+          const isSeries = entry.volumes.length > 1 || entry.metadata;
+          const isOneshot = !isSeries;
+
+          const href = isOneshot
+            ? `/${lang}/manga/volume/${entry.volumeSlug}`
+            : `/${lang}/manga/${entry.slug}`;
 
           return (
             <div
@@ -121,9 +122,9 @@ export default function LibraryRowHero({
               <MangaCard
                 title={entry.title}
                 href={href}
-                isSeries={true}
-                isOneshot={entry.isOneshot}
-                volumeCount={entry.volumes.length}
+                isSeries={isSeries}
+                isOneshot={isOneshot}
+                volumeCount={isSeries ? entry.volumes.length : null}
                 cover={null}
                 intl={intl}
                 isDragging={isDragging}
