@@ -7,7 +7,7 @@ export default async function VolumeMangaPage({ params }) {
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/library/series`,
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/library/manga/series`,
       {
         cache: "no-store",
       }

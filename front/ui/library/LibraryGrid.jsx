@@ -2,7 +2,7 @@ import MangaCard from "./MangaCard";
 
 export default async function LibraryGrid({ lang, intl }) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SITE_URL}/api/library/manga`
+    `${process.env.NEXT_PUBLIC_SITE_URL}/api/library/manga/overall`
   );
   const { data: entries } = await res.json();
 
