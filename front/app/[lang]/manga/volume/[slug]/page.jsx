@@ -1,4 +1,4 @@
-import VolumeMangaContent from "@/components/library/VolumeMangaContent";
+import VolumeMangaContent from "@/components/library/manga/VolumeMangaContent";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 
 export default async function VolumeMangaPage({ params }) {
