@@ -12,6 +12,20 @@ export default async function VolumeMangaPage({ params }) {
     );
 
     const { data: entries } = await res.json();
+
+    entries.forEach((entry) => {
+      if (entry.coverImage) {
+        entry.coverImage = entry.coverImage.replace(/\\/g, "/");
+      }
+
+      if (entry.volumes?.length > 0) {
+        entry.volumes = entry.volumes.map((volume) => ({
+          ...volume,
+          coverImage: volume.coverImage?.replace(/\\/g, "/"),
+        }));
+      }
+    });
+
     const volumeEntry = entries.find((item) => item.slug === slug);
 
     if (!volumeEntry) {
