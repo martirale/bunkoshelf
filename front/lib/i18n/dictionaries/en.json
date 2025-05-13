@@ -20,7 +20,16 @@
     "recentlyRead": "Recently Read"
   },
   "manga": {
-    "volumes": "Volumes"
+    "read": "Read",
+    "series": "Series:",
+    "volumes": "Volumes",
+    "synopsis": "Synopsis:",
+    "author": "Author",
+    "cartoonist": "Cartoonist",
+    "editorial": "Editorial",
+    "genre": "Genre",
+    "tags": "Tags",
+    "seriesVolumes": "Series Volumes"
   },
   "books": {},
   "favorites": {
