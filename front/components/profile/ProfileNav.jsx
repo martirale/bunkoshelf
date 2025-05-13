@@ -16,7 +16,7 @@ export default function ProfileNav({ intl }) {
 
   return (
     <>
-      <div className="border border-t-sand mt-16 mb-2"></div>
+      <div className="border-t border-sand mt-16 mb-2"></div>
       <div className="space-y-2">
         <Link
           href={`/${currentLang}/profile`}
