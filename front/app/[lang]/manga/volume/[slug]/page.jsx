@@ -36,7 +36,9 @@ export default async function VolumeMangaPage({ params }) {
       );
     }
 
-    return <VolumeMangaContent volumeData={volumeEntry} intl={intl} />;
+    return (
+      <VolumeMangaContent volumeData={volumeEntry} lang={lang} intl={intl} />
+    );
   } catch (error) {
     console.error("Error al obtener datos del volumen:", error);
     return (

@@ -1,6 +1,18 @@
+import {
+  BookCheck,
+  EyeClosed,
+  Check,
+  Languages,
+  Signature,
+  PenTool,
+  Building2,
+  BookA,
+  Tags,
+} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
-export default function VolumeMangaContent({ volumeData, intl }) {
+export default function VolumeMangaContent({ volumeData, lang, intl }) {
   if (!volumeData) {
     return (
       <div className="text-center mt-8">
@@ -10,30 +22,126 @@ export default function VolumeMangaContent({ volumeData, intl }) {
     );
   }
 
+  const isOneshot = volumeData.series?.isOneshot === true;
+  const seriesTitle = volumeData.series?.title;
+  const seriesSlug = volumeData.series?.slug;
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">
-        {volumeData.title || volumeData.filename}
-      </h1>
-
-      {volumeData.seriesTitle && (
-        <p style={{ fontStyle: "italic" }}>Serie: {volumeData.seriesTitle}</p>
-      )}
-
-      <div className="mt-4">
-        {volumeData.description || "Descripción no disponible."}
-      </div>
-
-      {volumeData.coverImage && (
-        <div className="relative mt-6 w-64 h-96">
-          <Image
-            src={volumeData.coverImage || "/placeholder.svg?=v1"}
-            alt={`Cover for ${volumeData.title || volumeData.filename}`}
-            fill
-            className="object-cover rounded shadow-md"
-          />
+    <div className="p-4">
+      <section className="flex flex-col md:flex-row">
+        {/* Cover Image */}
+        <div className="w-full md:w-1/3">
+          {volumeData.coverImage && (
+            <div className="mb-8 md:mb-0 md:mr-8 px-8 md:px-0">
+              <Image
+                src={volumeData.coverImage || "/placeholder.svg?=v1"}
+                alt={`Cover for ${volumeData.title || volumeData.filename}`}
+                width={0}
+                height={0}
+                sizes="100vw"
+                className="w-full h-auto object-contain rounded-lg"
+              />
+            </div>
+          )}
         </div>
-      )}
+
+        <div className="w-full md:w-2/3">
+          {/* Series Title */}
+          <h1 className="text-3xl leading-14">{volumeData.title}</h1>
+          {!isOneshot && (
+            <Link href={`/${lang}/manga/${seriesSlug}`} className="italic">
+              Serie: {seriesTitle}
+            </Link>
+          )}
+
+          {/* Read Buttons */}
+          <div className="flex flex-row mt-4 gap-2 md:gap-4">
+            <Link
+              href="#"
+              className="flex items-center font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
+            >
+              <BookCheck className="w-5 h-5 mr-2" />
+              Leer
+            </Link>
+            <Link
+              href="#"
+              className="flex items-center font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
+            >
+              <EyeClosed className="w-5 h-5 mr-2" />
+              Leer
+            </Link>
+            <Link
+              href="#"
+              className="p-4 rounded-lg leading-none text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
+              title="Marcar como leído"
+            >
+              <Check className="w-5 h-5" />
+            </Link>
+          </div>
+
+          {/* Meta Tags */}
+          <div className="mt-20">
+            {isOneshot && (
+              <span className="text-xs uppercase bg-lilah border border-lilah rounded-md px-3 py-1 mr-3">
+                Oneshot
+              </span>
+            )}
+            <span className="text-xs uppercase border border-sand rounded-md px-3 py-1 mr-3">
+              20XX
+            </span>
+            <span className="text-xs uppercase border border-sand rounded-md px-3 py-1 mr-3">
+              13+
+            </span>
+            <span className="text-xs uppercase border border-sand rounded-md px-3 py-1 mr-3">
+              Lang
+            </span>
+            <span className="text-xs uppercase border border-sand rounded-md px-3 py-1">
+              Oriental
+            </span>
+          </div>
+
+          {/* Description */}
+          <div className="mt-8 max-w-2xl">
+            <h2 className="text-sm mb-1">Sinopsis:</h2>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
+              vitae orci fringilla eros tristique scelerisque. Phasellus sit
+              amet metus sit amet dui egestas dictum. Curabitur ac purus metus.
+              Morbi blandit nec felis ut interdum. Etiam luctus, magna et
+              bibendum eleifend, enim sapien tincidunt nisi, non egestas nisl
+              leo ullamcorper nunc.
+            </p>
+          </div>
+
+          <div className="border-t border-zinc-800 my-6"></div>
+
+          {/* Author Info */}
+          <div className="flex flex-row items-baseline max-w-3xl">
+            <p className="text-sm uppercase w-1/3 md:w-1/5">Autor</p>
+            <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
+          </div>
+
+          <div className="flex flex-row items-baseline max-w-3xl">
+            <p className="text-sm uppercase w-1/3 md:w-1/5">Dibujante</p>
+            <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
+          </div>
+
+          <div className="flex flex-row items-baseline max-w-3xl">
+            <p className="text-sm uppercase w-1/3 md:w-1/5">Editorial</p>
+            <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
+          </div>
+
+          <div className="flex flex-row items-baseline max-w-3xl">
+            <p className="text-sm uppercase w-1/3 md:w-1/5">Género</p>
+            <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
+          </div>
+
+          <div className="flex flex-row items-baseline max-w-3xl">
+            <p className="text-sm uppercase w-1/3 md:w-1/5">Etiquetas</p>
+            <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
