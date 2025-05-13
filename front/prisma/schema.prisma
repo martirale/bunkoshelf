@@ -8,43 +8,79 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  username  String   @unique
-  password  String
-  isAdmin   Boolean  @default(false)
-  name      String?
-  lastname  String?
-  birthYear Int?
+  id             Int      @id @default(autoincrement())
+  createdAt      DateTime @default(now())
+  username       String   @unique
+  password       String
+  isAdmin        Boolean  @default(false)
+  name           String?
+  lastname       String?
+  birthYear      Int?
+
+  seriesProgress UserToSeries[]
+  volumeProgress UserToVolume[]
+}
+
+model UserToSeries {
+  id         Int         @id @default(autoincrement())
+  user       User        @relation(fields: [userId], references: [id])
+  userId     Int
+  series     MangaSeries @relation(fields: [seriesId], references: [id])
+  seriesId   Int
+  isFavorite Boolean     @default(false)
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([userId, seriesId])
+}
+
+model UserToVolume {
+  id         Int          @id @default(autoincrement())
+  user       User         @relation(fields: [userId], references: [id])
+  userId     Int
+  volume     MangaVolume  @relation(fields: [volumeId], references: [id])
+  volumeId   Int
+  isRead     Boolean      @default(false)
+  isFavorite Boolean      @default(false)
+
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([userId, volumeId])
 }
 
 model MangaSeries {
-  id          Int            @id @default(autoincrement())
-  slug        String         @unique
-  title       String
-  path        String
-  isOneshot   Boolean        @default(false)
-  metadata    Json?
-  volumes     MangaVolume[]
-  mtime       DateTime       @default(now())
+  id            Int            @id @default(autoincrement())
+  slug          String         @unique
+  title         String
+  path          String
+  isOneshot     Boolean        @default(false)
+  metadata      Json?
+  volumes       MangaVolume[]
+  mtime         DateTime       @default(now())
 
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  usersProgress UserToSeries[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model MangaVolume {
-  id           Int           @id @default(autoincrement())
-  slug         String        @unique
-  title        String
-  filename     String
-  fullPath     String
-  metadata     Json?
-  series       MangaSeries   @relation(fields: [seriesId], references: [id])
-  seriesId     Int
-  size         Int           @default(0)
-  mtime        DateTime      @default(now())
-  coverImage   String?
+  id            Int           @id @default(autoincrement())
+  slug          String        @unique
+  title         String
+  filename      String
+  fullPath      String
+  metadata      Json?
+  series        MangaSeries   @relation(fields: [seriesId], references: [id])
+  seriesId      Int
+  size          Int           @default(0)
+  mtime         DateTime      @default(now())
+  coverImage    String?
 
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  usersProgress UserToVolume[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
