@@ -1,6 +1,7 @@
 import MangaCard from "./MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
+import { Ghost } from "lucide-react";
 
 export default async function LibraryGridVolumesFav({ lang, intl }) {
   const user = await verifySession();
@@ -21,26 +22,39 @@ export default async function LibraryGridVolumesFav({ lang, intl }) {
     coverImage: volume.coverImage?.replace(/\\/g, "/") ?? null,
   }));
 
-  return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
-      {entries.map((entry) => {
-        const href = `/${lang}/manga/volume/${entry.slug}`;
-        const coverImage = entry.coverImage;
+  if (entries.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <Ghost className="w-16 h-16" />
+        <h2>{intl.misc.noVolumesFav}</h2>
+      </div>
+    );
+  }
 
-        return (
-          <MangaCard
-            key={entry.title}
-            title={entry.title}
-            href={href}
-            isSeries={false}
-            isOneshot={true}
-            volumeCount={null}
-            cover={coverImage}
-            intl={intl}
-            className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
-          />
-        );
-      })}
-    </div>
+  return (
+    <>
+      <h2 className="mt-8 mb-4 py-4">Volúmenes</h2>
+
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+        {entries.map((entry) => {
+          const href = `/${lang}/manga/volume/${entry.slug}`;
+          const coverImage = entry.coverImage;
+
+          return (
+            <MangaCard
+              key={entry.title}
+              title={entry.title}
+              href={href}
+              isSeries={false}
+              isOneshot={true}
+              volumeCount={null}
+              cover={coverImage}
+              intl={intl}
+              className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
+            />
+          );
+        })}
+      </div>
+    </>
   );
 }

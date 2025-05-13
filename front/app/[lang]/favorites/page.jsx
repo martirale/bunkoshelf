@@ -14,10 +14,8 @@ export default async function FavoritesPage({ params }) {
         {intl.favorites.title}
       </h1>
 
-      <h2 className="mt-8 mb-4 py-4">Series: Manga</h2>
       <LibraryGridSeriesFav lang={lang} intl={intl} />
 
-      <h2 className="mt-8 mb-4 py-4">Volúmenes</h2>
       <LibraryGridVolumesFav lang={lang} intl={intl} />
     </div>
   );
