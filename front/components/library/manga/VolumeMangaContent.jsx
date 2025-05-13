@@ -50,7 +50,7 @@ export default function VolumeMangaContent({ volumeData, lang, intl }) {
           <h1 className="text-3xl leading-14">{volumeData.title}</h1>
           {!isOneshot && (
             <Link href={`/${lang}/manga/${seriesSlug}`} className="italic">
-              Serie: {seriesTitle}
+              {intl.manga.series} {seriesTitle}
             </Link>
           )}
 
@@ -61,14 +61,14 @@ export default function VolumeMangaContent({ volumeData, lang, intl }) {
               className="flex items-center font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
             >
               <BookCheck className="w-5 h-5 mr-2" />
-              Leer
+              {intl.manga.read}
             </Link>
             <Link
               href="#"
               className="flex items-center font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
             >
               <EyeClosed className="w-5 h-5 mr-2" />
-              Leer
+              {intl.manga.read}
             </Link>
             <Link
               href="#"
@@ -102,7 +102,7 @@ export default function VolumeMangaContent({ volumeData, lang, intl }) {
 
           {/* Description */}
           <div className="mt-8 max-w-2xl">
-            <h2 className="text-sm mb-1">Sinopsis:</h2>
+            <h2 className="text-sm mb-1">{intl.manga.synopsis}</h2>
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
               vitae orci fringilla eros tristique scelerisque. Phasellus sit
@@ -117,27 +117,37 @@ export default function VolumeMangaContent({ volumeData, lang, intl }) {
 
           {/* Author Info */}
           <div className="flex flex-row items-baseline max-w-3xl">
-            <p className="text-sm uppercase w-1/3 md:w-1/5">Autor</p>
+            <p className="text-sm uppercase w-1/3 md:w-1/5">
+              {intl.manga.author}
+            </p>
             <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
           </div>
 
           <div className="flex flex-row items-baseline max-w-3xl">
-            <p className="text-sm uppercase w-1/3 md:w-1/5">Dibujante</p>
+            <p className="text-sm uppercase w-1/3 md:w-1/5">
+              {intl.manga.cartoonist}
+            </p>
             <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
           </div>
 
           <div className="flex flex-row items-baseline max-w-3xl">
-            <p className="text-sm uppercase w-1/3 md:w-1/5">Editorial</p>
+            <p className="text-sm uppercase w-1/3 md:w-1/5">
+              {intl.manga.editorial}
+            </p>
             <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
           </div>
 
           <div className="flex flex-row items-baseline max-w-3xl">
-            <p className="text-sm uppercase w-1/3 md:w-1/5">Género</p>
+            <p className="text-sm uppercase w-1/3 md:w-1/5">
+              {intl.manga.genre}
+            </p>
             <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
           </div>
 
           <div className="flex flex-row items-baseline max-w-3xl">
-            <p className="text-sm uppercase w-1/3 md:w-1/5">Etiquetas</p>
+            <p className="text-sm uppercase w-1/3 md:w-1/5">
+              {intl.manga.tags}
+            </p>
             <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
           </div>
         </div>

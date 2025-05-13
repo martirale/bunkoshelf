@@ -49,7 +49,7 @@ export default function SerieMangaContent({ serieData, lang, intl }) {
 
           {/* Description */}
           <div className="mt-8 max-w-2xl">
-            <h2 className="text-sm mb-1">Sinopsis:</h2>
+            <h2 className="text-sm mb-1">{intl.manga.synopsis}</h2>
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
               vitae orci fringilla eros tristique scelerisque. Phasellus sit
@@ -64,36 +64,49 @@ export default function SerieMangaContent({ serieData, lang, intl }) {
 
           {/* Author Info */}
           <div className="flex flex-row items-baseline max-w-3xl">
-            <p className="text-sm uppercase w-1/3 md:w-1/5">Autor</p>
+            <p className="text-sm uppercase w-1/3 md:w-1/5">
+              {intl.manga.author}
+            </p>
             <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
           </div>
 
           <div className="flex flex-row items-baseline max-w-3xl">
-            <p className="text-sm uppercase w-1/3 md:w-1/5">Dibujante</p>
+            <p className="text-sm uppercase w-1/3 md:w-1/5">
+              {intl.manga.cartoonist}
+            </p>
             <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
           </div>
 
           <div className="flex flex-row items-baseline max-w-3xl">
-            <p className="text-sm uppercase w-1/3 md:w-1/5">Editorial</p>
+            <p className="text-sm uppercase w-1/3 md:w-1/5">
+              {intl.manga.editorial}
+            </p>
             <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
           </div>
 
           <div className="flex flex-row items-baseline max-w-3xl">
-            <p className="text-sm uppercase w-1/3 md:w-1/5">Género</p>
+            <p className="text-sm uppercase w-1/3 md:w-1/5">
+              {intl.manga.genre}
+            </p>
             <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
           </div>
 
           <div className="flex flex-row items-baseline max-w-3xl">
-            <p className="text-sm uppercase w-1/3 md:w-1/5">Etiquetas</p>
+            <p className="text-sm uppercase w-1/3 md:w-1/5">
+              {intl.manga.tags}
+            </p>
             <p className="w-2/3 md:w-4/5">Lorem Ipsum</p>
           </div>
         </div>
       </section>
 
-      {/* SERIE'S VOLUMES */}
+      {/* SERIES VOLUMES */}
       <section>
-        <div className="border-t border-zinc-800 my-6 2xl:my-12"></div>
-        <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-6 gap-4">
+        <div className="border-t border-zinc-800 my-6"></div>
+
+        <h2>{intl.manga.seriesVolumes}</h2>
+
+        <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-6 gap-4 mt-4">
           {serieData.volumes && serieData.volumes.length > 0 ? (
             serieData.volumes.map((volume, idx) => (
               <MangaCard
