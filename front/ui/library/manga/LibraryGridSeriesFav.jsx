@@ -42,7 +42,7 @@ export default async function LibraryGridSeriesFav({ lang, intl }) {
 
   return (
     <>
-      <h2 className="mt-8 mb-4 py-4">Series: Manga</h2>
+      <h2 className="mt-8 mb-4 pt-4">Series: Manga</h2>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
         {entries.map((entry) => {
