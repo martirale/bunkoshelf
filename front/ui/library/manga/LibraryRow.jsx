@@ -20,12 +20,23 @@ export default function LibraryRow({
   const scrollStart = useRef(0);
   const hasDragged = useRef(false);
 
-  // Nuevo fetch ajustado
+  // Fetch DB
   useEffect(() => {
     async function fetchLibrary() {
       const res = await fetch("/api/library/manga/overall");
       const { data } = await res.json();
-      setEntries(data);
+
+      const normalizedData = data.map((entry) => ({
+        ...entry,
+        coverImage: entry.coverImage?.replace(/\\/g, "/") ?? null,
+        volumes:
+          entry.volumes?.map((vol) => ({
+            ...vol,
+            coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+          })) ?? [],
+      }));
+
+      setEntries(normalizedData);
     }
 
     fetchLibrary();
@@ -125,7 +136,11 @@ export default function LibraryRow({
                 isSeries={isSeries}
                 isOneshot={isOneshot}
                 volumeCount={isSeries ? entry.volumes.length : null}
-                cover={null}
+                cover={
+                  isSeries
+                    ? entry.volumes[0]?.coverImage ?? null
+                    : entry.coverImage ?? null
+                }
                 intl={intl}
                 isDragging={isDragging}
                 className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
