@@ -2,7 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import ReadButtonsVolume from "./ReadButtonsVolume";
 
-export default function VolumeMangaContent({ volumeData, lang, intl }) {
+export default function VolumeMangaContent({
+  volumeData,
+  lang,
+  intl,
+  isFavorite,
+}) {
   if (!volumeData) {
     return (
       <div className="text-center mt-8">
@@ -45,7 +50,12 @@ export default function VolumeMangaContent({ volumeData, lang, intl }) {
           )}
 
           {/* Read Buttons */}
-          <ReadButtonsVolume lang={lang} intl={intl} />
+          <ReadButtonsVolume
+            lang={lang}
+            intl={intl}
+            volumeId={volumeData.id}
+            initFavorite={isFavorite}
+          />
 
           {/* Meta Tags */}
           <div className="mt-20">
