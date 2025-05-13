@@ -14,7 +14,19 @@ export default async function VolumeMangaPage({ params }) {
     );
 
     const { data: entries } = await res.json();
-    const serie = entries.find((item) => item.slug === series);
+
+    // Normalizar las rutas de imagen (para prevenir backslashes)
+    const normalizedEntries = entries.map((item) => ({
+      ...item,
+      coverImage: item.coverImage?.replace(/\\/g, "/") ?? null,
+      volumes:
+        item.volumes?.map((volume) => ({
+          ...volume,
+          coverImage: volume.coverImage?.replace(/\\/g, "/") ?? null,
+        })) ?? [],
+    }));
+
+    const serie = normalizedEntries.find((item) => item.slug === series);
 
     if (!serie) {
       return (

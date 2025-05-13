@@ -1,4 +1,5 @@
 import Link from "next/link";
+import MangaCard from "@/ui/library/manga/MangaCard";
 
 export default function SerieMangaContent({ serieData, lang, intl }) {
   return (
@@ -7,13 +8,16 @@ export default function SerieMangaContent({ serieData, lang, intl }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {serieData.volumes && serieData.volumes.length > 0 ? (
           serieData.volumes.map((volume, idx) => (
-            <Link
+            <MangaCard
               key={idx}
+              title={volume.title || volume.filename}
               href={`/${lang}/manga/volume/${volume.slug}`}
-              className="border rounded p-2 hover:shadow transition"
-            >
-              <div className="text-sm font-medium">{volume.filename}</div>
-            </Link>
+              isSeries={false}
+              volumeCount={null}
+              cover={volume.coverImage ?? null}
+              intl={intl}
+              className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
+            />
           ))
         ) : (
           <div>
