@@ -43,6 +43,7 @@ model MangaVolume {
   seriesId     Int
   size         Int           @default(0)
   mtime        DateTime      @default(now())
+  coverImage   String?
 
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
