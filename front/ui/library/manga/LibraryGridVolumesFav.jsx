@@ -13,12 +13,17 @@ export default async function LibraryGridVolumesFav({ lang, intl }) {
       isFavorite: true,
     },
     include: {
-      volume: true,
+      volume: {
+        include: {
+          series: true,
+        },
+      },
     },
   });
 
   const entries = favorites.map(({ volume }) => ({
     ...volume,
+    isOneshot: volume.series?.isOneshot === true,
     coverImage: volume.coverImage?.replace(/\\/g, "/") ?? null,
   }));
 
@@ -46,7 +51,7 @@ export default async function LibraryGridVolumesFav({ lang, intl }) {
               title={entry.title}
               href={href}
               isSeries={false}
-              isOneshot={true}
+              isOneshot={entry.isOneshot}
               volumeCount={null}
               cover={coverImage}
               intl={intl}
