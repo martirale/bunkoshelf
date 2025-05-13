@@ -19,12 +19,15 @@ export default async function LibraryGrid({ lang, intl }) {
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
       {entries.map((entry) => {
-        const isSeries = entry.volumes.length > 1 || entry.metadata;
+        const isSeries =
+          (entry.volumes && entry.volumes.length > 1) || entry.metadata;
         const isOneshot = !isSeries;
 
         const href = isOneshot
           ? `/${lang}/manga/volume/${entry.volumeSlug}`
           : `/${lang}/manga/${entry.slug}`;
+
+        const coverImage = entry.volumes?.[0]?.coverImage ?? null;
 
         return (
           <MangaCard
@@ -34,11 +37,7 @@ export default async function LibraryGrid({ lang, intl }) {
             isSeries={isSeries}
             isOneshot={isOneshot}
             volumeCount={isSeries ? entry.volumes.length : null}
-            cover={
-              isSeries
-                ? entry.volumes[0]?.coverImage ?? null
-                : entry.coverImage ?? null
-            }
+            cover={coverImage}
             intl={intl}
             className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
           />

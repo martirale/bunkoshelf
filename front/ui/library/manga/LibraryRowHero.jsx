@@ -125,6 +125,8 @@ export default function LibraryRowHero({
             ? `/${lang}/manga/volume/${entry.volumeSlug}`
             : `/${lang}/manga/${entry.slug}`;
 
+          const coverImage = entry.volumes?.[0]?.coverImage ?? null;
+
           return (
             <div
               key={entry.title}
@@ -136,11 +138,7 @@ export default function LibraryRowHero({
                 isSeries={isSeries}
                 isOneshot={isOneshot}
                 volumeCount={isSeries ? entry.volumes.length : null}
-                cover={
-                  isSeries
-                    ? entry.volumes[0]?.coverImage ?? null
-                    : entry.coverImage ?? null
-                }
+                cover={coverImage}
                 intl={intl}
                 isDragging={isDragging}
                 className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
