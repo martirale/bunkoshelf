@@ -2,7 +2,12 @@ import Image from "next/image";
 import MangaCard from "@/ui/library/manga/MangaCard";
 import ReadButtonsSeries from "./ReadButtonsSeries";
 
-export default function SerieMangaContent({ serieData, lang, intl }) {
+export default function SerieMangaContent({
+  serieData,
+  lang,
+  intl,
+  isFavorite,
+}) {
   const coverImage = serieData.volumes?.[0]?.coverImage ?? null;
 
   return (
@@ -28,7 +33,12 @@ export default function SerieMangaContent({ serieData, lang, intl }) {
           <h1 className="text-3xl leading-14">{serieData.title}</h1>
 
           {/* Read Buttons */}
-          <ReadButtonsSeries lang={lang} intl={intl} />
+          <ReadButtonsSeries
+            lang={lang}
+            intl={intl}
+            seriesId={serieData.id}
+            initFavorite={isFavorite}
+          />
 
           {/* Meta Tags */}
           <div className="mt-16">

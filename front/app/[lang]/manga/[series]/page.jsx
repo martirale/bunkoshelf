@@ -1,5 +1,7 @@
 import SerieMangaContent from "@/components/library/manga/SerieMangaContent";
+import { verifySession } from "@/lib/auth/verifySession";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
+import prisma from "@/lib/prisma";
 
 export default async function VolumeMangaPage({ params }) {
   const { lang = "es", series } = await params;
@@ -28,6 +30,24 @@ export default async function VolumeMangaPage({ params }) {
 
     const serie = normalizedEntries.find((item) => item.slug === series);
 
+    // Obtención de usuario y estado de favorito
+    const user = await verifySession();
+    let isFavorite = false;
+
+    if (user) {
+      const favEntry = await prisma.userToSeries.findUnique({
+        where: {
+          userId_seriesId: {
+            userId: user.id,
+            seriesId: serie.id,
+          },
+        },
+        select: { isFavorite: true },
+      });
+
+      isFavorite = favEntry?.isFavorite ?? false;
+    }
+
     if (!serie) {
       return (
         <div className="text-center mt-8">
@@ -36,7 +56,14 @@ export default async function VolumeMangaPage({ params }) {
       );
     }
 
-    return <SerieMangaContent serieData={serie} lang={lang} intl={intl} />;
+    return (
+      <SerieMangaContent
+        serieData={serie}
+        lang={lang}
+        intl={intl}
+        isFavorite={isFavorite}
+      />
+    );
   } catch (error) {
     console.error("Error al obtener datos de la serie:", error);
     return (
