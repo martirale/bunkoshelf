@@ -1,4 +1,6 @@
+import { BookCheck, EyeClosed, Check, Heart } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import MangaCard from "@/ui/library/manga/MangaCard";
 
 export default function SerieMangaContent({ serieData, lang, intl }) {
@@ -25,6 +27,17 @@ export default function SerieMangaContent({ serieData, lang, intl }) {
 
         <div className="w-full md:w-2/3">
           <h1 className="text-3xl leading-14">{serieData.title}</h1>
+
+          {/* Read Buttons */}
+          <div className="flex flex-row mt-4 gap-2">
+            <Link
+              href="#"
+              className="p-4 rounded-lg leading-none text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
+              title="Marcar como favorito"
+            >
+              <Heart className="w-5 h-5" />
+            </Link>
+          </div>
 
           {/* Meta Tags */}
           <div className="mt-16">
