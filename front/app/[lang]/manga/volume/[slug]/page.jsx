@@ -8,31 +8,31 @@ export default async function VolumeMangaPage({ params }) {
   const intl = await getDictionary(lang);
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/library/manga/volumes`,
-      { cache: "no-store" }
-    );
+    const user = await verifySession();
 
-    const { data: entries } = await res.json();
-
-    // Normalizar las rutas de imagen (para prevenir backslashes)
-    entries.forEach((entry) => {
-      if (entry.coverImage) {
-        entry.coverImage = entry.coverImage.replace(/\\/g, "/");
-      }
-
-      if (entry.volumes?.length > 0) {
-        entry.volumes = entry.volumes.map((volume) => ({
-          ...volume,
-          coverImage: volume.coverImage?.replace(/\\/g, "/"),
-        }));
-      }
+    const volumeEntry = await prisma.mangaVolume.findUnique({
+      where: {
+        slug,
+      },
+      include: {
+        series: true,
+      },
     });
 
-    const volumeEntry = entries.find((item) => item.slug === slug);
+    if (!volumeEntry) {
+      return (
+        <div className="text-center mt-8">
+          {intl?.errors?.notFound || "Volumen no encontrado."}
+        </div>
+      );
+    }
 
-    // Obtención de usuario y estado de favorito
-    const user = await verifySession();
+    // Normalizar la portada
+    const normalizedVolume = {
+      ...volumeEntry,
+      coverImage: volumeEntry.coverImage?.replace(/\\/g, "/") ?? null,
+    };
+
     let isFavorite = false;
 
     if (user) {
@@ -49,17 +49,9 @@ export default async function VolumeMangaPage({ params }) {
       isFavorite = favEntry?.isFavorite ?? false;
     }
 
-    if (!volumeEntry) {
-      return (
-        <div className="text-center mt-8">
-          {intl?.errors?.notFound || "Volumen no encontrado."}
-        </div>
-      );
-    }
-
     return (
       <VolumeMangaContent
-        volumeData={volumeEntry}
+        volumeData={normalizedVolume}
         lang={lang}
         intl={intl}
         isFavorite={isFavorite}
