@@ -55,6 +55,7 @@ export default function VolumeMangaContent({
             intl={intl}
             volumeId={volumeData.id}
             initFavorite={isFavorite}
+            slug={volumeData.slug}
           />
 
           {/* Meta Tags */}

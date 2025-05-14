@@ -3,15 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { BookCheck, EyeClosed, Check, Heart, HeartOff } from "lucide-react";
+import ReaderModal from "@/components/reader/ReaderModal";
 
 export default function ReadButtonsVolume({
   lang,
   intl,
   volumeId,
+  slug,
   initFavorite,
 }) {
   const [isFavorite, setIsFavorite] = useState(initFavorite);
   const [isLoading, setIsLoading] = useState(false);
+  const [isReaderOpen, setIsReaderOpen] = useState(false);
 
   const toggleFavorite = async () => {
     setIsLoading(true);
@@ -42,15 +45,15 @@ export default function ReadButtonsVolume({
 
   return (
     <>
-      {/* Read Buttons */}
       <div className="flex flex-row mt-4 gap-2">
-        <Link
-          href="#"
-          className="flex items-center font-bold px-6 py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
+        <button
+          onClick={() => setIsReaderOpen(true)}
+          className="flex items-center font-bold px-6 py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
         >
           <BookCheck className="w-5 h-5 mr-2" />
           {intl.manga.read}
-        </Link>
+        </button>
+
         <Link
           href="#"
           className="flex items-center font-bold p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
@@ -58,12 +61,14 @@ export default function ReadButtonsVolume({
         >
           <EyeClosed className="w-5 h-5" />
         </Link>
+
         <button
           className="p-4 rounded-lg leading-none text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300 cursor-pointer"
           title="Marcar como leído"
         >
           <Check className="w-5 h-5" />
         </button>
+
         <button
           onClick={toggleFavorite}
           disabled={isLoading}
@@ -81,6 +86,13 @@ export default function ReadButtonsVolume({
           )}
         </button>
       </div>
+
+      {/* Modal del lector */}
+      <ReaderModal
+        isOpen={isReaderOpen}
+        onClose={() => setIsReaderOpen(false)}
+        slug={slug}
+      />
     </>
   );
 }
