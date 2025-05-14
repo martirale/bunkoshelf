@@ -19,6 +19,11 @@ export default async function LibraryGridSeriesFav({ lang, intl }) {
         },
       },
     },
+    orderBy: {
+      series: {
+        title: "asc",
+      },
+    },
   });
 
   const entries = favorites.map(({ series }) => ({

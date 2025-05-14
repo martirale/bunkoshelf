@@ -19,6 +19,11 @@ export default async function LibraryGridVolumesFav({ lang, intl }) {
         },
       },
     },
+    orderBy: {
+      volume: {
+        title: "asc",
+      },
+    },
   });
 
   const entries = favorites.map(({ volume }) => ({
