@@ -62,7 +62,7 @@ export default function MangaReader({ slug, onClose }) {
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center px-4">
       <button onClick={onClose} className="absolute top-4 right-4 z-50">
-        <Minimize2 className="w-8 h-8 hover:scale-90 transition-all duration-300 cursor-pointer" />
+        <Minimize2 className="w-7 h-7 hover:scale-90 transition-all duration-300 cursor-pointer" />
       </button>
 
       <div className="flex-grow flex items-center justify-center">
