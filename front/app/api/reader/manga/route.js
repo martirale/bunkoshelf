@@ -82,15 +82,22 @@ export async function POST(req) {
       }
     }, 60 * 60 * 1000); // 1 hora
 
-    const imagePaths = await Promise.all(
-      entries.map(async (entry) => {
-        const imagePath = path.join(tempDir, path.basename(entry.entryName));
-        const fileData = entry.getData();
-        await fs.writeFile(imagePath, fileData);
+    const imagePaths = [];
 
-        return `/api/reader/tempImage?path=${encodeURIComponent(imagePath)}`;
-      })
-    );
+    let imageCounter = 1;
+
+    for (const entry of entries) {
+      const ext = path.extname(entry.entryName).toLowerCase();
+      const newName = `${String(imageCounter).padStart(4, "0")}${ext}`;
+      const imagePath = path.join(tempDir, newName);
+      const fileData = entry.getData();
+
+      await fs.writeFile(imagePath, fileData);
+      imagePaths.push(
+        `/api/reader/tempImage?path=${encodeURIComponent(imagePath)}`
+      );
+      imageCounter++;
+    }
 
     return NextResponse.json({ images: imagePaths });
   } catch (err) {
