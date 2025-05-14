@@ -43,6 +43,19 @@ export default function MangaReader({ slug, onClose }) {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
   };
 
+  useEffect(() => {
+    const handleGoNext = () => goNext();
+    const handleGoPrev = () => goPrev();
+
+    window.addEventListener("reader:goNext", handleGoNext);
+    window.addEventListener("reader:goPrev", handleGoPrev);
+
+    return () => {
+      window.removeEventListener("reader:goNext", handleGoNext);
+      window.removeEventListener("reader:goPrev", handleGoPrev);
+    };
+  }, [currentIndex, images.length]);
+
   if (loading) return <div className="p-4 text-center">Cargando...</div>;
 
   return (

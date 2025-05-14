@@ -1,24 +1,40 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import MangaReader from "./MangaReader";
 
 export default function ReaderModal({ isOpen, onClose, slug }) {
+  const goNext = useCallback(() => {
+    const event = new CustomEvent("reader:goNext");
+    window.dispatchEvent(event);
+  }, []);
+
+  const goPrev = useCallback(() => {
+    const event = new CustomEvent("reader:goPrev");
+    window.dispatchEvent(event);
+  }, []);
+
   useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === "Escape") onClose();
+    const handleKey = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      } else if (e.key === "ArrowLeft") {
+        goPrev();
+      } else if (e.key === "ArrowRight") {
+        goNext();
+      }
     };
 
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      window.addEventListener("keydown", handleEsc);
+      window.addEventListener("keydown", handleKey);
     }
 
     return () => {
       document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleEsc);
+      window.removeEventListener("keydown", handleKey);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, goNext, goPrev]);
 
   if (!isOpen) return null;
 
