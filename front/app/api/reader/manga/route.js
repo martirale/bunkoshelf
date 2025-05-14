@@ -30,10 +30,17 @@ export async function POST(req) {
   try {
     // Verificar si ya tenemos un directorio temporal activo para el volumen
     if (activeVolumes.has(slug)) {
-      // Si ya existe un directorio activo, esperar a que se resuelva
       const tempDir = await activeVolumes.get(slug);
-      const imagePaths = await getImagePathsFromDir(tempDir);
-      return NextResponse.json({ images: imagePaths });
+
+      // Validar si el directorio aún existe en disco
+      try {
+        await fs.access(tempDir);
+        const imagePaths = await getImagePathsFromDir(tempDir);
+        return NextResponse.json({ images: imagePaths });
+      } catch (err) {
+        // El directorio ya no existe, lo eliminamos del mapa
+        activeVolumes.delete(slug);
+      }
     }
 
     // Si no existe, proceder a crear un nuevo directorio temporal
