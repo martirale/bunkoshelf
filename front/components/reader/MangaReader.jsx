@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Minimize2 } from "lucide-react";
 
 export default function MangaReader({ slug, onClose }) {
   const [images, setImages] = useState([]);
@@ -46,14 +47,9 @@ export default function MangaReader({ slug, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center px-4">
-      <div className="absolute top-4 right-4">
-        <button
-          onClick={onClose}
-          className="text-white text-2xl font-bold hover:text-red-400"
-        >
-          ×
-        </button>
-      </div>
+      <button onClick={onClose} className="absolute top-4 right-4 z-50">
+        <Minimize2 className="w-8 h-8 hover:scale-90 transition-all duration-300 cursor-pointer" />
+      </button>
 
       <div className="flex-grow flex items-center justify-center">
         {images.length > 0 ? (
