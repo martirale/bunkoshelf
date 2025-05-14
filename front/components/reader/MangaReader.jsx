@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Minimize2 } from "lucide-react";
+import Loader from "@/ui/Loader";
 
 export default function MangaReader({ slug, onClose }) {
   const [images, setImages] = useState([]);
@@ -56,7 +57,7 @@ export default function MangaReader({ slug, onClose }) {
     };
   }, [currentIndex, images.length]);
 
-  if (loading) return <div className="p-4 text-center">Cargando...</div>;
+  if (loading) return <Loader />;
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center px-4">
