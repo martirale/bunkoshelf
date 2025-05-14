@@ -20,7 +20,7 @@ export default function MangaReader({ slug, onClose }) {
         const data = await res.json();
         if (res.ok && data.images?.length) {
           setImages(data.images);
-          setCurrentIndex(data.images.length - 1); // Comienza desde la derecha (última página)
+          setCurrentIndex(0);
         } else {
           console.error(data.error || "No se encontraron imágenes");
         }
@@ -75,9 +75,11 @@ export default function MangaReader({ slug, onClose }) {
         >
           ⬅️
         </button>
+
         <span>
-          Página {images.length - currentIndex} de {images.length}
+          Página {currentIndex + 1} de {images.length}
         </span>
+
         <button
           onClick={goNext}
           disabled={currentIndex <= 0}
