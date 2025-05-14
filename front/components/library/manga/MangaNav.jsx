@@ -7,9 +7,9 @@ export default function MangaNav({ lang, intl }) {
   const pathname = usePathname();
 
   const links = [
-    { label: "En general", href: `/${lang}/manga` },
-    { label: "Series", href: `/${lang}/manga/series` },
-    { label: "Volúmenes", href: `/${lang}/manga/volumes` },
+    { label: intl.libraries.overview, href: `/${lang}/manga` },
+    { label: intl.libraries.series, href: `/${lang}/manga/series` },
+    { label: intl.libraries.volumes, href: `/${lang}/manga/volumes` },
   ];
 
   return (
