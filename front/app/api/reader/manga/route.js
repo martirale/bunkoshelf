@@ -45,9 +45,20 @@ export async function POST(req) {
         const ext = path.extname(entry.entryName).toLowerCase();
         return !entry.isDirectory && validImageExtensions.includes(ext);
       })
-      .sort((a, b) =>
-        a.entryName.localeCompare(b.entryName, undefined, { numeric: true })
-      );
+      .sort((a, b) => {
+        const normalize = (name) =>
+          name
+            .split("/")
+            .map((segment) =>
+              segment.replace(/\d+/g, (num) => num.padStart(10, "0"))
+            )
+            .join("/");
+
+        const nameA = normalize(a.entryName);
+        const nameB = normalize(b.entryName);
+
+        return nameA.localeCompare(nameB);
+      });
 
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "bunko-reader-"));
 
