@@ -3,9 +3,12 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
-import prisma from "@/lib/prisma"; // Ajusta esta ruta si tu singleton está en otro lugar
+import prisma from "@/lib/prisma";
 
 const validImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+
+// Objeto global en memoria para almacenar directorios temporales por volumen
+const activeVolumes = new Map();
 
 export async function POST(req) {
   const { slug } = await req.json();
@@ -25,6 +28,15 @@ export async function POST(req) {
   const zipPath = volume.fullPath;
 
   try {
+    // Verificar si ya tenemos un directorio temporal activo para el volumen
+    if (activeVolumes.has(slug)) {
+      // Si ya existe un directorio activo, esperar a que se resuelva
+      const tempDir = await activeVolumes.get(slug);
+      const imagePaths = await getImagePathsFromDir(tempDir);
+      return NextResponse.json({ images: imagePaths });
+    }
+
+    // Si no existe, proceder a crear un nuevo directorio temporal
     const zip = new AdmZip(zipPath);
     const zipEntries = zip.getEntries();
 
@@ -39,9 +51,13 @@ export async function POST(req) {
 
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "bunko-reader-"));
 
+    // Agregar el nuevo directorio a la memoria global
+    activeVolumes.set(slug, tempDir);
+
     setTimeout(async () => {
       try {
         await fs.rm(tempDir, { recursive: true, force: true });
+        activeVolumes.delete(slug); // Limpiar el mapa después de la eliminación
         console.log("Temp folder deleted:", tempDir);
       } catch (err) {
         console.error("Failed to delete temp folder:", tempDir, err);
@@ -66,4 +82,19 @@ export async function POST(req) {
       { status: 500 }
     );
   }
+}
+
+// Función para obtener las imágenes desde un directorio temporal existente
+async function getImagePathsFromDir(tempDir) {
+  const files = await fs.readdir(tempDir);
+  return files
+    .filter((file) =>
+      validImageExtensions.includes(path.extname(file).toLowerCase())
+    )
+    .map(
+      (file) =>
+        `/api/reader/tempImage?path=${encodeURIComponent(
+          path.join(tempDir, file)
+        )}`
+    );
 }
