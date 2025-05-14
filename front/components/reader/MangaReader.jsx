@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Minimize2 } from "lucide-react";
+import { Minimize2, ChevronLeft, ChevronRight } from "lucide-react";
 import Loader from "@/ui/Loader";
 
 export default function MangaReader({ slug, onClose }) {
@@ -70,20 +70,20 @@ export default function MangaReader({ slug, onClose }) {
           <img
             src={images[currentIndex]}
             alt={`Página ${images.length - currentIndex}`}
-            className="max-h-[90vh] w-auto shadow-lg"
+            className="max-h-[90vh] w-auto"
           />
         ) : (
-          <p className="text-white">No se encontraron páginas.</p>
+          <p>No se encontraron páginas.</p>
         )}
       </div>
 
-      <div className="flex justify-between w-full max-w-md mt-4 text-white">
+      <div className="flex items-center justify-between w-full max-w-md">
         <button
           onClick={goPrev}
           disabled={currentIndex >= images.length - 1}
           className="p-2 disabled:opacity-30"
         >
-          ⬅️
+          <ChevronLeft className="w-7 h-7 hover:scale-125 transition-all duration-300 cursor-pointer" />
         </button>
 
         <span>
@@ -95,7 +95,7 @@ export default function MangaReader({ slug, onClose }) {
           disabled={currentIndex <= 0}
           className="p-2 disabled:opacity-30"
         >
-          ➡️
+          <ChevronRight className="w-7 h-7 hover:scale-125 transition-all duration-300 cursor-pointer" />
         </button>
       </div>
     </div>
