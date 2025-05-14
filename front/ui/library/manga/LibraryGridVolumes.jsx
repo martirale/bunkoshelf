@@ -1,6 +1,7 @@
 import React from "react";
 import MangaCard from "./MangaCard";
 import prisma from "@/lib/prisma";
+import { sortByPaddedTitle } from "@/lib/utils";
 
 export default async function LibraryGridVolumes({
   lang,
@@ -13,12 +14,10 @@ export default async function LibraryGridVolumes({
     include: {
       series: true,
     },
-    orderBy: {
-      title: "asc",
-    },
   });
 
-  const entries = volumes.map((vol) => ({
+  const sortedVolumes = sortByPaddedTitle(volumes);
+  const entries = sortedVolumes.map((vol) => ({
     ...vol,
     isOneshot: vol.series?.isOneshot === true,
     coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,

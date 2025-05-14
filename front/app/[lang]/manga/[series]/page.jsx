@@ -2,6 +2,7 @@ import SerieMangaContent from "@/components/library/manga/SerieMangaContent";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 import prisma from "@/lib/prisma";
+import { sortByPaddedTitle } from "@/lib/utils";
 
 export default async function SeriesMangaPage({ params }) {
   const { lang = "es", series } = await params;
@@ -37,6 +38,8 @@ export default async function SeriesMangaPage({ params }) {
         })) ?? [],
     };
 
+    const sortedVolumes = sortByPaddedTitle(normalizedSerie.volumes);
+
     let isFavorite = false;
 
     if (user) {
@@ -57,7 +60,7 @@ export default async function SeriesMangaPage({ params }) {
 
     return (
       <SerieMangaContent
-        serieData={normalizedSerie}
+        serieData={{ ...normalizedSerie, volumes: sortedVolumes }}
         lang={lang}
         intl={intl}
         isFavorite={isFavorite}

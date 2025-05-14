@@ -1,6 +1,7 @@
 import MangaCard from "./MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
+import { sortByPaddedTitle } from "@/lib/utils";
 import { Ghost } from "lucide-react";
 
 export default async function LibraryGridVolumesFav({ lang, intl }) {
@@ -26,10 +27,12 @@ export default async function LibraryGridVolumesFav({ lang, intl }) {
     },
   });
 
-  const entries = favorites.map(({ volume }) => ({
-    ...volume,
-    isOneshot: volume.series?.isOneshot === true,
-    coverImage: volume.coverImage?.replace(/\\/g, "/") ?? null,
+  const volumes = favorites.map(({ volume }) => volume);
+  const sortedVolumes = sortByPaddedTitle(volumes);
+  const entries = sortedVolumes.map((vol) => ({
+    ...vol,
+    isOneshot: vol.series?.isOneshot === true,
+    coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
   }));
 
   if (entries.length === 0) {
