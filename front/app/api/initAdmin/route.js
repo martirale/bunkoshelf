@@ -17,6 +17,8 @@ export async function GET() {
           username: "bunko",
           password: hashedPassword,
           isAdmin: true,
+          name: "Bunko",
+          lastname: "Shelf",
         },
       });
 
