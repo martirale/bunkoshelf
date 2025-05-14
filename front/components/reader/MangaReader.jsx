@@ -65,7 +65,23 @@ export default function MangaReader({ slug, onClose }) {
         <Minimize2 className="w-7 h-7 hover:scale-90 transition-all duration-300 cursor-pointer" />
       </button>
 
-      <div className="flex-grow flex items-center justify-center">
+      {/* Zonas táctiles invisibles */}
+      <div className="absolute inset-0 z-30 flex">
+        {/* Zona izquierda (avanza →) */}
+        <div className="w-1/3 h-full" onTouchStart={goNext} />
+        {/* Zona centro (neutral) */}
+        <div
+          className="w-1/3 h-full"
+          onTouchStart={() => {
+            // Placeholder por si querés meter una función luego
+            console.log("Tocado centro (neutral)");
+          }}
+        />
+        {/* Zona derecha (retrocede ←) */}
+        <div className="w-1/3 h-full" onTouchStart={goPrev} />
+      </div>
+
+      <div className="flex-grow flex items-center justify-center z-40">
         {images.length > 0 ? (
           <img
             src={images[currentIndex]}
@@ -77,7 +93,7 @@ export default function MangaReader({ slug, onClose }) {
         )}
       </div>
 
-      <div className="flex items-center justify-between w-full max-w-md">
+      <div className="flex items-center justify-between w-full max-w-md z-40">
         <button
           onClick={goPrev}
           disabled={currentIndex >= images.length - 1}
