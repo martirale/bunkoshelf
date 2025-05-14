@@ -29,7 +29,9 @@
     "editorial": "Editorial",
     "genre": "Género",
     "tags": "Etiquetas",
-    "seriesVolumes": "Volúmenes de la serie"
+    "seriesVolumes": "Volúmenes de la serie",
+    "allSeries": "Todas las series",
+    "allVolumes": "Todos los volúmenes"
   },
   "books": {},
   "favorites": {
