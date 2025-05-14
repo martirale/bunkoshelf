@@ -1,63 +1,39 @@
 import fs from "fs";
 import path from "path";
-import yauzl from "yauzl";
+import AdmZip from "adm-zip";
 
 export async function extractCoverImage(cbzPath, outputDir) {
   return new Promise((resolve, reject) => {
-    yauzl.open(cbzPath, { lazyEntries: true }, (err, zipfile) => {
-      if (err) {
-        console.error(`Error opening ${cbzPath}:`, err);
-        return reject(err);
-      }
+    try {
+      const zip = new AdmZip(cbzPath);
+      const zipEntries = zip.getEntries();
 
-      const handleEntry = (entry) => {
+      // Buscar la primera imagen en el ZIP
+      for (const entry of zipEntries) {
         if (
-          !entry.fileName.startsWith("__MACOSX") &&
-          /\.(jpg|jpeg|png|webp)$/i.test(entry.fileName)
+          !entry.entryName.startsWith("__MACOSX") &&
+          /\.(jpg|jpeg|png|webp)$/i.test(entry.entryName)
         ) {
           fs.mkdirSync(outputDir, { recursive: true });
 
-          const ext = path.extname(entry.fileName).toLowerCase();
+          const ext = path.extname(entry.entryName).toLowerCase();
           const filename = `cover${ext}`;
           const outputPath = path.join(outputDir, filename);
 
-          zipfile.openReadStream(entry, (err, readStream) => {
-            if (err) {
-              console.error(`Error reading entry ${entry.fileName}:`, err);
-              return reject(err);
-            }
+          // Extraer la imagen
+          const fileData = entry.getData();
+          fs.writeFileSync(outputPath, fileData);
 
-            const writeStream = fs.createWriteStream(outputPath);
-
-            readStream.pipe(writeStream);
-            writeStream.on("finish", () => {
-              // Cleanup
-              zipfile.removeListener("entry", handleEntry);
-              resolve(path.join("/covers", path.basename(outputDir), filename));
-            });
-
-            writeStream.on("error", (err) => {
-              console.error(`Error writing cover image:`, err);
-              reject(err);
-            });
-          });
-        } else {
-          zipfile.readEntry(); // Seguir leyendo si no es una imagen válida
+          resolve(path.join("/covers", path.basename(outputDir), filename));
+          return; // Salir de la función una vez que la portada esté extraída
         }
-      };
+      }
 
-      zipfile.on("entry", handleEntry);
-
-      zipfile.on("error", (err) => {
-        console.error(`Error extracting from ${cbzPath}:`, err);
-        reject(err);
-      });
-
-      zipfile.on("end", () => {
-        console.log("Finished processing the CBZ file.");
-      });
-
-      zipfile.readEntry(); // Comienza a leer
-    });
+      // Si no se encuentra una imagen válida
+      reject(new Error("No valid cover image found in the CBZ file."));
+    } catch (err) {
+      console.error(`Error extracting from ${cbzPath}:`, err);
+      reject(err);
+    }
   });
 }
