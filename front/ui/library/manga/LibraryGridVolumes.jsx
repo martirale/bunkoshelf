@@ -13,6 +13,9 @@ export default async function LibraryGridVolumes({
     include: {
       series: true,
     },
+    orderBy: {
+      title: "asc",
+    },
   });
 
   const entries = volumes.map((vol) => ({

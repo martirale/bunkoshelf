@@ -13,6 +13,9 @@ export default async function LibraryGridSeries({
     include: {
       volumes: true,
     },
+    orderBy: {
+      title: "asc",
+    },
   });
 
   const entries = series
