@@ -1,0 +1,36 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+export default function MangaNav({ lang, intl }) {
+  const pathname = usePathname();
+
+  const links = [
+    { label: "En general", href: `/${lang}/manga` },
+    { label: "Series", href: `/${lang}/manga/series` },
+    { label: "Volúmenes", href: `/${lang}/manga/volumes` },
+  ];
+
+  return (
+    <nav className="flex justify-center pt-8 pb-4 px-4 gap-2 bg-lilah">
+      {links.map(({ label, href }) => {
+        const isActive = pathname === href;
+        return (
+          <Link
+            key={href}
+            href={href}
+            className={`flex-1 md:flex-none md:basis-40 text-sm md:text-lg text-center py-3 rounded-lg border uppercase
+          ${
+            isActive
+              ? "bg-heather border-pearl"
+              : "bg-lilah border-lilah hover:bg-heather hover:border-pearl"
+          } transition-all duration-300`}
+          >
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
