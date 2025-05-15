@@ -22,12 +22,12 @@ export default function VolumeMangaContent({
   const seriesSlug = volumeData.series?.slug;
 
   return (
-    <div className="p-4">
+    <div className="p-4 mb-16">
       <section className="flex flex-col md:flex-row">
         {/* Cover Image */}
         <div className="w-full md:w-1/3">
           {volumeData.coverImage && (
-            <div className="mb-8 md:mb-0 md:mr-8 px-8 md:px-0">
+            <div className="mb-8 md:mb-0 md:mr-8 px-16 md:px-0">
               <Image
                 src={volumeData.coverImage || "/placeholder.svg?=v1"}
                 alt={`Cover for ${volumeData.title || volumeData.filename}`}

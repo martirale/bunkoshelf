@@ -28,7 +28,7 @@ export default async function ProfilePage({ params }) {
         <ProfileNav intl={intl} />
       </SidebarMisc>
 
-      <div className="w-full md:w-8/12 2xl:w-9/12 p-4">
+      <div className="w-full md:w-8/12 2xl:w-9/12 p-4 mb-16">
         <h2 className="flex items-center mb-4">
           <Bolt className="w-7 h-7 mr-2" />
           {intl.profile.overview}

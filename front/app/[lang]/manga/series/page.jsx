@@ -10,7 +10,7 @@ export default async function MangaSeriesPage({ params }) {
 
   return (
     <>
-      {/* KEEP READING */}
+      {/* Keep Reading */}
       <section className="w-full p-4 bg-lilah">
         <LibraryRowHero
           lang={lang}
@@ -22,8 +22,8 @@ export default async function MangaSeriesPage({ params }) {
 
       <MangaNav lang={lang} intl={intl} />
 
-      {/* IN PROGRESS */}
-      <section className="p-4">
+      {/* All Series */}
+      <section className="p-4 mb-16">
         <LibraryGridSeries
           lang={lang}
           intl={intl}
