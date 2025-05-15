@@ -42,7 +42,9 @@ export default function VolumeMangaContent({
 
         <div className="w-full md:w-2/3">
           {/* Series Title */}
-          <h1 className="text-3xl leading-14">{volumeData.title}</h1>
+          <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">
+            {volumeData.title}
+          </h1>
           {!isOneshot && (
             <Link href={`/${lang}/manga/${seriesSlug}`} className="italic">
               {intl.manga.series} {seriesTitle}

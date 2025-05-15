@@ -30,7 +30,9 @@ export default function SerieMangaContent({
         </div>
 
         <div className="w-full md:w-2/3">
-          <h1 className="text-3xl leading-14">{serieData.title}</h1>
+          <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">
+            {serieData.title}
+          </h1>
 
           {/* Read Buttons */}
           <ReadButtonsSeries
