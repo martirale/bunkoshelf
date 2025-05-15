@@ -26,7 +26,7 @@ export default async function Sidebar({ lang }) {
           </div>
         )}
 
-        <FooterNav />
+        <FooterNav intl={intl} />
       </aside>
     </>
   );

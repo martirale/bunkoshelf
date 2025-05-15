@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Minimize2, ChevronLeft, ChevronRight } from "lucide-react";
 import Loader from "@/ui/Loader";
 
-export default function MangaReader({ slug, onClose }) {
+export default function MangaReader({ slug, lang, intl, onClose }) {
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -61,7 +61,11 @@ export default function MangaReader({ slug, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center px-4">
-      <button onClick={onClose} className="absolute top-4 right-4 z-50">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 z-50"
+        title={intl.reader.ttExit}
+      >
         <Minimize2 className="w-7 h-7 hover:scale-90 transition-all duration-300 cursor-pointer" />
       </button>
 
@@ -99,18 +103,20 @@ export default function MangaReader({ slug, onClose }) {
           onClick={goPrev}
           disabled={currentIndex >= images.length - 1}
           className="p-2 disabled:opacity-30"
+          title={intl.reader.ttNext}
         >
           <ChevronLeft className="w-7 h-7 hover:scale-125 transition-all duration-300 cursor-pointer" />
         </button>
 
         <span>
-          Página {currentIndex + 1} de {images.length}
+          {intl.reader.page} {currentIndex + 1} / {images.length}
         </span>
 
         <button
           onClick={goNext}
           disabled={currentIndex <= 0}
           className="p-2 disabled:opacity-30"
+          title={intl.reader.ttPrev}
         >
           <ChevronRight className="w-7 h-7 hover:scale-125 transition-all duration-300 cursor-pointer" />
         </button>

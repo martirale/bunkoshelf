@@ -3,7 +3,7 @@
 import { useEffect, useCallback } from "react";
 import MangaReader from "./MangaReader";
 
-export default function ReaderModal({ isOpen, onClose, slug }) {
+export default function ReaderModal({ isOpen, onClose, slug, lang, intl }) {
   const goNext = useCallback(() => {
     const event = new CustomEvent("reader:goNext");
     window.dispatchEvent(event);
@@ -41,7 +41,7 @@ export default function ReaderModal({ isOpen, onClose, slug }) {
   return (
     <div className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center">
       <div className="relative w-full h-full max-h-screen overflow-hidden">
-        <MangaReader slug={slug} onClose={onClose} />
+        <MangaReader slug={slug} onClose={onClose} lang={lang} intl={intl} />
       </div>
     </div>
   );

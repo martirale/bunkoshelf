@@ -92,6 +92,8 @@ export default function ReadButtonsVolume({
         isOpen={isReaderOpen}
         onClose={() => setIsReaderOpen(false)}
         slug={slug}
+        lang={lang}
+        intl={intl}
       />
     </>
   );

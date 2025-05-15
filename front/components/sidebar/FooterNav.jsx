@@ -5,7 +5,7 @@ import { Languages, LogOut, BookOpen } from "lucide-react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
 
-export default function FooterNav() {
+export default function FooterNav({ intl }) {
   // Lang options
   const params = useParams();
   const router = useRouter();
@@ -58,7 +58,7 @@ export default function FooterNav() {
           <button
             className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
             aria-label="Switch Language"
-            title="Cambiar idioma"
+            title={intl.tooltip.switchLang}
             onClick={toggleLang}
           >
             <Languages className="w-5 h-5" />
@@ -68,7 +68,7 @@ export default function FooterNav() {
             href="#"
             target="_blank"
             rel="noopener"
-            title="Guía de inicio"
+            title={intl.tooltip.userGuide}
             className={`border border-onix rounded-lg p-2 hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
           >
             <BookOpen className="w-5 h-5" />
@@ -78,7 +78,7 @@ export default function FooterNav() {
             <button
               className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
               aria-label="Logout"
-              title="Cerrar sesión"
+              title={intl.tooltip.logout}
               onClick={handleLogout}
             >
               <LogOut className="w-5 h-5" />
