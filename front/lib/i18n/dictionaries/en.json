@@ -69,6 +69,7 @@
     "deleteUser": "Delete User",
     "passwordNew": "New Password",
     "scanLibrary": "Scan Library",
+    "scanMeta": "Scan Metadata",
     "scanning": "Scanning..."
   },
   "login": {
@@ -107,10 +108,11 @@
     "switchLang": "Switch to Spanish",
     "closeModal": "Close Window"
   },
-  "toast": {
-    "libScanSuccessTt": "Scan completed",
-    "libScanErrorTt": "Error",
-    "libScanSuccess": "The library was successfully scanned",
-    "libScanError": "The scan could not be completed"
+  "toastSettings": {
+    "scanSuccessTt": "Scan completed",
+    "scanLibSuccess": "Library successfully scanned",
+    "scanMetaSuccess": "Metadata scanned successfully",
+    "scanErrorTt": "Error",
+    "scanError": "The scan could not be completed"
   }
 }

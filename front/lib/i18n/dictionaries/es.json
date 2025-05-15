@@ -69,6 +69,7 @@
     "deleteUser": "Eliminar usuario",
     "passwordNew": "Nueva contraseña",
     "scanLibrary": "Escanear biblioteca",
+    "scanMeta": "Escanear metadatos",
     "scanning": "Escaneando..."
   },
   "login": {
@@ -107,10 +108,11 @@
     "switchLang": "Cambiar a Inglés",
     "closeModal": "Cerrar ventana"
   },
-  "toast": {
-    "libScanSuccessTt": "Escaneo completo",
-    "libScanErrorTt": "Error",
-    "libScanSuccess": "La biblioteca fue escaneada con éxito",
-    "libScanError": "No se pudo completar el escaneo"
+  "toastSettings": {
+    "scanSuccessTt": "Escaneo completo",
+    "scanLibSuccess": "Biblioteca escaneada con éxito",
+    "scanMetaSuccess": "Metadatos escaneados con éxito",
+    "scanErrorTt": "Error",
+    "scanError": "No se pudo completar el escaneo"
   }
 }
