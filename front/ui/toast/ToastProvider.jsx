@@ -8,6 +8,8 @@ const ToastContext = createContext();
 
 export const useToast = () => useContext(ToastContext);
 
+let toastIdCounter = 0;
+
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [mounted, setMounted] = useState(false);
@@ -17,11 +19,11 @@ export function ToastProvider({ children }) {
   }, []);
 
   const addToast = (toast) => {
-    const id = Date.now();
+    const id = Date.now() + toastIdCounter++;
     setToasts((prev) => [...prev, { id, ...toast }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4000);
+    }, 5000);
   };
 
   return (
@@ -29,7 +31,7 @@ export function ToastProvider({ children }) {
       {children}
       {mounted &&
         createPortal(
-          <div className="fixed bottom-4 right-4 z-50 space-y-2">
+          <div className="fixed bottom-4 right-4 z-[100] space-y-2">
             {toasts.map((toast) => (
               <ToastItem key={toast.id} {...toast} />
             ))}
