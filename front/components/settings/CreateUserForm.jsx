@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { UserRoundPlus } from "lucide-react";
+import { useToast } from "@/ui/toast/ToastProvider";
 
 export default function CreateUserForm({ intl }) {
   const [username, setUsername] = useState("");
@@ -11,6 +12,8 @@ export default function CreateUserForm({ intl }) {
   const [birthYear, setBirthYear] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState(null);
+
+  const { addToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,7 +38,10 @@ export default function CreateUserForm({ intl }) {
     const data = await res.json();
 
     if (res.ok) {
-      alert(intl.alerts.successCreateUser);
+      addToast({
+        title: intl.alerts.successCreateUser,
+        variant: "success",
+      });
       setUsername("");
       setPassword("");
       setName("");
@@ -43,10 +49,15 @@ export default function CreateUserForm({ intl }) {
       setBirthYear("");
       setIsAdmin(false);
       setError(null);
-      window.location.reload();
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } else {
-      console.error(intl.alerts.errorCreateUser);
-      setError(intl.alerts.errorCreateUser);
+      addToast({
+        title: intl.alerts.errorCreateUser,
+        description: data.error || "",
+        variant: "error",
+      });
     }
   };
 

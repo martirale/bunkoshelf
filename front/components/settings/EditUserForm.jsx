@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { UserRoundPen } from "lucide-react";
+import { useToast } from "@/ui/toast/ToastProvider";
 
 export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
   const [username, setUsername] = useState("");
@@ -11,6 +12,8 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
   const [birthYear, setBirthYear] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [error] = useState(null);
+
+  const { addToast } = useToast();
 
   const isSelf = user?.id === currentUserId;
 
@@ -49,11 +52,20 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
     const data = await res.json();
 
     if (res.ok) {
-      alert(intl.alerts.successUserUpdate);
+      addToast({
+        title: intl.alerts.successUserUpdate,
+        variant: "success",
+      });
       onSuccess(data.user);
-      window.location.reload();
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } else {
-      console.error(intl.alerts.errorUserUpdate);
+      addToast({
+        title: intl.alerts.errorCreateUser,
+        description: data.error || "",
+        variant: "error",
+      });
     }
   };
 
@@ -72,10 +84,19 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
     const data = await res.json();
 
     if (res.ok) {
-      alert(intl.alerts.successDelete);
-      window.location.reload();
+      addToast({
+        title: intl.alerts.successDelete,
+        variant: "success",
+      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } else {
-      alert(intl.alerts.successDelete);
+      addToast({
+        title: intl.alerts.errorDeleteUser,
+        description: data.error || "",
+        variant: "error",
+      });
     }
   };
 

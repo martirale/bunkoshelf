@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/ui/toast/ToastProvider";
 
 export default function ProfileForm({ user, intl }) {
   const router = useRouter();
+  const { addToast } = useToast();
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -30,10 +32,16 @@ export default function ProfileForm({ user, intl }) {
 
     if (res.ok) {
       setFormData((prevData) => ({ ...prevData, password: "" }));
-      alert(intl.alerts.successUserUpdate);
+      addToast({
+        title: intl.alerts.successUserUpdate,
+        variant: "success",
+      });
       router.refresh();
     } else {
-      console.error(intl.alerts.errorUserUpdate);
+      addToast({
+        title: intl.alerts.errorUserUpdate,
+        variant: "error",
+      });
     }
   };
 
