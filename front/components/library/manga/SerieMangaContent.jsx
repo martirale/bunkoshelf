@@ -133,7 +133,7 @@ export default function SerieMangaContent({
                 volumeCount={null}
                 cover={volume.coverImage ?? null}
                 intl={intl}
-                className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
+                className="font-roboto font-bold leading-5 2xl:leading-6 text-base 2xl:text-xl"
               />
             ))
           ) : (

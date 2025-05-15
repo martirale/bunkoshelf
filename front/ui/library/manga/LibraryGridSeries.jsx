@@ -39,7 +39,7 @@ export default async function LibraryGridSeries({
         {title}
       </h2>
 
-      <section className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+      <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-6">
         {entries.map((entry) => {
           const isSeries =
             (entry.volumes && entry.volumes.length > 1) || entry.metadata;
@@ -61,7 +61,7 @@ export default async function LibraryGridSeries({
               volumeCount={isSeries ? entry.volumes.length : null}
               cover={coverImage}
               intl={intl}
-              className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
+              className="font-roboto font-bold leading-5 2xl:leading-6 text-base 2xl:text-xl"
             />
           );
         })}

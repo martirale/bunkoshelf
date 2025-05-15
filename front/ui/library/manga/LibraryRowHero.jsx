@@ -141,7 +141,7 @@ export default function LibraryRowHero({
                 cover={coverImage}
                 intl={intl}
                 isDragging={isDragging}
-                className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
+                className="font-roboto font-bold leading-6 text-xl"
               />
             </div>
           );

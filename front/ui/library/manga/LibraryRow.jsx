@@ -141,7 +141,7 @@ export default function LibraryRow({
                 cover={coverImage}
                 intl={intl}
                 isDragging={isDragging}
-                className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
+                className="font-roboto font-bold leading-5 2xl:leading-6 text-base 2xl:text-xl"
               />
             </div>
           );

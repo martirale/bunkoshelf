@@ -11,24 +11,39 @@
 
 /* Defining the theme using Tailwind (dark mode only) */
 @theme inline {
+  /* Global variables */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-  /* BRAND COLORS */
+
+  /* Util aliases */
+  --font-roboto: var(--font-roboto-condensed);
+  --font-boldonse: var(--font-boldonse);
+
+  /* Brand Colors */
   --color-pearl: #f7f2ec; /* Pearl (Main) */
   --color-sand: #e5e0dc; /* Sand (Second) */
   --color-blackamber: #0c0c0c; /* Blackamber */
   --color-onix: #151515; /* Onix */
-  /* MANGA LIBRARY */
+
+  /* Manga Library */
   --color-lilah: #8a6fdc; /* Lilah (Main) */
   --color-heather: #8a79b2; /* Heather (Second) */
-  /* BOOKS LIBRARY */
+
+  /* Books Library */
   --color-ash: #738298; /* Ash (Main) */
   --color-denim: #3d4e72; /* Denim (Second) */
 }
 
 /* Basic body styles */
+.font-roboto {
+  font-family: var(--font-roboto);
+}
+.font-boldonse {
+  font-family: var(--font-boldonse);
+}
+
 body {
   background: var(--color-background);
   color: var(--color-sand);

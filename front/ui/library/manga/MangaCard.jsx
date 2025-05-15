@@ -35,7 +35,7 @@ export default function MangaCard({
 
       <div className="flex flex-col justify-between p-3 h-24">
         <h3
-          className={`line-clamp-2 group-hover:text-lilah transition-all duration-300 ${className}`}
+          className={`line-clamp-3 group-hover:text-lilah transition-all duration-300 ${className}`}
         >
           {title}
         </h3>

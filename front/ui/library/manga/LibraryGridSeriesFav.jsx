@@ -49,7 +49,7 @@ export default async function LibraryGridSeriesFav({ lang, intl }) {
     <>
       <h2 className="mt-8 mb-4 pt-4">Series: Manga</h2>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-6">
         {entries.map((entry) => {
           const isSeries =
             (entry.volumes && entry.volumes.length > 1) || entry.metadata;
@@ -71,7 +71,7 @@ export default async function LibraryGridSeriesFav({ lang, intl }) {
               volumeCount={isSeries ? entry.volumes.length : null}
               cover={coverImage}
               intl={intl}
-              className="text-xs leading-6 2xl:text-sm 2xl:leading-6.5"
+              className="font-roboto font-bold leading-5 2xl:leading-6 text-base 2xl:text-xl"
             />
           );
         })}
