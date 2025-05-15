@@ -67,7 +67,9 @@
     "createUser": "Crear usuario",
     "updateUser": "Actualizar usuario",
     "deleteUser": "Eliminar usuario",
-    "passwordNew": "Nueva contraseña"
+    "passwordNew": "Nueva contraseña",
+    "scanLibrary": "Escanear biblioteca",
+    "scanning": "Escaneando..."
   },
   "login": {
     "username": "Nombre de usuario",
@@ -104,5 +106,11 @@
     "userGuide": "Guía de usuario",
     "switchLang": "Cambiar a Inglés",
     "closeModal": "Cerrar ventana"
+  },
+  "toast": {
+    "libScanSuccessTt": "Escaneo completo",
+    "libScanErrorTt": "Error",
+    "libScanSuccess": "La biblioteca fue escaneada con éxito",
+    "libScanError": "No se pudo completar el escaneo"
   }
 }

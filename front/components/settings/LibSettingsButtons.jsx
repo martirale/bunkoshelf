@@ -18,14 +18,14 @@ export default function LibSettingsButtons({ intl }) {
       if (!res.ok) throw new Error("Error al escanear la biblioteca");
 
       addToast({
-        title: "Escaneo completo",
-        description: "La biblioteca fue escaneada con éxito.",
+        title: intl.toast.libScanSuccessTt,
+        description: intl.toast.libScanSuccess,
         variant: "success",
       });
     } catch (err) {
       addToast({
-        title: "Error",
-        description: "No se pudo completar el escaneo.",
+        title: intl.toast.libScanErrorTt,
+        description: intl.toast.libScanError,
         variant: "error",
       });
     } finally {
@@ -45,7 +45,7 @@ export default function LibSettingsButtons({ intl }) {
         ) : (
           <ScanSearch className="w-9 h-9 mb-4" />
         )}
-        {loading ? "Escaneando..." : "Escanear biblioteca"}
+        {loading ? intl.settings.scanning : intl.settings.scanLibrary}
       </button>
     </div>
   );

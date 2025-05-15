@@ -67,7 +67,9 @@
     "createUser": "Create User",
     "updateUser": "Update User",
     "deleteUser": "Delete User",
-    "passwordNew": "New Password"
+    "passwordNew": "New Password",
+    "scanLibrary": "Scan Library",
+    "scanning": "Scanning..."
   },
   "login": {
     "username": "Username",
@@ -104,5 +106,11 @@
     "userGuide": "User Guide",
     "switchLang": "Switch to Spanish",
     "closeModal": "Close Window"
+  },
+  "toast": {
+    "libScanSuccessTt": "Scan completed",
+    "libScanErrorTt": "Error",
+    "libScanSuccess": "The library was successfully scanned",
+    "libScanError": "The scan could not be completed"
   }
 }
