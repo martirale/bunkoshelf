@@ -68,7 +68,7 @@ export default function MangaReader({ slug, onClose }) {
       {/* Zonas táctiles invisibles */}
       <div className="absolute inset-0 z-30 flex">
         {/* Zona izquierda (avanza →) */}
-        <div className="w-1/3 h-full" onTouchStart={goNext} />
+        <div className="w-1/3 h-full" onTouchStart={goPrev} />
         {/* Zona centro (neutral) */}
         <div
           className="w-1/3 h-full"
@@ -78,7 +78,7 @@ export default function MangaReader({ slug, onClose }) {
           }}
         />
         {/* Zona derecha (retrocede ←) */}
-        <div className="w-1/3 h-full" onTouchStart={goPrev} />
+        <div className="w-1/3 h-full" onTouchStart={goNext} />
       </div>
 
       <div className="flex-grow flex items-center justify-center z-40">
