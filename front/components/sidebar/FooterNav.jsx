@@ -51,7 +51,7 @@ export default function FooterNav({ intl }) {
           rel="noopener"
           className={`text-sm px-4 py-1 border border-onix rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
         >
-          v0.3.0-alpha
+          v0.4.0-alpha
         </Link>
         <div className="flex items-center gap-2">
           {/* Language Switcher */}
