@@ -66,7 +66,7 @@ export default function MangaReader({ slug, onClose }) {
       </button>
 
       {/* Zonas táctiles invisibles */}
-      <div className="absolute inset-0 z-30 flex">
+      <div className="absolute inset-0 z-40 flex">
         {/* Zona izquierda (avanza →) */}
         <div className="w-1/3 h-full" onTouchStart={goPrev} />
         {/* Zona centro (neutral) */}
@@ -81,7 +81,7 @@ export default function MangaReader({ slug, onClose }) {
         <div className="w-1/3 h-full" onTouchStart={goNext} />
       </div>
 
-      <div className="flex-grow flex items-center justify-center z-40">
+      <div className="flex-grow flex items-center justify-center z-30">
         {images.length > 0 ? (
           <img
             src={images[currentIndex]}
@@ -93,7 +93,8 @@ export default function MangaReader({ slug, onClose }) {
         )}
       </div>
 
-      <div className="flex items-center justify-between w-full max-w-md z-40">
+      {/* Nav Controls */}
+      <div className="flex items-center justify-between w-full max-w-md z-50">
         <button
           onClick={goPrev}
           disabled={currentIndex >= images.length - 1}
