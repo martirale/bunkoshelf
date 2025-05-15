@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Users
 model User {
   id             Int      @id @default(autoincrement())
   createdAt      DateTime @default(now())
@@ -21,6 +22,7 @@ model User {
   volumeProgress UserToVolume[]
 }
 
+// Favorites
 model UserToSeries {
   id         Int         @id @default(autoincrement())
   user       User        @relation(fields: [userId], references: [id])
@@ -50,37 +52,102 @@ model UserToVolume {
   @@unique([userId, volumeId])
 }
 
+// Manga Library
 model MangaSeries {
-  id            Int            @id @default(autoincrement())
-  slug          String         @unique
+  id            Int             @id @default(autoincrement())
+  slug          String          @unique
   title         String
   path          String
-  isOneshot     Boolean        @default(false)
-  metadata      Json?
+  isOneshot     Boolean         @default(false)
+  mtime         DateTime        @default(now())
+
   volumes       MangaVolume[]
-  mtime         DateTime       @default(now())
+  metadataObj   SeriesMetadata? @relation(fields: [metadataId], references: [id])
+  metadataId    String?         @unique
 
   usersProgress UserToSeries[]
 
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
 model MangaVolume {
-  id            Int           @id @default(autoincrement())
-  slug          String        @unique
+  id            Int             @id @default(autoincrement())
+  slug          String          @unique
   title         String
   filename      String
   fullPath      String
-  metadata      Json?
-  series        MangaSeries   @relation(fields: [seriesId], references: [id])
-  seriesId      Int
-  size          Int           @default(0)
-  mtime         DateTime      @default(now())
+  size          Int             @default(0)
+  mtime         DateTime        @default(now())
   coverImage    String?
+
+  series        MangaSeries     @relation(fields: [seriesId], references: [id])
+  seriesId      Int
+
+  metadataObj   VolumeMetadata? @relation(fields: [metadataId], references: [id])
+  metadataId    String?         @unique
 
   usersProgress UserToVolume[]
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+// Manga Metadata
+model VolumeMetadata {
+  id            String     @id @default(cuid())
+  filePath      String     @unique
+
+  series        String?
+  title         String?
+  number        Float?
+  count         Int?
+
+  publisher     String?
+  genre         String?
+  languageISO   String?
+  ageRating     String?
+
+  writer        String?
+  penciller     String?
+  inker         String?
+  colorist      String?
+  letterer      String?
+  coverArtist   String?
+  editor        String?
+  translator    String?
+
+  summary       String?
+  web           String?
+  tags          String?
+
+  year          Int?
+  month         Int?
+  day           Int?
+
+  gtin          String?
+  mangaStyle    String?
+
+  mangaVolume MangaVolume? @relation
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model SeriesMetadata {
+  id            String      @id @default(cuid())
+  folderPath    String      @unique
+
+  series        String?
+  summary       String?
+  publisher     String?
+  genre         String?
+  languageISO   String?
+  writer        String?
+  artist        String?
+
+  mangaSeries MangaSeries?  @relation
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
