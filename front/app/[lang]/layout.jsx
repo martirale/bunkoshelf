@@ -1,6 +1,7 @@
 import { robotoCondensed, boldonse } from "../fonts";
 import "../globals.css";
 import Sidebar from "@/components/sidebar/sidebar";
+import { ToastProvider } from "@/ui/toast/ToastProvider";
 
 export const metadata = {
   title: "Bunko Shelf",
@@ -27,7 +28,7 @@ export default async function RootLayout({ children, params }) {
         <Sidebar lang={lang} />
 
         <main className="w-full md:w-9/12 2xl:w-10/12 flex flex-col overflow-y-auto">
-          {children}
+          <ToastProvider>{children}</ToastProvider>
         </main>
       </body>
     </html>
