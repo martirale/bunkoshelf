@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 import AdmZip from "adm-zip";
 import xml2js from "xml2js";
 
@@ -15,12 +14,20 @@ async function parseXmlContent(xml) {
   }
 }
 
-export async function extractMetaCbz(filePath) {
+async function extractMetaCbz(filePath) {
   try {
+    if (!fs.existsSync(filePath)) {
+      console.warn(`Archivo CBZ no encontrado: ${filePath}`);
+      return null;
+    }
+
     const zip = new AdmZip(filePath);
     const comicInfoEntry = zip.getEntry("ComicInfo.xml");
 
-    if (!comicInfoEntry) return null;
+    if (!comicInfoEntry) {
+      console.warn(`No se encontró ComicInfo.xml en: ${filePath}`);
+      return null;
+    }
 
     const xmlContent = comicInfoEntry.getData().toString("utf8");
     return await parseXmlContent(xmlContent);
@@ -30,16 +37,26 @@ export async function extractMetaCbz(filePath) {
   }
 }
 
-export async function extractMetaSeries(folderPath) {
-  const xmlPath = path.join(folderPath, "ComicInfo.xml");
+export async function extractMetaManga({ prisma }) {
+  const volumes = await prisma.mangaVolume.findMany({
+    select: {
+      id: true,
+      fullPath: true,
+    },
+  });
 
-  if (!fs.existsSync(xmlPath)) return null;
+  const metas = [];
 
-  try {
-    const xmlContent = fs.readFileSync(xmlPath, "utf8");
-    return await parseXmlContent(xmlContent);
-  } catch (error) {
-    console.error("Error leyendo metadatos de serie:", error);
-    return null;
+  for (const volume of volumes) {
+    const meta = await extractMetaCbz(volume.fullPath);
+    if (meta) {
+      metas.push({
+        id: volume.id,
+        filePath: volume.fullPath,
+        meta,
+      });
+    }
   }
+
+  return metas;
 }
