@@ -7,7 +7,7 @@ export default function ToastItem({ title, description, variant = "default" }) {
 
   return (
     <div
-      className={`bg-blackamber border rounded-lg p-4 w-80 animate-fade-in ${variants[variant]}`}
+      className={`bg-blackamber border rounded-lg p-4 w-80 text-center animate-fade-in ${variants[variant]}`}
     >
       <strong className="block text-base font-bold uppercase">{title}</strong>
       <span className="block text-base mt-1">{description}</span>
