@@ -75,7 +75,7 @@
     "login": "Login"
   },
   "noauth": {
-    "guide": "Getting Started"
+    "guide": "User Guide"
   },
   "alerts": {
     "successUserUpdate": "User successfully updated",
@@ -88,9 +88,21 @@
     "loginFail": "Invalid Credentials",
     "serverError": "Invalid server response"
   },
+  "reader": {
+    "page": "Page",
+    "ttNext": "Next page",
+    "ttPrev": "Previous page",
+    "ttExit": "Exit reader"
+  },
   "misc": {
     "coming": "Feature coming soon",
     "noSeriesFav": "There are no favorite series...",
     "noVolumesFav": "There is no favorite manga..."
+  },
+  "tooltip": {
+    "logout": "Log Out",
+    "userGuide": "User Guide",
+    "switchLang": "Switch to Spanish",
+    "closeModal": "Close Window"
   }
 }
