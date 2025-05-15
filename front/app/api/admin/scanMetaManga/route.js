@@ -7,7 +7,7 @@ export async function POST() {
     const metas = await extractMetaManga({ prisma });
 
     for (const { id, meta, filePath } of metas) {
-      const number = meta.Volume?.[0] ? parseFloat(meta.Volume[0]) : null;
+      const number = meta.Number?.[0] ? parseFloat(meta.Number[0]) : null;
       const count = meta.Count ? parseInt(meta.Count[0], 10) : null;
       const year = meta.Year ? parseInt(meta.Year[0], 10) : null;
       const month = meta.Month ? parseInt(meta.Month[0], 10) : null;
