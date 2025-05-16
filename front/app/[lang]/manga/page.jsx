@@ -1,5 +1,6 @@
 import LibraryRow from "@/components/library/manga/row/LibraryRow";
 import LibraryRowHero from "@/components/library/manga/row/LibraryRowHero";
+import LibraryRowNewVol from "@/components/library/manga/row/LibraryRowNewVol";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 import MangaNav from "@/ui/library/manga/MangaNav";
 import {
@@ -42,7 +43,7 @@ export default async function MangaPage({ params }) {
 
         {/* Recently Added */}
         <section>
-          <LibraryRow
+          <LibraryRowNewVol
             lang={lang}
             intl={intl}
             title={intl.libraries.recentlyAdded}
