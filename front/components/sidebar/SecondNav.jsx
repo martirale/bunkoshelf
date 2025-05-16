@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 
-export default async function SecondNav({ intl, className }) {
+export default function SecondNav({ intl, className }) {
   return (
     <>
       <div className={`mt-8 space-y-2 ${className}`}>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Bolt, UsersRound, FolderCog } from "lucide-react";
 import { usePathname, useParams } from "next/navigation";
 
-export default function AdminNav({ intl }) {
+export default function SettingsNav({ intl }) {
   // Lang options
   const params = useParams();
   const pathname = usePathname();

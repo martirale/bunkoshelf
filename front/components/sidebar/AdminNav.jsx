@@ -29,8 +29,8 @@ export default function AdminNav({ intl }) {
           href={`/${currentLang}/settings`}
           className={`flex items-center p-4 rounded-lg leading-none border ${
             isSettings
-              ? "border-sand bg-onix"
-              : `border-blackamber hover:bg-onix ${hoverBorder}`
+              ? "border-sand bg-onix text-sand"
+              : `border-blackamber hover:bg-onix hover:text-pearl ${hoverBorder}`
           } transition-all duration-300`}
         >
           <Settings2 className="w-5 h-5 mr-2" />

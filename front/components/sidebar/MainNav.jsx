@@ -49,8 +49,8 @@ export default function MainNav({ intl }) {
           href={`/${currentLang}`}
           className={`flex items-center p-4 rounded-lg leading-none border ${
             isHome
-              ? "border-sand bg-onix"
-              : `border-blackamber hover:bg-onix ${hoverBorder}`
+              ? "border-sand bg-onix text-sand"
+              : `border-blackamber hover:bg-onix hover:text-pearl ${hoverBorder}`
           } transition-all duration-300`}
         >
           <House className="w-5 h-5 mr-2" />
@@ -63,9 +63,9 @@ export default function MainNav({ intl }) {
             className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
               isLibrary
                 ? isManga
-                  ? "border-lilah bg-onix"
-                  : "border-ash bg-onix"
-                : "border-blackamber hover:border-pearl hover:bg-onix"
+                  ? "border-lilah bg-onix text-sand"
+                  : "border-ash bg-onix text-sand"
+                : "border-blackamber hover:border-pearl hover:bg-onix hover:text-pearl"
             } transition-all duration-300`}
           >
             <span className="flex items-center">
@@ -83,7 +83,9 @@ export default function MainNav({ intl }) {
               <Link
                 href={`/${currentLang}/manga`}
                 className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
-                  isManga ? "bg-onix text-lilah" : "hover:bg-onix"
+                  isManga
+                    ? "bg-onix text-lilah"
+                    : "hover:bg-onix hover:text-pearl"
                 }`}
               >
                 {intl.sidebar.manga}
@@ -91,7 +93,9 @@ export default function MainNav({ intl }) {
               <Link
                 href={`/${currentLang}/books`}
                 className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
-                  isBooks ? "bg-onix text-ash" : "hover:bg-onix"
+                  isBooks
+                    ? "bg-onix text-ash"
+                    : "hover:bg-onix hover:text-pearl"
                 }`}
               >
                 {intl.sidebar.books}
@@ -104,8 +108,8 @@ export default function MainNav({ intl }) {
           href={`/${currentLang}/favorites`}
           className={`flex items-center p-4 rounded-lg leading-none border ${
             isFavorites
-              ? "border-sand bg-onix"
-              : `border-blackamber hover:bg-onix ${hoverBorder}`
+              ? "border-sand bg-onix text-sand"
+              : `border-blackamber hover:bg-onix hover:text-pearl ${hoverBorder}`
           } transition-all duration-300`}
         >
           <BookHeart className="w-5 h-5 mr-2" />
@@ -115,8 +119,8 @@ export default function MainNav({ intl }) {
           href={`/${currentLang}/profile`}
           className={`flex items-center p-4 rounded-lg leading-none border ${
             isProfile
-              ? "border-sand bg-onix"
-              : `border-blackamber hover:bg-onix ${hoverBorder}`
+              ? "border-sand bg-onix text-sand"
+              : `border-blackamber hover:bg-onix hover:text-pearl ${hoverBorder}`
           } transition-all duration-300`}
         >
           <UserRound className="w-5 h-5 mr-2" />
