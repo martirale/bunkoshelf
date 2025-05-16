@@ -1,7 +1,7 @@
-import LibraryRow from "@/ui/library/manga/LibraryRow";
-import LibraryRowHero from "@/ui/library/manga/LibraryRowHero";
+import LibraryRow from "@/components/library/manga/row/LibraryRow";
+import LibraryRowHero from "@/components/library/manga/row/LibraryRowHero";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
-import MangaNav from "@/components/library/manga/MangaNav";
+import MangaNav from "@/ui/library/manga/MangaNav";
 import {
   LibraryBig,
   BookMarked,

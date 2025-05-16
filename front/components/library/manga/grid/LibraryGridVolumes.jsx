@@ -1,5 +1,5 @@
 import React from "react";
-import MangaCard from "./MangaCard";
+import MangaCard from "@/ui/library/manga/MangaCard";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 

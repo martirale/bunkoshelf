@@ -2,10 +2,10 @@
 
 import React from "react";
 import { useRef, useEffect, useState } from "react";
-import MangaCard from "./MangaCard";
+import MangaCard from "@/ui/library/manga/MangaCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function LibraryRowHero({
+export default function LibraryRow({
   lang,
   intl,
   title,
@@ -130,7 +130,7 @@ export default function LibraryRowHero({
           return (
             <div
               key={entry.title}
-              className="flex-shrink-0 w-1/2 md:w-1/4 2xl:w-1/5"
+              className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/6"
             >
               <MangaCard
                 title={entry.title}
@@ -141,7 +141,7 @@ export default function LibraryRowHero({
                 cover={coverImage}
                 intl={intl}
                 isDragging={isDragging}
-                className="font-roboto font-bold leading-6 text-xl"
+                className="font-roboto font-bold leading-5 2xl:leading-6 text-base 2xl:text-xl"
               />
             </div>
           );

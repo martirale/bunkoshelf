@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import ReadButtonsVolume from "./ReadButtonsVolume";
+import ReadButtonsVolume from "@/ui/library/manga/ReadButtonsVolume";
 import { ageRatingMap } from "@/lib/utils";
 
 export default function VolumeMangaContent({

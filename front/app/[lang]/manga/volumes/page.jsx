@@ -1,8 +1,8 @@
-import LibraryRowHero from "@/ui/library/manga/LibraryRowHero";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
-import MangaNav from "@/components/library/manga/MangaNav";
+import MangaNav from "@/ui/library/manga/MangaNav";
 import { LibraryBig } from "lucide-react";
-import LibraryGridVolumes from "@/ui/library/manga/LibraryGridVolumes";
+import LibraryRowHero from "@/components/library/manga/row/LibraryRowHero";
+import LibraryGridVolumes from "@/components/library/manga/grid/LibraryGridVolumes";
 
 export default async function MangaVolumesPage({ params }) {
   const { lang = "es" } = await params;

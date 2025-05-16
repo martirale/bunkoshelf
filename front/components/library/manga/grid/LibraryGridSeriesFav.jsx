@@ -1,4 +1,4 @@
-import MangaCard from "./MangaCard";
+import MangaCard from "@/ui/library/manga/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { Ghost } from "lucide-react";

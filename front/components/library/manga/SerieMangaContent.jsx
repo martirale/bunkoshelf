@@ -1,6 +1,6 @@
 import Image from "next/image";
 import MangaCard from "@/ui/library/manga/MangaCard";
-import ReadButtonsSeries from "./ReadButtonsSeries";
+import ReadButtonsSeries from "@/ui/library/manga/ReadButtonsSeries";
 import { ageRatingMap } from "@/lib/utils";
 
 export default function SerieMangaContent({
