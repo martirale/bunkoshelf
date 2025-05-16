@@ -15,7 +15,11 @@ export default async function LibraryGridSeriesFav({ lang, intl }) {
     include: {
       series: {
         include: {
-          volumes: true,
+          volumes: {
+            include: {
+              metadataObj: true,
+            },
+          },
         },
       },
     },
@@ -33,6 +37,7 @@ export default async function LibraryGridSeriesFav({ lang, intl }) {
       series.volumes?.map((vol) => ({
         ...vol,
         coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+        meta: vol.metadataObj || null,
       })) ?? [],
   }));
 
@@ -64,7 +69,7 @@ export default async function LibraryGridSeriesFav({ lang, intl }) {
           return (
             <MangaCard
               key={entry.title}
-              title={entry.title}
+              title={entry.volumes?.[0]?.meta?.series ?? entry.title}
               href={href}
               isSeries={isSeries}
               isOneshot={isOneshot}

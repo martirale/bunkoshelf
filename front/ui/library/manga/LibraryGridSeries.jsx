@@ -11,7 +11,11 @@ export default async function LibraryGridSeries({
 }) {
   const series = await prisma.mangaSeries.findMany({
     include: {
-      volumes: true,
+      volumes: {
+        include: {
+          metadataObj: true,
+        },
+      },
     },
     orderBy: {
       title: "asc",
@@ -29,6 +33,7 @@ export default async function LibraryGridSeries({
         entry.volumes?.map((vol) => ({
           ...vol,
           coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+          meta: vol.metadataObj || null,
         })) ?? [],
     }));
 
@@ -54,7 +59,7 @@ export default async function LibraryGridSeries({
           return (
             <MangaCard
               key={entry.title}
-              title={entry.title}
+              title={entry.volumes?.[0]?.meta?.series ?? entry.title}
               href={href}
               isSeries={isSeries}
               isOneshot={isOneshot}

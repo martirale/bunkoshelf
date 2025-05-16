@@ -13,6 +13,7 @@ export default async function LibraryGridVolumes({
   const volumes = await prisma.mangaVolume.findMany({
     include: {
       series: true,
+      metadataObj: true,
     },
   });
 
@@ -21,6 +22,7 @@ export default async function LibraryGridVolumes({
     ...vol,
     isOneshot: vol.series?.isOneshot === true,
     coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+    meta: vol.metadataObj || null,
   }));
 
   return (
@@ -37,7 +39,7 @@ export default async function LibraryGridVolumes({
           return (
             <MangaCard
               key={entry.title}
-              title={entry.title}
+              title={entry.meta.title}
               href={href}
               isSeries={false}
               isOneshot={entry.isOneshot}

@@ -17,6 +17,7 @@ export default async function LibraryGridVolumesFav({ lang, intl }) {
       volume: {
         include: {
           series: true,
+          metadataObj: true,
         },
       },
     },
@@ -33,6 +34,7 @@ export default async function LibraryGridVolumesFav({ lang, intl }) {
     ...vol,
     isOneshot: vol.series?.isOneshot === true,
     coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+    meta: vol.metadataObj || null,
   }));
 
   if (entries.length === 0) {
@@ -56,7 +58,7 @@ export default async function LibraryGridVolumesFav({ lang, intl }) {
           return (
             <MangaCard
               key={entry.title}
-              title={entry.title}
+              title={entry.meta.title}
               href={href}
               isSeries={false}
               isOneshot={entry.isOneshot}
