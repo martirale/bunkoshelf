@@ -49,14 +49,14 @@ export default function FooterNav({ intl }) {
           href="#"
           target="_blank"
           rel="noopener"
-          className={`text-sm px-4 py-1 border border-onix rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
+          className={`text-sm px-4 py-1 border border-zinc-800 rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
         >
           v0.4.0-alpha
         </Link>
         <div className="flex items-center gap-2">
           {/* Language Switcher */}
           <button
-            className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
+            className={`border border-zinc-800 hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
             aria-label="Switch Language"
             title={intl.tooltip.switchLang}
             onClick={toggleLang}
@@ -69,14 +69,14 @@ export default function FooterNav({ intl }) {
             target="_blank"
             rel="noopener"
             title={intl.tooltip.userGuide}
-            className={`border border-onix rounded-lg p-2 hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
+            className={`border border-zinc-800 rounded-lg p-2 hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
           >
             <BookOpen className="w-5 h-5" />
           </Link>
           {/* Logout Button */}
           {isLoggedIn && (
             <button
-              className={`border border-onix hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
+              className={`border border-zinc-800 hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
               aria-label="Logout"
               title={intl.tooltip.logout}
               onClick={handleLogout}
