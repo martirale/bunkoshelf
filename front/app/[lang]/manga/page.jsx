@@ -31,7 +31,7 @@ export default async function MangaPage({ params }) {
 
       <div className="p-4 mb-16">
         {/* In Progress */}
-        <section>
+        {/* <section>
           <LibraryRow
             lang={lang}
             intl={intl}
@@ -39,7 +39,7 @@ export default async function MangaPage({ params }) {
             icon={<BookMarked />}
             className="mt-8"
           />
-        </section>
+        </section> */}
 
         {/* Recently Added */}
         <section>
@@ -53,7 +53,7 @@ export default async function MangaPage({ params }) {
         </section>
 
         {/* Updated Series */}
-        <section>
+        {/* <section>
           <LibraryRow
             lang={lang}
             intl={intl}
@@ -61,10 +61,10 @@ export default async function MangaPage({ params }) {
             icon={<BookDown />}
             className="mt-8"
           />
-        </section>
+        </section> */}
 
         {/* Recently Read */}
-        <section>
+        {/* <section>
           <LibraryRow
             lang={lang}
             intl={intl}
@@ -72,7 +72,7 @@ export default async function MangaPage({ params }) {
             icon={<BookCheck />}
             className="mt-8"
           />
-        </section>
+        </section> */}
       </div>
     </>
   );
