@@ -49,7 +49,7 @@ export default function VolumeMangaContent({
           </h1>
           {!isOneshot && (
             <Link href={`/${lang}/manga/${seriesSlug}`} className="italic">
-              {intl.manga.series} {seriesTitle}
+              {intl.manga.series} {meta.series || seriesTitle}
             </Link>
           )}
 

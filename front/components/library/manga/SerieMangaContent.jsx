@@ -32,7 +32,7 @@ export default function SerieMangaContent({
 
         <div className="w-full md:w-2/3">
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">
-            {serieData.title}
+            {meta.series || serieData.title}
           </h1>
 
           {/* Read Buttons */}
@@ -73,7 +73,7 @@ export default function SerieMangaContent({
           {/* Description */}
           {meta.summary && (
             <div className="mt-8 max-w-2xl">
-              <h2 className="text-sm mb-1">{intl.manga.synopsis}</h2>
+              <h2 className="text-sm mb-1">{intl.manga.synopsis} (vol. 1)</h2>
               <p>{meta.summary}</p>
             </div>
           )}
@@ -193,7 +193,7 @@ export default function SerieMangaContent({
             serieData.volumes.map((volume, idx) => (
               <MangaCard
                 key={idx}
-                title={volume.title || volume.filename}
+                title={volume.meta?.title || volume.filename}
                 href={`/${lang}/manga/volume/${volume.slug}`}
                 isSeries={false}
                 volumeCount={null}
