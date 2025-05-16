@@ -74,6 +74,7 @@
     "updateUser": "Update User",
     "deleteUser": "Delete User",
     "passwordNew": "New Password",
+    "fullScan": "Full Scan",
     "scanLibrary": "Scan Library",
     "scanMeta": "Scan Metadata",
     "scanning": "Scanning..."
@@ -116,6 +117,7 @@
   },
   "toastSettings": {
     "scanSuccessTt": "Scan completed",
+    "scanFullSuccess": "Full scan completed successfully",
     "scanLibSuccess": "Library successfully scanned",
     "scanMetaSuccess": "Metadata scanned successfully",
     "scanErrorTt": "Error",
