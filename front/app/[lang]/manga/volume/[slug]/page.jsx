@@ -16,6 +16,7 @@ export default async function VolumeMangaPage({ params }) {
       },
       include: {
         series: true,
+        metadataObj: true,
       },
     });
 
@@ -31,6 +32,7 @@ export default async function VolumeMangaPage({ params }) {
     const normalizedVolume = {
       ...volumeEntry,
       coverImage: volumeEntry.coverImage?.replace(/\\/g, "/") ?? null,
+      meta: volumeEntry.metadataObj || null,
     };
 
     let isFavorite = false;
