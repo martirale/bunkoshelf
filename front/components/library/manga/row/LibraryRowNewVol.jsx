@@ -10,7 +10,7 @@ export default function LibraryRowNewVol({
   title,
   icon,
   className,
-  maxItems = 18,
+  maxItems = 12,
 }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
