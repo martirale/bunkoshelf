@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import ReadButtonsVolume from "@/ui/library/manga/ReadButtonsVolume";
+import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 
 export default function VolumeMangaContent({
@@ -75,7 +76,7 @@ export default function VolumeMangaContent({
           />
 
           {/* Meta Tags */}
-          <div className="mt-20">
+          <div className="mt-10">
             {isOneshot && (
               <span className="text-sm uppercase bg-lilah border border-lilah rounded-md px-3 py-1 mr-3">
                 Oneshot
@@ -102,12 +103,7 @@ export default function VolumeMangaContent({
           <p className="mt-4">{meta.year && meta.year}</p>
 
           {/* Description */}
-          {meta.summary && (
-            <div className="mt-8 max-w-2xl">
-              <h2 className="text-sm mb-1">{intl.manga.synopsis}</h2>
-              <p>{meta.summary}</p>
-            </div>
-          )}
+          {meta.summary && <MangaSummary intl={intl} meta={meta} />}
 
           <div className="border-t border-zinc-800 my-6"></div>
 

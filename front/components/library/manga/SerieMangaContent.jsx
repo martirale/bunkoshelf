@@ -1,6 +1,7 @@
 import Image from "next/image";
 import MangaCard from "@/ui/library/manga/MangaCard";
 import ReadButtonsSeries from "@/ui/library/manga/ReadButtonsSeries";
+import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 
 export default function SerieMangaContent({
@@ -83,12 +84,7 @@ export default function SerieMangaContent({
           </p>
 
           {/* Description */}
-          {meta.summary && (
-            <div className="mt-8 max-w-2xl">
-              <h2 className="text-sm mb-1">{intl.manga.synopsis} (vol. 1)</h2>
-              <p>{meta.summary}</p>
-            </div>
-          )}
+          {meta.summary && <MangaSummary intl={intl} meta={meta} />}
 
           <div className="border-t border-zinc-800 my-6"></div>
 
