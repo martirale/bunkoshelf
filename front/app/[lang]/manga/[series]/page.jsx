@@ -16,7 +16,11 @@ export default async function SeriesMangaPage({ params }) {
         slug: series,
       },
       include: {
-        volumes: true,
+        volumes: {
+          include: {
+            metadataObj: true,
+          },
+        },
       },
     });
 
@@ -35,6 +39,7 @@ export default async function SeriesMangaPage({ params }) {
         serie.volumes?.map((vol) => ({
           ...vol,
           coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+          meta: vol.metadataObj || null,
         })) ?? [],
     };
 
