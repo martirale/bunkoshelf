@@ -6,6 +6,7 @@ export async function GET() {
     const volumes = await prisma.mangaVolume.findMany({
       include: {
         series: true,
+        metadataObj: true,
       },
     });
 

@@ -5,7 +5,11 @@ export async function GET() {
   try {
     const series = await prisma.mangaSeries.findMany({
       include: {
-        volumes: true,
+        volumes: {
+          include: {
+            metadataObj: true,
+          },
+        },
       },
     });
 
