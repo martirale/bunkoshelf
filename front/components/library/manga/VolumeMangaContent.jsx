@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import ReadButtonsVolume from "./ReadButtonsVolume";
+import { ageRatingMap } from "@/lib/utils";
 
 export default function VolumeMangaContent({
   volumeData,
@@ -22,6 +23,17 @@ export default function VolumeMangaContent({
   const isOneshot = volumeData.series?.isOneshot === true;
   const seriesTitle = volumeData.series?.title;
   const seriesSlug = volumeData.series?.slug;
+
+  const ageMin = ageRatingMap(meta.ageRating);
+  const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-3 border ${
+    ageMin >= 18
+      ? "border-red-500 text-red-500"
+      : ageMin >= 16
+      ? "border-yellow-500 text-yellow-500"
+      : ageMin !== null
+      ? "border-zinc-700"
+      : "border-zinc-700"
+  }`;
 
   return (
     <div className="p-4 mb-16">
@@ -65,29 +77,29 @@ export default function VolumeMangaContent({
           {/* Meta Tags */}
           <div className="mt-20">
             {isOneshot && (
-              <span className="text-xs uppercase bg-lilah border border-lilah rounded-md px-3 py-1 mr-3">
+              <span className="text-sm uppercase bg-lilah border border-lilah rounded-md px-3 py-1 mr-3">
                 Oneshot
               </span>
             )}
-            {meta.year && (
-              <span className="text-xs uppercase border border-sand rounded-md px-3 py-1 mr-3">
-                {meta.year}
-              </span>
-            )}
             {meta.ageRating && (
-              <span className="text-xs uppercase border border-sand rounded-md px-3 py-1 mr-3">
-                {meta.ageRating}
+              <span className={badgeClass}>
+                {ageRatingMap(meta.ageRating) !== null
+                  ? `${ageRatingMap(meta.ageRating)}+`
+                  : meta.ageRating}
               </span>
             )}
             {meta.languageISO && (
-              <span className="text-xs uppercase border border-sand rounded-md px-3 py-1 mr-3">
+              <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1 mr-3">
                 {meta.languageISO}
               </span>
             )}
-            <span className="text-xs uppercase border border-sand rounded-md px-3 py-1">
+            <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1">
               Oriental
             </span>
           </div>
+
+          {/* Year */}
+          <p className="mt-4">{meta.year && meta.year}</p>
 
           {/* Description */}
           {meta.summary && (
@@ -191,7 +203,7 @@ export default function VolumeMangaContent({
                 {meta.genreArray.map((genre, idx) => (
                   <span
                     key={idx}
-                    className="text-xs uppercase border border-zinc-800 rounded-md px-2 py-1"
+                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1"
                   >
                     {genre}
                   </span>
@@ -209,7 +221,7 @@ export default function VolumeMangaContent({
                 {meta.tagsArray.map((tag, idx) => (
                   <span
                     key={idx}
-                    className="text-xs uppercase border border-zinc-800 rounded-md px-2 py-1"
+                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1"
                   >
                     {tag}
                   </span>

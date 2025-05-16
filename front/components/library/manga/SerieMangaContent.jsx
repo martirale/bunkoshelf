@@ -1,6 +1,7 @@
 import Image from "next/image";
 import MangaCard from "@/ui/library/manga/MangaCard";
 import ReadButtonsSeries from "./ReadButtonsSeries";
+import { ageRatingMap } from "@/lib/utils";
 
 export default function SerieMangaContent({
   serieData,
@@ -12,6 +13,17 @@ export default function SerieMangaContent({
   const coverImage =
     serieData.volumes?.[serieData.volumes.length - 1]?.coverImage ?? null;
   const meta = serieData.volumes?.[0]?.meta;
+
+  const ageMin = ageRatingMap(meta.ageRating);
+  const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-3 border ${
+    ageMin >= 18
+      ? "border-red-500 text-red-500"
+      : ageMin >= 16
+      ? "border-yellow-500 text-yellow-500"
+      : ageMin !== null
+      ? "border-zinc-700"
+      : "border-zinc-700"
+  }`;
 
   return (
     <div className="p-4 mb-16">
@@ -47,29 +59,27 @@ export default function SerieMangaContent({
 
           {/* Meta Tags */}
           <div className="mt-16">
-            {meta.year && (
-              <span className="text-xs uppercase border border-sand rounded-md px-3 py-1 mr-3">
-                {meta.year}
-              </span>
-            )}
             {meta.ageRating && (
-              <span className="text-xs uppercase border border-sand rounded-md px-3 py-1 mr-3">
-                {meta.ageRating}
+              <span className={badgeClass}>
+                {ageRatingMap(meta.ageRating) !== null
+                  ? `${ageRatingMap(meta.ageRating)}+`
+                  : meta.ageRating}
               </span>
             )}
             {meta.languageISO && (
-              <span className="text-xs uppercase border border-sand rounded-md px-3 py-1 mr-3">
+              <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1 mr-3">
                 {meta.languageISO}
               </span>
             )}
-            <span className="text-xs uppercase border border-sand rounded-md px-3 py-1">
+            <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1">
               Oriental
             </span>
           </div>
 
-          {/* Volumes */}
+          {/* Year & Volumes */}
           <p className="mt-4">
-            {serieData.volumes.length} {intl.manga.volumes}
+            {meta.year && meta.year} &bull; {serieData.volumes.length}{" "}
+            {intl.manga.volumes}
           </p>
 
           {/* Description */}
@@ -192,7 +202,7 @@ export default function SerieMangaContent({
                 {meta.genreArray.map((genre, idx) => (
                   <span
                     key={idx}
-                    className="text-xs uppercase border border-zinc-800 rounded-md px-2 py-1"
+                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1"
                   >
                     {genre}
                   </span>
@@ -210,7 +220,7 @@ export default function SerieMangaContent({
                 {meta.tagsArray.map((tag, idx) => (
                   <span
                     key={idx}
-                    className="text-xs uppercase border border-zinc-800 rounded-md px-2 py-1"
+                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1"
                   >
                     {tag}
                   </span>
