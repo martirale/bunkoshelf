@@ -2,6 +2,7 @@ import MangaCard from "./MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { Ghost } from "lucide-react";
+import { sortByPaddedTitle } from "@/lib/utils";
 
 export default async function LibraryGridSeriesFav({ lang, intl }) {
   const user = await verifySession();
@@ -30,16 +31,26 @@ export default async function LibraryGridSeriesFav({ lang, intl }) {
     },
   });
 
-  const entries = favorites.map(({ series }) => ({
-    ...series,
-    coverImage: series.volumes?.[0]?.coverImage?.replace(/\\/g, "/") ?? null,
-    volumes:
-      series.volumes?.map((vol) => ({
-        ...vol,
-        coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
-        meta: vol.metadataObj || null,
-      })) ?? [],
-  }));
+  const entries = favorites.map(({ series }) => {
+    const sortedVolumes = sortByPaddedTitle(series.volumes);
+
+    return {
+      ...series,
+      coverImage:
+        sortedVolumes.length > 0
+          ? sortedVolumes[sortedVolumes.length - 1].coverImage?.replace(
+              /\\/g,
+              "/"
+            ) ?? null
+          : null,
+      volumes:
+        sortedVolumes.map((vol) => ({
+          ...vol,
+          coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+          meta: vol.metadataObj || null,
+        })) ?? [],
+    };
+  });
 
   if (entries.length === 0) {
     return (

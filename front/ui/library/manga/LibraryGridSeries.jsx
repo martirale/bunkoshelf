@@ -1,6 +1,7 @@
 import React from "react";
 import MangaCard from "./MangaCard";
 import prisma from "@/lib/prisma";
+import { sortByPaddedTitle } from "@/lib/utils";
 
 export default async function LibraryGridSeries({
   lang,
@@ -26,16 +27,26 @@ export default async function LibraryGridSeries({
     .filter(
       (entry) => (entry.volumes && entry.volumes.length > 1) || entry.metadata
     )
-    .map((entry) => ({
-      ...entry,
-      coverImage: entry.volumes?.[0]?.coverImage?.replace(/\\/g, "/") ?? null,
-      volumes:
-        entry.volumes?.map((vol) => ({
-          ...vol,
-          coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
-          meta: vol.metadataObj || null,
-        })) ?? [],
-    }));
+    .map((entry) => {
+      const sortedVolumes = sortByPaddedTitle(entry.volumes);
+
+      return {
+        ...entry,
+        coverImage:
+          sortedVolumes.length > 0
+            ? sortedVolumes[sortedVolumes.length - 1].coverImage?.replace(
+                /\\/g,
+                "/"
+              ) ?? null
+            : null,
+        volumes:
+          sortedVolumes.map((vol) => ({
+            ...vol,
+            coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+            meta: vol.metadataObj || null,
+          })) ?? [],
+      };
+    });
 
   return (
     <div className={`relative ${className}`}>

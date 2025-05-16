@@ -9,7 +9,8 @@ export default function SerieMangaContent({
   isFavorite,
   aggregatedMeta,
 }) {
-  const coverImage = serieData.volumes?.[0]?.coverImage ?? null;
+  const coverImage =
+    serieData.volumes?.[serieData.volumes.length - 1]?.coverImage ?? null;
   const meta = serieData.volumes?.[0]?.meta;
 
   return (
