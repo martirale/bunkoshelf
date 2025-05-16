@@ -7,6 +7,7 @@ export default function SerieMangaContent({
   lang,
   intl,
   isFavorite,
+  aggregatedMeta,
 }) {
   const coverImage = serieData.volumes?.[0]?.coverImage ?? null;
   const meta = serieData.volumes?.[0]?.meta;
@@ -81,84 +82,102 @@ export default function SerieMangaContent({
           <div className="border-t border-zinc-800 my-6"></div>
 
           {/* Author Info */}
-          {meta.writer && (
+          {aggregatedMeta.writer?.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.author}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.writer}</p>
+              <p className="w-2/3 md:w-4/5">
+                {aggregatedMeta.writer.join(", ")}
+              </p>
             </div>
           )}
 
-          {meta.penciller && (
+          {aggregatedMeta.penciller?.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.penciller}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.penciller}</p>
+              <p className="w-2/3 md:w-4/5">
+                {aggregatedMeta.penciller.join(", ")}
+              </p>
             </div>
           )}
 
-          {meta.inker && (
+          {aggregatedMeta.inker?.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.inker}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.inker}</p>
+              <p className="w-2/3 md:w-4/5">
+                {aggregatedMeta.inker.join(", ")}
+              </p>
             </div>
           )}
 
-          {meta.colorist && (
+          {aggregatedMeta.colorist?.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.colorist}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.colorist}</p>
+              <p className="w-2/3 md:w-4/5">
+                {aggregatedMeta.colorist.join(", ")}
+              </p>
             </div>
           )}
 
-          {meta.letterer && (
+          {aggregatedMeta.letterer?.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.letterer}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.letterer}</p>
+              <p className="w-2/3 md:w-4/5">
+                {aggregatedMeta.letterer.join(", ")}
+              </p>
             </div>
           )}
 
-          {meta.coverArtist && (
+          {aggregatedMeta.coverArtist?.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.coverArtist}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.coverArtist}</p>
+              <p className="w-2/3 md:w-4/5">
+                {aggregatedMeta.coverArtist.join(", ")}
+              </p>
             </div>
           )}
 
-          {meta.editor && (
+          {aggregatedMeta.editor?.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.editor}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.editor}</p>
+              <p className="w-2/3 md:w-4/5">
+                {aggregatedMeta.editor.join(", ")}
+              </p>
             </div>
           )}
 
-          {meta.translator && (
+          {aggregatedMeta.translator?.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.translator}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.translator}</p>
+              <p className="w-2/3 md:w-4/5">
+                {aggregatedMeta.translator.join(", ")}
+              </p>
             </div>
           )}
 
-          {meta.publisher && (
+          {aggregatedMeta.publisher?.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.publisher}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.publisher}</p>
+              <p className="w-2/3 md:w-4/5">
+                {aggregatedMeta.publisher.join(", ")}
+              </p>
             </div>
           )}
 

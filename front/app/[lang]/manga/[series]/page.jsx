@@ -4,6 +4,40 @@ import { getDictionary } from "@/lib/i18n/serverDictionary";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 
+function aggregateMetadata(volumes) {
+  const aggregated = {
+    writer: new Set(),
+    penciller: new Set(),
+    inker: new Set(),
+    colorist: new Set(),
+    letterer: new Set(),
+    coverArtist: new Set(),
+    editor: new Set(),
+    translator: new Set(),
+    publisher: new Set(),
+  };
+
+  for (const vol of volumes) {
+    const meta = vol.metadataObj || {};
+    for (const key in aggregated) {
+      const raw = meta[key];
+      if (typeof raw === "string" && raw.trim() !== "") {
+        raw.split(",").forEach((entry) => {
+          aggregated[key].add(entry.trim());
+        });
+      }
+    }
+  }
+
+  // Convert Sets a arrays ordenadas alfabéticamente
+  const result = {};
+  for (const key in aggregated) {
+    result[key] = Array.from(aggregated[key]);
+  }
+
+  return result;
+}
+
 export default async function SeriesMangaPage({ params }) {
   const { lang = "es", series } = await params;
   const intl = await getDictionary(lang);
@@ -66,6 +100,7 @@ export default async function SeriesMangaPage({ params }) {
     };
 
     const sortedVolumes = sortByPaddedTitle(normalizedSerie.volumes);
+    const aggregatedMeta = aggregateMetadata(sortedVolumes);
 
     let isFavorite = false;
 
@@ -91,6 +126,7 @@ export default async function SeriesMangaPage({ params }) {
         lang={lang}
         intl={intl}
         isFavorite={isFavorite}
+        aggregatedMeta={aggregatedMeta}
       />
     );
   } catch (error) {
