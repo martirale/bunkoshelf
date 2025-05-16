@@ -181,21 +181,40 @@ export default function VolumeMangaContent({
             </div>
           )}
 
-          {meta.genre && (
-            <div className="flex flex-row items-baseline max-w-3xl">
+          {/* Classification */}
+          {meta.genreArray.length > 0 && (
+            <div className="flex flex-row items-baseline max-w-3xl mt-8">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.genre}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.genre}</p>
+              <div className="w-2/3 md:w-4/5 flex flex-wrap gap-1">
+                {meta.genreArray.map((genre, idx) => (
+                  <span
+                    key={idx}
+                    className="text-xs uppercase border border-zinc-800 rounded-md px-2 py-1"
+                  >
+                    {genre}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
-          {meta.tags && (
-            <div className="flex flex-row items-baseline max-w-3xl">
+          {meta.tagsArray && (
+            <div className="flex flex-row items-baseline max-w-3xl mt-1">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.tags}
               </p>
-              <p className="w-2/3 md:w-4/5">{meta.tags}</p>
+              <div className="w-2/3 md:w-4/5 flex flex-wrap gap-1">
+                {meta.tagsArray.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="text-xs uppercase border border-zinc-800 rounded-md px-2 py-1"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>

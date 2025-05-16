@@ -28,11 +28,28 @@ export default async function VolumeMangaPage({ params }) {
       );
     }
 
+    // Ayudante para capitalizar
+    function capitalize(text) {
+      return (
+        text.trim().charAt(0).toUpperCase() + text.trim().slice(1).toLowerCase()
+      );
+    }
+
+    const meta = volumeEntry.metadataObj || null;
+
+    const normalizedMeta = {
+      ...meta,
+      genreArray: meta?.genre
+        ? meta.genre.split(",").map((g) => capitalize(g))
+        : [],
+      tagsArray: meta?.tags ? meta.tags.split(",").map((t) => t.trim()) : [],
+    };
+
     // Normalizar la portada
     const normalizedVolume = {
       ...volumeEntry,
       coverImage: volumeEntry.coverImage?.replace(/\\/g, "/") ?? null,
-      meta: volumeEntry.metadataObj || null,
+      meta: normalizedMeta,
     };
 
     let isFavorite = false;

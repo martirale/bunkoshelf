@@ -32,15 +32,37 @@ export default async function SeriesMangaPage({ params }) {
       );
     }
 
+    // Ayudante para capitalizar
+    function capitalize(text) {
+      return (
+        text.trim().charAt(0).toUpperCase() + text.trim().slice(1).toLowerCase()
+      );
+    }
+
+    // Normalizar la portada y los volúmenes
     const normalizedSerie = {
       ...serie,
       coverImage: serie.volumes?.[0]?.coverImage?.replace(/\\/g, "/") ?? null,
       volumes:
-        serie.volumes?.map((vol) => ({
-          ...vol,
-          coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
-          meta: vol.metadataObj || null,
-        })) ?? [],
+        serie.volumes?.map((vol) => {
+          const meta = vol.metadataObj || null;
+
+          return {
+            ...vol,
+            coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+            meta: {
+              ...meta,
+              genreArray: meta?.genre
+                ? meta.genre
+                    .split(",")
+                    .map((g) => g.trim().replace(/^\w/, (c) => c.toUpperCase()))
+                : [],
+              tagsArray: meta?.tags
+                ? meta.tags.split(",").map((t) => t.trim())
+                : [],
+            },
+          };
+        }) ?? [],
     };
 
     const sortedVolumes = sortByPaddedTitle(normalizedSerie.volumes);
