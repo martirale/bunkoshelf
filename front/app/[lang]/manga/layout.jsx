@@ -1,20 +1,21 @@
+import LibraryRowHero from "@/components/library/manga/row/LibraryRowHero";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 import { LibraryBig } from "lucide-react";
-import LibraryGridSeries from "@/components/library/manga/grid/LibraryGridSeries";
 
-export default async function MangaSeriesPage({ params }) {
+export default async function MangaLayout({ children, params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
 
   return (
-    <section className="p-4 mb-16">
-      <LibraryGridSeries
+    <>
+      <LibraryRowHero
         lang={lang}
         intl={intl}
-        title={intl.manga.allSeries}
+        title={intl.libraries.keepReading}
         icon={<LibraryBig />}
-        className="mt-8"
       />
-    </section>
+
+      {children}
+    </>
   );
 }

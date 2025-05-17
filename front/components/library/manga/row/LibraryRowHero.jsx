@@ -2,7 +2,9 @@
 
 import React from "react";
 import { useRef, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import MangaCard from "@/ui/library/manga/MangaCard";
+import MangaNav from "@/ui/library/manga/MangaNav";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function LibraryRowHero({
@@ -10,7 +12,6 @@ export default function LibraryRowHero({
   intl,
   title,
   icon,
-  className,
   maxItems = 18,
 }) {
   const scrollRef = useRef(null);
@@ -19,6 +20,7 @@ export default function LibraryRowHero({
   const startX = useRef(0);
   const scrollStart = useRef(0);
   const hasDragged = useRef(false);
+  const pathname = usePathname();
 
   // Fetch DB
   useEffect(() => {
@@ -78,75 +80,92 @@ export default function LibraryRowHero({
     }
   };
 
+  // Extraemos segmentos para facilitar comparación
+  const shouldHideHero = (() => {
+    const sp = pathname.split("/");
+    return (
+      (sp.length === 4 &&
+        sp[2] === "manga" &&
+        !["series", "volumes", "volume"].includes(sp[3])) ||
+      (sp.length === 5 && sp[2] === "manga" && sp[3] === "volume")
+    );
+  })();
+
   return (
-    <div className={`relative ${className}`}>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="flex items-center">
-          {icon && React.cloneElement(icon, { className: "w-7 h-7 mr-2" })}
-          {title}
-        </h2>
-        <div className="flex gap-4">
-          <button
-            onClick={() => scrollCards("left")}
-            className="cursor-pointer"
-          >
-            <ChevronLeft className="w-7 h-7 hover:scale-110 transition-all duration-150" />
-          </button>
-          <button
-            onClick={() => scrollCards("right")}
-            className="cursor-pointer"
-          >
-            <ChevronRight className="w-7 h-7 hover:scale-110 transition-all duration-150" />
-          </button>
-        </div>
-      </div>
-
-      <div
-        ref={scrollRef}
-        className="overflow-x-auto scrollbar-none flex gap-4"
-        style={{ WebkitOverflowScrolling: "touch", cursor: "grab" }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={stopDragging}
-        onMouseLeave={stopDragging}
-        onDragStart={(e) => e.preventDefault()}
-        onClickCapture={(e) => {
-          if (hasDragged.current) {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        }}
-      >
-        {entries.slice(0, maxItems).map((entry) => {
-          const isSeries = entry.volumes.length > 1 || entry.metadata;
-          const isOneshot = !isSeries;
-
-          const href = isOneshot
-            ? `/${lang}/manga/volume/${entry.volumeSlug}`
-            : `/${lang}/manga/${entry.slug}`;
-
-          const coverImage = entry.volumes?.[0]?.coverImage ?? null;
-
-          return (
-            <div
-              key={entry.title}
-              className="flex-shrink-0 w-1/2 md:w-1/4 2xl:w-1/5"
-            >
-              <MangaCard
-                title={entry.title}
-                href={href}
-                isSeries={isSeries}
-                isOneshot={isOneshot}
-                volumeCount={isSeries ? entry.volumes.length : null}
-                cover={coverImage}
-                intl={intl}
-                isDragging={isDragging}
-                className="font-roboto font-bold leading-6 text-xl"
-              />
+    <>
+      {!shouldHideHero && (
+        <section className="w-full p-4 bg-lilah">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="flex items-center">
+              {icon && React.cloneElement(icon, { className: "w-7 h-7 mr-2" })}
+              {title}
+            </h2>
+            <div className="flex gap-4">
+              <button
+                onClick={() => scrollCards("left")}
+                className="cursor-pointer"
+              >
+                <ChevronLeft className="w-7 h-7 hover:scale-110 transition-all duration-150" />
+              </button>
+              <button
+                onClick={() => scrollCards("right")}
+                className="cursor-pointer"
+              >
+                <ChevronRight className="w-7 h-7 hover:scale-110 transition-all duration-150" />
+              </button>
             </div>
-          );
-        })}
-      </div>
-    </div>
+          </div>
+
+          <div
+            ref={scrollRef}
+            className="overflow-x-auto scrollbar-none flex gap-4"
+            style={{ WebkitOverflowScrolling: "touch", cursor: "grab" }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={stopDragging}
+            onMouseLeave={stopDragging}
+            onDragStart={(e) => e.preventDefault()}
+            onClickCapture={(e) => {
+              if (hasDragged.current) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
+          >
+            {entries.slice(0, maxItems).map((entry) => {
+              const isSeries = entry.volumes.length > 1 || entry.metadata;
+              const isOneshot = !isSeries;
+
+              const href = isOneshot
+                ? `/${lang}/manga/volume/${entry.volumeSlug}`
+                : `/${lang}/manga/${entry.slug}`;
+
+              const coverImage = entry.volumes?.[0]?.coverImage ?? null;
+
+              return (
+                <div
+                  key={entry.title}
+                  className="flex-shrink-0 w-1/2 md:w-1/4 2xl:w-1/5"
+                >
+                  <MangaCard
+                    title={entry.title}
+                    href={href}
+                    isSeries={isSeries}
+                    isOneshot={isOneshot}
+                    volumeCount={isSeries ? entry.volumes.length : null}
+                    cover={coverImage}
+                    intl={intl}
+                    isDragging={isDragging}
+                    className="font-roboto font-bold leading-6 text-xl"
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          <MangaNav lang={lang} intl={intl} />
+        </section>
+      )}
+    </>
   );
 }

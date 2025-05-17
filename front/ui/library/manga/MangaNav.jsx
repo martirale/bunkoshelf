@@ -13,14 +13,14 @@ export default function MangaNav({ lang, intl }) {
   ];
 
   return (
-    <nav className="flex justify-center pt-8 pb-4 px-4 gap-2 md:gap-4 bg-lilah">
+    <nav className="flex justify-center pt-8 gap-2 md:gap-4 bg-lilah">
       {links.map(({ label, href }) => {
         const isActive = pathname === href;
         return (
           <Link
             key={href}
             href={href}
-            className={`flex-1 md:flex-none md:basis-40 text-sm md:text-lg text-center py-3 rounded-lg border uppercase
+            className={`flex-1 md:flex-none md:basis-40 text-base md:text-lg text-center py-3 rounded-lg border uppercase
           ${
             isActive
               ? "bg-heather border-pearl"
