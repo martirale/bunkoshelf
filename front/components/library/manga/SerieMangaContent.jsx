@@ -84,7 +84,14 @@ export default function SerieMangaContent({
           </p>
 
           {/* Description */}
-          {meta.summary && <MangaSummary intl={intl} meta={meta} />}
+          {meta.summary && (
+            <>
+              <h2 className="text-sm mt-8 mb-1">
+                {intl.manga.synopsis} (vol. 1)
+              </h2>
+              <MangaSummary meta={meta} />
+            </>
+          )}
 
           <div className="border-t border-zinc-800 my-6"></div>
 

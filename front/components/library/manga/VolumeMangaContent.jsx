@@ -103,7 +103,12 @@ export default function VolumeMangaContent({
           <p className="mt-4">{meta.year && meta.year}</p>
 
           {/* Description */}
-          {meta.summary && <MangaSummary intl={intl} meta={meta} />}
+          {meta.summary && (
+            <>
+              <h2 className="text-sm mt-8 mb-1">{intl.manga.synopsis}</h2>
+              <MangaSummary meta={meta} />
+            </>
+          )}
 
           <div className="border-t border-zinc-800 my-6"></div>
 

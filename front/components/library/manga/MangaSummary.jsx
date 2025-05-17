@@ -3,14 +3,13 @@
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState } from "react";
 
-export default function MangaSummary({ intl, meta }) {
+export default function MangaSummary({ meta }) {
   const [expanded, setExpanded] = useState(false);
 
   if (!meta.summary) return null;
 
   return (
-    <div className="mt-8 max-w-2xl">
-      <h2 className="text-sm mb-1">{intl.manga.synopsis} (vol. 1)</h2>
+    <div className="max-w-2xl">
       <p
         className={`${
           !expanded ? "line-clamp-3" : ""
