@@ -27,7 +27,7 @@ model UserToSeries {
   id         Int         @id @default(autoincrement())
   user       User        @relation(fields: [userId], references: [id])
   userId     Int
-  series     MangaSeries @relation(fields: [seriesId], references: [id])
+  series     MangaSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
   seriesId   Int
   isFavorite Boolean     @default(false)
 
@@ -41,7 +41,7 @@ model UserToVolume {
   id         Int          @id @default(autoincrement())
   user       User         @relation(fields: [userId], references: [id])
   userId     Int
-  volume     MangaVolume  @relation(fields: [volumeId], references: [id])
+  volume     MangaVolume  @relation(fields: [volumeId], references: [id], onDelete: Cascade)
   volumeId   Int
   isRead     Boolean      @default(false)
   isFavorite Boolean      @default(false)
@@ -62,7 +62,7 @@ model MangaSeries {
   mtime         DateTime        @default(now())
 
   volumes       MangaVolume[]
-  metadataObj   SeriesMetadata? @relation(fields: [metadataId], references: [id])
+  metadataObj   SeriesMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
   metadataId    String?         @unique
 
   usersProgress UserToSeries[]
@@ -81,10 +81,10 @@ model MangaVolume {
   mtime         DateTime        @default(now())
   coverImage    String?
 
-  series        MangaSeries     @relation(fields: [seriesId], references: [id])
+  series        MangaSeries     @relation(fields: [seriesId], references: [id], onDelete: Cascade)
   seriesId      Int
 
-  metadataObj   VolumeMetadata? @relation(fields: [metadataId], references: [id])
+  metadataObj   VolumeMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
   metadataId    String?         @unique
 
   usersProgress UserToVolume[]
