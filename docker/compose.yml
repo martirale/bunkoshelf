@@ -1,13 +1,9 @@
 services:
   bunkoshelf:
-    image: bunkoshelf:latest
+    image: itsmrtr/bunkoshelf:latest
     container_name: bunkoshelf
+    restart: unless-stopped
     ports:
       - "3000:3000"
-      - "4000:4000"
     volumes:
-      - /path/to/your/library:/app/library
-      - ./data:/app/prisma
-    environment:
-      - NEXT_PUBLIC_BACKEND_URL=http://0.0.0.0:4000
-    restart: unless-stopped
+      - /path/to/your/library/manga:/library/manga

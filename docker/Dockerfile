@@ -10,6 +10,9 @@ COPY public public
 COPY prisma prisma
 COPY .env package.json pnpm-lock.yaml ./
 
+# Crear el directorio para la biblioteca
+RUN mkdir -p /library/manga
+
 # Instalamos solo las dependencias necesarias para producción
 RUN pnpm install --frozen-lockfile --prod
 RUN pnpm dlx prisma generate
