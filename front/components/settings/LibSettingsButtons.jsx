@@ -24,6 +24,9 @@ export default function LibSettingsButtons({ intl }) {
         description: intl.toastSettings.scanFullSuccess,
         variant: "success",
       });
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (err) {
       addToast({
         title: intl.toastSettings.scanErrorTt,
@@ -49,6 +52,9 @@ export default function LibSettingsButtons({ intl }) {
         description: intl.toastSettings.scanLibSuccess,
         variant: "success",
       });
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (err) {
       addToast({
         title: intl.toastSettings.scanErrorTt,
@@ -74,6 +80,9 @@ export default function LibSettingsButtons({ intl }) {
         description: intl.toastSettings.scanMetaSuccess,
         variant: "success",
       });
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (err) {
       addToast({
         title: intl.toastSettings.scanErrorTt,
