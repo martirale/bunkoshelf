@@ -40,9 +40,9 @@ export default function VolumeMangaContent({
     <div className="p-4 mb-16">
       <section className="flex flex-col md:flex-row">
         {/* Cover Image */}
-        <div className="w-full md:w-1/3">
+        <div className="w-full md:w-5/12 2xl:w-1/3">
           {volume.coverImage && (
-            <div className="mb-8 md:mb-0 md:mr-8 px-16 md:px-0">
+            <div className="mb-8 md:mb-0 md:mr-4 px-16 md:px-0">
               <Image
                 src={volume.coverImage || "/placeholder.svg?=v1"}
                 alt={`Cover for ${volume.title || volume.filename}`}
@@ -55,7 +55,7 @@ export default function VolumeMangaContent({
           )}
         </div>
 
-        <div className="w-full md:w-2/3">
+        <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
           {/* Series Title */}
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">
             {meta.title}
