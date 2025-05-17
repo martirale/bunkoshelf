@@ -2,14 +2,9 @@ import React from "react";
 import MangaCard from "@/ui/library/manga/MangaCard";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
+import { LibraryBig } from "lucide-react";
 
-export default async function LibraryGridVolumes({
-  lang,
-  intl,
-  title,
-  icon,
-  className,
-}) {
+export default async function LibraryGridVolumes({ lang, intl }) {
   const volumes = await prisma.mangaVolume.findMany({
     include: {
       series: true,
@@ -26,10 +21,10 @@ export default async function LibraryGridVolumes({
   }));
 
   return (
-    <div className={`relative ${className}`}>
-      <h2 className="flex items-center mb-4">
-        {icon && React.cloneElement(icon, { className: "w-7 h-7 mr-2" })}
-        {title}
+    <div className="mt-8">
+      <h2 className="flex items-center mb-4 text-base md:text-lg">
+        <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+        {intl.manga.allVolumes}
       </h2>
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-6">

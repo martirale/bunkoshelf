@@ -1,17 +1,10 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import MangaCard from "@/ui/library/manga/MangaCard";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { BookPlus, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function LibraryRowNewVol({
-  lang,
-  intl,
-  title,
-  icon,
-  className,
-  maxItems = 12,
-}) {
+export default function LibraryRowNewVol({ lang, intl, maxItems = 12 }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -77,11 +70,11 @@ export default function LibraryRowNewVol({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <section className="mt-8">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="flex items-center">
-          {icon && React.cloneElement(icon, { className: "w-7 h-7 mr-2" })}
-          {title}
+        <h2 className="flex items-center text-base md:text-lg">
+          <BookPlus className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+          {intl.libraries.recentlyAdded}
         </h2>
         <div className="flex gap-4">
           <button
@@ -137,6 +130,6 @@ export default function LibraryRowNewVol({
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }

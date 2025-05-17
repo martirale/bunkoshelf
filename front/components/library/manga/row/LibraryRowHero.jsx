@@ -5,15 +5,9 @@ import { useRef, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import MangaCard from "@/ui/library/manga/MangaCard";
 import MangaNav from "@/ui/library/manga/MangaNav";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { LibraryBig, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function LibraryRowHero({
-  lang,
-  intl,
-  title,
-  icon,
-  maxItems = 18,
-}) {
+export default function LibraryRowHero({ lang, intl, maxItems = 18 }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -97,8 +91,8 @@ export default function LibraryRowHero({
         <section className="w-full p-4 bg-lilah">
           <div className="flex justify-between items-center mb-4">
             <h2 className="flex items-center">
-              {icon && React.cloneElement(icon, { className: "w-7 h-7 mr-2" })}
-              {title}
+              <LibraryBig className="w-7 h-7 mr-2" />
+              {intl.libraries.keepReading}
             </h2>
             <div className="flex gap-4">
               <button

@@ -1,5 +1,4 @@
 import { getDictionary } from "@/lib/i18n/serverDictionary";
-import { LibraryBig } from "lucide-react";
 import LibraryGridSeries from "@/components/library/manga/grid/LibraryGridSeries";
 
 export default async function MangaSeriesPage({ params }) {
@@ -8,13 +7,7 @@ export default async function MangaSeriesPage({ params }) {
 
   return (
     <section className="p-4 mb-16">
-      <LibraryGridSeries
-        lang={lang}
-        intl={intl}
-        title={intl.manga.allSeries}
-        icon={<LibraryBig />}
-        className="mt-8"
-      />
+      <LibraryGridSeries lang={lang} intl={intl} />
     </section>
   );
 }

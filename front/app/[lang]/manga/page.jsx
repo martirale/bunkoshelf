@@ -1,13 +1,7 @@
 import LibraryRow from "@/components/library/manga/row/LibraryRow";
 import LibraryRowNewVol from "@/components/library/manga/row/LibraryRowNewVol";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
-import {
-  LibraryBig,
-  BookMarked,
-  BookPlus,
-  BookDown,
-  BookCheck,
-} from "lucide-react";
+import { LibraryBig, BookMarked, BookDown, BookCheck } from "lucide-react";
 
 export default async function MangaPage({ params }) {
   const { lang = "es" } = await params;
@@ -27,15 +21,8 @@ export default async function MangaPage({ params }) {
         </section> */}
 
       {/* Recently Added */}
-      <section>
-        <LibraryRowNewVol
-          lang={lang}
-          intl={intl}
-          title={intl.libraries.recentlyAdded}
-          icon={<BookPlus />}
-          className="mt-8"
-        />
-      </section>
+
+      <LibraryRowNewVol lang={lang} intl={intl} />
 
       {/* Updated Series */}
       {/* <section>
