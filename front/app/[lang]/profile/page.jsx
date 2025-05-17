@@ -1,39 +1,16 @@
 import { getDictionary } from "@/lib/i18n/serverDictionary";
-import { verifySession } from "@/lib/auth/verifySession";
-import SidebarMisc from "@/ui/SidebarMisc";
-import ProfileNav from "@/components/profile/ProfileNav";
-import { UserRound, Bolt } from "lucide-react";
+import { Bolt } from "lucide-react";
 
 export default async function ProfilePage({ params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
 
-  const user = await verifySession();
-
   return (
-    <div className="flex">
-      <SidebarMisc>
-        {!user || !user.name ? (
-          <h2 className="flex items-center text-onix">
-            <UserRound className="w-7 h-7 mr-2" />
-            {intl.profile.title}
-          </h2>
-        ) : (
-          <h2 className="flex items-center text-onix">
-            <UserRound className="w-7 h-7 mr-2" />
-            {intl.profile.greeting} {user.name}
-          </h2>
-        )}
-
-        <ProfileNav intl={intl} />
-      </SidebarMisc>
-
-      <div className="w-full md:w-8/12 2xl:w-9/12 p-4 mb-16">
-        <h2 className="flex items-center mb-4">
-          <Bolt className="w-7 h-7 mr-2" />
-          {intl.profile.overview}
-        </h2>
-      </div>
-    </div>
+    <>
+      <h2 className="flex items-center mb-4">
+        <Bolt className="w-7 h-7 mr-2" />
+        {intl.profile.overview}
+      </h2>
+    </>
   );
 }
