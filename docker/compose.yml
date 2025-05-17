@@ -1,9 +1,10 @@
 services:
   bunkoshelf:
-    image: itsmrtr/bunkoshelf:latest
+    image: bunkoshelf
     container_name: bunkoshelf
     restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
       - /path/to/your/library/manga:/library/manga
+      - ./public/covers:/app/public/covers
