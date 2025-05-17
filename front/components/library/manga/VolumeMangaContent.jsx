@@ -76,7 +76,7 @@ export default function VolumeMangaContent({
           />
 
           {/* Meta Tags */}
-          <div className="mt-10">
+          <div className="mt-8 2xl:mt-10">
             {isOneshot && (
               <span className="text-sm uppercase bg-lilah border border-lilah rounded-md px-3 py-1 mr-3">
                 Oneshot

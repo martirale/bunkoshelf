@@ -59,7 +59,7 @@ export default function SerieMangaContent({
           />
 
           {/* Meta Tags */}
-          <div className="mt-16">
+          <div className="mt-8 2xl:mt-16">
             {meta.ageRating && (
               <span className={badgeClass}>
                 {ageRatingMap(meta.ageRating) !== null

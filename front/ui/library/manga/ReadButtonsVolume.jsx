@@ -48,7 +48,7 @@ export default function ReadButtonsVolume({
       <div className="flex flex-row mt-4 gap-2">
         <button
           onClick={() => setIsReaderOpen(true)}
-          className="flex items-center font-bold px-6 py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
+          className="flex items-center font-bold px-5 py-2 2xl:px-6 2xl:py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
         >
           <BookCheck className="w-5 h-5 mr-2" />
           {intl.manga.read}
@@ -56,14 +56,14 @@ export default function ReadButtonsVolume({
 
         <Link
           href="#"
-          className="flex items-center font-bold p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
+          className="p-3 2xl:p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
           title="Leer de incógnito"
         >
           <EyeClosed className="w-5 h-5" />
         </Link>
 
         <button
-          className="p-4 rounded-lg leading-none text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300 cursor-pointer"
+          className="p-3 2xl:p-4 rounded-lg leading-none text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300 cursor-pointer"
           title="Marcar como leído"
         >
           <Check className="w-5 h-5" />
@@ -72,7 +72,7 @@ export default function ReadButtonsVolume({
         <button
           onClick={toggleFavorite}
           disabled={isLoading}
-          className={`p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer ${
+          className={`p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer ${
             isFavorite
               ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl"
               : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"

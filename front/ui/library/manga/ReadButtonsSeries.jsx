@@ -46,7 +46,7 @@ export default function ReadButtonsSeries({
         <button
           onClick={toggleFavorite}
           disabled={isLoading}
-          className={`p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer ${
+          className={`p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer ${
             isFavorite
               ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl"
               : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"
