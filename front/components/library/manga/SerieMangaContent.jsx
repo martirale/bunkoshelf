@@ -16,7 +16,7 @@ export default function SerieMangaContent({
   const meta = serieData.volumes?.[0]?.meta;
 
   const ageMin = ageRatingMap(meta.ageRating);
-  const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-3 border ${
+  const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-2 border ${
     ageMin >= 18
       ? "border-[#f54180] text-[#f54180]"
       : ageMin >= 16
@@ -68,7 +68,7 @@ export default function SerieMangaContent({
               </span>
             )}
             {meta.languageISO && (
-              <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1 mr-3">
+              <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1 mr-2">
                 {meta.languageISO}
               </span>
             )}
