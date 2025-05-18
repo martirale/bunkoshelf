@@ -21,7 +21,7 @@ export default function LibSettingsButtons({ intl }) {
 
       addToast({
         title: intl.toastSettings.scanSuccessTt,
-        description: intl.toastSettings.scanFullSuccess,
+        description: intl.toastSettings.scanSuccessFull,
         variant: "success",
       });
       setTimeout(() => {
@@ -49,7 +49,7 @@ export default function LibSettingsButtons({ intl }) {
 
       addToast({
         title: intl.toastSettings.scanSuccessTt,
-        description: intl.toastSettings.scanLibSuccess,
+        description: intl.toastSettings.scanSuccesLib,
         variant: "success",
       });
       setTimeout(() => {
@@ -77,7 +77,7 @@ export default function LibSettingsButtons({ intl }) {
 
       addToast({
         title: intl.toastSettings.scanSuccessTt,
-        description: intl.toastSettings.scanMetaSuccess,
+        description: intl.toastSettings.scanSuccessMeta,
         variant: "success",
       });
       setTimeout(() => {

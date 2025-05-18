@@ -39,7 +39,8 @@ export default function CreateUserForm({ intl }) {
 
     if (res.ok) {
       addToast({
-        title: intl.alerts.successCreateUser,
+        title: intl.toastUsers.successTt,
+        description: intl.toastUsers.successCreate,
         variant: "success",
       });
       setUsername("");
@@ -54,8 +55,8 @@ export default function CreateUserForm({ intl }) {
       }, 2000);
     } else {
       addToast({
-        title: intl.alerts.errorCreateUser,
-        description: data.error || "",
+        title: intl.alerts.errorTt,
+        description: intl.toastUsers.errorCreate,
         variant: "error",
       });
     }

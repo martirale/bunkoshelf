@@ -33,13 +33,15 @@ export default function ProfileForm({ user, intl }) {
     if (res.ok) {
       setFormData((prevData) => ({ ...prevData, password: "" }));
       addToast({
-        title: intl.alerts.successUserUpdate,
+        title: intl.toastUsers.successTt,
+        description: intl.toastUsers.successUpdate,
         variant: "success",
       });
       router.refresh();
     } else {
       addToast({
-        title: intl.alerts.errorUserUpdate,
+        title: intl.toastUsers.errorTt,
+        description: intl.toastUsers.errorUpdate,
         variant: "error",
       });
     }

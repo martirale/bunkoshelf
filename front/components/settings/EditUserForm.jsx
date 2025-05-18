@@ -53,7 +53,8 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
 
     if (res.ok) {
       addToast({
-        title: intl.alerts.successUserUpdate,
+        title: intl.toastUsers.successTt,
+        description: intl.toastUsers.successUpdate,
         variant: "success",
       });
       onSuccess(data.user);
@@ -62,8 +63,8 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
       }, 2000);
     } else {
       addToast({
-        title: intl.alerts.errorCreateUser,
-        description: data.error || "",
+        title: intl.toastUsers.errorTt,
+        description: intl.toastUsers.errorUpdate,
         variant: "error",
       });
     }
@@ -85,7 +86,8 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
 
     if (res.ok) {
       addToast({
-        title: intl.alerts.successDelete,
+        title: intl.toastUsers.errorTt,
+        description: intl.toastUsers.successDel,
         variant: "success",
       });
       setTimeout(() => {
@@ -93,8 +95,8 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
       }, 2000);
     } else {
       addToast({
-        title: intl.alerts.errorDeleteUser,
-        description: data.error || "",
+        title: intl.toastUsers.errorTt,
+        description: intl.toastUsers.errorDel,
         variant: "error",
       });
     }
