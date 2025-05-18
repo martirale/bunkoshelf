@@ -1,7 +1,0 @@
-apps:
-  - name: next
-    script: pnpm
-    args: start
-    cwd: /app
-    env:
-      JWT_SECRET: ${JWT_SECRET}
