@@ -6,5 +6,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
+      - bunko_db:/app/prisma/data
       - /path/to/your/library/manga:/library/manga
       - ./public/covers:/app/public/covers
+
+volumes:
+  bunko_db:
