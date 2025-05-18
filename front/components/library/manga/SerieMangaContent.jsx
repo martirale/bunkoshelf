@@ -73,7 +73,7 @@ export default function SerieMangaContent({
               </span>
             )}
             <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1">
-              Oriental
+              {intl.manga.reading}
             </span>
           </div>
 

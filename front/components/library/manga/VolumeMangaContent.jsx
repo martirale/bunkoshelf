@@ -77,11 +77,6 @@ export default function VolumeMangaContent({
 
           {/* Meta Tags */}
           <div className="mt-8 2xl:mt-10">
-            {isOneshot && (
-              <span className="text-sm uppercase bg-lilah border border-lilah rounded-md px-3 py-1 mr-3">
-                Oneshot
-              </span>
-            )}
             {meta.ageRating && (
               <span className={badgeClass}>
                 {ageRatingMap(meta.ageRating) !== null
@@ -95,12 +90,19 @@ export default function VolumeMangaContent({
               </span>
             )}
             <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1">
-              Oriental
+              {intl.manga.reading}
             </span>
           </div>
 
           {/* Year */}
-          <p className="mt-4">{meta.year && meta.year}</p>
+          <p className="mt-4 flex items-center gap-2">
+            {meta.year && meta.year}
+            {isOneshot && (
+              <span className="text-xs uppercase bg-lilah border border-lilah rounded px-1.5">
+                Oneshot
+              </span>
+            )}
+          </p>
 
           {/* Description */}
           {meta.summary && (
