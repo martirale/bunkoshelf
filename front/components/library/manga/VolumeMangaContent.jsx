@@ -28,9 +28,9 @@ export default function VolumeMangaContent({
   const ageMin = ageRatingMap(meta.ageRating);
   const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-3 border ${
     ageMin >= 18
-      ? "border-red-500 text-red-500"
+      ? "border-[#f54180] text-[#f54180]"
       : ageMin >= 16
-      ? "border-yellow-500 text-yellow-500"
+      ? "border-[#f5a524] text-[#f5a524]"
       : ageMin !== null
       ? "border-zinc-700"
       : "border-zinc-700"
