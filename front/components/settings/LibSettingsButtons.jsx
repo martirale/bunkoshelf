@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Radar, ScanSearch, FileScan, Loader2 } from "lucide-react";
+import {
+  Radar,
+  ScanSearch,
+  FileScan,
+  DatabaseBackup,
+  Loader2,
+} from "lucide-react";
 import { useToast } from "@/ui/toast/ToastProvider";
 
 export default function LibSettingsButtons({ intl }) {
@@ -10,6 +16,7 @@ export default function LibSettingsButtons({ intl }) {
   const [loadingMeta, setLoadingMeta] = useState(false);
   const { addToast } = useToast();
 
+  // Escaneo completo
   const handleFullScan = async () => {
     setLoadingFullScan(true);
     try {
@@ -38,6 +45,7 @@ export default function LibSettingsButtons({ intl }) {
     }
   };
 
+  // Escaneo de biblioteca
   const handleScanLib = async () => {
     setLoadingLib(true);
     try {
@@ -66,6 +74,7 @@ export default function LibSettingsButtons({ intl }) {
     }
   };
 
+  // Escaneo de metadatos
   const handleScanMeta = async () => {
     setLoadingMeta(true);
     try {
@@ -96,6 +105,31 @@ export default function LibSettingsButtons({ intl }) {
 
   // Bloqueamos botones si alguno está cargando
   const isLoading = loadingFullScan || loadingLib || loadingMeta;
+
+  // Descarga de DB
+  const handleDownload = () => {
+    fetch("/api/admin/db/download")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("No se pudo descargar la base de datos");
+        }
+        return res.blob();
+      })
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "bunkoshelf.db";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Ocurrió un error al descargar la base de datos.");
+      });
+  };
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -136,6 +170,19 @@ export default function LibSettingsButtons({ intl }) {
           <FileScan className="w-9 h-9 mb-4" />
         )}
         {loadingMeta ? intl.settings.scanning : intl.settings.scanMeta}
+      </button>
+
+      <button
+        onClick={handleDownload}
+        disabled={isLoading}
+        className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
+      >
+        {loadingMeta ? (
+          <Loader2 className="w-9 h-9 mb-4 animate-spin" />
+        ) : (
+          <DatabaseBackup className="w-9 h-9 mb-4" />
+        )}
+        {loadingMeta ? intl.settings.scanning : intl.settings.backupdb}
       </button>
     </div>
   );
