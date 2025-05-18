@@ -78,7 +78,8 @@
     "fullScan": "Full Scan",
     "scanLibrary": "Scan Library",
     "scanMeta": "Scan Metadata",
-    "scanning": "Scanning..."
+    "scanning": "Scanning...",
+    "backupdb": "Download Database"
   },
   "login": {
     "username": "Username",

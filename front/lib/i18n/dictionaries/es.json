@@ -78,7 +78,8 @@
     "fullScan": "Escaneo completo",
     "scanLibrary": "Escanear biblioteca",
     "scanMeta": "Escanear metadatos",
-    "scanning": "Escaneando..."
+    "scanning": "Escaneando...",
+    "backupdb": "Descargar database"
   },
   "login": {
     "username": "Nombre de usuario",
