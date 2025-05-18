@@ -87,17 +87,6 @@
   "noauth": {
     "guide": "User Guide"
   },
-  "alerts": {
-    "successUserUpdate": "User successfully updated",
-    "errorUserUpdate": "Error updating user",
-    "successCreateUser": "User created successfully",
-    "errorCreateUser": "Error creating user",
-    "successDelete": "User successfully deleted",
-    "errorDeleteUser": "Error deleting user",
-    "confirmDelete": "Are you sure you want to delete the user?",
-    "loginFail": "Invalid Credentials",
-    "serverError": "Invalid server response"
-  },
   "reader": {
     "page": "Page",
     "ttNext": "Next page",
@@ -115,12 +104,31 @@
     "switchLang": "Switch to Spanish",
     "closeModal": "Close Window"
   },
+  "alerts": {
+    "confirmDelete": "Are you sure you want to delete the user?",
+    "loginFail": "Invalid credentials",
+    "serverError": "Invalid server response"
+  },
+  "toastUsers": {
+    "successTt": "Success",
+    "successUpdate": "Updated user",
+    "successCreate": "User created",
+    "successDel": "Deleted user",
+    "errorTt": "Error",
+    "errorUpdate": "Error updating user",
+    "errorCreate": "Error creating user",
+    "errorDel": "Error deleting user"
+  },
   "toastSettings": {
     "scanSuccessTt": "Scan completed",
-    "scanFullSuccess": "Full scan completed successfully",
-    "scanLibSuccess": "Library successfully scanned",
-    "scanMetaSuccess": "Metadata scanned successfully",
+    "scanSuccessFull": "Full scan completed successfully",
+    "scanSuccessLib": "Library successfully scanned",
+    "scanSuccessMeta": "Metadata scanned successfully",
     "scanErrorTt": "Error",
     "scanError": "The scan could not be completed"
+  },
+  "toastDev": {
+    "appDevelopTt": "App in development",
+    "appDevelop": "Please note that this app is still under development and may not behave as expected"
   }
 }

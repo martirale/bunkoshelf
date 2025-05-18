@@ -87,17 +87,6 @@
   "noauth": {
     "guide": "Guía de usuario"
   },
-  "alerts": {
-    "successUserUpdate": "Usuario actualizado exitosamente",
-    "errorUserUpdate": "Error al actualizar el usuario",
-    "successCreateUser": "Usuario creado exitosamente",
-    "errorCreateUser": "Error al crear usuario",
-    "successDelete": "Usuario eliminado exitosamente",
-    "errorDeleteUser": "Error al eliminar el usuario",
-    "confirmDelete": "¿Seguro qué quieres eliminar el usuario?",
-    "loginFail": "Credenciales inválidas",
-    "serverError": "Respuesta del servidor no válida"
-  },
   "reader": {
     "page": "Página",
     "ttNext": "Página siguiente",
@@ -115,12 +104,31 @@
     "switchLang": "Cambiar a Inglés",
     "closeModal": "Cerrar ventana"
   },
+  "alerts": {
+    "confirmDelete": "¿Seguro qué quieres eliminar el usuario?",
+    "loginFail": "Credenciales inválidas",
+    "serverError": "Respuesta del servidor no válida"
+  },
+  "toastUsers": {
+    "successTt": "Éxito",
+    "successUpdate": "Usuario actualizado",
+    "successCreate": "Usuario creado",
+    "successDel": "Usuario eliminado",
+    "errorTt": "Error",
+    "errorUpdate": "Error al actualizar usuario",
+    "errorCreate": "Error al crear usuario",
+    "errorDel": "Error al eliminar usuario"
+  },
   "toastSettings": {
     "scanSuccessTt": "Escaneo completo",
-    "scanFullSuccess": "Escaneo completo terminado con éxito",
-    "scanLibSuccess": "Biblioteca escaneada con éxito",
-    "scanMetaSuccess": "Metadatos escaneados con éxito",
+    "scanSuccessFull": "Escaneo completo terminado con éxito",
+    "scanSuccessLib": "Biblioteca escaneada con éxito",
+    "scanSuccessMeta": "Metadatos escaneados con éxito",
     "scanErrorTt": "Error",
     "scanError": "No se pudo completar el escaneo"
+  },
+  "toastDev": {
+    "appDevelopTt": "App en desarrollo",
+    "appDevelop": "Ten en cuenta que esta aplicación sigue en desarrollo y podría no comportarse como se espera"
   }
 }
