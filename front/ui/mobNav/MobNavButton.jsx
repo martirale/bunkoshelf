@@ -26,7 +26,7 @@ export default function MobNavButton({ intl, user }) {
         onClick={() => setOpen(true)}
         className="bg-blackamber border border-pearl rounded-full p-3"
       >
-        <Menu className="w-6 h-6" />
+        <Menu className="w-6.5 h-6.5" />
       </button>
 
       <Modal isOpen={open} onClose={() => setOpen(false)}>
