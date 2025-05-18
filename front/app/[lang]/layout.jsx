@@ -25,7 +25,7 @@ export default async function RootLayout({ children, params }) {
       lang={lang || "es"}
       className={`${robotoCondensed.variable} ${boldonse.variable}`}
     >
-      <body className="flex h-screen overflow-hidden text-lg">
+      <body className="flex h-screen overflow-hidden text-lg bg-seigaiha">
         <MobNav lang={lang} />
         <Sidebar lang={lang} />
 
