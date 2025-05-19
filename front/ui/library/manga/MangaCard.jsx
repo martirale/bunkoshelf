@@ -1,5 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { volumeProgress } from "@/lib/reader/volumeProgress";
 
 export default function MangaCard({
   title,
@@ -12,6 +16,18 @@ export default function MangaCard({
   isDragging,
   className,
 }) {
+  const [progress, setProgress] = useState(null);
+
+  useEffect(() => {
+    if (!href) return;
+
+    const slug = href.split("/").pop();
+    const data = volumeProgress(slug);
+    setProgress(data);
+  }, [href]);
+
+  const ratio = progress ? progress.lastPage / progress.totalPages : 0;
+
   return (
     <Link
       href={href}
@@ -31,6 +47,15 @@ export default function MangaCard({
           fill
           className="object-cover z-0"
         />
+
+        {progress && ratio > 0 && (
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-blackamber/40">
+            <div
+              className="h-full bg-lilah transition-all"
+              style={{ width: `${Math.min(100, ratio * 100)}%` }}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col justify-between p-3 h-24">
