@@ -17,6 +17,7 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
     async function fetchPages() {
       setLoading(true);
       try {
+        // Paso 1: Obtener las imágenes del volumen
         const res = await fetch("/api/reader/manga", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -24,27 +25,30 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
         });
 
         const data = await res.json();
+
         if (res.ok && data.images?.length) {
           setImages(data.images);
 
-          const storageKey = `reader-progress:${slug}`;
-          const savedProgress = localStorage.getItem(storageKey);
-          console.log("Restaurando desde:", storageKey, savedProgress);
+          // Paso 2: Consultar progreso del usuario desde la DB
+          const progressRes = await fetch("/api/reader/progress/get", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ slug }),
+          });
 
-          if (savedProgress) {
-            const { lastPage } = JSON.parse(savedProgress);
-            if (
-              typeof lastPage === "number" &&
-              lastPage >= 0 &&
-              lastPage < data.images.length
-            ) {
-              setCurrentIndex(lastPage);
-            } else {
-              setCurrentIndex(0);
-            }
-          } else {
-            setCurrentIndex(0);
+          const progress = await progressRes.json();
+          let startIndex = 0;
+
+          if (
+            progressRes.ok &&
+            typeof progress.lastPage === "number" &&
+            progress.lastPage >= 0 &&
+            progress.lastPage < data.images.length
+          ) {
+            startIndex = progress.lastPage;
           }
+
+          setCurrentIndex(startIndex);
         } else {
           console.error(data.error || "No se encontraron imágenes");
         }
