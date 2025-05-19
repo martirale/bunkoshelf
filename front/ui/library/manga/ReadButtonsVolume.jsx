@@ -11,10 +11,58 @@ export default function ReadButtonsVolume({
   volumeId,
   slug,
   initFavorite,
+  initRead,
 }) {
   const [isFavorite, setIsFavorite] = useState(initFavorite);
+  const [isRead, setIsRead] = useState(initRead);
   const [isLoading, setIsLoading] = useState(false);
   const [isReaderOpen, setIsReaderOpen] = useState(false);
+
+  const toggleRead = async () => {
+    setIsLoading(true);
+
+    try {
+      // Obtener imágenes del volumen (Paso 1)
+      const imagesRes = await fetch("/api/reader/manga", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      });
+
+      const imagesData = await imagesRes.json();
+
+      if (!imagesRes.ok || !imagesData.images?.length) {
+        console.error("No se pudieron obtener las páginas del volumen");
+        return;
+      }
+
+      const totalPages = imagesData.images.length;
+
+      // Marcar como leído/no leído (Paso 2)
+      const res = await fetch("/api/library/manga/read", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          volumeId,
+          read: !isRead,
+          totalPages,
+          lastReadAt: !isRead ? new Date().toISOString() : null,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (res.ok && result.success) {
+        setIsRead((prev) => !prev);
+      } else {
+        console.error("Failed to toggle read state:", result.error);
+      }
+    } catch (err) {
+      console.error("Request error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const toggleFavorite = async () => {
     setIsLoading(true);
@@ -95,10 +143,20 @@ export default function ReadButtonsVolume({
         </Link>
 
         <button
-          className="p-3 2xl:p-4 rounded-lg leading-none text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300 cursor-pointer"
-          title="Marcar como leído"
+          onClick={toggleRead}
+          disabled={isLoading}
+          className={`p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer ${
+            isRead
+              ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl"
+              : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"
+          }`}
+          title={isRead ? "Marcar como no leído" : "Marcar como leído"}
         >
-          <Check className="w-5 h-5" />
+          {isRead ? (
+            <Check className="w-5 h-5" />
+          ) : (
+            <Check className="w-5 h-5" />
+          )}
         </button>
 
         <button

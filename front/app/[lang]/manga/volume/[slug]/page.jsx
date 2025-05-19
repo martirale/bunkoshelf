@@ -68,12 +68,29 @@ export default async function VolumeMangaPage({ params }) {
       isFavorite = favEntry?.isFavorite ?? false;
     }
 
+    let isRead = false;
+
+    if (user) {
+      const readEntry = await prisma.userToVolume.findUnique({
+        where: {
+          userId_volumeId: {
+            userId: user.id,
+            volumeId: volumeEntry.id,
+          },
+        },
+        select: { isRead: true },
+      });
+
+      isRead = readEntry?.isRead ?? false;
+    }
+
     return (
       <VolumeMangaContent
         volumeData={normalizedVolume}
         lang={lang}
         intl={intl}
         isFavorite={isFavorite}
+        isRead={isRead}
       />
     );
   } catch (error) {

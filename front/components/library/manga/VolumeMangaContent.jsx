@@ -9,6 +9,7 @@ export default function VolumeMangaContent({
   lang,
   intl,
   isFavorite,
+  isRead,
 }) {
   if (!volumeData) {
     return (
@@ -72,6 +73,7 @@ export default function VolumeMangaContent({
             intl={intl}
             volumeId={volume.id}
             initFavorite={isFavorite}
+            initRead={isRead}
             slug={volume.slug}
           />
 
