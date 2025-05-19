@@ -37,7 +37,7 @@ export async function POST(req) {
         lastPage,
         totalPages,
         lastReadAt,
-        isRead: lastPage >= totalPages,
+        isRead: lastPage >= totalPages - 1,
       },
       create: {
         userId: user.id,
@@ -45,7 +45,7 @@ export async function POST(req) {
         lastPage,
         totalPages,
         lastReadAt,
-        isRead: lastPage >= totalPages,
+        isRead: lastPage >= totalPages - 1,
       },
     });
 

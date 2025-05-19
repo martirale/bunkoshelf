@@ -26,7 +26,7 @@ export default function MangaCard({
     setProgress(data);
   }, [href]);
 
-  const ratio = progress ? progress.lastPage / progress.totalPages : 0;
+  const ratio = progress ? (progress.lastPage + 1) / progress.totalPages : 0;
 
   return (
     <Link
@@ -49,7 +49,7 @@ export default function MangaCard({
         />
 
         {progress && ratio > 0 && (
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-blackamber/40">
+          <div className="absolute bottom-0 left-0 w-full h-1.5 bg-blackamber/50">
             <div
               className="h-full bg-lilah transition-all"
               style={{ width: `${Math.min(100, ratio * 100)}%` }}
