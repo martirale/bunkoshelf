@@ -12,6 +12,8 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
   const storageKey = `reader-progress:${slug}`;
 
   useEffect(() => {
+    if (!slug) return;
+
     async function fetchPages() {
       setLoading(true);
       try {
@@ -25,8 +27,10 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
         if (res.ok && data.images?.length) {
           setImages(data.images);
 
-          // Restaurar progreso desde localStorage
+          const storageKey = `reader-progress:${slug}`;
           const savedProgress = localStorage.getItem(storageKey);
+          console.log("Restaurando desde:", storageKey, savedProgress);
+
           if (savedProgress) {
             const { lastPage } = JSON.parse(savedProgress);
             if (
@@ -70,7 +74,7 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
         JSON.stringify({
           lastPage: currentIndex,
           totalPages: images.length,
-          timestamp: new Date().toISOString(),
+          lastReadAt: new Date().toISOString(),
         })
       );
     }

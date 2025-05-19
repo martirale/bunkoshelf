@@ -43,6 +43,38 @@ export default function ReadButtonsVolume({
     }
   };
 
+  const handleClose = async () => {
+    try {
+      const storageKey = `reader-progress:${slug}`;
+      const saved = localStorage.getItem(storageKey);
+
+      if (saved) {
+        const { lastPage, totalPages, lastReadAt } = JSON.parse(saved);
+
+        const res = await fetch("/api/reader/progress/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            volumeSlug: slug,
+            lastPage,
+            totalPages,
+            lastReadAt,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          console.error("Sync failed:", data.error);
+        }
+      }
+    } catch (err) {
+      console.error("Error syncing progress:", err);
+    }
+
+    setIsReaderOpen(false);
+  };
+
   return (
     <>
       <div className="flex flex-row mt-4 gap-2">
@@ -90,7 +122,7 @@ export default function ReadButtonsVolume({
       {/* Modal del lector */}
       <ReaderModal
         isOpen={isReaderOpen}
-        onClose={() => setIsReaderOpen(false)}
+        onClose={handleClose}
         slug={slug}
         lang={lang}
         intl={intl}
