@@ -9,6 +9,8 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const storageKey = `reader-progress:${slug}`;
+
   useEffect(() => {
     async function fetchPages() {
       setLoading(true);
@@ -22,7 +24,23 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
         const data = await res.json();
         if (res.ok && data.images?.length) {
           setImages(data.images);
-          setCurrentIndex(0);
+
+          // Restaurar progreso desde localStorage
+          const savedProgress = localStorage.getItem(storageKey);
+          if (savedProgress) {
+            const { lastPage } = JSON.parse(savedProgress);
+            if (
+              typeof lastPage === "number" &&
+              lastPage >= 0 &&
+              lastPage < data.images.length
+            ) {
+              setCurrentIndex(lastPage);
+            } else {
+              setCurrentIndex(0);
+            }
+          } else {
+            setCurrentIndex(0);
+          }
         } else {
           console.error(data.error || "No se encontraron imágenes");
         }
@@ -43,6 +61,19 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
   const goNext = () => {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
   };
+
+  // Guardar progreso en localStorage
+  useEffect(() => {
+    if (images.length > 0) {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          lastPage: currentIndex,
+          totalPages: images.length,
+        })
+      );
+    }
+  }, [currentIndex, images.length]);
 
   useEffect(() => {
     const handleGoNext = () => goNext();
@@ -77,7 +108,6 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
         <div
           className="w-1/3 h-full"
           onTouchStart={() => {
-            // Placeholder por si querés meter una función luego
             console.log("Tocado centro (neutral)");
           }}
         />
