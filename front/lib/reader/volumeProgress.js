@@ -1,11 +1,19 @@
-export function volumeProgress(volumeId) {
-  if (typeof window === "undefined") return null;
-
+export async function volumeProgress(slug) {
   try {
-    const key = `reader-progress:${volumeId}`;
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : null;
-  } catch {
+    const res = await fetch("/api/reader/progress/get", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ slug }),
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("Error fetching progress from DB:", err);
     return null;
   }
 }

@@ -22,8 +22,13 @@ export default function MangaCard({
     if (!href) return;
 
     const slug = href.split("/").pop();
-    const data = volumeProgress(slug);
-    setProgress(data);
+
+    const fetchProgress = async () => {
+      const data = await volumeProgress(slug);
+      setProgress(data);
+    };
+
+    fetchProgress();
   }, [href]);
 
   const ratio = progress ? (progress.lastPage + 1) / progress.totalPages : 0;
