@@ -22,7 +22,7 @@ model User {
   volumeProgress UserToVolume[]
 }
 
-// Favorites
+// Library Status
 model UserToSeries {
   id         Int         @id @default(autoincrement())
   user       User        @relation(fields: [userId], references: [id])
@@ -43,8 +43,13 @@ model UserToVolume {
   userId     Int
   volume     MangaVolume  @relation(fields: [volumeId], references: [id], onDelete: Cascade)
   volumeId   Int
+
   isRead     Boolean      @default(false)
   isFavorite Boolean      @default(false)
+
+  lastPage   Int?
+  totalPages Int?
+  lastReadAt DateTime?
 
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
