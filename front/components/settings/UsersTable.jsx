@@ -26,15 +26,20 @@ export default function UsersTable({ users, intl, currentUserId }) {
 
   return (
     <>
-      <div className="space-y-4">
-        <table className="table-fixed w-full text-left">
-          <thead className="uppercase">
+      <div className="bg-blackamber p-4 rounded-lg space-y-4">
+        <table className="table-fixed w-full">
+          <thead className="bg-onix uppercase">
             <tr>
-              <th className="p-2 border-b">{intl.settings.username}</th>
-              <th className="p-2 border-b">{intl.settings.type}</th>
-              <th className="p-2 border-b">{intl.settings.name}</th>
-              <th className="p-2 border-b">{intl.settings.lastname}</th>
-              <th className="p-2 border-b">{intl.settings.age}</th>
+              <th className="p-4 text-left rounded-l-md">
+                {intl.settings.username}
+              </th>
+              <th className="p-4">{intl.settings.type}</th>
+              <th className="p-4">{intl.settings.name}</th>
+              <th className="p-4">{intl.settings.lastname}</th>
+              <th className="p-4">{intl.settings.age}</th>
+              <th className="p-4 text-right rounded-r-md">
+                {intl.settings.edit}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -42,19 +47,21 @@ export default function UsersTable({ users, intl, currentUserId }) {
               const currentYear = new Date().getFullYear();
               const age = user.birthYear ? currentYear - user.birthYear : "—";
               return (
-                <tr key={user.id} className="border-t">
-                  <td className="p-2">{user.username}</td>
-                  <td className="p-2">{user.isAdmin ? "Admin" : "User"}</td>
-                  <td className="p-2">{user.name || "—"}</td>
-                  <td className="p-2">{user.lastname || "—"}</td>
-                  <td className="p-2">{age}</td>
-                  <td className="p-2">
-                    <button
-                      onClick={() => handleEdit(user)}
-                      className="flex items-center cursor-pointer"
-                    >
-                      <UserRoundPen className="w-5 h-5" />
-                    </button>
+                <tr key={user.id} className="">
+                  <td className="p-4">{user.username}</td>
+                  <td className="p-4 text-center">
+                    {user.isAdmin ? intl.settings.admin : intl.settings.user}
+                  </td>
+                  <td className="p-4 text-center">{user.name || "—"}</td>
+                  <td className="p-4 text-center">{user.lastname || "—"}</td>
+                  <td className="p-4 text-center">{age}</td>
+                  <td className="p-4">
+                    <div className="flex justify-end">
+                      <UserRoundPen
+                        onClick={() => handleEdit(user)}
+                        className="w-5 h-5 mr-2 cursor-pointer"
+                      />
+                    </div>
                   </td>
                 </tr>
               );
