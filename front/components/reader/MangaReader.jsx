@@ -70,6 +70,7 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
         JSON.stringify({
           lastPage: currentIndex,
           totalPages: images.length,
+          timestamp: new Date().toISOString(),
         })
       );
     }
