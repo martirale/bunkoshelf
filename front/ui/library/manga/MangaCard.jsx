@@ -15,11 +15,11 @@ export default function MangaCard({
   return (
     <Link
       href={href}
-      className={`group flex flex-col overflow-hidden bg-blackamber border border-blackamber rounded-lg hover:bg-blackamber transition-all duration-300 ${
+      className={`group flex flex-col overflow-hidden bg-onix border border-blackamber rounded-lg hover:bg-blackamber transition-all duration-300 ${
         isDragging ? "cursor-grabbing" : "cursor-pointer"
       }`}
     >
-      <div className="relative aspect-[7/10.5] w-full bg-zinc-800 flex-shrink-0">
+      <div className="relative aspect-[7/10.5] w-full flex-shrink-0">
         {isOneshot && (
           <span className="absolute top-2 right-2 z-10 bg-lilah text-xs uppercase py-0.5 px-1 rounded">
             Oneshot
