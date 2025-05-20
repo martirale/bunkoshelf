@@ -24,4 +24,4 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY --from=builder /app /app
 RUN mkdir -p /library/manga
 
-CMD ["pnpm", "start"]
+CMD ["sh", "-c", "pnpm dlx prisma migrate deploy && pnpm start"]
