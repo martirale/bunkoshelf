@@ -1,13 +1,12 @@
 "use client";
 
-import React from "react";
 import { useRef, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import MangaCard from "@/ui/library/manga/MangaCard";
 import MangaNav from "@/ui/library/manga/MangaNav";
 import { LibraryBig, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function LibraryRowHero({ lang, intl, maxItems = 18 }) {
+export default function LibraryRowHeroManga({ lang, intl, maxItems = 12 }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -16,27 +15,41 @@ export default function LibraryRowHero({ lang, intl, maxItems = 18 }) {
   const hasDragged = useRef(false);
   const pathname = usePathname();
 
-  // Fetch DB
   useEffect(() => {
-    async function fetchLibrary() {
-      const res = await fetch("/api/library/manga/overall");
+    async function fetchReadingProgress() {
+      const res = await fetch("/api/library/manga/volumes");
       const { data } = await res.json();
 
-      const normalizedData = data.map((entry) => ({
-        ...entry,
-        coverImage: entry.coverImage?.replace(/\\/g, "/") ?? null,
-        volumes:
-          entry.volumes?.map((vol) => ({
-            ...vol,
-            coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
-          })) ?? [],
-      }));
+      const filtered = data
+        .map((vol) => {
+          const progress = vol.usersProgress?.[0] || null;
 
-      setEntries(normalizedData);
+          return {
+            ...vol,
+            isOneshot: vol.series?.isOneshot === true,
+            coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+            meta: vol.metadataObj || null,
+            lastPage: progress?.lastPage ?? 0,
+            totalPages: progress?.totalPages ?? 0,
+            lastReadAt: progress?.lastReadAt
+              ? new Date(progress.lastReadAt)
+              : null,
+          };
+        })
+        .filter((vol) => {
+          if (!vol.lastReadAt) return false;
+          const notStarted = vol.lastPage === 0;
+          const alreadyFinished = vol.lastPage >= vol.totalPages - 1;
+          return !notStarted && !alreadyFinished;
+        })
+        .sort((a, b) => b.lastReadAt - a.lastReadAt)
+        .slice(0, maxItems);
+
+      setEntries(filtered);
     }
 
-    fetchLibrary();
-  }, []);
+    fetchReadingProgress();
+  }, [maxItems]);
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
@@ -90,8 +103,8 @@ export default function LibraryRowHero({ lang, intl, maxItems = 18 }) {
       {!shouldHideHero && (
         <section className="w-full p-4 bg-lilah">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="flex items-center">
-              <LibraryBig className="w-7 h-7 mr-2" />
+            <h2 className="flex items-center text-base md:text-lg">
+              <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
               {intl.libraries.keepReading}
             </h2>
             <div className="flex gap-4">
@@ -126,31 +139,23 @@ export default function LibraryRowHero({ lang, intl, maxItems = 18 }) {
               }
             }}
           >
-            {entries.slice(0, maxItems).map((entry) => {
-              const isSeries = entry.volumes.length > 1 || entry.metadata;
-              const isOneshot = !isSeries;
-
-              const href = isOneshot
-                ? `/${lang}/manga/volume/${entry.volumeSlug}`
-                : `/${lang}/manga/${entry.slug}`;
-
-              const coverImage = entry.volumes?.[0]?.coverImage ?? null;
-
+            {entries.map((entry) => {
+              const href = `/${lang}/manga/volume/${entry.slug}`;
               return (
                 <div
-                  key={entry.title}
-                  className="flex-shrink-0 w-1/2 md:w-1/4 2xl:w-1/5"
+                  key={entry.slug}
+                  className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/6"
                 >
                   <MangaCard
-                    title={entry.title}
+                    title={entry.meta?.title ?? entry.title}
                     href={href}
-                    isSeries={isSeries}
-                    isOneshot={isOneshot}
-                    volumeCount={isSeries ? entry.volumes.length : null}
-                    cover={coverImage}
+                    isSeries={false}
+                    isOneshot={entry.isOneshot}
+                    volumeCount={null}
+                    cover={entry.coverImage}
                     intl={intl}
                     isDragging={isDragging}
-                    className="font-roboto font-bold leading-6 text-xl"
+                    className="font-roboto font-bold leading-5 2xl:leading-6 text-base 2xl:text-xl"
                   />
                 </div>
               );

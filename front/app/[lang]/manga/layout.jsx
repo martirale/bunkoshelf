@@ -1,4 +1,4 @@
-import LibraryRowHero from "@/components/library/manga/row/LibraryRowHero";
+import LibraryRowHeroManga from "@/components/library/manga/row/LibraryRowHeroManga";
 import { getDictionary } from "@/lib/i18n/serverDictionary";
 
 export default async function MangaLayout({ children, params }) {
@@ -7,7 +7,7 @@ export default async function MangaLayout({ children, params }) {
 
   return (
     <>
-      <LibraryRowHero lang={lang} intl={intl} />
+      <LibraryRowHeroManga lang={lang} intl={intl} />
 
       {children}
     </>

@@ -7,6 +7,7 @@ export async function GET() {
       include: {
         series: true,
         metadataObj: true,
+        usersProgress: true,
       },
     });
 
