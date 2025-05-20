@@ -6,7 +6,7 @@ import MangaCard from "@/ui/library/manga/MangaCard";
 import MangaNav from "@/ui/library/manga/MangaNav";
 import { LibraryBig, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function LibraryRowHeroManga({ lang, intl, maxItems = 12 }) {
+export default function LibraryRowHeroManga({ lang, intl }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -42,14 +42,13 @@ export default function LibraryRowHeroManga({ lang, intl, maxItems = 12 }) {
           const alreadyFinished = vol.lastPage >= vol.totalPages - 1;
           return !notStarted && !alreadyFinished;
         })
-        .sort((a, b) => b.lastReadAt - a.lastReadAt)
-        .slice(0, maxItems);
+        .sort((a, b) => b.lastReadAt - a.lastReadAt);
 
       setEntries(filtered);
     }
 
     fetchReadingProgress();
-  }, [maxItems]);
+  }, [pathname]);
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
