@@ -13,7 +13,7 @@ export default function MangaNav({ lang, intl }) {
   ];
 
   return (
-    <nav className="flex justify-center pt-8 gap-2 md:gap-4 bg-lilah">
+    <nav className="flex justify-center pt-12 gap-2 md:gap-4 bg-lilah">
       {links.map(({ label, href }) => {
         const isActive = pathname === href;
         return (
