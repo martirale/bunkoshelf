@@ -46,7 +46,7 @@ export default function FooterNav({ intl }) {
     <>
       <div className="flex justify-between items-center">
         <Link
-          href="#"
+          href="https://bunko.alemartir.com/otros/changelog"
           target="_blank"
           rel="noopener"
           className={`text-sm px-4 py-1 border border-zinc-800 rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
@@ -65,7 +65,7 @@ export default function FooterNav({ intl }) {
           </button>
           {/* Guides */}
           <Link
-            href="#"
+            href="https://bunko.alemartir.com/referencia/inicio"
             target="_blank"
             rel="noopener"
             title={intl.tooltip.userGuide}
