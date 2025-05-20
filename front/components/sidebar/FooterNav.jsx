@@ -2,10 +2,16 @@
 
 import Link from "next/link";
 import { Languages, LogOut, BookOpen } from "lucide-react";
+import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
+import AlertBox from "@/ui/AlertBox";
+import pkg from "../../package.json";
 
 export default function FooterNav({ intl }) {
+  const [version, setVersion] = useState(pkg.version);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+
   // Lang options
   const params = useParams();
   const router = useRouter();
@@ -42,8 +48,44 @@ export default function FooterNav({ intl }) {
   // Session status
   const isLoggedIn = SessionStatus();
 
+  // Check version
+  useEffect(() => {
+    async function checkVersion() {
+      try {
+        const res = await fetch("https://bunko.alemartir.com/version.json", {
+          cache: "no-cache",
+        });
+        const data = await res.json();
+
+        if (data.latest && data.latest !== pkg.version) {
+          setVersion(data.latest);
+          setUpdateAvailable(true);
+        }
+      } catch (err) {
+        console.warn("No se pudo verificar la versión más reciente");
+      }
+    }
+
+    checkVersion();
+    const interval = setInterval(checkVersion, 24 * 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
+      {updateAvailable && (
+        <Link
+          href="https://bunko.alemartir.com/otros/changelog"
+          target="_blank"
+          rel="noopener"
+        >
+          <AlertBox
+            title={intl.toastVersion.title}
+            description={intl.toastVersion.description}
+          />
+        </Link>
+      )}
+
       <div className="flex justify-between items-center">
         <Link
           href="https://bunko.alemartir.com/otros/changelog"
@@ -51,7 +93,7 @@ export default function FooterNav({ intl }) {
           rel="noopener"
           className={`text-sm px-4 py-1 border border-zinc-800 rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
         >
-          v0.8.0
+          v{pkg.version}
         </Link>
         <div className="flex items-center gap-2">
           {/* Language Switcher */}

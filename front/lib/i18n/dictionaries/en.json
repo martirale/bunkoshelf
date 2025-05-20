@@ -132,6 +132,10 @@
     "scanErrorTt": "Error",
     "scanError": "The scan could not be completed"
   },
+  "toastVersion": {
+    "title": "New Version",
+    "description": "View version changes"
+  },
   "toastDev": {
     "appDevelopTt": "App in development",
     "appDevelop": "This app is still in development and may not behave as expected"
