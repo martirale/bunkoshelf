@@ -80,7 +80,7 @@ export default function FooterNav({ intl }) {
           rel="noopener"
         >
           <AlertBox
-            title={intl.toastVersion.title}
+            title={`${intl.toastVersion.title} (v${version})`}
             description={intl.toastVersion.description}
           />
         </Link>
