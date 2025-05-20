@@ -9,7 +9,7 @@ import AlertBox from "@/ui/AlertBox";
 import pkg from "../../package.json";
 
 export default function FooterNav({ intl }) {
-  const [version, setVersion] = useState(pkg.version);
+  const [remoteVersion, setRemoteVersion] = useState(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
   // Lang options
@@ -50,6 +50,18 @@ export default function FooterNav({ intl }) {
 
   // Check version
   useEffect(() => {
+    function isRemoteVersionNewer(local, remote) {
+      const localParts = local.split(".").map(Number);
+      const remoteParts = remote.split(".").map(Number);
+
+      for (let i = 0; i < 3; i++) {
+        if ((remoteParts[i] ?? 0) > (localParts[i] ?? 0)) return true;
+        if ((remoteParts[i] ?? 0) < (localParts[i] ?? 0)) return false;
+      }
+
+      return false;
+    }
+
     async function checkVersion() {
       try {
         const res = await fetch("https://bunko.alemartir.com/version.json", {
@@ -57,8 +69,8 @@ export default function FooterNav({ intl }) {
         });
         const data = await res.json();
 
-        if (data.latest && data.latest !== pkg.version) {
-          setVersion(data.latest);
+        if (data.latest && isRemoteVersionNewer(pkg.version, data.latest)) {
+          setRemoteVersion(data.latest);
           setUpdateAvailable(true);
         }
       } catch (err) {
@@ -80,7 +92,7 @@ export default function FooterNav({ intl }) {
           rel="noopener"
         >
           <AlertBox
-            title={`${intl.toastVersion.title} (v${version})`}
+            title={`${intl.toastVersion.title} (${remoteVersion})`}
             description={intl.toastVersion.description}
           />
         </Link>
