@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BookCheck, EyeClosed, Check, Heart, HeartOff } from "lucide-react";
+import { BookCheck, Ghost, Check, Heart, HeartOff } from "lucide-react";
 import ReaderModal from "@/components/reader/ReaderModal";
 
 export default function ReadButtonsVolume({
@@ -17,6 +17,7 @@ export default function ReadButtonsVolume({
   const [isRead, setIsRead] = useState(initRead);
   const [isLoading, setIsLoading] = useState(false);
   const [isReaderOpen, setIsReaderOpen] = useState(false);
+  const [isYoureiMode, setIsYoureiMode] = useState(false);
 
   const toggleRead = async () => {
     setIsLoading(true);
@@ -91,14 +92,23 @@ export default function ReadButtonsVolume({
     }
   };
 
+  const openNormalReader = () => {
+    setIsYoureiMode(false);
+    setIsReaderOpen(true);
+  };
+
+  const openYoureiReader = () => {
+    setIsYoureiMode(true);
+    setIsReaderOpen(true);
+  };
+
   const handleClose = async () => {
     try {
       const storageKey = `reader-progress:${slug}`;
       const saved = localStorage.getItem(storageKey);
 
-      if (saved) {
+      if (saved && !isYoureiMode) {
         const { lastPage, totalPages, lastReadAt } = JSON.parse(saved);
-
         const res = await fetch("/api/reader/progress/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -111,7 +121,6 @@ export default function ReadButtonsVolume({
         });
 
         const data = await res.json();
-
         if (!data.success) {
           console.error("Sync failed:", data.error);
         }
@@ -127,20 +136,20 @@ export default function ReadButtonsVolume({
     <>
       <div className="flex flex-row mt-4 gap-2">
         <button
-          onClick={() => setIsReaderOpen(true)}
+          onClick={openNormalReader}
           className="flex items-center font-bold px-5 py-2 2xl:px-6 2xl:py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
         >
           <BookCheck className="w-5 h-5 mr-2" />
           {intl.manga.read}
         </button>
 
-        <Link
-          href="#"
-          className="p-3 2xl:p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
+        <button
+          onClick={openYoureiReader}
+          className="p-3 2xl:p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
           title="Leer de incógnito"
         >
-          <EyeClosed className="w-5 h-5" />
-        </Link>
+          <Ghost className="w-5 h-5" />
+        </button>
 
         <button
           onClick={toggleRead}
@@ -184,6 +193,7 @@ export default function ReadButtonsVolume({
         slug={slug}
         lang={lang}
         intl={intl}
+        isYoureiMode={isYoureiMode}
       />
     </>
   );

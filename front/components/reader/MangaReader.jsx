@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import { Minimize2, ChevronLeft, ChevronRight } from "lucide-react";
 import Loader from "@/ui/Loader";
 
-export default function MangaReader({ slug, lang, intl, onClose }) {
+export default function MangaReader({
+  slug,
+  lang,
+  intl,
+  onClose,
+  isYoureiMode,
+}) {
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -30,25 +36,29 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
           setImages(data.images);
 
           // Paso 2: Consultar progreso del usuario desde la DB
-          const progressRes = await fetch("/api/reader/progress/get", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ slug }),
-          });
+          if (!isYoureiMode) {
+            const progressRes = await fetch("/api/reader/progress/get", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ slug }),
+            });
 
-          const progress = await progressRes.json();
-          let startIndex = 0;
+            const progress = await progressRes.json();
+            let startIndex = 0;
 
-          if (
-            progressRes.ok &&
-            typeof progress.lastPage === "number" &&
-            progress.lastPage >= 0 &&
-            progress.lastPage < data.images.length
-          ) {
-            startIndex = progress.lastPage;
+            if (
+              progressRes.ok &&
+              typeof progress.lastPage === "number" &&
+              progress.lastPage >= 0 &&
+              progress.lastPage < data.images.length
+            ) {
+              startIndex = progress.lastPage;
+            }
+
+            setCurrentIndex(startIndex);
+          } else {
+            setCurrentIndex(0);
           }
-
-          setCurrentIndex(startIndex);
         } else {
           console.error(data.error || "No se encontraron imágenes");
         }
@@ -60,7 +70,7 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
     }
 
     fetchPages();
-  }, [slug]);
+  }, [slug, isYoureiMode]);
 
   const goPrev = () => {
     if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
@@ -72,7 +82,7 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
 
   // Guardar progreso en localStorage
   useEffect(() => {
-    if (images.length > 0) {
+    if (!isYoureiMode && images.length > 0) {
       localStorage.setItem(
         storageKey,
         JSON.stringify({
@@ -82,7 +92,7 @@ export default function MangaReader({ slug, lang, intl, onClose }) {
         })
       );
     }
-  }, [currentIndex, images.length]);
+  }, [currentIndex, images.length, isYoureiMode]);
 
   useEffect(() => {
     const handleGoNext = () => goNext();
