@@ -21,6 +21,7 @@ export async function POST() {
     let seriesCount = 0;
     let volumeCount = 0;
 
+    // Paso 1: indexar series y volúmenes válidos
     for (const entry of dirContents) {
       if (!entry.isDirectory()) continue;
 
@@ -83,6 +84,39 @@ export async function POST() {
         });
 
         volumeCount++;
+      }
+    }
+
+    // Paso 2: limpiar series eliminadas del disco
+    const currentSeries = dirContents
+      .filter((e) => e.isDirectory())
+      .map((e) => toSlug(e.name.replace("[oneshot]", "").trim()));
+
+    const existingSeries = await prisma.mangaSeries.findMany({
+      select: { id: true, slug: true },
+    });
+
+    for (const series of existingSeries) {
+      if (!currentSeries.includes(series.slug)) {
+        await prisma.mangaSeries.delete({
+          where: { id: series.id },
+        });
+      }
+    }
+
+    // Paso 3: limpiar volúmenes huérfanos (solo si su archivo no existe)
+    const existingVolumes = await prisma.mangaVolume.findMany({
+      select: { id: true, fullPath: true, seriesId: true },
+    });
+
+    for (const volume of existingVolumes) {
+      try {
+        await fs.access(volume.fullPath);
+      } catch {
+        // Evitamos errores si ya fue borrado con la serie
+        await prisma.mangaVolume.deleteMany({
+          where: { id: volume.id },
+        });
       }
     }
 
