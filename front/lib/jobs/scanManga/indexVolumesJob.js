@@ -7,7 +7,7 @@ export async function indexVolumesJob() {
     });
 
     const res = await fetch(
-      "http://localhost:3000/api/admin/scanManga/indexLibrary",
+      "http://localhost:3000/api/admin/ScanManga/indexLibrary",
       {
         method: "POST",
       }
