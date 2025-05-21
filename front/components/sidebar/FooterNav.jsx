@@ -100,7 +100,7 @@ export default function FooterNav({ intl }) {
 
       <div className="flex justify-between items-center">
         <Link
-          href="https://bunko.alemartir.com/otros/changelog#v0-8-1"
+          href="https://bunko.alemartir.com/otros/changelog#v0-9-0"
           target="_blank"
           rel="noopener"
           className={`text-sm px-4 py-1 border border-zinc-800 rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
