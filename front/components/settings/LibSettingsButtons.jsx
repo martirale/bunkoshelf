@@ -1,46 +1,92 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ScanSearch, DatabaseBackup, Loader2 } from "lucide-react";
 import { useToast } from "@/ui/toast/ToastProvider";
 
 export default function LibSettingsButtons({ intl }) {
   const [loadingFullScan, setLoadingFullScan] = useState(false);
-  const { addToast } = useToast();
+  const [scanStatus, setScanStatus] = useState(null);
+  const { addToast, updateToast } = useToast();
+  const pollingRef = useRef(null);
+  const toastIdRef = useRef(null);
 
-  // Escaneo completo
+  const startPollingStatus = () => {
+    pollingRef.current = setInterval(async () => {
+      try {
+        const res = await fetch("/api/admin/ScanManga/status");
+        if (!res.ok) throw new Error("Error al obtener status del escaneo");
+        const data = await res.json();
+        setScanStatus(data);
+
+        const { currentTask } = data;
+        const taskText = currentTask || "Sin tarea activa";
+
+        const toastContent = <p>{taskText}</p>;
+
+        if (toastIdRef.current) {
+          updateToast(toastIdRef.current, {
+            title: "Progreso del escaneo",
+            description: toastContent,
+            variant: "default",
+            duration: 4000,
+          });
+        } else {
+          toastIdRef.current = addToast({
+            title: "Progreso del escaneo",
+            description: toastContent,
+            variant: "default",
+            duration: 4000,
+          });
+        }
+
+        if (data.status === "done") {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+          toastIdRef.current = null;
+          setLoadingFullScan(false);
+          addToast({
+            title: "Escaneo finalizado",
+            description: "La biblioteca se ha escaneado correctamente.",
+            variant: "success",
+          });
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        }
+      } catch (error) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+        toastIdRef.current = null;
+        setLoadingFullScan(false);
+        addToast({
+          title: "Error durante el escaneo",
+          description: "Hubo un problema al obtener el estado del escaneo.",
+          variant: "error",
+        });
+      }
+    }, 3000);
+  };
+
   const handleFullScan = async () => {
     setLoadingFullScan(true);
+    setScanStatus(null);
     try {
-      const res = await fetch("/api/admin/fullScan", {
+      const res = await fetch("/api/admin/ScanManga/start", {
         method: "POST",
       });
-
-      if (!res.ok) throw new Error("Error al escanear la biblioteca");
-
-      addToast({
-        title: intl.toastSettings.scanSuccessTt,
-        description: intl.toastSettings.scanSuccessFull,
-        variant: "success",
-      });
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      if (!res.ok) throw new Error("Error al iniciar el escaneo");
+      startPollingStatus();
     } catch (err) {
+      setLoadingFullScan(false);
       addToast({
         title: intl.toastSettings.scanErrorTt,
         description: intl.toastSettings.scanError,
         variant: "error",
       });
-    } finally {
-      setLoadingFullScan(false);
     }
   };
 
-  // Bloqueamos botones si alguno está cargando
-  const isLoading = loadingFullScan;
-
-  // Descarga de DB
   const handleDownload = () => {
     fetch("/api/admin/db/download")
       .then((res) => {
@@ -61,9 +107,20 @@ export default function LibSettingsButtons({ intl }) {
       })
       .catch((err) => {
         console.error(err);
-        alert("Ocurrió un error al descargar la base de datos.");
+        alert(
+          intl.toastSettings.backupErrorAlert ||
+            "Ocurrió un error al descargar la base de datos."
+        );
       });
   };
+
+  const isLoading = loadingFullScan;
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
