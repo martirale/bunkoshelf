@@ -4,6 +4,15 @@ import prisma from "../prisma";
 import path from "path";
 import fs from "fs/promises";
 
+// Función para procesar en chunks
+function chunkArray(array, size) {
+  const result = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+}
+
 export async function indexMangaLibrary() {
   const entries = await scanMangaLibrary();
 
@@ -19,8 +28,13 @@ export async function indexMangaLibrary() {
   });
   const existingSeriesSlugs = existingSeries.map((series) => series.slug);
 
-  for (const entry of entries) {
-    if (entry.type === "series") {
+  const seriesEntries = entries.filter((e) => e.type === "series");
+
+  // Procesar series en chunks de 20
+  const seriesChunks = chunkArray(seriesEntries, 20);
+
+  for (const seriesChunk of seriesChunks) {
+    for (const entry of seriesChunk) {
       const series = await prisma.mangaSeries.upsert({
         where: { slug: entry.slug },
         update: {
@@ -38,65 +52,41 @@ export async function indexMangaLibrary() {
         },
       });
 
-      for (const vol of entry.volumes) {
-        const slug = vol.slug;
-        const outputDir = path.join(process.cwd(), "public", "covers", slug);
-        const coverPath = await extractCoverImage(vol.fullPath, outputDir);
+      // Procesar volúmenes de esta serie en chunks de 20
+      const volumeChunks = chunkArray(entry.volumes, 20);
 
-        await prisma.mangaVolume.upsert({
-          where: { slug },
-          update: {
-            title: vol.filename.replace(/\.cbz$/i, ""),
-            filename: vol.filename,
-            fullPath: vol.fullPath,
-            seriesId: series.id,
-            mtime: vol.mtime,
-            size: vol.size,
-            coverImage: coverPath,
-          },
-          create: {
-            title: vol.filename.replace(/\.cbz$/i, ""),
-            slug,
-            filename: vol.filename,
-            fullPath: vol.fullPath,
-            seriesId: series.id,
-            mtime: vol.mtime,
-            size: vol.size,
-            coverImage: coverPath,
-          },
-        });
+      for (const chunk of volumeChunks) {
+        for (const vol of chunk) {
+          const slug = vol.slug;
+          const outputDir = path.join(process.cwd(), "public", "covers", slug);
+          const coverPath = await extractCoverImage(vol.fullPath, outputDir);
 
-        processedSlugs.add(slug);
+          await prisma.mangaVolume.upsert({
+            where: { slug },
+            update: {
+              title: vol.filename.replace(/\.cbz$/i, ""),
+              filename: vol.filename,
+              fullPath: vol.fullPath,
+              seriesId: series.id,
+              mtime: vol.mtime,
+              size: vol.size,
+              coverImage: coverPath,
+            },
+            create: {
+              title: vol.filename.replace(/\.cbz$/i, ""),
+              slug,
+              filename: vol.filename,
+              fullPath: vol.fullPath,
+              seriesId: series.id,
+              mtime: vol.mtime,
+              size: vol.size,
+              coverImage: coverPath,
+            },
+          });
+
+          processedSlugs.add(slug);
+        }
       }
-    } else if (entry.type === "volume") {
-      const slug = entry.slug;
-      const outputDir = path.join(process.cwd(), "public", "covers", slug);
-      const coverPath = await extractCoverImage(entry.fullPath, outputDir);
-
-      await prisma.mangaVolume.upsert({
-        where: { slug },
-        update: {
-          title: entry.title,
-          filename: entry.filename,
-          fullPath: entry.fullPath,
-          seriesId: null,
-          mtime: entry.mtime,
-          size: entry.size,
-          coverImage: coverPath,
-        },
-        create: {
-          title: entry.title,
-          slug,
-          filename: entry.filename,
-          fullPath: entry.fullPath,
-          seriesId: null,
-          mtime: entry.mtime,
-          size: entry.size,
-          coverImage: coverPath,
-        },
-      });
-
-      processedSlugs.add(slug);
     }
   }
 
@@ -115,9 +105,7 @@ export async function indexMangaLibrary() {
   }
 
   // Eliminar series que ya no existen
-  const scannedSeriesSlugs = entries
-    .filter((entry) => entry.type === "series")
-    .map((entry) => entry.slug);
+  const scannedSeriesSlugs = seriesEntries.map((entry) => entry.slug);
 
   const seriesToDelete = existingSeriesSlugs.filter(
     (slug) => !scannedSeriesSlugs.includes(slug)
