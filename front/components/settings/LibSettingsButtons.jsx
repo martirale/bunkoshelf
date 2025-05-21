@@ -20,23 +20,23 @@ export default function LibSettingsButtons({ intl }) {
         setScanStatus(data);
 
         const { currentTask } = data;
-        const taskText = currentTask || "Sin tarea activa";
+        const taskText = currentTask || intl.toastScan.noTask;
 
         const toastContent = <p>{taskText}</p>;
 
         if (toastIdRef.current) {
           updateToast(toastIdRef.current, {
-            title: "Progreso del escaneo",
+            title: intl.toastScan.progressTt,
             description: toastContent,
             variant: "default",
-            duration: 4000,
+            duration: 3000,
           });
         } else {
           toastIdRef.current = addToast({
-            title: "Progreso del escaneo",
+            title: intl.toastScan.progressTt,
             description: toastContent,
             variant: "default",
-            duration: 4000,
+            duration: 3000,
           });
         }
 
@@ -46,8 +46,8 @@ export default function LibSettingsButtons({ intl }) {
           toastIdRef.current = null;
           setLoadingFullScan(false);
           addToast({
-            title: "Escaneo finalizado",
-            description: "La biblioteca se ha escaneado correctamente.",
+            title: intl.toastScan.successTt,
+            description: intl.toastScan.successDesc,
             variant: "success",
           });
           setTimeout(() => {
@@ -60,12 +60,12 @@ export default function LibSettingsButtons({ intl }) {
         toastIdRef.current = null;
         setLoadingFullScan(false);
         addToast({
-          title: "Error durante el escaneo",
-          description: "Hubo un problema al obtener el estado del escaneo.",
+          title: intl.toastScan.errorTt,
+          description: intl.toastScan.errorDesc,
           variant: "error",
         });
       }
-    }, 3000);
+    }, 3500);
   };
 
   const handleFullScan = async () => {
