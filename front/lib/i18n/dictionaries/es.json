@@ -122,13 +122,13 @@
     "errorCreate": "Error al crear usuario",
     "errorDel": "Error al eliminar usuario"
   },
-  "toastSettings": {
-    "scanSuccessTt": "Escaneo completo",
-    "scanSuccessFull": "Escaneo completo terminado con éxito",
-    "scanSuccessLib": "Biblioteca escaneada con éxito",
-    "scanSuccessMeta": "Metadatos escaneados con éxito",
-    "scanErrorTt": "Error",
-    "scanError": "No se pudo completar el escaneo"
+  "toastScan": {
+    "successTt": "Escaneo finalizado",
+    "successDesc": "Escaneo terminado con éxito",
+    "progressTt": "Progreso del escaneo",
+    "noTask": "Sin tarea activa",
+    "errorTt": "Error",
+    "errorDesc": "No se pudo completar el escaneo"
   },
   "toastVersion": {
     "title": "Nueva Versión",

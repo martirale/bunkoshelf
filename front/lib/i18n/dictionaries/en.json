@@ -92,9 +92,9 @@
   },
   "reader": {
     "page": "Page",
-    "ttNext": "Next page",
-    "ttPrev": "Previous page",
-    "ttExit": "Exit reader"
+    "ttNext": "Next Page",
+    "ttPrev": "Previous Page",
+    "ttExit": "Exit Reader"
   },
   "misc": {
     "coming": "Feature coming soon",
@@ -114,21 +114,21 @@
   },
   "toastUsers": {
     "successTt": "Success",
-    "successUpdate": "Updated user",
-    "successCreate": "User created",
-    "successDel": "Deleted user",
+    "successUpdate": "Updated User",
+    "successCreate": "User Created",
+    "successDel": "Deleted User",
     "errorTt": "Error",
     "errorUpdate": "Error updating user",
     "errorCreate": "Error creating user",
     "errorDel": "Error deleting user"
   },
-  "toastSettings": {
-    "scanSuccessTt": "Scan completed",
-    "scanSuccessFull": "Full scan completed successfully",
-    "scanSuccessLib": "Library successfully scanned",
-    "scanSuccessMeta": "Metadata scanned successfully",
-    "scanErrorTt": "Error",
-    "scanError": "The scan could not be completed"
+  "toastScan": {
+    "successTt": "Scanning Completed",
+    "successDesc": "Scanning completed successfully",
+    "progressTt": "Scan Progress",
+    "noTask": "No active task",
+    "errorTt": "Error",
+    "errorDesc": "The scan could not be completed"
   },
   "toastVersion": {
     "title": "New Version",
