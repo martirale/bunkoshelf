@@ -78,9 +78,7 @@
     "updateUser": "Update User",
     "deleteUser": "Delete User",
     "passwordNew": "New Password",
-    "fullScan": "Full Scan",
     "scanLibrary": "Scan Library",
-    "scanMeta": "Scan Metadata",
     "scanning": "Scanning...",
     "backupdb": "Download Database"
   },
