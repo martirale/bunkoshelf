@@ -52,7 +52,7 @@ export default function LibSettingsButtons({ intl }) {
           });
           setTimeout(() => {
             window.location.reload();
-          }, 2000);
+          }, 3500);
         }
       } catch (error) {
         clearInterval(pollingRef.current);
