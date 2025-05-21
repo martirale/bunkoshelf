@@ -1,19 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Radar,
-  ScanSearch,
-  FileScan,
-  DatabaseBackup,
-  Loader2,
-} from "lucide-react";
+import { ScanSearch, DatabaseBackup, Loader2 } from "lucide-react";
 import { useToast } from "@/ui/toast/ToastProvider";
 
 export default function LibSettingsButtons({ intl }) {
   const [loadingFullScan, setLoadingFullScan] = useState(false);
-  const [loadingLib, setLoadingLib] = useState(false);
-  const [loadingMeta, setLoadingMeta] = useState(false);
   const { addToast } = useToast();
 
   // Escaneo completo
@@ -45,66 +37,8 @@ export default function LibSettingsButtons({ intl }) {
     }
   };
 
-  // Escaneo de biblioteca
-  const handleScanLib = async () => {
-    setLoadingLib(true);
-    try {
-      const res = await fetch("/api/admin/indexManga", {
-        method: "POST",
-      });
-
-      if (!res.ok) throw new Error("Error al escanear la biblioteca");
-
-      addToast({
-        title: intl.toastSettings.scanSuccessTt,
-        description: intl.toastSettings.scanSuccesLib,
-        variant: "success",
-      });
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    } catch (err) {
-      addToast({
-        title: intl.toastSettings.scanErrorTt,
-        description: intl.toastSettings.scanError,
-        variant: "error",
-      });
-    } finally {
-      setLoadingLib(false);
-    }
-  };
-
-  // Escaneo de metadatos
-  const handleScanMeta = async () => {
-    setLoadingMeta(true);
-    try {
-      const res = await fetch("/api/admin/scanMetaManga", {
-        method: "POST",
-      });
-
-      if (!res.ok) throw new Error("Error al escanear los metadatos");
-
-      addToast({
-        title: intl.toastSettings.scanSuccessTt,
-        description: intl.toastSettings.scanSuccessMeta,
-        variant: "success",
-      });
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    } catch (err) {
-      addToast({
-        title: intl.toastSettings.scanErrorTt,
-        description: intl.toastSettings.scanError,
-        variant: "error",
-      });
-    } finally {
-      setLoadingMeta(false);
-    }
-  };
-
   // Bloqueamos botones si alguno está cargando
-  const isLoading = loadingFullScan || loadingLib || loadingMeta;
+  const isLoading = loadingFullScan;
 
   // Descarga de DB
   const handleDownload = () => {
@@ -141,35 +75,9 @@ export default function LibSettingsButtons({ intl }) {
         {loadingFullScan ? (
           <Loader2 className="w-9 h-9 mb-4 animate-spin" />
         ) : (
-          <Radar className="w-9 h-9 mb-4" />
-        )}
-        {loadingFullScan ? intl.settings.scanning : intl.settings.fullScan}
-      </button>
-
-      <button
-        onClick={handleScanLib}
-        disabled={isLoading}
-        className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
-      >
-        {loadingLib ? (
-          <Loader2 className="w-9 h-9 mb-4 animate-spin" />
-        ) : (
           <ScanSearch className="w-9 h-9 mb-4" />
         )}
-        {loadingLib ? intl.settings.scanning : intl.settings.scanLibrary}
-      </button>
-
-      <button
-        onClick={handleScanMeta}
-        disabled={isLoading}
-        className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
-      >
-        {loadingMeta ? (
-          <Loader2 className="w-9 h-9 mb-4 animate-spin" />
-        ) : (
-          <FileScan className="w-9 h-9 mb-4" />
-        )}
-        {loadingMeta ? intl.settings.scanning : intl.settings.scanMeta}
+        {loadingFullScan ? intl.settings.scanning : intl.settings.scanLibrary}
       </button>
 
       <button
@@ -177,12 +85,8 @@ export default function LibSettingsButtons({ intl }) {
         disabled={isLoading}
         className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
       >
-        {loadingMeta ? (
-          <Loader2 className="w-9 h-9 mb-4 animate-spin" />
-        ) : (
-          <DatabaseBackup className="w-9 h-9 mb-4" />
-        )}
-        {loadingMeta ? intl.settings.scanning : intl.settings.backupdb}
+        <DatabaseBackup className="w-9 h-9 mb-4" />
+        {intl.settings.backupdb}
       </button>
     </div>
   );
