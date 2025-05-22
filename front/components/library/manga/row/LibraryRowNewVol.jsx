@@ -113,7 +113,7 @@ export default function LibraryRowNewVol({ lang, intl, maxItems = 12 }) {
           return (
             <div
               key={entry.slug}
-              className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/6"
+              className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/7"
             >
               <MangaCard
                 title={entry.meta?.title ?? entry.title}

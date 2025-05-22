@@ -3,8 +3,11 @@ import MangaCard from "@/ui/library/manga/MangaCard";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { LibraryBig } from "lucide-react";
+import Pagination from "@/ui/library/manga/Pagination";
 
-export default async function LibraryGridVolumes({ lang, intl }) {
+const PAGE_SIZE = 35;
+
+export default async function LibraryGridVolumes({ lang, intl, page = 1 }) {
   const volumes = await prisma.mangaVolume.findMany({
     include: {
       series: true,
@@ -20,6 +23,11 @@ export default async function LibraryGridVolumes({ lang, intl }) {
     meta: vol.metadataObj || null,
   }));
 
+  const total = entries.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const start = (page - 1) * PAGE_SIZE;
+  const paginatedEntries = entries.slice(start, start + PAGE_SIZE);
+
   return (
     <div className="mt-8">
       <h2 className="flex items-center mb-4 text-base md:text-lg">
@@ -27,8 +35,8 @@ export default async function LibraryGridVolumes({ lang, intl }) {
         {intl.manga.allVolumes}
       </h2>
 
-      <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-6">
-        {entries.map((entry) => {
+      <section className="grid grid-cols-2 gap-4 md:grid-cols-5  2xl:grid-cols-7">
+        {paginatedEntries.map((entry) => {
           const href = `/${lang}/manga/volume/${entry.slug}`;
 
           return (
@@ -46,6 +54,17 @@ export default async function LibraryGridVolumes({ lang, intl }) {
           );
         })}
       </section>
+
+      {total > PAGE_SIZE && (
+        <div className="mt-12">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            lang={lang}
+            intl={intl}
+          />
+        </div>
+      )}
     </div>
   );
 }
