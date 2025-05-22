@@ -27,7 +27,7 @@ export default async function SettingsUsersPage({ params }) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-8">
         <h2 className="flex items-center">
           <UsersRound className="w-7 h-7 mr-2" />
           {intl.settings.users}

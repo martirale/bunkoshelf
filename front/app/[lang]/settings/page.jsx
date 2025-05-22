@@ -7,10 +7,12 @@ export default async function SettingsPage({ params }) {
 
   return (
     <>
-      <h2 className="flex items-center mb-4">
+      <h2 className="flex items-center mb-8">
         <Bolt className="w-7 h-7 mr-2" />
         {intl.settings.overview}
       </h2>
+
+      <p>Vilu</p>
     </>
   );
 }

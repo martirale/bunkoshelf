@@ -9,7 +9,7 @@ export default async function FavoritesPage({ params }) {
 
   return (
     <div className="p-4 mb-16">
-      <h1 className="flex items-center mb-4">
+      <h1 className="flex items-center">
         <BookHeart className="w-7 h-7 mr-2" />
         {intl.favorites.title}
       </h1>

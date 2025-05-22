@@ -11,7 +11,7 @@ export default async function UpdateProfilePage({ params }) {
 
   return (
     <>
-      <h2 className="flex items-center mb-4">
+      <h2 className="flex items-center mb-8">
         <UserRoundPen className="w-7 h-7 mr-2" />
         {intl.profile.updateProfile}
       </h2>
