@@ -69,7 +69,7 @@ export default async function LibraryGridSeriesFav({ lang, intl }) {
     <>
       <h2 className="mt-8 mb-4 pt-4">Series: Manga</h2>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
         {entries.map((entry) => {
           const isSeries =
             (entry.volumes && entry.volumes.length > 1) || entry.metadata;
