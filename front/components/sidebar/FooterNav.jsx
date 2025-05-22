@@ -116,7 +116,7 @@ export default function FooterNav({ intl }) {
           </button>
           {/* Guides */}
           <Link
-            href="https://bunko.alemartir.com/referencia/inicio"
+            href="https://bunko.amlab.site/referencia/inicio"
             target="_blank"
             rel="noopener"
             title={intl.tooltip.userGuide}
