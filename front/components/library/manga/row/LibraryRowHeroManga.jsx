@@ -27,7 +27,11 @@ export default function LibraryRowHeroManga({ lang, intl }) {
           return {
             ...vol,
             isOneshot: vol.series?.isOneshot === true,
-            coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+            coverImage: vol.coverImage
+              ? `/api/library/manga/cover${vol.coverImage
+                  .replace(/\\/g, "/")
+                  .replace(/^\/?covers/, "")}`
+              : null,
             meta: vol.metadataObj || null,
             lastPage: progress?.lastPage ?? 0,
             totalPages: progress?.totalPages ?? 0,

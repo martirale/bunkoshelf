@@ -46,7 +46,11 @@ export default async function LibraryGridSeriesFav({ lang, intl }) {
       volumes:
         sortedVolumes.map((vol) => ({
           ...vol,
-          coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+          coverImage: vol.coverImage
+            ? `/api/library/manga/cover${vol.coverImage
+                .replace(/\\/g, "/")
+                .replace(/^\/?covers/, "")}`
+            : null,
           meta: vol.metadataObj || null,
         })) ?? [],
     };

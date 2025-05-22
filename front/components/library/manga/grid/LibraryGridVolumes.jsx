@@ -19,7 +19,11 @@ export default async function LibraryGridVolumes({ lang, intl, page = 1 }) {
   const entries = sortedVolumes.map((vol) => ({
     ...vol,
     isOneshot: vol.series?.isOneshot === true,
-    coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+    coverImage: vol.coverImage
+      ? `/api/library/manga/cover${vol.coverImage
+          .replace(/\\/g, "/")
+          .replace(/^\/?covers/, "")}`
+      : null,
     meta: vol.metadataObj || null,
   }));
 

@@ -24,7 +24,11 @@ export default function LibraryRowRecently({ lang, intl, maxItems = 12 }) {
           return {
             ...vol,
             isOneshot: vol.series?.isOneshot === true,
-            coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+            coverImage: vol.coverImage
+              ? `/api/library/manga/cover${vol.coverImage
+                  .replace(/\\/g, "/")
+                  .replace(/^\/?covers/, "")}`
+              : null,
             meta: vol.metadataObj || null,
             isRead: progress?.isRead ?? false,
             lastReadAt: progress?.lastReadAt

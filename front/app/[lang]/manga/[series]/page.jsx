@@ -76,14 +76,22 @@ export default async function SeriesMangaPage({ params }) {
     // Normalizar la portada y los volúmenes
     const normalizedSerie = {
       ...serie,
-      coverImage: serie.volumes?.[0]?.coverImage?.replace(/\\/g, "/") ?? null,
+      coverImage: serie.volumes?.[0]?.coverImage
+        ? `/api/library/manga/cover${serie.volumes[0].coverImage
+            .replace(/\\/g, "/")
+            .replace(/^\/?covers/, "")}`
+        : null,
       volumes:
         serie.volumes?.map((vol) => {
           const meta = vol.metadataObj || null;
 
           return {
             ...vol,
-            coverImage: vol.coverImage?.replace(/\\/g, "/") ?? null,
+            coverImage: vol.coverImage
+              ? `/api/library/manga/cover${vol.coverImage
+                  .replace(/\\/g, "/")
+                  .replace(/^\/?covers/, "")}`
+              : null,
             meta: {
               ...meta,
               genreArray: meta?.genre
