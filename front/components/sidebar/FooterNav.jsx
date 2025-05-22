@@ -6,9 +6,10 @@ import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
 import AlertBox from "@/ui/AlertBox";
-import pkg from "../../package.json";
+import { getBuildInfo } from "@/lib/utils";
 
 export default function FooterNav({ intl }) {
+  const { version, changelogUrl } = getBuildInfo();
   const [remoteVersion, setRemoteVersion] = useState(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
@@ -64,12 +65,12 @@ export default function FooterNav({ intl }) {
 
     async function checkVersion() {
       try {
-        const res = await fetch("https://bunko.alemartir.com/version.json", {
+        const res = await fetch("https://bunko.amlab.site/version.json", {
           cache: "no-cache",
         });
         const data = await res.json();
 
-        if (data.latest && isRemoteVersionNewer(pkg.version, data.latest)) {
+        if (data.latest && isRemoteVersionNewer(version, data.latest)) {
           setRemoteVersion(data.latest);
           setUpdateAvailable(true);
         }
@@ -86,11 +87,7 @@ export default function FooterNav({ intl }) {
   return (
     <>
       {updateAvailable && (
-        <Link
-          href="https://bunko.alemartir.com/otros/changelog"
-          target="_blank"
-          rel="noopener"
-        >
+        <Link href={changelogUrl} target="_blank" rel="noopener">
           <AlertBox
             title={`${intl.toastVersion.title} (${remoteVersion})`}
             description={intl.toastVersion.description}
@@ -100,12 +97,12 @@ export default function FooterNav({ intl }) {
 
       <div className="flex justify-between items-center">
         <Link
-          href="https://bunko.alemartir.com/otros/changelog#v0-9-0"
+          href={changelogUrl}
           target="_blank"
           rel="noopener"
           className={`text-sm px-4 py-1 border border-zinc-800 rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
         >
-          v{pkg.version}
+          v{version}
         </Link>
         <div className="flex items-center gap-2">
           {/* Language Switcher */}

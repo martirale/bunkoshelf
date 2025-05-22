@@ -1,3 +1,5 @@
+import buildInfo from "./buildInfo.json";
+
 // Sorting volumes by title and number
 export function sortByPaddedTitle(items, getValue = (item) => item.title) {
   const padNumbers = (str) =>
@@ -33,4 +35,9 @@ export function ageRatingMap(ageRating) {
   };
 
   return mapping[ageRating] ?? null;
+}
+
+// Current version info
+export function getBuildInfo() {
+  return buildInfo;
 }
