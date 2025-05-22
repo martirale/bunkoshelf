@@ -59,6 +59,10 @@
   "settings": {
     "title": "Ajustes",
     "overview": "Descripción general",
+    "infoServerTt": "Información del servidor",
+    "infoServerDesc": "Detalles básicos de tu instancia de Bunko Shelf",
+    "semVer": "Versión semántica",
+    "buildDate": "Fecha de compilación",
     "users": "Usuarios",
     "library": "Ajustes de biblioteca",
     "username": "Usuario",

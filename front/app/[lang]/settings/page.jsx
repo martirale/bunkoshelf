@@ -15,19 +15,19 @@ export default async function SettingsPage({ params }) {
         {intl.settings.overview}
       </h2>
 
-      <h3 className="text-base mb-2">Información del servidor</h3>
-      <p>Detalles básicos sobre tu instancia de Bunko Shelf</p>
+      <h3 className="text-base mb-2">{intl.settings.infoServerTt}</h3>
+      <p>{intl.settings.infoServerDesc}</p>
 
       <div className="flex items-center mt-4 gap-8">
         <div>
-          <p className="font-bold">Versión semántica</p>
+          <p className="font-bold">{intl.settings.semVer}</p>
           <Link href={changelogUrl} target="_blank" className="hover:underline">
             v{version}
           </Link>
         </div>
 
         <p>
-          <span className="font-bold">Fecha de compilación</span>
+          <span className="font-bold">{intl.settings.buildDate}</span>
           <br />
           {buildDate}
         </p>
