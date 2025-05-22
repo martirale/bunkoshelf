@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import LibraryGridSeries from "@/components/library/manga/grid/LibraryGridSeries";
 
 export default async function MangaSeriesPage({ searchParams, params }) {

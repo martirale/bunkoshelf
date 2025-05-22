@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import AlertBox from "@/ui/AlertBox";
 
 export default async function HomePage({ params }) {

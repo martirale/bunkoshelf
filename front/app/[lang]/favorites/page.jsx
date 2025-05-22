@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import LibraryGridSeriesFav from "@/components/library/manga/grid/LibraryGridSeriesFav";
 import LibraryGridVolumesFav from "@/components/library/manga/grid/LibraryGridVolumesFav";
 import { BookHeart } from "lucide-react";

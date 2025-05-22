@@ -1,0 +1,15 @@
+{
+  "libraries": {
+    "manga": "Manga",
+    "books": "Books",
+    "volumes": "Volumes",
+    "series": "Series",
+    "readList": "Read List",
+    "keepReading": "Keep Reading",
+    "inProgress": "In Progress",
+    "recentlyAdded": "Recently Added",
+    "recentlyUpdated": "Recently Updated",
+    "recentlyRead": "Recently Read",
+    "overview": "Overview"
+  }
+}

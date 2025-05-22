@@ -1,0 +1,7 @@
+{
+  "alerts": {
+    "confirmDelete": "Are you sure you want to delete the user?",
+    "loginFail": "Invalid credentials",
+    "serverError": "Invalid server response"
+  }
+}

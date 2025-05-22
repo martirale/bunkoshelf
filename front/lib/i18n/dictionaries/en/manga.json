@@ -1,0 +1,23 @@
+{
+  "manga": {
+    "read": "Read",
+    "series": "Series:",
+    "reading": "Right to Left",
+    "volumes": "Volumes",
+    "synopsis": "Synopsis",
+    "author": "Author",
+    "penciller": "Penciller",
+    "inker": "Inker",
+    "colorist": "Colorist",
+    "letterer": "Letterer",
+    "coverArtist": "Cover Artist",
+    "editor": "Editor",
+    "translator": "Translator",
+    "publisher": "Publisher",
+    "genre": "Genre",
+    "tags": "Tags",
+    "seriesVolumes": "Series Volumes",
+    "allSeries": "All Series",
+    "allVolumes": "All Volumes"
+  }
+}

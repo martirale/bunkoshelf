@@ -1,5 +1,5 @@
 import LibraryRowHeroManga from "@/components/library/manga/row/LibraryRowHeroManga";
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 
 export default async function MangaLayout({ children, params }) {
   const { lang = "es" } = await params;

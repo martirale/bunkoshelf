@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import SidebarLogo from "./siebarLogo";
 import SecondNav from "./SecondNav";
 import MainNav from "./MainNav";

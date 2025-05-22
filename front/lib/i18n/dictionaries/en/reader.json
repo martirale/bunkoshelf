@@ -1,0 +1,8 @@
+{
+  "reader": {
+    "page": "Page",
+    "ttNext": "Next Page",
+    "ttPrev": "Previous Page",
+    "ttExit": "Exit Reader"
+  }
+}

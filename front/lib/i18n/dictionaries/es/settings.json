@@ -1,0 +1,32 @@
+{
+  "settings": {
+    "title": "Ajustes",
+    "overview": "Descripción general",
+    "infoServerTt": "Información del servidor",
+    "infoServerDesc": "Detalles básicos de tu instancia de Bunko Shelf",
+    "semVer": "Versión semántica",
+    "buildDate": "Fecha de compilación",
+    "users": "Usuarios",
+    "library": "Ajustes de biblioteca",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "type": "Tipo",
+    "name": "Nombre",
+    "lastname": "Apellido",
+    "age": "Edad",
+    "edit": "Editar",
+    "admin": "Admin",
+    "user": "Normal",
+    "nameOpt": "Nombre (opcional)",
+    "lastnameOpt": "Apellido (opcional)",
+    "birthYearOpt": "Año de nacimiento (opcional)",
+    "isAdmin": "Privilegios de admin",
+    "createUser": "Crear usuario",
+    "updateUser": "Actualizar usuario",
+    "deleteUser": "Eliminar usuario",
+    "passwordNew": "Nueva contraseña",
+    "scanLibrary": "Escanear biblioteca",
+    "scanning": "Escaneando...",
+    "backupdb": "Descargar database"
+  }
+}

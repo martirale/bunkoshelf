@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import { FolderCog } from "lucide-react";
 import LibSettingsButtons from "@/components/settings/LibSettingsButtons";
 

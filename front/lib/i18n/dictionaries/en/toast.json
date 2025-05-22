@@ -1,0 +1,28 @@
+{
+  "toastUsers": {
+    "successTt": "Success",
+    "successUpdate": "Updated User",
+    "successCreate": "User Created",
+    "successDel": "Deleted User",
+    "errorTt": "Error",
+    "errorUpdate": "Error updating user",
+    "errorCreate": "Error creating user",
+    "errorDel": "Error deleting user"
+  },
+  "toastScan": {
+    "successTt": "Scanning Completed",
+    "successDesc": "Scanning completed successfully",
+    "progressTt": "Scan Progress",
+    "noTask": "No active task",
+    "errorTt": "Error",
+    "errorDesc": "The scan could not be completed"
+  },
+  "toastVersion": {
+    "title": "New Version",
+    "description": "View version changes"
+  },
+  "toastDev": {
+    "appDevelopTt": "App in development",
+    "appDevelop": "This app is still in development and may not behave as expected"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "sidebar": {
+    "home": "Home",
+    "library": "Library",
+    "manga": "Manga",
+    "books": "Books",
+    "favorites": "Favorites",
+    "profile": "Profile",
+    "settings": "Settings"
+  }
+}

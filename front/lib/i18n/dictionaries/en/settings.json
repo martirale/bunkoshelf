@@ -1,0 +1,32 @@
+{
+  "settings": {
+    "title": "Settings",
+    "overview": "Overview",
+    "infoServerTt": "Server Information",
+    "infoServerDesc": "Basic details of your Bunko Shelf instance",
+    "semVer": "Semantic Version",
+    "buildDate": "Build Date",
+    "users": "Users",
+    "library": "Library Settings",
+    "username": "Username",
+    "password": "Password",
+    "type": "Type",
+    "name": "Name",
+    "lastname": "Lastname",
+    "age": "Age",
+    "edit": "Edit",
+    "admin": "Admin",
+    "user": "Normal",
+    "nameOpt": "Name (optional)",
+    "lastnameOpt": "Lastname (optional)",
+    "birthYearOpt": "Birth Year (optional)",
+    "isAdmin": "Admin Privileges",
+    "createUser": "Create User",
+    "updateUser": "Update User",
+    "deleteUser": "Delete User",
+    "passwordNew": "New Password",
+    "scanLibrary": "Scan Library",
+    "scanning": "Scanning...",
+    "backupdb": "Download Database"
+  }
+}

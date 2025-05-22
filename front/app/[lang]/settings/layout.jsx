@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import SidebarMisc from "@/ui/SidebarMisc";
 import SettingsNav from "@/components/settings/SettingsNav";
 import { Settings2 } from "lucide-react";

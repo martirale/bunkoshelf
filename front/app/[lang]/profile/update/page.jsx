@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import { verifySession } from "@/lib/auth/verifySession";
 import ProfileForm from "@/components/profile/ProfileForm";
 import { UserRoundPen } from "lucide-react";

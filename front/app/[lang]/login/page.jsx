@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import LoginForm from "./LoginForm";
 import MainLogo from "@/ui/MainLogo";
 

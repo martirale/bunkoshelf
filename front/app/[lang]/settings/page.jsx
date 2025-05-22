@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import { Bolt } from "lucide-react";
 import { getBuildInfo } from "@/lib/utils";
 import Link from "next/link";

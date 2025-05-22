@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import LibraryGridVolumes from "@/components/library/manga/grid/LibraryGridVolumes";
 
 export default async function MangaVolumesPage({ searchParams, params }) {

@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import { Bolt } from "lucide-react";
 
 export default async function ProfilePage({ params }) {

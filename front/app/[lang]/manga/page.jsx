@@ -1,7 +1,7 @@
 import LibraryRow from "@/components/library/manga/row/LibraryRow";
 import LibraryRowNewVol from "@/components/library/manga/row/LibraryRowNewVol";
 import LibraryRowRecently from "@/components/library/manga/row/LibraryRowRecently";
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import { LibraryBig, BookMarked, BookDown, BookCheck } from "lucide-react";
 
 export default async function MangaPage({ params }) {

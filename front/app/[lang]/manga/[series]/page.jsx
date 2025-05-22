@@ -1,6 +1,6 @@
 import SerieMangaContent from "@/components/library/manga/SerieMangaContent";
 import { verifySession } from "@/lib/auth/verifySession";
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 

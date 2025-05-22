@@ -1,4 +1,4 @@
-import { getDictionary } from "@/lib/i18n/serverDictionary";
+import { getDictionary } from "@/lib/i18n/Dictionary";
 import prisma from "@/lib/prisma";
 import { UsersRound } from "lucide-react";
 import UsersTable from "@/components/settings/UsersTable";

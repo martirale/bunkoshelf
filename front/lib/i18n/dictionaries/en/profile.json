@@ -1,0 +1,12 @@
+{
+  "profile": {
+    "title": "Profile",
+    "overview": "Overview",
+    "name": "Name",
+    "lastname": "Lastname",
+    "password": "New Password",
+    "save": "Save Changes",
+    "greeting": "Hi,",
+    "updateProfile": "Update Profile"
+  }
+}
