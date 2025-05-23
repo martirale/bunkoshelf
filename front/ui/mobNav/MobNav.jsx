@@ -7,7 +7,7 @@ export default async function MobNav({ lang }) {
   const user = await verifySession();
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 md:hidden">
+    <div className="fixed bottom-8 right-6 z-50 md:hidden">
       <MobNavButton intl={intl} user={user} />
     </div>
   );
