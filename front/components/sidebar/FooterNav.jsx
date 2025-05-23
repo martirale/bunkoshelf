@@ -22,6 +22,8 @@ export default function FooterNav({ intl }) {
   const toggleLang = () => {
     const newLang = currentLang === "es" ? "en" : "es";
     const pathWithoutLang = pathname.replace(`/${currentLang}`, "");
+
+    document.cookie = `lang=${newLang}; path=/`;
     router.push(`/${newLang}${pathWithoutLang}`);
   };
 
