@@ -134,12 +134,13 @@ export default function MangaReader({
         <div className="w-1/3 h-full" onTouchStart={goNext} />
       </div>
 
-      <div className="flex-grow flex items-center justify-center z-30">
+      {/* Imágenes */}
+      <div className="flex-grow flex items-center justify-center z-30 mt-8 md:mt-0">
         {images.length > 0 ? (
           <img
             src={images[currentIndex]}
             alt={`Página ${images.length - currentIndex}`}
-            className="max-h-[90vh] w-auto"
+            className="max-h-[93vh] w-auto"
           />
         ) : (
           <p>No se encontraron páginas.</p>
@@ -147,7 +148,7 @@ export default function MangaReader({
       </div>
 
       {/* Nav Controls */}
-      <div className="flex items-center justify-between w-full max-w-md z-50">
+      <div className="flex items-center justify-between w-full max-w-md z-50 mb-5 md:mb-0">
         <button
           onClick={goPrev}
           disabled={currentIndex >= images.length - 1}
