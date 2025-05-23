@@ -9,7 +9,7 @@ import AlertBox from "@/ui/AlertBox";
 import { getBuildInfo } from "@/lib/utils";
 
 export default function FooterNav({ intl }) {
-  const { version, changelogUrl } = getBuildInfo();
+  const { version, versionUrl, changelogUrl } = getBuildInfo();
   const [remoteVersion, setRemoteVersion] = useState(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
@@ -97,7 +97,7 @@ export default function FooterNav({ intl }) {
 
       <div className="flex justify-between items-center">
         <Link
-          href={changelogUrl}
+          href={versionUrl}
           target="_blank"
           rel="noopener"
           className={`text-sm px-4 py-1 border border-zinc-800 rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
