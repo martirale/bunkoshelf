@@ -1,0 +1,28 @@
+services:
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx_proxy_manager
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+
+  bunkoshelf:
+    image: itsmrtr/bunkoshelf:latest
+    container_name: bunkoshelf
+    restart: unless-stopped
+    expose:
+      - "3000"
+    volumes:
+      - bunko_db:/app/prisma/data
+      - /path/to/your/library/manga:/library/manga
+      - ./public/covers:/app/public/covers
+
+volumes:
+  npm_data:
+  npm_letsencrypt:
+  bunko_db:
