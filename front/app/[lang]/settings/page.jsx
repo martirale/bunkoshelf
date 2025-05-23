@@ -6,7 +6,7 @@ import Link from "next/link";
 export default async function SettingsPage({ params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
-  const { version, changelogUrl, buildDate } = getBuildInfo();
+  const { version, versionUrl, buildDate } = getBuildInfo();
 
   return (
     <>
@@ -21,7 +21,7 @@ export default async function SettingsPage({ params }) {
       <div className="flex items-center mt-4 gap-8">
         <div>
           <p className="font-bold">{intl.settings.semVer}</p>
-          <Link href={changelogUrl} target="_blank" className="hover:underline">
+          <Link href={versionUrl} target="_blank" className="hover:underline">
             v{version}
           </Link>
         </div>
