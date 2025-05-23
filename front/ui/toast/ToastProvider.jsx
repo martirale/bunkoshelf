@@ -20,14 +20,31 @@ export function ToastProvider({ children }) {
 
   const addToast = (toast) => {
     const id = Date.now() + toastIdCounter++;
+    const duration = toast.duration || 5000;
+
     setToasts((prev) => [...prev, { id, ...toast }]);
+
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 5000);
+    }, duration);
+
+    return id;
+  };
+
+  const updateToast = (id, updatedData) => {
+    const duration = updatedData.duration || 3500;
+
+    setToasts((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updatedData } : t))
+    );
+
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, duration);
   };
 
   return (
-    <ToastContext.Provider value={{ addToast }}>
+    <ToastContext.Provider value={{ addToast, updateToast }}>
       {children}
       {mounted &&
         createPortal(
