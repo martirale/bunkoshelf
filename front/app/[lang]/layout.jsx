@@ -8,7 +8,7 @@ export const metadata = {
   title: "Bunko Shelf",
   description: "Self-hosted server for managing-reading manga & ebooks.",
   icons: {
-    icon: "/pwa/bunkoshelf-icon-192.png",
+    icon: "/favicon.png",
     apple: "/pwa/bunkoshelf-icon-192.png",
   },
   manifest: "/manifest.json",
