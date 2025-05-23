@@ -8,9 +8,10 @@ export const metadata = {
   title: "Bunko Shelf",
   description: "Self-hosted server for managing-reading manga & ebooks.",
   icons: {
-    icon: "/favicon.png",
-    apple: "/apple-touch-icon.png",
+    icon: "/pwa/bunkoshelf-icon-192.png",
+    apple: "/pwa/bunkoshelf-icon-192.png",
   },
+  manifest: "/manifest.json",
 };
 
 export async function generateStaticParams() {
