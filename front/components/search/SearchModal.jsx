@@ -5,7 +5,7 @@ import { useSearchModal } from "@/hooks/useSearchModal";
 import { Search } from "lucide-react";
 import Link from "next/link";
 
-export default function SearchModal({ lang = "es", intl }) {
+export default function SearchModal({ lang, intl }) {
   const { open, setOpen } = useSearchModal();
 
   const [query, setQuery] = useState("");
@@ -18,7 +18,10 @@ export default function SearchModal({ lang = "es", intl }) {
         e.preventDefault();
         setOpen(true);
       } else if (e.key === "Escape") {
-        setOpen(false);
+        {
+          setOpen(false);
+          setQuery("");
+        }
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -56,36 +59,38 @@ export default function SearchModal({ lang = "es", intl }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center pt-24 px-4"
-      onClick={() => setOpen(false)}
+      className="fixed inset-0 z-50 bg-black/70 flex items-start justify-center pt-24 px-4"
+      onClick={() => {
+        setOpen(false);
+        setQuery("");
+      }}
     >
       <div
-        className="bg-neutral-900 w-full max-w-lg rounded-lg shadow-lg p-6"
+        className="bg-blackamber border border-zinc-700 w-full max-w-3xl rounded-lg p-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative">
-          <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-4 top-4 w-5 h-5" />
+
           <input
             type="search"
             autoFocus
             placeholder="Buscar título o autor"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-md bg-onix text-white focus:outline-none"
+            className="w-full pl-12 pr-4 py-3 rounded-lg bg-onix focus:outline-none"
           />
         </div>
 
-        {loading && (
-          <p className="text-sm text-gray-500 mt-2 text-center">Buscando...</p>
-        )}
+        {loading && <p className="text-base mt-4 text-center">Buscando...</p>}
 
         {!loading && results.length === 0 && query.trim() && (
-          <p className="text-sm text-gray-500 mt-2 text-center">
+          <p className="text-base mt-4 text-center">
             No se encontraron resultados.
           </p>
         )}
 
-        <ul className="mt-4 max-h-48 overflow-y-auto space-y-1">
+        <ul className="max-h-96 overflow-y-auto space-y-4">
           {results.map(({ id, title, writer, slug }) => (
             <li
               key={id}
@@ -93,11 +98,14 @@ export default function SearchModal({ lang = "es", intl }) {
                 setOpen(false);
                 setQuery("");
               }}
+              className="mt-4"
             >
               <Link href={`/${lang}/manga/volume/${slug}`}>
-                <div className="font-semibold truncate text-white">{title}</div>
-                <div className="text-gray-400 text-sm truncate">
-                  Autor: {writer || "Desconocido"}
+                <div className="bg-onix rounded-lg px-4 py-2 cursor-pointer">
+                  <p className="font-bold truncate">{title}</p>
+                  <p className="text-zinc-500 text-base truncate">
+                    Autor: {writer || "Desconocido"}
+                  </p>
                 </div>
               </Link>
             </li>

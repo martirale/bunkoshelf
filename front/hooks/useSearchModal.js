@@ -1,4 +1,3 @@
-// hooks/useSearchModal.js
 import { useState } from "react";
 
 let setOpenGlobal;

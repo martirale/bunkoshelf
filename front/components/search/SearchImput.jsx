@@ -1,21 +1,40 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { openSearchModal } from "@/hooks/useSearchModal";
 import { Search } from "lucide-react";
 
-export default function SearchInput() {
+export default function SearchInput({ intl }) {
+  const [shortcut, setShortcut] = useState("Ctrl+K");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isMac =
+        navigator.userAgentData?.platform === "macOS" ||
+        /Mac/i.test(navigator.userAgent);
+      setShortcut(isMac ? "Cmd+K" : "Ctrl+K");
+    }
+  }, []);
+
   return (
     <div
-      className="flex items-center w-full max-w-xs mt-4"
+      className="flex items-center w-full bg-onix rounded-lg cursor-pointer"
       onClick={openSearchModal}
     >
-      <Search className="w-4 h-4 text-gray-400 mr-2" />
+      <div className="p-1 ml-3">
+        <Search className="w-5 h-5" />
+      </div>
+
       <input
         type="text"
-        placeholder="Buscar título o autor"
-        className="w-full p-2 bg-onix text-white rounded-md cursor-pointer focus:outline-none"
+        placeholder="Buscar"
+        className="w-full p-3 cursor-pointer focus:outline-none"
         readOnly
       />
+
+      <span className="text-sm uppercase bg-blackamber px-3 py-1 mr-4 rounded-md">
+        {shortcut}
+      </span>
     </div>
   );
 }
