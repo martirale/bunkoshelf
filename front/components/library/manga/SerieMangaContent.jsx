@@ -249,7 +249,7 @@ export default function SerieMangaContent({
                 href={`/${lang}/manga/volume/${volume.slug}`}
                 isSeries={false}
                 volumeCount={null}
-                cover={coverImage}
+                cover={volume.coverImage ?? null}
                 intl={intl}
                 className="font-roboto font-bold leading-5 2xl:leading-6 text-base 2xl:text-xl"
               />
