@@ -1,15 +1,13 @@
 import path from "path";
 import fs from "fs/promises";
 
-export async function GET(req, context) {
-  const { params } = context;
+export async function GET(req, { params }) {
   const segments = params.slug;
 
-  if (!segments || segments.length === 0) {
-    return new Response("Missing path", { status: 400 });
+  if (!segments || !Array.isArray(segments) || segments.length === 0) {
+    return new Response("Missing or invalid path", { status: 400 });
   }
 
-  // Ruta final del archivo solicitado
   const requestedPath = path.join(
     process.cwd(),
     "public",
@@ -18,7 +16,7 @@ export async function GET(req, context) {
   );
 
   try {
-    await fs.stat(requestedPath);
+    await fs.access(requestedPath); // Verifica si existe
     const file = await fs.readFile(requestedPath);
     const contentType = getContentType(requestedPath);
 
@@ -27,8 +25,7 @@ export async function GET(req, context) {
         "Content-Type": contentType,
       },
     });
-  } catch (err) {
-    // Si no existe, devolver el placeholder
+  } catch {
     const fallbackPath = path.join(process.cwd(), "public", "placeholder.svg");
     try {
       const fallbackFile = await fs.readFile(fallbackPath);
@@ -38,9 +35,13 @@ export async function GET(req, context) {
         },
       });
     } catch {
-      return new Response("Image not found and no fallback available", {
-        status: 404,
-      });
+      return new Response(
+        JSON.stringify({ error: "Image not found and no fallback available" }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
   }
 }
