@@ -27,7 +27,7 @@ export default function SearchInput({ intl }) {
 
       <input
         type="text"
-        placeholder="Buscar"
+        placeholder={intl.search.placeholder}
         className="w-full p-3 cursor-pointer focus:outline-none"
         readOnly
       />

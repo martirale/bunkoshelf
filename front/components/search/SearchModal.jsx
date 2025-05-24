@@ -75,19 +75,19 @@ export default function SearchModal({ lang, intl }) {
           <input
             type="search"
             autoFocus
-            placeholder="Buscar título o autor"
+            placeholder={intl.search.titleAuthor}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 rounded-lg bg-onix focus:outline-none"
           />
         </div>
 
-        {loading && <p className="text-base mt-4 text-center">Buscando...</p>}
+        {loading && (
+          <p className="text-base mt-4 text-center">{intl.search.searching}</p>
+        )}
 
         {!loading && results.length === 0 && query.trim() && (
-          <p className="text-base mt-4 text-center">
-            No se encontraron resultados.
-          </p>
+          <p className="text-base mt-4 text-center">{intl.search.noResults}</p>
         )}
 
         <ul className="max-h-96 overflow-y-auto space-y-4">
@@ -104,7 +104,7 @@ export default function SearchModal({ lang, intl }) {
                 <div className="bg-onix rounded-lg px-4 py-2 cursor-pointer">
                   <p className="font-bold truncate">{title}</p>
                   <p className="text-zinc-500 text-base truncate">
-                    Autor: {writer || "Desconocido"}
+                    {intl.search.author}: {writer || "Desconocido"}
                   </p>
                 </div>
               </Link>

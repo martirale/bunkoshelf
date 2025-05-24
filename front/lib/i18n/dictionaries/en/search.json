@@ -1,0 +1,9 @@
+{
+  "search": {
+    "placeholder": "Search",
+    "titleAuthor": "Search title or author",
+    "searching": "Searching...",
+    "noResults": "No results found",
+    "author": "Author"
+  }
+}
