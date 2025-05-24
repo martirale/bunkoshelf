@@ -91,7 +91,7 @@ export default function SearchModal({ lang, intl }) {
         )}
 
         <ul className="max-h-96 overflow-y-auto space-y-4">
-          {results.map(({ id, title, writer, slug }) => (
+          {results.map(({ id, title, writer, series, slug }) => (
             <li
               key={id}
               onClick={() => {
@@ -103,8 +103,12 @@ export default function SearchModal({ lang, intl }) {
               <Link href={`/${lang}/manga/volume/${slug}`}>
                 <div className="bg-onix rounded-lg px-4 py-2 cursor-pointer">
                   <p className="font-bold truncate">{title}</p>
+
                   <p className="text-zinc-500 text-base truncate">
                     {intl.search.author}: {writer || "Desconocido"}
+                  </p>
+                  <p className="text-zinc-500 text-base truncate">
+                    {intl.search.series}: {series || "Desconocido"}
                   </p>
                 </div>
               </Link>

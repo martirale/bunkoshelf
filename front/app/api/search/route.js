@@ -12,14 +12,16 @@ export async function GET(req) {
 
   const volumes = await prisma.mangaVolume.findMany({
     include: {
+      series: true,
       metadataObj: true,
     },
   });
 
   const docs = volumes.map((vol) => ({
     id: vol.id,
-    title: vol.title,
+    title: vol.metadataObj?.title || "",
     writer: vol.metadataObj?.writer || "",
+    series: vol.series?.title || "",
     slug: vol.slug,
   }));
 
@@ -27,7 +29,7 @@ export async function GET(req) {
   const docsMap = new Map(docs.map((doc) => [doc.id, doc]));
 
   const miniSearch = new MiniSearch({
-    fields: ["title", "writer", "slug"],
+    fields: ["title", "writer", "series", "slug"],
     storeFields: ["id"],
   });
 
@@ -45,6 +47,7 @@ export async function GET(req) {
       id: doc.id,
       title: doc.title,
       writer: doc.writer,
+      series: doc.series,
       slug: doc.slug,
       score: res.score,
       match: res.match,
