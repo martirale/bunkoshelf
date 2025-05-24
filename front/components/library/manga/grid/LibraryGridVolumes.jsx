@@ -39,7 +39,7 @@ export default async function LibraryGridVolumes({ lang, intl, page = 1 }) {
         {intl.manga.allVolumes}
       </h2>
 
-      <section className="grid grid-cols-2 gap-4 md:grid-cols-5  2xl:grid-cols-7">
+      <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">
         {paginatedEntries.map((entry) => {
           const href = `/${lang}/manga/volume/${entry.slug}`;
 

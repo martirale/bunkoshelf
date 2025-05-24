@@ -240,7 +240,7 @@ export default function SerieMangaContent({
 
         <h2>{intl.manga.seriesVolumes}</h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-6 gap-4 mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
           {serieData.volumes && serieData.volumes.length > 0 ? (
             serieData.volumes.map((volume, idx) => (
               <MangaCard
