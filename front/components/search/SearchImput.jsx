@@ -1,10 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useParams } from "next/navigation";
 import { openSearchModal } from "@/hooks/useSearchModal";
 import { Search } from "lucide-react";
 
 export default function SearchInput({ intl }) {
+  // Lang options
+  const params = useParams();
+  const pathname = usePathname();
+  const currentLang = params.lang || "es";
+
+  // Check current routes
+  const isManga = pathname.startsWith(`/${currentLang}/manga`);
+  const isBooks = pathname.startsWith(`/${currentLang}/books`);
+  const isSettings = pathname.startsWith(`/${currentLang}/settings`);
+
+  // Custom color borders
+  const hoverBorder = isManga
+    ? "hover:border-lilah"
+    : isBooks
+    ? "hover:border-ash"
+    : "hover:border-pearl";
+
   const [shortcut, setShortcut] = useState("Ctrl+K");
 
   useEffect(() => {
@@ -18,7 +36,7 @@ export default function SearchInput({ intl }) {
 
   return (
     <div
-      className="flex items-center w-full bg-onix rounded-lg cursor-pointer"
+      className={`flex items-center w-full bg-onix border border-onix rounded-lg cursor-pointer ${hoverBorder} transition-all duration-300`}
       onClick={openSearchModal}
     >
       <div className="p-1 ml-3">
