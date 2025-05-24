@@ -5,7 +5,8 @@ import MainNav from "./MainNav";
 import AdminNav from "./AdminNav";
 import FooterNav from "./FooterNav";
 import { verifySession } from "@/lib/auth/verifySession";
-import Search from "./Search";
+import SearchInput from "../search/SearchImput";
+import SearchModal from "../search/SearchModal";
 
 export default async function Sidebar({ lang }) {
   const intl = await getDictionary(lang);
@@ -22,7 +23,7 @@ export default async function Sidebar({ lang }) {
 
         {user && (
           <div className="flex-1">
-            <Search lang={lang} intl={intl} />
+            <SearchInput />
 
             <MainNav intl={intl} />
             {user.isAdmin && <AdminNav intl={intl} />}
@@ -31,6 +32,8 @@ export default async function Sidebar({ lang }) {
 
         <FooterNav intl={intl} />
       </aside>
+
+      <SearchModal lang={lang} intl={intl} />
     </>
   );
 }
