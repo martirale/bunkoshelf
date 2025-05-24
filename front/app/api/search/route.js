@@ -21,8 +21,9 @@ export async function GET(req) {
     id: vol.id,
     title: vol.metadataObj?.title || "",
     writer: vol.metadataObj?.writer || "",
-    series: vol.series?.title || "",
+    series: vol.metadataObj?.series || "",
     slug: vol.slug,
+    isOneshot: vol.series?.isOneshot ?? false,
   }));
 
   // Creamos un "mapa" local para consultar después el documento completo por id
@@ -30,7 +31,7 @@ export async function GET(req) {
 
   const miniSearch = new MiniSearch({
     fields: ["title", "writer", "series", "slug"],
-    storeFields: ["id"],
+    storeFields: ["id", "isOneshot"],
   });
 
   miniSearch.addAll(docs);
@@ -49,6 +50,7 @@ export async function GET(req) {
       writer: doc.writer,
       series: doc.series,
       slug: doc.slug,
+      isOneshot: doc.isOneshot,
       score: res.score,
       match: res.match,
     };

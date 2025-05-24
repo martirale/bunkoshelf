@@ -91,7 +91,7 @@ export default function SearchModal({ lang, intl }) {
         )}
 
         <ul className="max-h-96 overflow-y-auto space-y-4">
-          {results.map(({ id, title, writer, series, slug }) => (
+          {results.map(({ id, title, writer, series, slug, isOneshot }) => (
             <li
               key={id}
               onClick={() => {
@@ -107,9 +107,13 @@ export default function SearchModal({ lang, intl }) {
                   <p className="text-zinc-500 text-base truncate">
                     {intl.search.author}: {writer || "Desconocido"}
                   </p>
-                  <p className="text-zinc-500 text-base truncate">
-                    {intl.search.series}: {series || "Desconocido"}
-                  </p>
+                  {isOneshot ? (
+                    <p className="text-zinc-500 text-base truncate">Oneshot</p>
+                  ) : (
+                    <p className="text-zinc-500 text-base truncate">
+                      {intl.search.series}: {series}
+                    </p>
+                  )}
                 </div>
               </Link>
             </li>
