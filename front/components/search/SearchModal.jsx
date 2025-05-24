@@ -66,7 +66,7 @@ export default function SearchModal({ lang, intl }) {
       }}
     >
       <div
-        className="bg-blackamber border border-zinc-700 w-full max-w-3xl rounded-lg p-4"
+        className="bg-pearl text-onix p-4 rounded-lg w-full max-w-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative">
@@ -78,7 +78,7 @@ export default function SearchModal({ lang, intl }) {
             placeholder={intl.search.titleAuthor}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-lg bg-onix focus:outline-none"
+            className="w-full pl-12 pr-4 py-3 border border-onix rounded-lg focus:outline-none"
           />
         </div>
 
@@ -101,16 +101,16 @@ export default function SearchModal({ lang, intl }) {
               className="mt-4"
             >
               <Link href={`/${lang}/manga/volume/${slug}`}>
-                <div className="bg-onix rounded-lg px-4 py-2 cursor-pointer">
+                <div className="bg-sand rounded-lg px-4 py-2 cursor-pointer">
                   <p className="font-bold truncate">{title}</p>
 
-                  <p className="text-zinc-500 text-base truncate">
+                  <p className="text-base truncate">
                     {intl.search.author}: {writer || "Desconocido"}
                   </p>
                   {isOneshot ? (
-                    <p className="text-zinc-500 text-base truncate">Oneshot</p>
+                    <p className="text-base truncate">Oneshot</p>
                   ) : (
-                    <p className="text-zinc-500 text-base truncate">
+                    <p className="text-base truncate">
                       {intl.search.series}: {series}
                     </p>
                   )}
