@@ -32,10 +32,11 @@ export default async function LibraryGridSeries({ lang, intl, page = 1 }) {
         ...entry,
         coverImage:
           sortedVolumes.length > 0
-            ? sortedVolumes[sortedVolumes.length - 1].coverImage?.replace(
-                /\\/g,
-                "/"
-              ) ?? null
+            ? `/api/library/manga/cover${sortedVolumes[
+                sortedVolumes.length - 1
+              ].coverImage
+                ?.replace(/\\/g, "/")
+                .replace(/^\/?covers/, "")}` ?? null
             : null,
         volumes:
           sortedVolumes.map((vol) => ({
