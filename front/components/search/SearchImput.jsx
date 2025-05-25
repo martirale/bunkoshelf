@@ -36,7 +36,7 @@ export default function SearchInput({ intl }) {
 
   return (
     <div
-      className={`flex items-center w-full bg-onix border border-onix rounded-lg cursor-pointer ${hoverBorder} transition-all duration-300`}
+      className={`flex items-center w-full bg-blackamber border border-zinc-800 rounded-lg cursor-pointer ${hoverBorder} transition-all duration-300`}
       onClick={openSearchModal}
     >
       <div className="p-1 ml-3">
@@ -50,7 +50,7 @@ export default function SearchInput({ intl }) {
         readOnly
       />
 
-      <span className="text-sm uppercase bg-blackamber px-3 py-1 mr-4 rounded-md">
+      <span className="text-sm uppercase bg-onix px-3 py-1 mr-4 rounded-md">
         {shortcut}
       </span>
     </div>

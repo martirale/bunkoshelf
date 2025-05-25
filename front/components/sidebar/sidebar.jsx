@@ -23,12 +23,12 @@ export default async function Sidebar({ lang }) {
 
         {user && (
           <div className="flex-1">
-            <div className="mt-8 mb-10">
-              <SearchInput intl={intl} />
-            </div>
-
             <MainNav intl={intl} />
             {user.isAdmin && <AdminNav intl={intl} />}
+
+            <div className="mt-16">
+              <SearchInput intl={intl} />
+            </div>
           </div>
         )}
 
