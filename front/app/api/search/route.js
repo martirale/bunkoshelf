@@ -10,6 +10,43 @@ export async function GET(req) {
     return NextResponse.json([], { status: 200 });
   }
 
+  // Buscar series
+  const seriesList = await prisma.mangaSeries.findMany();
+
+  const seriesDocs = seriesList.map((s) => ({
+    id: `series-${s.id}`,
+    title: s.title,
+    slug: s.slug,
+    isOneshot: s.isOneshot,
+  }));
+
+  const seriesMap = new Map(seriesDocs.map((s) => [s.id, s]));
+
+  const seriesSearch = new MiniSearch({
+    fields: ["title"],
+    storeFields: ["id", "title", "slug", "isOneshot"],
+  });
+
+  seriesSearch.addAll(seriesDocs);
+
+  const foundSeries = seriesSearch.search(query, {
+    prefix: true,
+    fuzzy: 0.2,
+  });
+
+  const seriesResults = foundSeries.map((res) => {
+    const doc = seriesMap.get(res.id);
+    return {
+      id: doc.id,
+      type: "series",
+      title: doc.title,
+      slug: doc.slug,
+      isOneshot: doc.isOneshot,
+      score: res.score,
+    };
+  });
+
+  // Buscar volúmenes
   const volumes = await prisma.mangaVolume.findMany({
     include: {
       series: true,
@@ -17,8 +54,8 @@ export async function GET(req) {
     },
   });
 
-  const docs = volumes.map((vol) => ({
-    id: vol.id,
+  const volumeDocs = volumes.map((vol) => ({
+    id: `volume-${vol.id}`,
     title: vol.metadataObj?.title || "",
     writer: vol.metadataObj?.writer || "",
     series: vol.metadataObj?.series || "",
@@ -26,35 +63,36 @@ export async function GET(req) {
     isOneshot: vol.series?.isOneshot ?? false,
   }));
 
-  // Creamos un "mapa" local para consultar después el documento completo por id
-  const docsMap = new Map(docs.map((doc) => [doc.id, doc]));
+  const volumesMap = new Map(volumeDocs.map((doc) => [doc.id, doc]));
 
-  const miniSearch = new MiniSearch({
+  const volumeSearch = new MiniSearch({
     fields: ["title", "writer", "series", "slug"],
     storeFields: ["id", "isOneshot"],
   });
 
-  miniSearch.addAll(docs);
+  volumeSearch.addAll(volumeDocs);
 
-  const results = miniSearch.search(query, {
+  const foundVolumes = volumeSearch.search(query, {
     prefix: true,
     fuzzy: 0.2,
   });
 
-  // Recuperamos los documentos completos usando docsMap
-  const enrichedResults = results.map((res) => {
-    const doc = docsMap.get(res.id);
+  const volumeResults = foundVolumes.map((res) => {
+    const doc = volumesMap.get(res.id);
     return {
       id: doc.id,
+      type: "volume",
       title: doc.title,
       writer: doc.writer,
       series: doc.series,
       slug: doc.slug,
       isOneshot: doc.isOneshot,
       score: res.score,
-      match: res.match,
     };
   });
 
-  return NextResponse.json(enrichedResults);
+  // Combinar resultados: series primero, luego volúmenes
+  const allResults = [...seriesResults, ...volumeResults];
+
+  return NextResponse.json(allResults);
 }

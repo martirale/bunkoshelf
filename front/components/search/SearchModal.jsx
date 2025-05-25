@@ -18,10 +18,8 @@ export default function SearchModal({ lang, intl }) {
         e.preventDefault();
         setOpen(true);
       } else if (e.key === "Escape") {
-        {
-          setOpen(false);
-          setQuery("");
-        }
+        setOpen(false);
+        setQuery("");
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -46,7 +44,7 @@ export default function SearchModal({ lang, intl }) {
         setLoading(false);
       })
       .catch((err) => {
-        if (err.name !== "AbortError") {
+        if (err.title !== "AbortError") {
           console.error(err);
           setLoading(false);
         }
@@ -56,6 +54,11 @@ export default function SearchModal({ lang, intl }) {
   }, [query]);
 
   if (!open) return null;
+
+  // Aquí filtro para no mostrar series que son oneshot
+  const filteredResults = results.filter(
+    (res) => !(res.type === "series" && res.isOneshot === true)
+  );
 
   return (
     <div
@@ -86,38 +89,58 @@ export default function SearchModal({ lang, intl }) {
           <p className="text-base mt-4 text-center">{intl.search.searching}</p>
         )}
 
-        {!loading && results.length === 0 && query.trim() && (
+        {!loading && filteredResults.length === 0 && query.trim() && (
           <p className="text-base mt-4 text-center">{intl.search.noResults}</p>
         )}
 
         <ul className="max-h-96 overflow-y-auto space-y-4">
-          {results.map(({ id, title, writer, series, slug, isOneshot }) => (
-            <li
-              key={id}
-              onClick={() => {
-                setOpen(false);
-                setQuery("");
-              }}
-              className="mt-4"
-            >
-              <Link href={`/${lang}/manga/volume/${slug}`}>
-                <div className="bg-sand rounded-lg px-4 py-2 cursor-pointer">
-                  <p className="font-bold truncate">{title}</p>
+          {filteredResults.map((res) => {
+            const isSeries = res.type === "series";
+            const href = isSeries
+              ? `/${lang}/manga/${res.slug}`
+              : `/${lang}/manga/volume/${res.slug}`;
 
-                  <p className="text-base truncate">
-                    {intl.search.author}: {writer || "Desconocido"}
-                  </p>
-                  {isOneshot ? (
-                    <p className="text-base truncate">Oneshot</p>
-                  ) : (
-                    <p className="text-base truncate">
-                      {intl.search.series}: {series}
-                    </p>
-                  )}
-                </div>
-              </Link>
-            </li>
-          ))}
+            return (
+              <li
+                key={res.id}
+                onClick={() => {
+                  setOpen(false);
+                  setQuery("");
+                }}
+                className="mt-4"
+              >
+                <Link href={href}>
+                  <div className="bg-sand rounded-lg px-4 py-2 cursor-pointer">
+                    <p className="font-bold truncate">{res.title}</p>
+
+                    {isSeries ? (
+                      <>
+                        <p className="text-base truncate">
+                          {intl.search.author}: {res.writer || "Desconocido"}
+                        </p>
+                        <p className="text-base truncate">
+                          {intl.search.series}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-base truncate">
+                          {intl.search.author}: {res.writer || "Desconocido"}
+                        </p>
+                        {res.isOneshot ? (
+                          <p className="text-base truncate">Oneshot</p>
+                        ) : (
+                          <p className="text-base truncate">
+                            {intl.search.series}: {res.series}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>
