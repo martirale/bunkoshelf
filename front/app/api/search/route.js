@@ -10,21 +10,43 @@ export async function GET(req) {
     return NextResponse.json([], { status: 200 });
   }
 
+  // Cargar todos los volúmenes primero para obtener escritores y metadata
+  const volumes = await prisma.mangaVolume.findMany({
+    include: {
+      series: true,
+      metadataObj: true,
+    },
+  });
+
+  // Crear un mapa seriesId -> primer writer encontrado en volúmenes
+  const writerBySeriesId = new Map();
+
+  for (const vol of volumes) {
+    const writer = vol.metadataObj?.writer?.trim();
+    if (writer) {
+      if (!writerBySeriesId.has(vol.seriesId)) {
+        writerBySeriesId.set(vol.seriesId, writer);
+      }
+    }
+  }
+
   // Buscar series
   const seriesList = await prisma.mangaSeries.findMany();
 
+  // Crear documentos de series, incluyendo writer tomado del mapa
   const seriesDocs = seriesList.map((s) => ({
     id: `series-${s.id}`,
     title: s.title,
     slug: s.slug,
     isOneshot: s.isOneshot,
+    writer: writerBySeriesId.get(s.id) || "",
   }));
 
   const seriesMap = new Map(seriesDocs.map((s) => [s.id, s]));
 
   const seriesSearch = new MiniSearch({
     fields: ["title"],
-    storeFields: ["id", "title", "slug", "isOneshot"],
+    storeFields: ["id", "title", "slug", "isOneshot", "writer"],
   });
 
   seriesSearch.addAll(seriesDocs);
@@ -42,18 +64,12 @@ export async function GET(req) {
       title: doc.title,
       slug: doc.slug,
       isOneshot: doc.isOneshot,
+      writer: doc.writer,
       score: res.score,
     };
   });
 
-  // Buscar volúmenes
-  const volumes = await prisma.mangaVolume.findMany({
-    include: {
-      series: true,
-      metadataObj: true,
-    },
-  });
-
+  // Crear documentos de volúmenes para búsqueda y resultados
   const volumeDocs = volumes.map((vol) => ({
     id: `volume-${vol.id}`,
     title: vol.metadataObj?.title || "",
