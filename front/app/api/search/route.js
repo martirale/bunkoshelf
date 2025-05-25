@@ -44,7 +44,7 @@ export async function GET(req) {
     slug: s.slug,
     isOneshot: s.isOneshot,
     writer: writerBySeriesId.get(s.id) || "",
-    series: seriesNameById.get(s.id) || s.title, // Aquí asignamos el nombre completo
+    series: seriesNameById.get(s.id) || s.title,
   }));
 
   const seriesMap = new Map(seriesDocs.map((s) => [s.id, s]));
@@ -113,8 +113,15 @@ export async function GET(req) {
     };
   });
 
-  // Combinar resultados: series primero, luego volúmenes
-  const allResults = [...seriesResults, ...volumeResults];
+  const allResults = [...seriesResults, ...volumeResults].sort((a, b) => {
+    const getPriority = (item) => {
+      if (item.type === "volume" && item.isOneshot) return 0;
+      if (item.type === "series") return 1;
+      return 2; // Volumen normal
+    };
+
+    return getPriority(a) - getPriority(b);
+  });
 
   return NextResponse.json(allResults);
 }
