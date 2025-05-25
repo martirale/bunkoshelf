@@ -137,7 +137,7 @@ export default function LibraryRowRecently({ lang, intl, maxItems = 12 }) {
                 cover={entry.coverImage}
                 intl={intl}
                 isDragging={isDragging}
-                className="font-roboto font-bold leading-5 2xl:leading-6 text-base 2xl:text-xl"
+                className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
               />
             </div>
           );

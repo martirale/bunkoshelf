@@ -158,7 +158,7 @@ export default function LibraryRowHeroManga({ lang, intl }) {
                     cover={entry.coverImage}
                     intl={intl}
                     isDragging={isDragging}
-                    className="font-roboto font-bold leading-5 2xl:leading-6 text-base 2xl:text-xl"
+                    className="font-roboto font-bold leading-5 2xl:leading-6 text-xl 2xl:text-2xl"
                   />
                 </div>
               );
