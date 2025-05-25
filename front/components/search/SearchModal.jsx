@@ -44,7 +44,7 @@ export default function SearchModal({ lang, intl }) {
         setLoading(false);
       })
       .catch((err) => {
-        if (err.title !== "AbortError") {
+        if (err.name !== "AbortError") {
           console.error(err);
           setLoading(false);
         }
