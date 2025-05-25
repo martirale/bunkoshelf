@@ -111,7 +111,11 @@ export default function SearchModal({ lang, intl }) {
               >
                 <Link href={href}>
                   <div className="bg-sand rounded-lg px-4 py-2 cursor-pointer">
-                    <p className="font-bold truncate">{res.title}</p>
+                    <p className="font-bold truncate">
+                      {res.type === "series"
+                        ? res.series || res.title
+                        : res.title}
+                    </p>
 
                     {isSeries ? (
                       <>

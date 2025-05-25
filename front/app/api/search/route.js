@@ -10,7 +10,7 @@ export async function GET(req) {
     return NextResponse.json([], { status: 200 });
   }
 
-  // Cargar todos los volúmenes primero para obtener escritores y metadata
+  // Cargar todos los volúmenes para obtener escritores y metadata
   const volumes = await prisma.mangaVolume.findMany({
     include: {
       series: true,
@@ -18,35 +18,40 @@ export async function GET(req) {
     },
   });
 
-  // Crear un mapa seriesId -> primer writer encontrado en volúmenes
+  // Crear mapas para writer y nombre completo (series) por seriesId
   const writerBySeriesId = new Map();
+  const seriesNameById = new Map();
 
   for (const vol of volumes) {
     const writer = vol.metadataObj?.writer?.trim();
-    if (writer) {
-      if (!writerBySeriesId.has(vol.seriesId)) {
-        writerBySeriesId.set(vol.seriesId, writer);
-      }
+    const seriesName = vol.metadataObj?.series?.trim();
+
+    if (writer && !writerBySeriesId.has(vol.seriesId)) {
+      writerBySeriesId.set(vol.seriesId, writer);
+    }
+    if (seriesName && !seriesNameById.has(vol.seriesId)) {
+      seriesNameById.set(vol.seriesId, seriesName);
     }
   }
 
   // Buscar series
   const seriesList = await prisma.mangaSeries.findMany();
 
-  // Crear documentos de series, incluyendo writer tomado del mapa
+  // Crear documentos de series, incluyendo writer y nombre completo de serie
   const seriesDocs = seriesList.map((s) => ({
     id: `series-${s.id}`,
     title: s.title,
     slug: s.slug,
     isOneshot: s.isOneshot,
     writer: writerBySeriesId.get(s.id) || "",
+    series: seriesNameById.get(s.id) || s.title, // Aquí asignamos el nombre completo
   }));
 
   const seriesMap = new Map(seriesDocs.map((s) => [s.id, s]));
 
   const seriesSearch = new MiniSearch({
     fields: ["title"],
-    storeFields: ["id", "title", "slug", "isOneshot", "writer"],
+    storeFields: ["id", "title", "slug", "isOneshot", "writer", "series"],
   });
 
   seriesSearch.addAll(seriesDocs);
@@ -65,6 +70,7 @@ export async function GET(req) {
       slug: doc.slug,
       isOneshot: doc.isOneshot,
       writer: doc.writer,
+      series: doc.series,
       score: res.score,
     };
   });
