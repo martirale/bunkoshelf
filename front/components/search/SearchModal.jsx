@@ -135,7 +135,7 @@ export default function SearchModal({ lang, intl }) {
                           <p className="text-base truncate">Oneshot</p>
                         ) : (
                           <p className="text-base truncate">
-                            {intl.search.series}: {res.series}
+                            {intl.search.volume}
                           </p>
                         )}
                       </>
