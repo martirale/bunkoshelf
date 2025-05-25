@@ -1,8 +1,8 @@
 import path from "path";
 import fs from "fs/promises";
 
-export async function GET(req, { params }) {
-  const segments = params.slug;
+export async function GET(req, context) {
+  const segments = context.params?.slug;
 
   if (!segments || !Array.isArray(segments) || segments.length === 0) {
     return new Response("Missing or invalid path", { status: 400 });
