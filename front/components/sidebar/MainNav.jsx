@@ -63,8 +63,8 @@ export default function MainNav({ intl }) {
             className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
               isLibrary
                 ? isManga
-                  ? "border-lilah bg-onix text-sand"
-                  : "border-ash bg-onix text-sand"
+                  ? "border-onix md:border-lilah bg-onix text-sand"
+                  : "border-onix md:border-ash bg-onix text-sand"
                 : "border-blackamber hover:border-pearl hover:bg-onix hover:text-pearl"
             } transition-all duration-300`}
           >
@@ -84,7 +84,7 @@ export default function MainNav({ intl }) {
                 href={`/${currentLang}/manga`}
                 className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
                   isManga
-                    ? "bg-onix text-lilah"
+                    ? "bg-onix text-sand md:text-lilah"
                     : "hover:bg-onix hover:text-pearl"
                 }`}
               >
@@ -94,7 +94,7 @@ export default function MainNav({ intl }) {
                 href={`/${currentLang}/books`}
                 className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
                   isBooks
-                    ? "bg-onix text-ash"
+                    ? "bg-onix text-sand md:text-ash"
                     : "hover:bg-onix hover:text-pearl"
                 }`}
               >
