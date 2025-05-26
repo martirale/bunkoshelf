@@ -5,8 +5,8 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const adminExists = await prisma.user.findUnique({
-      where: { username: "bunko" },
+    const adminExists = await prisma.user.findFirst({
+      where: { isAdmin: true },
     });
 
     if (!adminExists) {
