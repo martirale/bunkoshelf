@@ -9,6 +9,7 @@ import MainNav from "@/components/sidebar/MainNav";
 import AdminNav from "@/components/sidebar/AdminNav";
 import SecondNav from "@/components/sidebar/SecondNav";
 import FooterNav from "@/components/sidebar/FooterNav";
+import SearchInputMob from "@/components/search/SearchInputMob";
 
 export default function MobNavButton({ intl, user }) {
   const [open, setOpen] = useState(false);
@@ -40,10 +41,14 @@ export default function MobNavButton({ intl, user }) {
           <div className="flex-1">
             <MainNav intl={intl} />
             {user.isAdmin && <AdminNav intl={intl} />}
+
+            <div className="mt-2">
+              <SearchInputMob intl={intl} />
+            </div>
           </div>
         )}
 
-        <div className="mt-12 -mb-7">
+        <div className="mt-8 -mb-7">
           <FooterNav intl={intl} />
         </div>
       </Modal>
