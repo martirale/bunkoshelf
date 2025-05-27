@@ -43,8 +43,9 @@ export default function LibraryRowNext({ lang, intl, maxItems = 12 }) {
           })
           .sort((a, b) => a.volumeNumber - b.volumeNumber);
 
-        // Buscar el último leído
         const lastReadIndex = sorted.findIndex((v) => v.isRead);
+        if (lastReadIndex === -1) continue;
+
         let nextUnread = null;
 
         for (let i = lastReadIndex + 1; i < sorted.length; i++) {
