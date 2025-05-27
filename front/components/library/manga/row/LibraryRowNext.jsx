@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import MangaCard from "@/ui/library/manga/MangaCard";
-import { BookCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookMarked, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function LibraryRowNext({ lang, intl, maxItems = 12 }) {
   const scrollRef = useRef(null);
@@ -113,8 +113,8 @@ export default function LibraryRowNext({ lang, intl, maxItems = 12 }) {
     <section className="mt-8">
       <div className="flex justify-between items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg">
-          <BookCheck className="w-6 h-6 md:w-7 md:h-7 mr-2" />
-          Continúa la serie
+          <BookMarked className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+          {intl.libraries.inProgress}
         </h2>
         <div className="flex gap-4">
           <button
