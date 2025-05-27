@@ -110,7 +110,7 @@ export default function LibraryRowNext({ lang, intl, maxItems = 12 }) {
   };
 
   return (
-    <section className="mt-12">
+    <section className="mt-8">
       <div className="flex justify-between items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg">
           <BookCheck className="w-6 h-6 md:w-7 md:h-7 mr-2" />
