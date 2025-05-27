@@ -1,3 +1,5 @@
+import HomeRowKeepRead from "@/components/home/manga/HomeRowKeepRead";
+import HomeRowNewVol from "@/components/home/manga/HomeRowNewVol";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import AlertBox from "@/ui/AlertBox";
 
@@ -12,6 +14,16 @@ export default async function HomePage({ params }) {
         description={intl.toastDev.appDevelop}
         variant="warning"
       />
+
+      <div className="flex flex-col md:flex-row gap-4 md:pr-4">
+        <div className="w-full md:w-1/2">
+          <HomeRowKeepRead lang={lang} intl={intl} />
+        </div>
+
+        <div className="w-full md:w-1/2">
+          <HomeRowNewVol lang={lang} intl={intl} />
+        </div>
+      </div>
     </div>
   );
 }
