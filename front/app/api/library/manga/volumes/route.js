@@ -1,13 +1,27 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { verifySession } from "@/lib/auth/verifySession";
 
 export async function GET() {
   try {
+    const currentUser = await verifySession();
+
+    if (!currentUser) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const volumes = await prisma.mangaVolume.findMany({
       include: {
         series: true,
         metadataObj: true,
-        usersProgress: true,
+        usersProgress: {
+          where: {
+            userId: currentUser.id,
+          },
+        },
       },
     });
 
