@@ -30,7 +30,7 @@ export default function SearchInput({ intl }) {
       const isMac =
         navigator.userAgentData?.platform === "macOS" ||
         /Mac/i.test(navigator.userAgent);
-      setShortcut(isMac ? "Cmd+K" : "Ctrl+K");
+      setShortcut(isMac ? "⌘K" : "Ctrl+K");
     }
   }, []);
 
