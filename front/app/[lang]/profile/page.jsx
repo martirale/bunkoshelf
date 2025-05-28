@@ -1,5 +1,6 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { Bolt } from "lucide-react";
+import ReaderStatsPanel from "@/components/stats/ReaderStatsPanel";
 
 export default async function ProfilePage({ params }) {
   const { lang = "es" } = await params;
@@ -11,6 +12,9 @@ export default async function ProfilePage({ params }) {
         <Bolt className="w-7 h-7 mr-2" />
         {intl.profile.overview}
       </h2>
+
+      {/* User Stats */}
+      <ReaderStatsPanel intl={intl} />
     </>
   );
 }
