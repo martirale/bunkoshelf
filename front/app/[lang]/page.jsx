@@ -20,7 +20,7 @@ export default async function HomePage({ params }) {
       <ReaderStatsPanel intl={intl} />
 
       {/* Coming Up Manga */}
-      <div className="flex flex-col md:flex-row gap-4 md:pr-4">
+      <div className="flex flex-col md:flex-row gap-4">
         <div className="w-full md:w-1/2">
           <HomeRowKeepRead lang={lang} intl={intl} />
         </div>
