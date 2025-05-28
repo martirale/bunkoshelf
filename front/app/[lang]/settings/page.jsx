@@ -16,9 +16,7 @@ export default async function SettingsPage({ params }) {
         {intl.settings.overview}
       </h2>
 
-      <div className="flex items-center my-8">
-        <AdminStatsPanel />
-      </div>
+      <AdminStatsPanel />
 
       <h3 className="text-base mb-2">{intl.settings.infoServerTt}</h3>
       <p>{intl.settings.infoServerDesc}</p>

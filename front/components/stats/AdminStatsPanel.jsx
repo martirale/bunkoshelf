@@ -47,7 +47,7 @@ export default async function AdminStatsPanel() {
 
 function StatCard({ title, value }) {
   return (
-    <div className="rounded-lg bg-blackamber p-4 flex flex-col">
+    <div className="rounded-lg bg-blackamber p-4 mb-8 flex flex-col">
       <span className="text-sm uppercase">{title}</span>
       <div className="text-2xl font-bold mt-1">{value}</div>
     </div>
