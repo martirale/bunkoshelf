@@ -2,7 +2,6 @@ import HomeRowKeepRead from "@/components/home/manga/HomeRowKeepRead";
 import HomeRowNewVol from "@/components/home/manga/HomeRowNewVol";
 import ReaderStatsPanel from "@/components/stats/ReaderStatsPanel";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import AlertBox from "@/ui/AlertBox";
 
 export default async function HomePage({ params }) {
   const { lang = "es" } = await params;
@@ -10,12 +9,6 @@ export default async function HomePage({ params }) {
 
   return (
     <div className="p-4 mb-24">
-      <AlertBox
-        title={intl.toastDev.appDevelopTt}
-        description={intl.toastDev.appDevelop}
-        variant="warning"
-      />
-
       {/* User Stats */}
       <ReaderStatsPanel intl={intl} />
 

@@ -97,6 +97,12 @@ export default function FooterNav({ intl }) {
         </Link>
       )}
 
+      <AlertBox
+        title={intl.toastDev.appDevelopTt}
+        description={intl.toastDev.appDevelop}
+        variant="warning"
+      />
+
       <div className="flex justify-between items-center">
         <Link
           href={versionUrl}
