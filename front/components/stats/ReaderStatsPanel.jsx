@@ -1,4 +1,6 @@
+import React from "react";
 import { getReaderStats } from "@/lib/stats/readerStats";
+import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 
 export default async function ReaderStatsPanel() {
   const stats = await getReaderStats();
@@ -35,13 +37,15 @@ function StatCard({ title, value, trend }) {
       ? "text-red-500"
       : "text-gray-400";
 
-  const icon = trend === "up" ? "⬆" : trend === "down" ? "⬇" : "➖";
+  const IconComponent =
+    trend === "up" ? ArrowUp : trend === "down" ? ArrowDown : Minus;
 
   return (
     <div className="rounded-lg bg-blackamber p-4 flex flex-col">
       <span className="text-sm uppercase">{title}</span>
-      <div className="text-2xl font-bold mt-1">
-        {value} {trend && <span className={`${color} ml-2`}>{icon}</span>}
+      <div className="text-2xl font-bold mt-1 flex items-center">
+        {value}
+        {trend && <IconComponent className={`${color} ml-2`} size={20} />}
       </div>
     </div>
   );
