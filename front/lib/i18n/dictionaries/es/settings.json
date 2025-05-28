@@ -2,6 +2,10 @@
   "settings": {
     "title": "Ajustes",
     "overview": "Descripción general",
+    "totalVolumes": "Volúmenes totales",
+    "totalSeries": "Series totales",
+    "totalAddedMonth": "Añadidos este mes",
+    "totalUsers": "Usuarios totales",
     "infoServerTt": "Información del servidor",
     "infoServerDesc": "Detalles básicos de tu instancia de Bunko Shelf",
     "semVer": "Versión semántica",

@@ -2,6 +2,10 @@
   "settings": {
     "title": "Settings",
     "overview": "Overview",
+    "totalVolumes": "Total volumes",
+    "totalSeries": "Total series",
+    "totalAddedMonth": "Added this month",
+    "totalUsers": "Total users",
     "infoServerTt": "Server Information",
     "infoServerDesc": "Basic details of your Bunko Shelf instance",
     "semVer": "Semantic Version",
