@@ -50,7 +50,7 @@ function StatCard({ title, value, trend }) {
   return (
     <div className="rounded-lg bg-blackamber p-4 flex flex-col">
       <span className="text-sm uppercase">{title}</span>
-      <div className="font-boldonse text-base mt-1 flex items-center">
+      <div className="font-boldonse text-base md:text-2xl mt-2 flex items-center">
         {value}
         {trend && <IconComponent className={`${color} ml-2`} size={20} />}
       </div>
