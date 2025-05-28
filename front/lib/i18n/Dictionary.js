@@ -2,6 +2,7 @@ import "server-only";
 
 export const getDictionary = async (locale) => {
   const modules = await Promise.all([
+    import(`./dictionaries/${locale}/home.json`).then((m) => m.default),
     import(`./dictionaries/${locale}/misc.json`).then((m) => m.default),
     import(`./dictionaries/${locale}/login.json`).then((m) => m.default),
     import(`./dictionaries/${locale}/noauth.json`).then((m) => m.default),
