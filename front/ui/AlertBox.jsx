@@ -31,7 +31,7 @@ export default function AlertBox({ title, description, variant = "default" }) {
           <div className="pt-0.5">{icons[variant]}</div>
 
           <div className="text-left">
-            <p className="block text-base uppercase">{title}</p>
+            <p className="block text-base font-bold uppercase">{title}</p>
             {description && (
               <span className="block text-base mt-1">{description}</span>
             )}
