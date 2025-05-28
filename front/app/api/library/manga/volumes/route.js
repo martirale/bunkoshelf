@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth/verifySession";
+import { sortByPaddedTitle } from "@/lib/utils";
 
 export async function GET() {
   try {
@@ -13,7 +14,7 @@ export async function GET() {
       );
     }
 
-    const volumes = await prisma.mangaVolume.findMany({
+    let volumes = await prisma.mangaVolume.findMany({
       include: {
         series: true,
         metadataObj: true,
@@ -24,6 +25,9 @@ export async function GET() {
         },
       },
     });
+
+    // Ordena los volúmenes por su título numérico padded
+    volumes = sortByPaddedTitle(volumes);
 
     return NextResponse.json({ success: true, data: volumes });
   } catch (error) {
