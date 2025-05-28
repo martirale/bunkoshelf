@@ -23,6 +23,6 @@
   },
   "toastDev": {
     "appDevelopTt": "App in development",
-    "appDevelop": "This app is still in development and may not behave as expected"
+    "appDevelop": "Advanced Beta, may not work as you expect"
   }
 }
