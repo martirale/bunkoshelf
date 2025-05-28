@@ -52,7 +52,9 @@ function StatCard({ title, value }) {
   return (
     <div className="rounded-lg bg-blackamber p-4 mb-8 flex flex-col justify-between">
       <span className="text-sm uppercase">{title}</span>
-      <div className="font-boldonse text-base md:text-2xl mt-2">{value}</div>
+      <div className="font-boldonse text-base 2xl:text-2xl leading-7.5 mt-2">
+        {value}
+      </div>
     </div>
   );
 }

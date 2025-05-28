@@ -26,7 +26,26 @@ export default async function ReaderStatsPanel({ intl }) {
     percentageChange > 0 ? "up" : percentageChange < 0 ? "down" : "same";
 
   return (
-    <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <section className="grid grid-cols-2 md:grid-cols-6 gap-4">
+      <StatCard
+        title={intl.home.streak}
+        value={`${stats.streakDays} ${intl.home.days}`}
+      />
+      <StatCard
+        title={intl.home.lastRead}
+        value={
+          stats.lastReadDate
+            ? stats.lastReadDate.toLocaleDateString("es-MX", {
+                day: "numeric",
+                month: "short",
+                ...(stats.lastReadDate.getFullYear() !==
+                new Date().getFullYear()
+                  ? { year: "numeric" }
+                  : {}),
+              })
+            : intl.home.noActivity
+        }
+      />
       <StatCard title={intl.home.monthRead} value={currentMonth.totalRead} />
       <StatCard
         title={intl.home.daysRead}
@@ -56,7 +75,7 @@ function StatCard({ title, value, trend }) {
   return (
     <div className="rounded-lg bg-blackamber p-4 flex flex-col justify-between">
       <span className="text-sm uppercase">{title}</span>
-      <div className="font-boldonse text-base md:text-2xl mt-2 flex items-center">
+      <div className="font-boldonse text-base 2xl:text-2xl leading-7.5 mt-2 flex items-center">
         {value}
         {trend && <IconComponent className={`${color} ml-2`} size={20} />}
       </div>
