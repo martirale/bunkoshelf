@@ -48,7 +48,7 @@ function StatCard({ title, value, trend }) {
     trend === "up" ? ArrowUp : trend === "down" ? ArrowDown : Minus;
 
   return (
-    <div className="rounded-lg bg-blackamber p-4 flex flex-col">
+    <div className="rounded-lg bg-blackamber p-4 flex flex-col justify-between">
       <span className="text-sm uppercase">{title}</span>
       <div className="font-boldonse text-base md:text-2xl mt-2 flex items-center">
         {value}
