@@ -101,7 +101,7 @@ export default function FooterNav({ intl }) {
 
       <div className="mb-4">
         <Link
-          href="https://bunko.amlab.site/otros/desarrollo"
+          href="https://bunko.amlab.site/otros/roadmap"
           target="_blank"
           rel="noopener"
           className="text-pearl"
