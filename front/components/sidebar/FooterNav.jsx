@@ -89,19 +89,26 @@ export default function FooterNav({ intl }) {
   return (
     <>
       {updateAvailable && (
-        <Link href={changelogUrl} target="_blank" rel="noopener">
-          <AlertBox
-            title={`${intl.toastVersion.title} (${remoteVersion})`}
-            description={intl.toastVersion.description}
-          />
-        </Link>
+        <div className="mb-4">
+          <Link href={changelogUrl} target="_blank" rel="noopener">
+            <AlertBox
+              title={`${intl.toastVersion.title} (${remoteVersion})`}
+              description={intl.toastVersion.description}
+            />
+          </Link>
+        </div>
       )}
 
-      <AlertBox
-        title={intl.toastDev.appDevelopTt}
-        description={intl.toastDev.appDevelop}
-        variant="warning"
-      />
+      <div className="mb-4">
+        <Link
+          href="https://bunko.amlab.site/otros/desarrollo"
+          target="_blank"
+          rel="noopener"
+          className="text-pearl"
+        >
+          <AlertBox title={intl.toastDev.appDevelopTt} variant="warning" />
+        </Link>
+      </div>
 
       <div className="flex justify-between items-center">
         <Link

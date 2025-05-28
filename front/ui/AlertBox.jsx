@@ -9,11 +9,11 @@ import clsx from "clsx";
 
 export default function AlertBox({ title, description, variant = "default" }) {
   const variants = {
-    success: "bg-[#052514]",
-    warning: "bg-[#62420e]",
-    danger: "bg-[#610726]",
-    error: "bg-[#610726]",
-    default: "bg-[#292929]",
+    success: "bg-[#052514] border-[#052514] hover:border-[#17c964]",
+    warning: "bg-[#62420e] border-[#62420e] hover:border-[#f5a524]",
+    danger: "bg-[#610726] border-[#610726] hover:border-[#f54180]",
+    error: "bg-[#610726] border-[#610726] hover:border-[#f54180]",
+    default: "bg-[#292929] border-[#292929] hover:border-pearl",
   };
 
   const icons = {
@@ -25,8 +25,13 @@ export default function AlertBox({ title, description, variant = "default" }) {
   };
 
   return (
-    <div className="py-4">
-      <div className={clsx("rounded-lg p-4 w-full", variants[variant])}>
+    <>
+      <div
+        className={clsx(
+          "rounded-lg p-4 w-full border transition-all duration-300",
+          variants[variant]
+        )}
+      >
         <div className="flex items-start gap-3">
           <div className="pt-0.5">{icons[variant]}</div>
 
@@ -38,6 +43,6 @@ export default function AlertBox({ title, description, variant = "default" }) {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
