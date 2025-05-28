@@ -17,7 +17,7 @@ export default async function HomePage({ params }) {
       />
 
       {/* User Stats */}
-      <ReaderStatsPanel />
+      <ReaderStatsPanel intl={intl} />
 
       {/* Coming Up Manga */}
       <div className="flex flex-col md:flex-row gap-4 md:pr-4">
