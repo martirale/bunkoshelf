@@ -2,6 +2,7 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import { Bolt } from "lucide-react";
 import { getBuildInfo } from "@/lib/utils";
 import Link from "next/link";
+import AdminStatsPanel from "@/components/stats/AdminStatsPanel";
 
 export default async function SettingsPage({ params }) {
   const { lang = "es" } = await params;
@@ -14,6 +15,10 @@ export default async function SettingsPage({ params }) {
         <Bolt className="w-7 h-7 mr-2" />
         {intl.settings.overview}
       </h2>
+
+      <div className="flex items-center my-8">
+        <AdminStatsPanel />
+      </div>
 
       <h3 className="text-base mb-2">{intl.settings.infoServerTt}</h3>
       <p>{intl.settings.infoServerDesc}</p>
