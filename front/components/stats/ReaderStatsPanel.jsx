@@ -12,12 +12,18 @@ export default async function ReaderStatsPanel({ intl }) {
   const now = new Date();
   const daysInMonth = getDaysInMonth(now);
 
-  const diff = currentMonth.totalRead - previousMonth.totalRead;
-  const percentageChange = previousMonth.totalRead
-    ? Math.round((diff / previousMonth.totalRead) * 100)
-    : 100;
+  let percentageChange = 0;
+  if (previousMonth.totalRead === 0 && currentMonth.totalRead === 0) {
+    percentageChange = 0;
+  } else if (previousMonth.totalRead === 0) {
+    percentageChange = 100;
+  } else {
+    const diff = currentMonth.totalRead - previousMonth.totalRead;
+    percentageChange = Math.round((diff / previousMonth.totalRead) * 100);
+  }
 
-  const trend = diff > 0 ? "up" : diff < 0 ? "down" : "same";
+  const trend =
+    percentageChange > 0 ? "up" : percentageChange < 0 ? "down" : "same";
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
