@@ -9,7 +9,7 @@ export default async function HomePage({ params }) {
   const intl = await getDictionary(lang);
 
   return (
-    <div className="p-4">
+    <div className="p-4 mb-24">
       <AlertBox
         title={intl.toastDev.appDevelopTt}
         description={intl.toastDev.appDevelop}
