@@ -6,7 +6,7 @@ import {
   LibraryBig,
   ChevronDown,
   ChevronUp,
-  BookHeart,
+  Heart,
   UserRound,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -112,7 +112,7 @@ export default function MainNav({ intl }) {
               : `border-blackamber hover:bg-onix hover:text-pearl ${hoverBorder}`
           } transition-all duration-300`}
         >
-          <BookHeart className="w-5 h-5 mr-2" />
+          <Heart className="w-5 h-5 mr-2" />
           {intl.sidebar.favorites}
         </Link>
         <Link
