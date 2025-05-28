@@ -1,8 +1,12 @@
 {
   "home": {
-    "monthRead": "Read this month",
+    "monthRead": "Manga read this month",
     "daysRead": "Days read",
-    "mangaRead": "Read mangas",
-    "prevMonth": "Compared to the previous month"
+    "mangaRead": "Read mangas (total)",
+    "prevMonth": "Compared to prev month",
+    "streak": "Reading streak",
+    "days": "days",
+    "lastRead": "Last day read",
+    "noActivity": "No recent activity"
   }
 }
