@@ -32,15 +32,18 @@ async function getAdminStats() {
   };
 }
 
-export default async function AdminStatsPanel() {
+export default async function AdminStatsPanel({ intl }) {
   const stats = await getAdminStats();
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <StatCard title="Volúmenes totales" value={stats.totalVolumes} />
-      <StatCard title="Series totales" value={stats.totalSeries} />
-      <StatCard title="Añadidos este mes" value={stats.volumesAddedThisMonth} />
-      <StatCard title="Usuarios existentes" value={stats.totalUsers} />
+      <StatCard title={intl.settings.totalVolumes} value={stats.totalVolumes} />
+      <StatCard title={intl.settings.totalSeries} value={stats.totalSeries} />
+      <StatCard
+        title={intl.settings.totalAddedMonth}
+        value={stats.volumesAddedThisMonth}
+      />
+      <StatCard title={intl.settings.totalUsers} value={stats.totalUsers} />
     </section>
   );
 }
@@ -49,7 +52,7 @@ function StatCard({ title, value }) {
   return (
     <div className="rounded-lg bg-blackamber p-4 mb-8 flex flex-col">
       <span className="text-sm uppercase">{title}</span>
-      <div className="text-2xl font-bold mt-1">{value}</div>
+      <div className="font-boldonse text-base md:text-2xl mt-2">{value}</div>
     </div>
   );
 }
