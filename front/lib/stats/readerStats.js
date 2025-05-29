@@ -103,7 +103,11 @@ export async function getReaderStats() {
   let streak = 0;
   let current = startOfDay(now);
 
-  while (readDatesSet.has(current.toISOString())) {
+  const readDates = allReadDatesRaw.map((entry) =>
+    startOfDay(entry.lastReadAt)
+  );
+
+  while (readDates.some((date) => isSameDay(date, current))) {
     streak++;
     current = startOfDay(new Date(current.setDate(current.getDate() - 1)));
   }
