@@ -10,7 +10,7 @@ export default async function HomePage({ params }) {
   return (
     <div className="p-4 mb-24">
       {/* User Stats */}
-      <ReaderStatsPanel intl={intl} />
+      <ReaderStatsPanel lang={lang} intl={intl} />
 
       {/* Coming Up Manga */}
       <div className="flex flex-col md:flex-row gap-4">

@@ -3,7 +3,7 @@ import { getReaderStats } from "@/lib/stats/readerStats";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { getDaysInMonth } from "date-fns";
 
-export default async function ReaderStatsPanel({ intl }) {
+export default async function ReaderStatsPanel({ lang, intl }) {
   const stats = await getReaderStats();
   if (!stats) return null;
 
@@ -35,14 +35,15 @@ export default async function ReaderStatsPanel({ intl }) {
         title={intl.home.lastRead}
         value={
           stats.lastReadDate
-            ? stats.lastReadDate.toLocaleDateString("es-MX", {
+            ? new Intl.DateTimeFormat(lang, {
                 day: "numeric",
                 month: "short",
                 ...(stats.lastReadDate.getFullYear() !==
                 new Date().getFullYear()
                   ? { year: "numeric" }
                   : {}),
-              })
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              }).format(new Date(stats.lastReadDate))
             : intl.home.noActivity
         }
       />
