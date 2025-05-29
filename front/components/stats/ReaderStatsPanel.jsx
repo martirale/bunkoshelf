@@ -1,5 +1,6 @@
 import React from "react";
 import { getReaderStats } from "@/lib/stats/readerStats";
+import StatCardLastRead from "./StatCardLastRead";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { getDaysInMonth } from "date-fns";
 
@@ -31,21 +32,10 @@ export default async function ReaderStatsPanel({ lang, intl }) {
         title={intl.home.streak}
         value={`${stats.streakDays} ${intl.home.days}`}
       />
-      <StatCard
+      <StatCardLastRead
         title={intl.home.lastRead}
-        value={
-          stats.lastReadDate
-            ? new Intl.DateTimeFormat(lang, {
-                day: "numeric",
-                month: "short",
-                ...(stats.lastReadDate.getFullYear() !==
-                new Date().getFullYear()
-                  ? { year: "numeric" }
-                  : {}),
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-              }).format(new Date(stats.lastReadDate))
-            : intl.home.noActivity
-        }
+        date={stats.lastReadDate}
+        lang={lang}
       />
       <StatCard title={intl.home.monthRead} value={currentMonth.totalRead} />
       <StatCard
