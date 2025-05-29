@@ -27,7 +27,7 @@ export default async function ReaderStatsPanel({ lang, intl }) {
     percentageChange > 0 ? "up" : percentageChange < 0 ? "down" : "same";
 
   return (
-    <section className="grid grid-cols-2 md:grid-cols-6 gap-4">
+    <section className="grid grid-cols-2 md:grid-cols-3 mt-8 md:mt-11 gap-4">
       <StatCard
         title={intl.home.streak}
         value={`${stats.streakDays} ${intl.home.days}`}
@@ -64,9 +64,9 @@ function StatCard({ title, value, trend }) {
     trend === "up" ? ArrowUp : trend === "down" ? ArrowDown : Minus;
 
   return (
-    <div className="rounded-lg bg-blackamber p-4 flex flex-col justify-between">
-      <span className="text-sm uppercase">{title}</span>
-      <div className="font-boldonse text-base 2xl:text-2xl leading-7.5 mt-2 flex items-center">
+    <div className="rounded-lg bg-sand p-4 flex flex-col justify-between">
+      <span className="text-onix text-sm uppercase">{title}</span>
+      <div className="font-boldonse text-onix text-base 2xl:text-2xl leading-7.5 mt-2 flex items-center">
         {value}
         {trend && <IconComponent className={`${color} ml-2`} size={20} />}
       </div>

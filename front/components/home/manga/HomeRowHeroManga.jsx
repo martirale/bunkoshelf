@@ -3,10 +3,9 @@
 import { useRef, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import MangaCard from "@/ui/library/manga/MangaCard";
-import MangaNav from "@/ui/library/manga/MangaNav";
 import { LibraryBig, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function LibraryRowHeroManga({ lang, intl }) {
+export default function HomeRowHeroManga({ lang, intl }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -104,13 +103,13 @@ export default function LibraryRowHeroManga({ lang, intl }) {
   return (
     <>
       {!shouldHideHero && (
-        <section className="w-full p-4 bg-lilah">
+        <>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="flex items-center text-base md:text-lg">
+            <h2 className="text-onix flex items-center text-base md:text-lg">
               <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
               {intl.libraries.keepReading}
             </h2>
-            <div className="flex gap-4">
+            <div className="flex gap-4 text-onix">
               <button
                 onClick={() => scrollCards("left")}
                 className="cursor-pointer"
@@ -147,7 +146,7 @@ export default function LibraryRowHeroManga({ lang, intl }) {
               return (
                 <div
                   key={entry.slug}
-                  className="flex-shrink-0 w-1/2 md:w-1/4 2xl:w-1/5"
+                  className="flex-shrink-0 w-1/2 md:w-1/1 2xl:w-1/2"
                 >
                   <MangaCard
                     title={entry.meta?.title ?? entry.title}
@@ -158,15 +157,13 @@ export default function LibraryRowHeroManga({ lang, intl }) {
                     cover={entry.coverImage}
                     intl={intl}
                     isDragging={isDragging}
-                    className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
+                    className="font-roboto font-bold leading-5 2xl:leading-6 text-xl 2xl:text-2xl"
                   />
                 </div>
               );
             })}
           </div>
-
-          <MangaNav lang={lang} intl={intl} />
-        </section>
+        </>
       )}
     </>
   );
