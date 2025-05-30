@@ -1,6 +1,7 @@
 import React from "react";
 import { getReaderStats } from "@/lib/stats/readerStats";
 import StatCardLastRead from "./StatCardLastRead";
+import StatCardStreak from "./StatCardStreak";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { getDaysInMonth } from "date-fns";
 
@@ -33,9 +34,10 @@ export default async function ReaderStatsPanel({
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
-      <StatCard
+      <StatCardStreak
         title={intl.home.streak}
-        value={`${stats.streakDays} ${intl.home.days}`}
+        allReadDates={stats.allReadDates}
+        intl={intl}
         bgColor={bgColor}
         textColor={textColor}
       />
