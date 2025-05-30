@@ -13,20 +13,24 @@ export default function StatCardStreak({
   const streak = useMemo(() => {
     if (!allReadDates || allReadDates.length === 0) return 0;
 
-    // Normalizamos fechas a días únicos en local, usando Set de timestamps
-    const readDays = Array.from(
-      new Set(
-        allReadDates.map((dateStr) => startOfDay(new Date(dateStr)).getTime())
-      )
-    );
+    // Set de fechas leídas en string (ej: "2024-05-30")
+    const readDaySet = new Set(allReadDates);
 
     let streakCount = 0;
-    let current = startOfDay(new Date()).getTime();
+    let current = new Date();
 
-    while (readDays.includes(current)) {
-      streakCount++;
-      // retroceder un día (en ms)
-      current = subDays(new Date(current), 1).getTime();
+    while (true) {
+      const yyyy = current.getFullYear();
+      const mm = String(current.getMonth() + 1).padStart(2, "0");
+      const dd = String(current.getDate()).padStart(2, "0");
+      const currentStr = `${yyyy}-${mm}-${dd}`;
+
+      if (readDaySet.has(currentStr)) {
+        streakCount++;
+        current.setDate(current.getDate() - 1);
+      } else {
+        break;
+      }
     }
 
     return streakCount;

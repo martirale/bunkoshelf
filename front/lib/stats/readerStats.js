@@ -1,6 +1,6 @@
 import prisma from "../prisma";
 import { verifySession } from "../auth/verifySession";
-import { startOfMonth, endOfMonth, subMonths, startOfDay } from "date-fns";
+import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 
 export async function getReaderStats() {
   const user = await verifySession();
@@ -79,17 +79,30 @@ export async function getReaderStats() {
     }),
   ]);
 
-  // contar días únicos este mes (solo fecha en UTC)
+  // Formatea fecha a "YYYY-MM-DD" en zona local del servidor
+  function formatLocalDate(date) {
+    if (!date) return null;
+    const d = new Date(date);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  // Días únicos leídos este mes (formateados localmente)
   const uniqueDays = new Set(
     readDaysRaw
-      .map((entry) => entry.lastReadAt?.toISOString().slice(0, 10))
+      .map((entry) => formatLocalDate(entry.lastReadAt))
       .filter(Boolean)
   );
 
-  // última fecha leída
   const lastReadDate = allReadDatesRaw.length
     ? allReadDatesRaw[0].lastReadAt
     : null;
+
+  const allReadDates = allReadDatesRaw
+    .map((entry) => formatLocalDate(entry.lastReadAt))
+    .filter(Boolean);
 
   return {
     currentMonth: {
@@ -101,6 +114,6 @@ export async function getReaderStats() {
       totalRead: readLastMonth,
     },
     lastReadDate,
-    allReadDates: allReadDatesRaw.map((entry) => entry.lastReadAt),
+    allReadDates,
   };
 }
