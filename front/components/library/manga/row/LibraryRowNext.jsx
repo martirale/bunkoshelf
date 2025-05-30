@@ -17,7 +17,6 @@ export default function LibraryRowNext({ lang, intl, maxItems = 12 }) {
       const res = await fetch("/api/library/manga/volumes");
       const { data } = await res.json();
 
-      // Agrupamos los volúmenes por series
       const seriesMap = new Map();
 
       data.forEach((vol) => {
@@ -27,6 +26,17 @@ export default function LibraryRowNext({ lang, intl, maxItems = 12 }) {
       });
 
       const nextVolumes = [];
+
+      function prepVolume(vol) {
+        vol.coverImage = vol.coverImage
+          ? `/api/library/manga/cover${vol.coverImage
+              .replace(/\\/g, "/")
+              .replace(/^\/?covers/, "")}`
+          : null;
+        vol.meta = vol.metadataObj || null;
+        vol.isOneshot = vol.series?.isOneshot === true;
+        return vol;
+      }
 
       for (const [seriesId, volumes] of seriesMap.entries()) {
         const sorted = volumes
@@ -43,27 +53,32 @@ export default function LibraryRowNext({ lang, intl, maxItems = 12 }) {
           })
           .sort((a, b) => a.volumeNumber - b.volumeNumber);
 
-        const lastReadIndex = sorted.findIndex((v) => v.isRead);
-        if (lastReadIndex === -1) continue;
+        // Verificar si la serie está empezada
+        const hasStarted = sorted.some((v) => v.isRead || v.lastReadAt);
+        if (!hasStarted) {
+          // No se agregó la serie porque no ha sido empezada
+          continue;
+        }
 
+        // Encontrar índice del último volumen leído o empezado
+        const lastInteractedReversedIndex = [...sorted]
+          .reverse()
+          .findIndex((v) => v.isRead || v.lastReadAt);
+
+        const lastInteractedIndex =
+          sorted.length - 1 - lastInteractedReversedIndex;
+
+        // Buscar el siguiente volumen sin leer ni empezado
         let nextUnread = null;
-
-        for (let i = lastReadIndex + 1; i < sorted.length; i++) {
-          if (!sorted[i].isRead) {
+        for (let i = lastInteractedIndex + 1; i < sorted.length; i++) {
+          if (!sorted[i].isRead && !sorted[i].lastReadAt) {
             nextUnread = sorted[i];
             break;
           }
         }
 
         if (nextUnread) {
-          nextUnread.coverImage = nextUnread.coverImage
-            ? `/api/library/manga/cover${nextUnread.coverImage
-                .replace(/\\/g, "/")
-                .replace(/^\/?covers/, "")}`
-            : null;
-          nextUnread.meta = nextUnread.metadataObj || null;
-          nextUnread.isOneshot = nextUnread.series?.isOneshot === true;
-          nextVolumes.push(nextUnread);
+          nextVolumes.push(prepVolume(nextUnread));
         }
       }
 
