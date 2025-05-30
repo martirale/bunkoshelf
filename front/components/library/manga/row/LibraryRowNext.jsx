@@ -56,26 +56,11 @@ export default function LibraryRowNext({ lang, intl, maxItems = 12 }) {
         // Verificar si la serie está empezada
         const hasStarted = sorted.some((v) => v.isRead || v.lastReadAt);
         if (!hasStarted) {
-          // No se agregó la serie porque no ha sido empezada
           continue;
         }
 
-        // Encontrar índice del último volumen leído o empezado
-        const lastInteractedReversedIndex = [...sorted]
-          .reverse()
-          .findIndex((v) => v.isRead || v.lastReadAt);
-
-        const lastInteractedIndex =
-          sorted.length - 1 - lastInteractedReversedIndex;
-
-        // Buscar el siguiente volumen sin leer ni empezado
-        let nextUnread = null;
-        for (let i = lastInteractedIndex + 1; i < sorted.length; i++) {
-          if (!sorted[i].isRead && !sorted[i].lastReadAt) {
-            nextUnread = sorted[i];
-            break;
-          }
-        }
+        // Buscar el primer volumen sin leer ni empezado
+        const nextUnread = sorted.find((v) => !v.isRead && !v.lastReadAt);
 
         if (nextUnread) {
           nextVolumes.push(prepVolume(nextUnread));
