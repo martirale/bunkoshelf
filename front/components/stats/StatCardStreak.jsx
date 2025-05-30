@@ -13,18 +13,20 @@ export default function StatCardStreak({
   const streak = useMemo(() => {
     if (!allReadDates || allReadDates.length === 0) return 0;
 
-    // Convertir las fechas a startOfDay locales para comparar días enteros en zona horaria local
-    const readDays = allReadDates.map((dateStr) =>
-      startOfDay(new Date(dateStr))
+    // Normalizamos fechas a días únicos en local, usando Set de timestamps
+    const readDays = Array.from(
+      new Set(
+        allReadDates.map((dateStr) => startOfDay(new Date(dateStr)).getTime())
+      )
     );
 
     let streakCount = 0;
-    let current = startOfDay(new Date());
+    let current = startOfDay(new Date()).getTime();
 
-    while (readDays.some((day) => isSameDay(day, current))) {
+    while (readDays.includes(current)) {
       streakCount++;
-      // retroceder un día
-      current = startOfDay(new Date(current.getTime() - 24 * 60 * 60 * 1000));
+      // retroceder un día (en ms)
+      current = subDays(new Date(current), 1).getTime();
     }
 
     return streakCount;
