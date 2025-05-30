@@ -19,9 +19,9 @@ export default function StatCardLastRead({ date, title, lang }) {
   }, [date, lang]);
 
   return (
-    <div className="rounded-lg bg-sand p-4 flex flex-col justify-between">
+    <div className="h-[110px] rounded-lg bg-sand p-4 2xl:px-4 2xl:pt-4 2xl:pb-5 flex flex-col justify-between">
       <span className="text-onix text-sm uppercase">{title}</span>
-      <div className="font-boldonse text-onix text-base 2xl:text-2xl leading-7.5 mt-2 flex items-center">
+      <div className="font-boldonse text-onix 2xl:text-2xl leading-7.5 mt-2 flex items-center">
         {displayValue}
       </div>
     </div>
