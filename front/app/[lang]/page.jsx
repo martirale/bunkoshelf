@@ -14,7 +14,7 @@ export default async function HomePage({ params }) {
           <HomeRowHeroManga lang={lang} intl={intl} />
         </div>
 
-        <div className="w-full md:w-1/2 flex flex-col justify-between">
+        <div className="w-full md:w-1/2 flex flex-col justify-between mt-8 md:mt-11">
           <ReaderStatsPanel lang={lang} intl={intl} />
           <HomeRowNewVol lang={lang} intl={intl} />
         </div>

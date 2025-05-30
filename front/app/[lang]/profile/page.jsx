@@ -14,7 +14,11 @@ export default async function ProfilePage({ params }) {
       </h2>
 
       {/* User Stats */}
-      <ReaderStatsPanel intl={intl} />
+      <ReaderStatsPanel
+        intl={intl}
+        bgColor="bg-blackamber"
+        textColor="text-sand"
+      />
     </>
   );
 }

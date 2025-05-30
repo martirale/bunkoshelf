@@ -4,7 +4,12 @@ import StatCardLastRead from "./StatCardLastRead";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { getDaysInMonth } from "date-fns";
 
-export default async function ReaderStatsPanel({ lang, intl }) {
+export default async function ReaderStatsPanel({
+  lang,
+  intl,
+  bgColor = "bg-sand",
+  textColor = "text-onix",
+}) {
   const stats = await getReaderStats();
   if (!stats) return null;
 
@@ -27,32 +32,50 @@ export default async function ReaderStatsPanel({ lang, intl }) {
     percentageChange > 0 ? "up" : percentageChange < 0 ? "down" : "same";
 
   return (
-    <section className="grid grid-cols-2 md:grid-cols-3 mt-8 md:mt-11 gap-4">
+    <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
       <StatCard
         title={intl.home.streak}
         value={`${stats.streakDays} ${intl.home.days}`}
+        bgColor={bgColor}
+        textColor={textColor}
       />
       <StatCardLastRead
         title={intl.home.lastRead}
         date={stats.lastReadDate}
         lang={lang}
+        bgColor={bgColor}
+        textColor={textColor}
       />
-      <StatCard title={intl.home.monthRead} value={currentMonth.totalRead} />
+      <StatCard
+        title={intl.home.monthRead}
+        value={currentMonth.totalRead}
+        bgColor={bgColor}
+        textColor={textColor}
+      />
       <StatCard
         title={intl.home.daysRead}
         value={`${currentMonth.readDays} / ${daysInMonth}`}
+        bgColor={bgColor}
+        textColor={textColor}
       />
-      <StatCard title={intl.home.mangaRead} value={totalCompleted} />
+      <StatCard
+        title={intl.home.mangaRead}
+        value={totalCompleted}
+        bgColor={bgColor}
+        textColor={textColor}
+      />
       <StatCard
         title={intl.home.prevMonth}
         value={`${percentageChange}%`}
         trend={trend}
+        bgColor={bgColor}
+        textColor={textColor}
       />
     </section>
   );
 }
 
-function StatCard({ title, value, trend }) {
+function StatCard({ title, value, trend, bgColor, textColor }) {
   const color =
     trend === "up"
       ? "text-green-500"
@@ -64,9 +87,13 @@ function StatCard({ title, value, trend }) {
     trend === "up" ? ArrowUp : trend === "down" ? ArrowDown : Minus;
 
   return (
-    <div className="h-[110px] rounded-lg bg-sand p-4 2xl:px-4 2xl:pt-4 2xl:pb-5 flex flex-col justify-between">
-      <span className="text-onix text-sm uppercase">{title}</span>
-      <div className="font-boldonse text-onix 2xl:text-2xl leading-7.5 mt-2 flex items-center">
+    <div
+      className={`h-[110px] rounded-lg ${bgColor} p-4 2xl:px-4 2xl:pt-4 2xl:pb-5 flex flex-col justify-between`}
+    >
+      <span className={`${textColor} text-sm uppercase`}>{title}</span>
+      <div
+        className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
+      >
         {value}
         {trend && <IconComponent className={`${color} ml-2`} size={20} />}
       </div>
