@@ -9,12 +9,12 @@ export default async function HomePage({ params }) {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row p-4 mb-24 gap-4 bg-pearl">
+      <div className="flex flex-col md:flex-row p-4 mb-24 2xl:mb-0 gap-4 bg-pearl">
         <div className="w-full md:w-1/2">
           <HomeRowHeroManga lang={lang} intl={intl} />
         </div>
 
-        <div className="w-full md:w-1/2">
+        <div className="w-full md:w-1/2 flex flex-col justify-between">
           <ReaderStatsPanel lang={lang} intl={intl} />
           <HomeRowNewVol lang={lang} intl={intl} />
         </div>

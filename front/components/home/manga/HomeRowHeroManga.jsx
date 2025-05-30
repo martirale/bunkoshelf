@@ -56,7 +56,7 @@ export default async function HomeRowHeroManga({ lang, intl }) {
   const href = `/${lang}/manga/volume/${entry.slug}`;
 
   return (
-    <div className="flex-shrink-0 w-full md:w-1/1 2xl:w-1/2">
+    <div className="flex-shrink-0 w-full md:w-1/1 2xl:w-3/5">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-onix flex items-center text-base md:text-lg">
           <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
