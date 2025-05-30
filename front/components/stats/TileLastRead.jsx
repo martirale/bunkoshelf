@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-export default function StatCardLastRead({
+export default function TileLastRead({
   date,
   title,
   lang,

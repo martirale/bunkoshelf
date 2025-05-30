@@ -1,6 +1,6 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import LibraryGridSeriesFav from "@/components/library/manga/grid/LibraryGridSeriesFav";
-import LibraryGridVolumesFav from "@/components/library/manga/grid/LibraryGridVolumesFav";
+import SeriesIndexFav from "@/components/library/manga/grid/SeriesIndexFav";
+import VolumesIndexFav from "@/components/library/manga/grid/VolumesIndexFav";
 import { Heart } from "lucide-react";
 
 export default async function FavoritesPage({ params }) {
@@ -14,9 +14,9 @@ export default async function FavoritesPage({ params }) {
         {intl.favorites.title}
       </h1>
 
-      <LibraryGridSeriesFav lang={lang} intl={intl} />
+      <SeriesIndexFav lang={lang} intl={intl} />
 
-      <LibraryGridVolumesFav lang={lang} intl={intl} />
+      <VolumesIndexFav lang={lang} intl={intl} />
     </div>
   );
 }

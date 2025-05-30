@@ -2,9 +2,9 @@
 
 import { useRef, useEffect, useState } from "react";
 import MangaCard from "@/ui/library/manga/MangaCard";
-import { BookCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookPlus, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function LibraryRowRecently({ lang, intl, maxItems = 12 }) {
+export default function RowNewVols({ lang, intl, maxItems = 8 }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -13,37 +13,28 @@ export default function LibraryRowRecently({ lang, intl, maxItems = 12 }) {
   const hasDragged = useRef(false);
 
   useEffect(() => {
-    async function fetchRecentlyRead() {
+    async function fetchVolumes() {
       const res = await fetch("/api/library/manga/volumes");
       const { data } = await res.json();
 
-      const filtered = data
-        .map((vol) => {
-          const progress = vol.usersProgress?.[0] || null;
+      const sorted = data
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, maxItems)
+        .map((vol) => ({
+          ...vol,
+          isOneshot: vol.series?.isOneshot === true,
+          coverImage: vol.coverImage
+            ? `/api/library/manga/cover${vol.coverImage
+                .replace(/\\/g, "/")
+                .replace(/^\/?covers/, "")}`
+            : null,
+          meta: vol.metadataObj || null,
+        }));
 
-          return {
-            ...vol,
-            isOneshot: vol.series?.isOneshot === true,
-            coverImage: vol.coverImage
-              ? `/api/library/manga/cover${vol.coverImage
-                  .replace(/\\/g, "/")
-                  .replace(/^\/?covers/, "")}`
-              : null,
-            meta: vol.metadataObj || null,
-            isRead: progress?.isRead ?? false,
-            lastReadAt: progress?.lastReadAt
-              ? new Date(progress.lastReadAt)
-              : null,
-          };
-        })
-        .filter((vol) => vol.isRead && vol.lastReadAt)
-        .sort((a, b) => b.lastReadAt - a.lastReadAt)
-        .slice(0, maxItems);
-
-      setEntries(filtered);
+      setEntries(sorted);
     }
 
-    fetchRecentlyRead();
+    fetchVolumes();
   }, [maxItems]);
 
   const handleMouseDown = (e) => {
@@ -83,13 +74,13 @@ export default function LibraryRowRecently({ lang, intl, maxItems = 12 }) {
   };
 
   return (
-    <section className="mt-12">
+    <section className="mt-8">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="flex items-center text-base md:text-lg">
-          <BookCheck className="w-6 h-6 md:w-7 md:h-7 mr-2" />
-          {intl.libraries.recentlyRead}
+        <h2 className="flex items-center text-onix text-base md:text-lg">
+          <BookPlus className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+          {intl.libraries.recentlyAdded}
         </h2>
-        <div className="flex gap-4">
+        <div className="flex gap-4 text-onix">
           <button
             onClick={() => scrollCards("left")}
             className="cursor-pointer"
@@ -126,7 +117,7 @@ export default function LibraryRowRecently({ lang, intl, maxItems = 12 }) {
           return (
             <div
               key={entry.slug}
-              className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/7"
+              className="flex-shrink-0 w-1/2 md:w-2/5 2xl:w-1/4"
             >
               <MangaCard
                 title={entry.meta?.title ?? entry.title}

@@ -1,5 +1,5 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import LibraryGridSeries from "@/components/library/manga/grid/LibraryGridSeries";
+import SeriesIndex from "@/components/library/manga/grid/SeriesIndex";
 
 export default async function MangaSeriesPage({
   searchParams: _searchParams,
@@ -14,7 +14,7 @@ export default async function MangaSeriesPage({
 
   return (
     <section className="p-4 mb-24">
-      <LibraryGridSeries lang={lang} intl={intl} page={page} />
+      <SeriesIndex lang={lang} intl={intl} page={page} />
     </section>
   );
 }

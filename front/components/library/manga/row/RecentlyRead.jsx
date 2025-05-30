@@ -2,9 +2,9 @@
 
 import { useRef, useEffect, useState } from "react";
 import MangaCard from "@/ui/library/manga/MangaCard";
-import { BookPlus, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookCheck, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function HomeRowKeepRead({ lang, intl, maxItems = 8 }) {
+export default function RecentlyRead({ lang, intl, maxItems = 12 }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -13,7 +13,7 @@ export default function HomeRowKeepRead({ lang, intl, maxItems = 8 }) {
   const hasDragged = useRef(false);
 
   useEffect(() => {
-    async function fetchReadingProgress() {
+    async function fetchRecentlyRead() {
       const res = await fetch("/api/library/manga/volumes");
       const { data } = await res.json();
 
@@ -30,25 +30,20 @@ export default function HomeRowKeepRead({ lang, intl, maxItems = 8 }) {
                   .replace(/^\/?covers/, "")}`
               : null,
             meta: vol.metadataObj || null,
-            lastPage: progress?.lastPage ?? 0,
-            totalPages: progress?.totalPages ?? 0,
+            isRead: progress?.isRead ?? false,
             lastReadAt: progress?.lastReadAt
               ? new Date(progress.lastReadAt)
               : null,
           };
         })
-        .filter((vol) => {
-          if (!vol.lastReadAt) return false;
-          const notStarted = vol.lastPage === 0;
-          const alreadyFinished = vol.lastPage >= vol.totalPages - 1;
-          return !notStarted && !alreadyFinished;
-        })
-        .sort((a, b) => b.lastReadAt - a.lastReadAt);
+        .filter((vol) => vol.isRead && vol.lastReadAt)
+        .sort((a, b) => b.lastReadAt - a.lastReadAt)
+        .slice(0, maxItems);
 
       setEntries(filtered);
     }
 
-    fetchReadingProgress();
+    fetchRecentlyRead();
   }, [maxItems]);
 
   const handleMouseDown = (e) => {
@@ -91,8 +86,8 @@ export default function HomeRowKeepRead({ lang, intl, maxItems = 8 }) {
     <section className="mt-12">
       <div className="flex justify-between items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg">
-          <BookPlus className="w-6 h-6 md:w-7 md:h-7 mr-2" />
-          {intl.libraries.keepReading}
+          <BookCheck className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+          {intl.libraries.recentlyRead}
         </h2>
         <div className="flex gap-4">
           <button
@@ -131,7 +126,7 @@ export default function HomeRowKeepRead({ lang, intl, maxItems = 8 }) {
           return (
             <div
               key={entry.slug}
-              className="flex-shrink-0 w-1/2 md:w-2/5 2xl:w-1/4"
+              className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/7"
             >
               <MangaCard
                 title={entry.meta?.title ?? entry.title}

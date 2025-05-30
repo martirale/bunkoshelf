@@ -7,7 +7,7 @@ import Pagination from "@/ui/library/manga/Pagination";
 
 const PAGE_SIZE = 35;
 
-export default async function LibraryGridVolumes({ lang, intl, page = 1 }) {
+export default async function VolumesIndex({ lang, intl, page = 1 }) {
   const volumes = await prisma.mangaVolume.findMany({
     include: {
       series: true,

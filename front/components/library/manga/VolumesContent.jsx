@@ -4,7 +4,7 @@ import ReadButtonsVolume from "@/ui/library/manga/ReadButtonsVolume";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 
-export default function VolumeMangaContent({
+export default function VolumesContent({
   volumeData,
   lang,
   intl,

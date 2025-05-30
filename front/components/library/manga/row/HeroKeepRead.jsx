@@ -6,7 +6,7 @@ import MangaCard from "@/ui/library/manga/MangaCard";
 import MangaNav from "@/ui/library/manga/MangaNav";
 import { LibraryBig, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function LibraryRowHeroManga({ lang, intl }) {
+export default function HeroKeepRead({ lang, intl }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
   const [isDragging, setIsDragging] = useState(false);

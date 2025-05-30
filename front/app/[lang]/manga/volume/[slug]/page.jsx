@@ -1,4 +1,4 @@
-import VolumeMangaContent from "@/components/library/manga/VolumeMangaContent";
+import VolumesContent from "@/components/library/manga/VolumesContent";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import prisma from "@/lib/prisma";
@@ -89,7 +89,7 @@ export default async function VolumeMangaPage({ params }) {
     }
 
     return (
-      <VolumeMangaContent
+      <VolumesContent
         volumeData={normalizedVolume}
         lang={lang}
         intl={intl}

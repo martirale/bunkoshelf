@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { Ghost } from "lucide-react";
 
-export default async function LibraryGridVolumesFav({ lang, intl }) {
+export default async function VolumesIndexFav({ lang, intl }) {
   const user = await verifySession();
   if (!user) return null;
 

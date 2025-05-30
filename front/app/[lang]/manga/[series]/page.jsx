@@ -1,4 +1,4 @@
-import SerieMangaContent from "@/components/library/manga/SerieMangaContent";
+import SeriesContent from "@/components/library/manga/SeriesContent";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import prisma from "@/lib/prisma";
@@ -129,7 +129,7 @@ export default async function SeriesMangaPage({ params }) {
     }
 
     return (
-      <SerieMangaContent
+      <SeriesContent
         serieData={{ ...normalizedSerie, volumes: sortedVolumes }}
         lang={lang}
         intl={intl}

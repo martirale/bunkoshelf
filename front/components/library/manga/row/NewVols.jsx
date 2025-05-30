@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import MangaCard from "@/ui/library/manga/MangaCard";
 import { BookPlus, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function LibraryRowNewVol({ lang, intl, maxItems = 12 }) {
+export default function NewVols({ lang, intl, maxItems = 12 }) {
   const scrollRef = useRef(null);
   const [entries, setEntries] = useState([]);
   const [isDragging, setIsDragging] = useState(false);

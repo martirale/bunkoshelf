@@ -1,5 +1,5 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import LibraryGridVolumes from "@/components/library/manga/grid/LibraryGridVolumes";
+import VolumesIndex from "@/components/library/manga/grid/VolumesIndex";
 
 export default async function MangaVolumesPage({
   searchParams: _searchParams,
@@ -14,7 +14,7 @@ export default async function MangaVolumesPage({
 
   return (
     <section className="p-4 mb-24">
-      <LibraryGridVolumes lang={lang} intl={intl} page={page} />
+      <VolumesIndex lang={lang} intl={intl} page={page} />
     </section>
   );
 }

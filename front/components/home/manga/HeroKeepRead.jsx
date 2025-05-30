@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth/verifySession";
 import { sortByPaddedTitle } from "@/lib/utils";
 
-export default async function HomeRowHeroManga({ lang, intl }) {
+export default async function HeroKeepRead({ lang, intl }) {
   const currentUser = await verifySession();
 
   if (!currentUser) return null;

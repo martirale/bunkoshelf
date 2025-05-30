@@ -1,7 +1,7 @@
 import React from "react";
 import { getReaderStats } from "@/lib/stats/readerStats";
-import StatCardLastRead from "./StatCardLastRead";
-import StatCardStreak from "./StatCardStreak";
+import TileLastRead from "./TileLastRead";
+import TileStreak from "./TileStreak";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { getDaysInMonth } from "date-fns";
 
@@ -34,39 +34,39 @@ export default async function ReaderStatsPanel({
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
-      <StatCardStreak
+      <TileStreak
         title={intl.home.streak}
         allReadDates={stats.allReadDates}
         intl={intl}
         bgColor={bgColor}
         textColor={textColor}
       />
-      <StatCardLastRead
+      <TileLastRead
         title={intl.home.lastRead}
         date={stats.lastReadDate}
         lang={lang}
         bgColor={bgColor}
         textColor={textColor}
       />
-      <StatCard
+      <TileStat
         title={intl.home.monthRead}
         value={currentMonth.totalRead}
         bgColor={bgColor}
         textColor={textColor}
       />
-      <StatCard
+      <TileStat
         title={intl.home.daysRead}
         value={`${currentMonth.readDays} / ${daysInMonth}`}
         bgColor={bgColor}
         textColor={textColor}
       />
-      <StatCard
+      <TileStat
         title={intl.home.mangaRead}
         value={totalCompleted}
         bgColor={bgColor}
         textColor={textColor}
       />
-      <StatCard
+      <TileStat
         title={intl.home.prevMonth}
         value={`${percentageChange}%`}
         trend={trend}
@@ -77,7 +77,7 @@ export default async function ReaderStatsPanel({
   );
 }
 
-function StatCard({ title, value, trend, bgColor, textColor }) {
+function TileStat({ title, value, trend, bgColor, textColor }) {
   const color =
     trend === "up"
       ? "text-green-500"

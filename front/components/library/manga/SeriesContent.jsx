@@ -4,7 +4,7 @@ import ReadButtonsSeries from "@/ui/library/manga/ReadButtonsSeries";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 
-export default function SerieMangaContent({
+export default function SeriesContent({
   serieData,
   lang,
   intl,

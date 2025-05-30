@@ -2,7 +2,7 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import { Bolt } from "lucide-react";
 import { getBuildInfo } from "@/lib/utils";
 import Link from "next/link";
-import AdminStatsPanel from "@/components/stats/AdminStatsPanel";
+import AdminStatsPanel from "@/components/stats/AdminPanel";
 
 export default async function SettingsPage({ params }) {
   const { lang = "es" } = await params;

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { startOfDay, subDays, isSameDay } from "date-fns";
 
-export default function StatCardStreak({
+export default function TileStreak({
   allReadDates,
   title,
   intl,
