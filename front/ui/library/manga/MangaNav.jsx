@@ -23,8 +23,8 @@ export default function MangaNav({ lang, intl }) {
             className={`flex-1 md:flex-none md:basis-40 text-base md:text-lg text-center py-3 rounded-lg border uppercase
           ${
             isActive
-              ? "bg-heather border-pearl"
-              : "bg-lilah border-lilah hover:bg-heather hover:border-pearl"
+              ? "bg-royal border-pearl"
+              : "bg-lilah border-lilah hover:bg-royal hover:border-pearl"
           } transition-all duration-300`}
           >
             {label}
