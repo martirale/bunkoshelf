@@ -2,6 +2,7 @@ import React from "react";
 import { getReaderStats } from "@/lib/stats/readerStats";
 import TileLastRead from "./TileLastRead";
 import TileStreak from "./TileStreak";
+import TileDaysRead from "./TileDaysRead";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { getDaysInMonth } from "date-fns";
 
@@ -55,9 +56,9 @@ export default async function ReaderStatsPanel({
         bgColor={bgColor}
         textColor={textColor}
       />
-      <TileStat
+      <TileDaysRead
         title={intl.home.daysRead}
-        value={`${currentMonth.readDays} / ${daysInMonth}`}
+        readDays={currentMonth.readDays}
         bgColor={bgColor}
         textColor={textColor}
       />
