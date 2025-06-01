@@ -70,6 +70,8 @@ model MangaSeries {
   metadataObj   SeriesMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
   metadataId    String?         @unique
 
+  genres        SeriesToGenre[]
+
   usersProgress UserToSeries[]
 
   createdAt     DateTime        @default(now())
@@ -92,6 +94,9 @@ model MangaVolume {
   metadataObj   VolumeMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
   metadataId    String?         @unique
 
+  genres        VolumeToGenre[]
+  tags          VolumeToTag[]
+
   usersProgress UserToVolume[]
 
   createdAt     DateTime        @default(now())
@@ -109,7 +114,6 @@ model VolumeMetadata {
   count         Int?
 
   publisher     String?
-  genre         String?
   languageISO   String?
   ageRating     String?
 
@@ -124,7 +128,6 @@ model VolumeMetadata {
 
   summary       String?
   web           String?
-  tags          String?
 
   year          Int?
   month         Int?
@@ -155,4 +158,48 @@ model SeriesMetadata {
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+}
+
+// Genres and Tags
+model Genre {
+  id       Int             @id @default(autoincrement())
+  name     String          @unique
+  volumes  VolumeToGenre[]
+  series   SeriesToGenre[]
+}
+
+model Tag {
+  id       Int             @id @default(autoincrement())
+  name     String          @unique
+  volumes  VolumeToTag[]
+}
+
+model VolumeToGenre {
+  id        Int            @id @default(autoincrement())
+  volume    MangaVolume    @relation(fields: [volumeId], references: [id])
+  volumeId  Int
+  genre     Genre          @relation(fields: [genreId], references: [id])
+  genreId   Int
+
+  @@unique([volumeId, genreId])
+}
+
+model VolumeToTag {
+  id        Int            @id @default(autoincrement())
+  volume    MangaVolume    @relation(fields: [volumeId], references: [id])
+  volumeId  Int
+  tag       Tag            @relation(fields: [tagId], references: [id])
+  tagId     Int
+
+  @@unique([volumeId, tagId])
+}
+
+model SeriesToGenre {
+  id        Int            @id @default(autoincrement())
+  series    MangaSeries    @relation(fields: [seriesId], references: [id])
+  seriesId  Int
+  genre     Genre          @relation(fields: [genreId], references: [id])
+  genreId   Int
+
+  @@unique([seriesId, genreId])
 }
