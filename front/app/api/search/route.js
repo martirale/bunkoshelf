@@ -10,11 +10,21 @@ export async function GET(req) {
     return NextResponse.json([], { status: 200 });
   }
 
-  // Cargar todos los volúmenes para obtener escritores y metadata
+  // Cargar todos los volúmenes para obtener escritores, metadata, géneros y etiquetas
   const volumes = await prisma.mangaVolume.findMany({
     include: {
       series: true,
       metadataObj: true,
+      genres: {
+        include: {
+          genre: true,
+        },
+      },
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
     },
   });
 
@@ -76,19 +86,36 @@ export async function GET(req) {
   });
 
   // Crear documentos de volúmenes para búsqueda y resultados
-  const volumeDocs = volumes.map((vol) => ({
-    id: `volume-${vol.id}`,
-    title: vol.metadataObj?.title || "",
-    writer: vol.metadataObj?.writer || "",
-    series: vol.metadataObj?.series || "",
-    slug: vol.slug,
-    isOneshot: vol.series?.isOneshot ?? false,
-  }));
+  const volumeDocs = volumes.map((vol) => {
+    // Extraer géneros y etiquetas como arrays de strings
+    const genreNames = Array.isArray(vol.genres)
+      ? vol.genres
+          .map((g) => (g.genre?.name ? g.genre.name.trim() : null))
+          .filter(Boolean)
+      : [];
+
+    const tagNames = Array.isArray(vol.tags)
+      ? vol.tags
+          .map((t) => (t.tag?.name ? t.tag.name.trim() : null))
+          .filter(Boolean)
+      : [];
+
+    return {
+      id: `volume-${vol.id}`,
+      title: vol.metadataObj?.title || "",
+      writer: vol.metadataObj?.writer || "",
+      series: vol.metadataObj?.series || "",
+      slug: vol.slug,
+      isOneshot: vol.series?.isOneshot ?? false,
+      genres: genreNames.join(", "),
+      tags: tagNames.join(", "),
+    };
+  });
 
   const volumesMap = new Map(volumeDocs.map((doc) => [doc.id, doc]));
 
   const volumeSearch = new MiniSearch({
-    fields: ["title", "writer", "series", "slug"],
+    fields: ["title", "writer", "series", "slug", "genres", "tags"],
     storeFields: ["id", "isOneshot"],
   });
 
@@ -110,6 +137,8 @@ export async function GET(req) {
       slug: doc.slug,
       isOneshot: doc.isOneshot,
       score: res.score,
+      genres: doc.genres,
+      tags: doc.tags,
     };
   });
 

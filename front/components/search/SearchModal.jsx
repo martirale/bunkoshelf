@@ -12,6 +12,38 @@ export default function SearchModal({ lang, intl }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Función para juntar géneros o tags de volúmenes que pertenezcan a la serie
+  function getGenresAndTagsForSeries(seriesSlug) {
+    // Filtra volúmenes que tengan series igual a esta serieSlug
+    const relatedVolumes = results.filter(
+      (r) => r.type === "volume" && r.series && r.series === seriesSlug
+    );
+
+    // Extraer géneros y etiquetas únicos
+    const genresSet = new Set();
+    const tagsSet = new Set();
+
+    relatedVolumes.forEach((vol) => {
+      if (vol.genres) {
+        vol.genres
+          .split(",")
+          .map((g) => g.trim())
+          .forEach((g) => g && genresSet.add(g));
+      }
+      if (vol.tags) {
+        vol.tags
+          .split(",")
+          .map((t) => t.trim())
+          .forEach((t) => t && tagsSet.add(t));
+      }
+    });
+
+    return {
+      genres: Array.from(genresSet).join(", "),
+      tags: Array.from(tagsSet).join(", "),
+    };
+  }
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -100,6 +132,18 @@ export default function SearchModal({ lang, intl }) {
               ? `/${lang}/manga/${res.slug}`
               : `/${lang}/manga/volume/${res.slug}`;
 
+            // Obtener géneros y tags para series (porque no vienen directos)
+            let genres = res.genres || "";
+            let tags = res.tags || "";
+
+            if (isSeries) {
+              const combined = getGenresAndTagsForSeries(
+                res.series || res.slug
+              );
+              genres = combined.genres;
+              tags = combined.tags;
+            }
+
             return (
               <li
                 key={res.id}
@@ -112,33 +156,57 @@ export default function SearchModal({ lang, intl }) {
                 <Link href={href}>
                   <div className="bg-sand rounded-lg px-4 py-2 cursor-pointer">
                     <p className="font-bold truncate">
-                      {res.type === "series"
-                        ? res.series || res.title
-                        : res.title}
+                      {isSeries ? res.series || res.title : res.title}
+                    </p>
+
+                    <p className="text-base truncate">
+                      {intl.search.author}: {res.writer || "Desconocido"}
                     </p>
 
                     {isSeries ? (
-                      <>
-                        <p className="text-base truncate">
-                          {intl.search.author}: {res.writer || "Desconocido"}
+                      genres || tags ? (
+                        <p className="text-base truncate capitalize">
+                          {intl.search.series}{" "}
+                          <span className="capitalize">
+                            {genres && <>&bull; {genres} </>}
+                            {tags && (
+                              <>
+                                {genres ? " \u2022 " : " \u2022 "} {tags}
+                              </>
+                            )}
+                          </span>
                         </p>
-                        <p className="text-base truncate">
-                          {intl.search.series}
+                      ) : null
+                    ) : res.isOneshot ? (
+                      genres || tags ? (
+                        <p className="text-base truncate capitalize">
+                          Oneshot{" "}
+                          <span className="capitalize">
+                            {genres && <>&bull; {genres} </>}
+                            {tags && (
+                              <>
+                                {genres ? " \u2022 " : " \u2022 "} {tags}
+                              </>
+                            )}
+                          </span>
                         </p>
-                      </>
+                      ) : (
+                        <p className="text-base truncate">Oneshot</p>
+                      )
+                    ) : genres || tags ? (
+                      <p className="text-base truncate capitalize">
+                        {intl.search.volume}{" "}
+                        <span className="capitalize">
+                          {genres && <>&bull; {genres} </>}
+                          {tags && (
+                            <>
+                              {genres ? " \u2022 " : " \u2022 "} {tags}
+                            </>
+                          )}
+                        </span>
+                      </p>
                     ) : (
-                      <>
-                        <p className="text-base truncate">
-                          {intl.search.author}: {res.writer || "Desconocido"}
-                        </p>
-                        {res.isOneshot ? (
-                          <p className="text-base truncate">Oneshot</p>
-                        ) : (
-                          <p className="text-base truncate">
-                            {intl.search.volume}
-                          </p>
-                        )}
-                      </>
+                      <p className="text-base truncate">{intl.search.volume}</p>
                     )}
                   </div>
                 </Link>
