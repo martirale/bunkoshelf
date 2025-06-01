@@ -17,6 +17,16 @@ export default async function VolumeMangaPage({ params }) {
       include: {
         series: true,
         metadataObj: true,
+        genres: {
+          include: {
+            genre: true,
+          },
+        },
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
       },
     });
 
@@ -35,14 +45,20 @@ export default async function VolumeMangaPage({ params }) {
       );
     }
 
-    const meta = volumeEntry.metadataObj || null;
-
-    const normalizedMeta = {
-      ...meta,
-      genreArray: meta?.genre
-        ? meta.genre.split(",").map((g) => capitalize(g))
+    const meta = {
+      ...(volumeEntry.metadataObj || null),
+      genres: Array.isArray(volumeEntry.genres)
+        ? volumeEntry.genres
+            .map((g) =>
+              g.genre?.name ? { name: capitalize(g.genre.name) } : null
+            )
+            .filter(Boolean)
         : [],
-      tagsArray: meta?.tags ? meta.tags.split(",").map((t) => t.trim()) : [],
+      tags: Array.isArray(volumeEntry.tags)
+        ? volumeEntry.tags
+            .map((t) => (t.tag?.name ? { name: t.tag.name.trim() } : null))
+            .filter(Boolean)
+        : [],
     };
 
     // Normalizar la portada
@@ -53,7 +69,7 @@ export default async function VolumeMangaPage({ params }) {
             .replace(/\\/g, "/")
             .replace(/^\/?covers/, "")}`
         : null,
-      meta: normalizedMeta,
+      meta,
     };
 
     let isFavorite = false;

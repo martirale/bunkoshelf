@@ -38,6 +38,12 @@ function aggregateMetadata(volumes) {
   return result;
 }
 
+function capitalize(text) {
+  return (
+    text.trim().charAt(0).toUpperCase() + text.trim().slice(1).toLowerCase()
+  );
+}
+
 export default async function SeriesMangaPage({ params }) {
   const { lang = "es", series } = await params;
   const intl = await getDictionary(lang);
@@ -53,6 +59,16 @@ export default async function SeriesMangaPage({ params }) {
         volumes: {
           include: {
             metadataObj: true,
+            genres: {
+              include: {
+                genre: true,
+              },
+            },
+            tags: {
+              include: {
+                tag: true,
+              },
+            },
           },
         },
       },
@@ -66,13 +82,6 @@ export default async function SeriesMangaPage({ params }) {
       );
     }
 
-    // Ayudante para capitalizar
-    function capitalize(text) {
-      return (
-        text.trim().charAt(0).toUpperCase() + text.trim().slice(1).toLowerCase()
-      );
-    }
-
     // Normalizar la portada y los volúmenes
     const normalizedSerie = {
       ...serie,
@@ -83,7 +92,23 @@ export default async function SeriesMangaPage({ params }) {
         : null,
       volumes:
         serie.volumes?.map((vol) => {
-          const meta = vol.metadataObj || null;
+          const meta = {
+            ...(vol.metadataObj || null),
+            genres: Array.isArray(vol.genres)
+              ? vol.genres
+                  .map((g) =>
+                    g.genre?.name ? { name: capitalize(g.genre.name) } : null
+                  )
+                  .filter(Boolean)
+              : [],
+            tags: Array.isArray(vol.tags)
+              ? vol.tags
+                  .map((t) =>
+                    t.tag?.name ? { name: t.tag.name.trim() } : null
+                  )
+                  .filter(Boolean)
+              : [],
+          };
 
           return {
             ...vol,
@@ -92,17 +117,7 @@ export default async function SeriesMangaPage({ params }) {
                   .replace(/\\/g, "/")
                   .replace(/^\/?covers/, "")}`
               : null,
-            meta: {
-              ...meta,
-              genreArray: meta?.genre
-                ? meta.genre
-                    .split(",")
-                    .map((g) => g.trim().replace(/^\w/, (c) => c.toUpperCase()))
-                : [],
-              tagsArray: meta?.tags
-                ? meta.tags.split(",").map((t) => t.trim())
-                : [],
-            },
+            meta,
           };
         }) ?? [],
     };

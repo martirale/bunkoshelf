@@ -202,36 +202,36 @@ export default function VolumesContent({
           )}
 
           {/* Classification */}
-          {meta.genreArray.length > 0 && (
+          {meta.genres.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl mt-8">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.genre}
               </p>
               <div className="w-2/3 md:w-4/5 flex flex-wrap gap-1">
-                {meta.genreArray.map((genre, idx) => (
+                {meta.genres.map((genre, idx) => (
                   <span
                     key={idx}
                     className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1"
                   >
-                    {genre}
+                    {genre.name}
                   </span>
                 ))}
               </div>
             </div>
           )}
 
-          {meta.tagsArray && (
+          {meta.tags.length > 0 && (
             <div className="flex flex-row items-baseline max-w-3xl mt-1">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.tags}
               </p>
               <div className="w-2/3 md:w-4/5 flex flex-wrap gap-1">
-                {meta.tagsArray.map((tag, idx) => (
+                {meta.tags.map((tag, idx) => (
                   <span
                     key={idx}
                     className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1"
                   >
-                    {tag}
+                    {tag.name}
                   </span>
                 ))}
               </div>
