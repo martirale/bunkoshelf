@@ -5,7 +5,6 @@ import TileStreak from "./TileStreak";
 import TileDaysRead from "./TileDaysRead";
 import TileMonthRead from "./TileMonthRead";
 import TileMonthTrend from "./TileMonthTrend";
-import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 
 export default async function ReaderStatsPanel({
   lang,
@@ -77,17 +76,7 @@ export default async function ReaderStatsPanel({
   );
 }
 
-function TileStat({ title, value, trend, bgColor, textColor }) {
-  const color =
-    trend === "up"
-      ? "text-green-500"
-      : trend === "down"
-      ? "text-red-500"
-      : "text-gray-400";
-
-  const IconComponent =
-    trend === "up" ? ArrowUp : trend === "down" ? ArrowDown : Minus;
-
+function TileStat({ title, value, bgColor, textColor }) {
   return (
     <div
       className={`h-[110px] rounded-lg ${bgColor} p-4 2xl:px-4 2xl:pt-4 2xl:pb-5 flex flex-col justify-between`}
@@ -97,7 +86,6 @@ function TileStat({ title, value, trend, bgColor, textColor }) {
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
         {value}
-        {trend && <IconComponent className={`${color} ml-2`} size={20} />}
       </div>
     </div>
   );
