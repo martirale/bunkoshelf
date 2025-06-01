@@ -10,6 +10,7 @@ export default async function ReaderStatsPanel({
   intl,
   bgColor = "bg-sand",
   textColor = "text-onix",
+  mdCols,
 }) {
   const stats = await getReaderStats();
   if (!stats) return null;
@@ -33,7 +34,7 @@ export default async function ReaderStatsPanel({
     percentageChange > 0 ? "up" : percentageChange < 0 ? "down" : "same";
 
   return (
-    <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <section className={`grid grid-cols-2 ${mdCols} gap-4`}>
       <TileStreak
         title={intl.home.streak}
         allReadDates={stats.allReadDates}

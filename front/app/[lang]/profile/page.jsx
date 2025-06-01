@@ -18,6 +18,7 @@ export default async function ProfilePage({ params }) {
         intl={intl}
         bgColor="bg-blackamber"
         textColor="text-sand"
+        mdCols="md:grid-cols-3 2xl:grid-cols-6"
       />
     </>
   );

@@ -16,7 +16,9 @@ export default async function SettingsPage({ params }) {
         {intl.settings.overview}
       </h2>
 
-      <AdminStatsPanel intl={intl} />
+      <div className="mb-12">
+        <AdminStatsPanel intl={intl} />
+      </div>
 
       <h3 className="text-base mb-2">{intl.settings.infoServerTt}</h3>
       <p>{intl.settings.infoServerDesc}</p>

@@ -11,7 +11,7 @@ export default async function ProfilePage({ children, params }) {
   const user = await verifySession();
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row">
       <SidebarMisc>
         {!user || !user.name ? (
           <h2 className="flex items-center text-onix">
@@ -28,7 +28,7 @@ export default async function ProfilePage({ children, params }) {
         <ProfileNav intl={intl} />
       </SidebarMisc>
 
-      <div className="w-full md:w-8/12 2xl:w-9/12 p-4">{children}</div>
+      <div className="w-full md:w-8/12 2xl:w-9/12 p-4 mb-24">{children}</div>
     </div>
   );
 }

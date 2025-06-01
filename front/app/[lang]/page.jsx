@@ -15,7 +15,7 @@ export default async function HomePage({ params }) {
         </div>
 
         <div className="w-full md:w-1/2 flex flex-col justify-between mt-8 md:mt-11">
-          <ReaderStatsPanel lang={lang} intl={intl} />
+          <ReaderStatsPanel lang={lang} intl={intl} mdCols="md:grid-cols-3" />
           <RowNewVols lang={lang} intl={intl} />
         </div>
       </div>
