@@ -7,6 +7,7 @@
     "streak": "Reading streak",
     "days": "days",
     "lastRead": "Last day read",
-    "noActivity": "No recent activity"
+    "noActivity": "No recent activity",
+    "goToProfile": "Go To Profile"
   }
 }

@@ -24,7 +24,7 @@ export default async function HomePage({ params }) {
                 href={`/${lang}/profile`}
                 className="w-max flex items-center text-base text-pearl group-hover:text-onix hover:underline transition-all duration-300"
               >
-                Ir al perfil
+                {intl.home.goToProfile}
                 <ChevronRight className="w-5 h-5 ml-1" />
               </Link>
             </div>
