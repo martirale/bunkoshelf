@@ -16,7 +16,7 @@ export default function SettingsNav({ intl }) {
 
   return (
     <>
-      <div className="border-t border-sand mt-16 mb-2"></div>
+      <div className="border-t border-sand mt-4 md:mt-16 mb-2"></div>
       <div className="md:space-y-2 md:block flex gap-1">
         <Link
           href={`/${currentLang}/settings`}

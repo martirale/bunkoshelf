@@ -17,7 +17,7 @@ export default function ProfileNav({ intl }) {
 
   return (
     <>
-      <div className="border-t border-sand mt-16 mb-2"></div>
+      <div className="border-t border-sand mt-4 md:mt-16 mb-2"></div>
       <div className={clsx("md:space-y-2", "flex md:block gap-2")}>
         <Link
           href={`/${currentLang}/profile`}
