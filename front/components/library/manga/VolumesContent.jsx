@@ -62,7 +62,10 @@ export default function VolumesContent({
             {meta.title}
           </h1>
           {!isOneshot && (
-            <Link href={`/${lang}/manga/${seriesSlug}`} className="italic">
+            <Link
+              href={`/${lang}/manga/${seriesSlug}`}
+              className="italic hover:underline"
+            >
               {intl.manga.series} {meta.series || seriesTitle}
             </Link>
           )}
