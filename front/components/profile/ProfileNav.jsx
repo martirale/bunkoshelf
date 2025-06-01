@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Bolt, UserRoundPen } from "lucide-react";
 import { usePathname, useParams } from "next/navigation";
+import clsx from "clsx";
 
 export default function ProfileNav({ intl }) {
   // Lang options
@@ -17,24 +18,29 @@ export default function ProfileNav({ intl }) {
   return (
     <>
       <div className="border-t border-sand mt-16 mb-2"></div>
-      <div className="space-y-2">
+      <div className={clsx("md:space-y-2", "flex md:block gap-2")}>
         <Link
           href={`/${currentLang}/profile`}
-          className={`flex items-center p-4 rounded-lg leading-none text-onix ${
-            isProfile ? "bg-sand" : `hover:bg-sand`
-          } transition-all duration-300`}
+          className={clsx(
+            "flex items-center p-4 rounded-lg leading-none text-onix transition-all duration-300",
+            isProfile ? "bg-sand" : "hover:bg-sand",
+            "flex-col md:flex-row justify-center md:justify-start w-full"
+          )}
         >
-          <Bolt className="w-5 h-5 mr-2" />
-          {intl.settings.overview}
+          <Bolt className="w-5 h-5 md:mr-2" />
+          <span className="hidden md:inline">{intl.settings.overview}</span>
         </Link>
+
         <Link
           href={`/${currentLang}/profile/update`}
-          className={`flex items-center p-4 rounded-lg leading-none text-onix ${
-            isProfileUpdate ? "bg-sand" : `hover:bg-sand`
-          } transition-all duration-300`}
+          className={clsx(
+            "flex items-center p-4 rounded-lg leading-none text-onix transition-all duration-300",
+            isProfileUpdate ? "bg-sand" : "hover:bg-sand",
+            "flex-col md:flex-row justify-center md:justify-start w-full"
+          )}
         >
-          <UserRoundPen className="w-5 h-5 mr-2" />
-          {intl.profile.updateProfile}
+          <UserRoundPen className="w-5 h-5 md:mr-2" />
+          <span className="hidden md:inline">{intl.profile.updateProfile}</span>
         </Link>
       </div>
     </>
