@@ -3,8 +3,9 @@ import { getReaderStats } from "@/lib/stats/readerStats";
 import TileLastRead from "./TileLastRead";
 import TileStreak from "./TileStreak";
 import TileDaysRead from "./TileDaysRead";
+import TileMonthRead from "./TileMonthRead";
+import TileMonthTrend from "./TileMonthTrend";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
-import { getDaysInMonth } from "date-fns";
 
 export default async function ReaderStatsPanel({
   lang,
@@ -17,9 +18,6 @@ export default async function ReaderStatsPanel({
   if (!stats) return null;
 
   const { currentMonth, previousMonth, totalCompleted } = stats;
-
-  const now = new Date();
-  const daysInMonth = getDaysInMonth(now);
 
   let percentageChange = 0;
   if (previousMonth.totalRead === 0 && currentMonth.totalRead === 0) {
@@ -50,9 +48,9 @@ export default async function ReaderStatsPanel({
         bgColor={bgColor}
         textColor={textColor}
       />
-      <TileStat
+      <TileMonthRead
         title={intl.home.monthRead}
-        value={currentMonth.totalRead}
+        allReadDates={stats.allReadDates}
         bgColor={bgColor}
         textColor={textColor}
       />
@@ -68,9 +66,9 @@ export default async function ReaderStatsPanel({
         bgColor={bgColor}
         textColor={textColor}
       />
-      <TileStat
+      <TileMonthTrend
         title={intl.home.prevMonth}
-        value={`${percentageChange}%`}
+        percentageChange={percentageChange}
         trend={trend}
         bgColor={bgColor}
         textColor={textColor}
