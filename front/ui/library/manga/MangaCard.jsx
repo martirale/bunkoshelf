@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import clsx from "clsx";
 import { volumeProgress } from "@/lib/reader/volumeProgress";
 
 export default function MangaCard({
@@ -36,9 +37,10 @@ export default function MangaCard({
   return (
     <Link
       href={href}
-      className={`group flex flex-col overflow-hidden bg-onix border border-blackamber rounded-lg hover:bg-blackamber transition-all duration-300 ${
+      className={clsx(
+        "group flex flex-col overflow-hidden bg-onix border border-blackamber rounded-lg hover:bg-blackamber transition-all duration-300",
         isDragging ? "cursor-grabbing" : "cursor-pointer"
-      }`}
+      )}
     >
       <div className="relative aspect-[7/10.5] w-full flex-shrink-0">
         {isOneshot && (
@@ -65,7 +67,10 @@ export default function MangaCard({
 
       <div className="flex flex-col justify-between p-3 h-24">
         <h3
-          className={`line-clamp-3 group-hover:text-lilah transition-all duration-300 ${className}`}
+          className={clsx(
+            "line-clamp-3 group-hover:text-lilah transition-all duration-300",
+            className
+          )}
         >
           {title}
         </h3>

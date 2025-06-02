@@ -22,9 +22,8 @@ export default function ProfileNav({ intl }) {
           <Link
             href={`/${currentLang}/profile`}
             className={clsx(
-              "flex items-center p-4 rounded-lg leading-none text-onix transition-all duration-300",
-              isProfile ? "bg-sand" : "hover:bg-sand",
-              "flex-col md:flex-row justify-center md:justify-start w-full"
+              "flex flex-col md:flex-row justify-center md:justify-start w-full items-center p-4 rounded-lg leading-none text-onix transition-all duration-300",
+              isProfile ? "bg-sand" : "hover:bg-sand"
             )}
           >
             <Bolt className="w-5 h-5 md:mr-2" />
@@ -34,9 +33,8 @@ export default function ProfileNav({ intl }) {
           <Link
             href={`/${currentLang}/profile/update`}
             className={clsx(
-              "flex items-center p-4 rounded-lg leading-none text-onix transition-all duration-300",
-              isProfileUpdate ? "bg-sand" : "hover:bg-sand",
-              "flex-col md:flex-row justify-center md:justify-start w-full"
+              "flex flex-col md:flex-row justify-center md:justify-start w-full items-center p-4 rounded-lg leading-none text-onix transition-all duration-300",
+              isProfileUpdate ? "bg-sand" : "hover:bg-sand"
             )}
           >
             <UserRoundPen className="w-5 h-5 md:mr-2" />

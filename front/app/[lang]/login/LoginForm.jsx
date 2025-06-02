@@ -52,7 +52,7 @@ export default function LoginForm({ lang, intl }) {
             type="text"
             name="username"
             placeholder={intl.login.username}
-            className="text-sand bg-onix border border-sand rounded-lg w-full px-5 py-3"
+            className="text-sand bg-onix border border-zinc-700 rounded-lg w-full px-5 py-3"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -64,7 +64,7 @@ export default function LoginForm({ lang, intl }) {
             type="password"
             name="password"
             placeholder={intl.login.password}
-            className="text-sand bg-onix border border-sand rounded-lg w-full px-5 py-3"
+            className="text-sand bg-onix border border-zinc-700 rounded-lg w-full px-5 py-3"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required

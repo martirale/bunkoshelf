@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import clsx from "clsx";
 import { BookCheck, Ghost, Check, Heart, HeartOff } from "lucide-react";
 import ReaderModal from "@/components/reader/ReaderModal";
 
@@ -150,11 +151,15 @@ export default function ReadButtonsVolume({
           onClick={toggleRead}
           disabled={isLoading}
           title={isRead ? "Marcar como no leído" : "Marcar como leído"}
-          className={`p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer ${
-            isRead
-              ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl"
-              : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"
-          }`}
+          className={clsx(
+            "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
+            {
+              "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl":
+                isRead,
+              "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl":
+                !isRead,
+            }
+          )}
         >
           <Check className="w-5 h-5" />
         </button>
@@ -164,11 +169,15 @@ export default function ReadButtonsVolume({
           onClick={toggleFavorite}
           disabled={isLoading}
           title={isFavorite ? "Eliminar de favoritos" : "Marcar como favorito"}
-          className={`p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer ${
-            isFavorite
-              ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl"
-              : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"
-          }`}
+          className={clsx(
+            "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
+            {
+              "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl":
+                isFavorite,
+              "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl":
+                !isFavorite,
+            }
+          )}
         >
           {isFavorite ? (
             <HeartOff className="w-5 h-5" />
