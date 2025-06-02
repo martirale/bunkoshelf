@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { BookCheck, Ghost, Check, Heart, HeartOff } from "lucide-react";
 import ReaderModal from "@/components/reader/ReaderModal";
 
@@ -19,11 +18,19 @@ export default function ReadButtonsVolume({
   const [isReaderOpen, setIsReaderOpen] = useState(false);
   const [isYoureiMode, setIsYoureiMode] = useState(false);
 
+  const openNormalReader = () => {
+    setIsYoureiMode(false);
+    setIsReaderOpen(true);
+  };
+
+  const openYoureiReader = () => {
+    setIsYoureiMode(true);
+    setIsReaderOpen(true);
+  };
+
   const toggleRead = async () => {
     setIsLoading(true);
-
     try {
-      // Obtener imágenes del volumen (Paso 1)
       const imagesRes = await fetch("/api/reader/manga", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -31,7 +38,6 @@ export default function ReadButtonsVolume({
       });
 
       const imagesData = await imagesRes.json();
-
       if (!imagesRes.ok || !imagesData.images?.length) {
         console.error("No se pudieron obtener las páginas del volumen");
         return;
@@ -39,7 +45,6 @@ export default function ReadButtonsVolume({
 
       const totalPages = imagesData.images.length;
 
-      // Marcar como leído/no leído (Paso 2)
       const res = await fetch("/api/library/manga/read", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,7 +57,6 @@ export default function ReadButtonsVolume({
       });
 
       const result = await res.json();
-
       if (res.ok && result.success) {
         setIsRead((prev) => !prev);
       } else {
@@ -67,7 +71,6 @@ export default function ReadButtonsVolume({
 
   const toggleFavorite = async () => {
     setIsLoading(true);
-
     try {
       const res = await fetch("/api/library/manga/favorites/volumes", {
         method: "POST",
@@ -79,7 +82,6 @@ export default function ReadButtonsVolume({
       });
 
       const result = await res.json();
-
       if (res.ok && result.success) {
         setIsFavorite((prev) => !prev);
       } else {
@@ -90,16 +92,6 @@ export default function ReadButtonsVolume({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const openNormalReader = () => {
-    setIsYoureiMode(false);
-    setIsReaderOpen(true);
-  };
-
-  const openYoureiReader = () => {
-    setIsYoureiMode(true);
-    setIsReaderOpen(true);
   };
 
   const handleClose = async () => {
@@ -135,6 +127,7 @@ export default function ReadButtonsVolume({
   return (
     <>
       <div className="flex flex-row mt-4 gap-2">
+        {/* Botón lector normal */}
         <button
           onClick={openNormalReader}
           className="flex items-center font-bold px-5 py-2 2xl:px-6 2xl:py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
@@ -143,40 +136,39 @@ export default function ReadButtonsVolume({
           {intl.manga.read}
         </button>
 
+        {/* Botón lector incógnito */}
         <button
           onClick={openYoureiReader}
-          className="p-3 2xl:p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
           title="Leer de incógnito"
+          className="p-3 2xl:p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
         >
           <Ghost className="w-5 h-5" />
         </button>
 
+        {/* Botón marcar como leído */}
         <button
           onClick={toggleRead}
           disabled={isLoading}
+          title={isRead ? "Marcar como no leído" : "Marcar como leído"}
           className={`p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer ${
             isRead
               ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl"
               : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"
           }`}
-          title={isRead ? "Marcar como no leído" : "Marcar como leído"}
         >
-          {isRead ? (
-            <Check className="w-5 h-5" />
-          ) : (
-            <Check className="w-5 h-5" />
-          )}
+          <Check className="w-5 h-5" />
         </button>
 
+        {/* Botón favoritos */}
         <button
           onClick={toggleFavorite}
           disabled={isLoading}
+          title={isFavorite ? "Eliminar de favoritos" : "Marcar como favorito"}
           className={`p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer ${
             isFavorite
               ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl"
               : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"
           }`}
-          title={isFavorite ? "Eliminar de favoritos" : "Marcar como favorito"}
         >
           {isFavorite ? (
             <HeartOff className="w-5 h-5" />
@@ -186,7 +178,7 @@ export default function ReadButtonsVolume({
         </button>
       </div>
 
-      {/* Modal del lector */}
+      {/* Modal lector */}
       <ReaderModal
         isOpen={isReaderOpen}
         onClose={handleClose}
