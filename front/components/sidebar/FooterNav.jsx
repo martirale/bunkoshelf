@@ -27,17 +27,6 @@ export default function FooterNav({ intl }) {
     router.push(`/${newLang}${pathWithoutLang}`);
   };
 
-  // Check current routes
-  const isManga = pathname.startsWith(`/${currentLang}/manga`);
-  const isBooks = pathname.startsWith(`/${currentLang}/books`);
-
-  // Custom color borders
-  const hoverBorder = isManga
-    ? "hover:border-lilah"
-    : isBooks
-    ? "hover:border-ash"
-    : "hover:border-pearl";
-
   // Logout
   const handleLogout = async () => {
     try {
@@ -115,14 +104,14 @@ export default function FooterNav({ intl }) {
           href={versionUrl}
           target="_blank"
           rel="noopener"
-          className={`text-sm px-4 py-1 border border-zinc-800 rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
+          className="text-sm px-4 py-1 border border-sand md:border-zinc-800 rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 hover:border-lilah"
         >
           v{version}
         </Link>
         <div className="flex items-center gap-2">
           {/* Language Switcher */}
           <button
-            className={`border border-zinc-800 hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
+            className="border border-sand md:border-zinc-800 hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
             aria-label="Switch Language"
             title={intl.tooltip.switchLang}
             onClick={toggleLang}
@@ -135,14 +124,14 @@ export default function FooterNav({ intl }) {
             target="_blank"
             rel="noopener"
             title={intl.tooltip.userGuide}
-            className={`border border-zinc-800 rounded-lg p-2 hover:text-pearl hover:bg-onix transition-all duration-300 ${hoverBorder}`}
+            className={`border border-sand md:border-zinc-800 rounded-lg p-2 hover:text-pearl hover:bg-onix transition-all duration-300 hover:border-lilah`}
           >
             <BookOpen className="w-5 h-5" />
           </Link>
           {/* Logout Button */}
           {isLoggedIn && (
             <button
-              className={`border border-zinc-800 hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 ${hoverBorder}`}
+              className="border border-sand md:border-zinc-800 hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
               aria-label="Logout"
               title={intl.tooltip.logout}
               onClick={handleLogout}

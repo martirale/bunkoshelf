@@ -35,13 +35,6 @@ export default function MainNav({ intl }) {
     }
   }, [pathname]);
 
-  // Custom color borders
-  const hoverBorder = isManga
-    ? "hover:border-lilah"
-    : isBooks
-    ? "hover:border-ash"
-    : "hover:border-pearl";
-
   return (
     <>
       <nav className="mt-8 space-y-2">
@@ -49,8 +42,8 @@ export default function MainNav({ intl }) {
           href={`/${currentLang}`}
           className={`flex items-center p-4 rounded-lg leading-none border ${
             isHome
-              ? "border-sand bg-onix text-sand"
-              : `border-blackamber hover:bg-onix hover:text-pearl ${hoverBorder}`
+              ? "border-onix bg-sand text-onix md:border-sand md:bg-onix md:text-sand hover:border-lilah"
+              : "border-pearl md:border-blackamber hover:text-pearl hover:border-lilah"
           } transition-all duration-300`}
         >
           <House className="w-5 h-5 mr-2" />
@@ -60,12 +53,12 @@ export default function MainNav({ intl }) {
         <div className="relative">
           <button
             onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
-            className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border ${
+            className={`w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border hover:border-lilah ${
               isLibrary
                 ? isManga
-                  ? "border-onix md:border-lilah bg-onix text-sand"
-                  : "border-onix md:border-ash bg-onix text-sand"
-                : "border-blackamber hover:border-pearl hover:bg-onix hover:text-pearl"
+                  ? "text-onix bg-sand md:text-sand md:bg-onix md:border-pearl"
+                  : "text-onix bg-sand md:text-sand md:bg-onix md:border-pearl"
+                : "border-pearl md:border-blackamber hover:text-pearl hover:border-lilah"
             } transition-all duration-300`}
           >
             <span className="flex items-center">
@@ -84,7 +77,7 @@ export default function MainNav({ intl }) {
                 href={`/${currentLang}/manga`}
                 className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
                   isManga
-                    ? "bg-onix text-sand md:text-lilah"
+                    ? "bg-sand text-onix md:bg-onix md:text-sand"
                     : "hover:bg-onix hover:text-pearl"
                 }`}
               >
@@ -94,7 +87,7 @@ export default function MainNav({ intl }) {
                 href={`/${currentLang}/books`}
                 className={`block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300 ${
                   isBooks
-                    ? "bg-onix text-sand md:text-ash"
+                    ? "bg-sand text-onix md:bg-onix md:text-sand"
                     : "hover:bg-onix hover:text-pearl"
                 }`}
               >
@@ -108,8 +101,8 @@ export default function MainNav({ intl }) {
           href={`/${currentLang}/favorites`}
           className={`flex items-center p-4 rounded-lg leading-none border ${
             isFavorites
-              ? "border-sand bg-onix text-sand"
-              : `border-blackamber hover:bg-onix hover:text-pearl ${hoverBorder}`
+              ? "border-onix bg-sand text-onix md:border-sand md:bg-onix md:text-sand hover:border-lilah"
+              : "border-pearl md:border-blackamber hover:text-pearl hover:border-lilah"
           } transition-all duration-300`}
         >
           <Heart className="w-5 h-5 mr-2" />
@@ -119,8 +112,8 @@ export default function MainNav({ intl }) {
           href={`/${currentLang}/profile`}
           className={`flex items-center p-4 rounded-lg leading-none border ${
             isProfile
-              ? "border-sand bg-onix text-sand"
-              : `border-blackamber hover:bg-onix hover:text-pearl ${hoverBorder}`
+              ? "border-onix bg-sand text-onix md:border-sand md:bg-onix md:text-sand hover:border-lilah"
+              : "border-pearl md:border-blackamber hover:text-pearl hover:border-lilah"
           } transition-all duration-300`}
         >
           <UserRound className="w-5 h-5 mr-2" />

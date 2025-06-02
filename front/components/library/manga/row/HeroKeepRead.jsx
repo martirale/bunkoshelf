@@ -104,13 +104,13 @@ export default function HeroKeepRead({ lang, intl }) {
   return (
     <>
       {!shouldHideHero && (
-        <section className="w-full p-4 bg-lilah">
+        <section className="w-full p-4 bg-pearl">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="flex items-center text-base md:text-lg">
+            <h2 className="flex items-center text-base md:text-lg text-onix">
               <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
               {intl.libraries.keepReading}
             </h2>
-            <div className="flex gap-4">
+            <div className="flex gap-4 text-onix">
               <button
                 onClick={() => scrollCards("left")}
                 className="cursor-pointer"

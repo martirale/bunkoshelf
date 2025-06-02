@@ -11,16 +11,7 @@ export default function AdminNav({ intl }) {
   const currentLang = params.lang || "es";
 
   // Check current routes
-  const isManga = pathname.startsWith(`/${currentLang}/manga`);
-  const isBooks = pathname.startsWith(`/${currentLang}/books`);
   const isSettings = pathname.startsWith(`/${currentLang}/settings`);
-
-  // Custom color borders
-  const hoverBorder = isManga
-    ? "hover:border-lilah"
-    : isBooks
-    ? "hover:border-ash"
-    : "hover:border-pearl";
 
   return (
     <>
@@ -29,8 +20,8 @@ export default function AdminNav({ intl }) {
           href={`/${currentLang}/settings`}
           className={`flex items-center p-4 rounded-lg leading-none border ${
             isSettings
-              ? "border-sand bg-onix text-sand"
-              : `border-blackamber hover:bg-onix hover:text-pearl ${hoverBorder}`
+              ? "border-onix bg-sand text-onix md:border-sand md:bg-onix md:text-sand hover:border-lilah"
+              : "border-pearl md:border-blackamber hover:text-pearl hover:border-lilah"
           } transition-all duration-300`}
         >
           <Settings2 className="w-5 h-5 mr-2" />
