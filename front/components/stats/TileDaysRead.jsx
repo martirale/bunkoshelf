@@ -1,14 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
 import { getDaysInMonth } from "date-fns";
 
 export default function TileDaysRead({ title, readDays, bgColor, textColor }) {
-  const displayValue = useMemo(() => {
-    const now = new Date();
-    const daysInMonth = getDaysInMonth(now);
-    return `${readDays} / ${daysInMonth}`;
-  }, [readDays]);
+  const now = new Date();
+  const daysInMonth = getDaysInMonth(now);
+  const displayValue = `${readDays} / ${daysInMonth}`;
 
   return (
     <div

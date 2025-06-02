@@ -1,8 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-import { startOfDay, subDays, isSameDay } from "date-fns";
-
 export default function TileStreak({
   allReadDates,
   title,
@@ -10,31 +7,23 @@ export default function TileStreak({
   bgColor,
   textColor,
 }) {
-  const streak = useMemo(() => {
-    if (!allReadDates || allReadDates.length === 0) return 0;
+  const readDaySet = new Set(allReadDates);
+  let streak = 0;
+  let current = new Date();
 
-    // Set de fechas leídas en string (ej: "2024-05-30")
-    const readDaySet = new Set(allReadDates);
+  while (true) {
+    const yyyy = current.getFullYear();
+    const mm = String(current.getMonth() + 1).padStart(2, "0");
+    const dd = String(current.getDate()).padStart(2, "0");
+    const currentStr = `${yyyy}-${mm}-${dd}`;
 
-    let streakCount = 0;
-    let current = new Date();
-
-    while (true) {
-      const yyyy = current.getFullYear();
-      const mm = String(current.getMonth() + 1).padStart(2, "0");
-      const dd = String(current.getDate()).padStart(2, "0");
-      const currentStr = `${yyyy}-${mm}-${dd}`;
-
-      if (readDaySet.has(currentStr)) {
-        streakCount++;
-        current.setDate(current.getDate() - 1);
-      } else {
-        break;
-      }
+    if (readDaySet.has(currentStr)) {
+      streak++;
+      current.setDate(current.getDate() - 1);
+    } else {
+      break;
     }
-
-    return streakCount;
-  }, [allReadDates]);
+  }
 
   return (
     <div

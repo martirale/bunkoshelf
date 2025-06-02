@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-
 export default function TileLastRead({
   date,
   title,
@@ -9,9 +7,9 @@ export default function TileLastRead({
   bgColor,
   textColor,
 }) {
-  const displayValue = useMemo(() => {
-    if (!date) return "-";
+  let displayValue = "-";
 
+  if (date) {
     const value = new Date(date);
     const options = {
       day: "numeric",
@@ -21,8 +19,8 @@ export default function TileLastRead({
         : {}),
     };
 
-    return value.toLocaleDateString(lang, options);
-  }, [date, lang]);
+    displayValue = value.toLocaleDateString(lang, options);
+  }
 
   return (
     <div

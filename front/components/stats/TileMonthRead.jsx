@@ -1,25 +1,21 @@
 "use client";
 
-import { useMemo } from "react";
-
 export default function TileMonthRead({
   title,
   allReadDates,
   bgColor,
   textColor,
 }) {
-  const totalRead = useMemo(() => {
-    if (!Array.isArray(allReadDates)) return 0;
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  const thisMonth = String(now.getMonth() + 1).padStart(2, "0");
 
-    const now = new Date();
-    const thisYear = now.getFullYear();
-    const thisMonth = String(now.getMonth() + 1).padStart(2, "0");
-
-    return allReadDates.filter((dateStr) => {
-      const [year, month] = dateStr.split("-");
-      return year == thisYear && month === thisMonth;
-    }).length;
-  }, [allReadDates]);
+  const totalRead = Array.isArray(allReadDates)
+    ? allReadDates.filter((dateStr) => {
+        const [year, month] = dateStr.split("-");
+        return year == thisYear && month === thisMonth;
+      }).length
+    : 0;
 
   return (
     <div
