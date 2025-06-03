@@ -101,7 +101,7 @@ export async function getReaderStats() {
     : null;
 
   const allReadDates = allReadDatesRaw
-    .map((entry) => formatLocalDate(entry.lastReadAt))
+    .map((entry) => entry.lastReadAt?.toISOString())
     .filter(Boolean);
 
   return {

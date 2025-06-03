@@ -7,16 +7,15 @@ export default function TileStreak({
   bgColor,
   textColor,
 }) {
-  const readDaySet = new Set(allReadDates);
+  const readDaySet = new Set(
+    allReadDates.map((d) => new Date(d).toLocaleDateString("sv-SE"))
+  );
+
   let streak = 0;
   let current = new Date();
 
   while (true) {
-    const yyyy = current.getFullYear();
-    const mm = String(current.getMonth() + 1).padStart(2, "0");
-    const dd = String(current.getDate()).padStart(2, "0");
-    const currentStr = `${yyyy}-${mm}-${dd}`;
-
+    const currentStr = current.toLocaleDateString("sv-SE");
     if (readDaySet.has(currentStr)) {
       streak++;
       current.setDate(current.getDate() - 1);
