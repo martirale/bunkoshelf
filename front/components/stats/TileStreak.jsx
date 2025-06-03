@@ -1,28 +1,52 @@
 "use client";
 
-export default function TileStreak({
-  allReadDates,
-  title,
-  intl,
-  bgColor,
-  textColor,
-}) {
-  const readDaySet = new Set(
-    allReadDates.map((d) => new Date(d).toLocaleDateString("sv-SE"))
-  );
+import { useEffect, useState } from "react";
 
-  let streak = 0;
-  let current = new Date();
+export default function TileStreak({ title, intl, bgColor, textColor }) {
+  const [streak, setStreak] = useState("—");
 
-  while (true) {
-    const currentStr = current.toLocaleDateString("sv-SE");
-    if (readDaySet.has(currentStr)) {
-      streak++;
-      current.setDate(current.getDate() - 1);
-    } else {
-      break;
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch("/api/stats/reader");
+        const data = await res.json();
+        const allReadDates = data?.allReadDates || [];
+
+        const formatDate = (date) =>
+          new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate()
+          ).getTime();
+
+        const readDays = new Set(
+          allReadDates.map((entry) => formatDate(new Date(entry.lastReadAt)))
+        );
+
+        const today = new Date();
+        const todayKey = formatDate(today);
+
+        if (!readDays.has(todayKey)) {
+          setStreak("0");
+          return;
+        }
+
+        let count = 0;
+        let cursor = new Date();
+
+        while (readDays.has(formatDate(cursor))) {
+          count++;
+          cursor.setDate(cursor.getDate() - 1);
+        }
+
+        setStreak(count.toString());
+      } catch (error) {
+        console.error("Error calculating streak:", error);
+      }
     }
-  }
+
+    fetchData();
+  }, []);
 
   return (
     <div

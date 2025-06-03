@@ -1,26 +1,46 @@
 "use client";
 
-export default function TileLastRead({
-  date,
-  title,
-  lang,
-  bgColor,
-  textColor,
-}) {
-  let displayValue = "-";
+import { useEffect, useState } from "react";
 
-  if (date) {
-    const value = new Date(date);
-    const options = {
-      day: "numeric",
-      month: "short",
-      ...(value.getFullYear() !== new Date().getFullYear()
-        ? { year: "numeric" }
-        : {}),
-    };
+export default function TileLastRead({ title, lang, bgColor, textColor }) {
+  const [lastRead, setLastRead] = useState("—");
 
-    displayValue = value.toLocaleDateString(lang, options);
-  }
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch("/api/stats/reader", { cache: "no-store" });
+        const data = await res.json();
+
+        const dates = data?.allReadDates ?? [];
+
+        if (dates.length > 0 && dates[0].lastReadAt) {
+          const mostRecentStr = dates[0].lastReadAt;
+          const mostRecent = new Date(mostRecentStr);
+
+          if (!isNaN(mostRecent.getTime())) {
+            const now = new Date();
+            const options = {
+              day: "numeric",
+              month: "short",
+              ...(mostRecent.getFullYear() !== now.getFullYear()
+                ? { year: "numeric" }
+                : {}),
+            };
+            const formatted = mostRecent.toLocaleDateString(lang, options);
+            setLastRead(formatted);
+          } else {
+            setLastRead("—");
+          }
+        } else {
+          setLastRead("—");
+        }
+      } catch {
+        setLastRead("—");
+      }
+    }
+
+    fetchData();
+  }, [lang]);
 
   return (
     <div
@@ -30,7 +50,7 @@ export default function TileLastRead({
       <div
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
-        {displayValue}
+        {lastRead}
       </div>
     </div>
   );

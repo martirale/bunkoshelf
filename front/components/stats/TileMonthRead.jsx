@@ -1,38 +1,47 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export default function TileMonthRead({
-  title,
-  totalRead,
-  year,
-  month,
-  bgColor,
-  textColor,
-}) {
-  const [displayRead, setDisplayRead] = useState(totalRead);
+export default function TileMonthRead({ title, bgColor, textColor }) {
+  const [count, setCount] = useState("—");
 
   useEffect(() => {
-    const now = new Date();
-    const localYear = now.getFullYear();
-    const localMonth = now.getMonth() + 1;
+    async function fetchData() {
+      try {
+        const res = await fetch("/api/stats/reader", { cache: "no-store" });
+        const data = await res.json();
+        const volumesRead = data?.volumesRead || [];
 
-    if (localYear > year || (localYear === year && localMonth > month)) {
-      setDisplayRead(0);
-    } else {
-      setDisplayRead(totalRead);
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+
+        const thisMonthReads = volumesRead.filter((entry) => {
+          const readDate = new Date(entry.lastReadAt);
+          return (
+            readDate.getMonth() === thisMonth &&
+            readDate.getFullYear() === thisYear
+          );
+        });
+
+        setCount(thisMonthReads.length ?? "—");
+      } catch (error) {
+        console.error("Error fetching month reads:", error);
+      }
     }
-  }, [totalRead, year, month]);
+
+    fetchData();
+  }, []);
 
   return (
     <div
-      className={`h-[110px] rounded-lg ${bgColor} p-4 flex flex-col justify-between`}
+      className={`h-[110px] rounded-lg ${bgColor} p-4 2xl:px-4 2xl:pt-4 2xl:pb-5 flex flex-col justify-between`}
     >
       <span className={`${textColor} text-sm uppercase`}>{title}</span>
       <div
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
-        {displayRead}
+        {count}
       </div>
     </div>
   );

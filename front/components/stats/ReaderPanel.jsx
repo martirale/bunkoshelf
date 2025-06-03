@@ -1,8 +1,9 @@
 import React from "react";
-import TileLastRead from "./TileLastRead";
 import TileStreak from "./TileStreak";
-import TileDaysRead from "./TileDaysRead";
+import TileLastRead from "./TileLastRead";
 import TileMonthRead from "./TileMonthRead";
+import TileDaysRead from "./TileDaysRead";
+import TileAllRead from "./TileAllRead";
 import TileMonthTrend from "./TileMonthTrend";
 
 export default function ReaderStatsPanel({
@@ -36,7 +37,7 @@ export default function ReaderStatsPanel({
         bgColor={bgColor}
         textColor={textColor}
       />
-      <TileStat
+      <TileAllRead
         title={intl.home.mangaRead}
         bgColor={bgColor}
         textColor={textColor}
@@ -47,20 +48,5 @@ export default function ReaderStatsPanel({
         textColor={textColor}
       />
     </section>
-  );
-}
-
-function TileStat({ title, value = "-", bgColor, textColor }) {
-  return (
-    <div
-      className={`h-[110px] rounded-lg ${bgColor} p-4 2xl:px-4 2xl:pt-4 2xl:pb-5 flex flex-col justify-between`}
-    >
-      <span className={`${textColor} text-sm uppercase`}>{title}</span>
-      <div
-        className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
-      >
-        {value}
-      </div>
-    </div>
   );
 }
