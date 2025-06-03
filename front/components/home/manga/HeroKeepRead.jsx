@@ -1,56 +1,51 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { LibraryBig, ChevronRight } from "lucide-react";
 import MangaCard from "@/ui/library/manga/MangaCard";
-import prisma from "@/lib/prisma";
-import { verifySession } from "@/lib/auth/verifySession";
-import { sortByPaddedTitle } from "@/lib/utils";
-import Link from "next/link";
 
-export default async function HeroKeepRead({ lang, intl }) {
-  const currentUser = await verifySession();
+export default function HeroKeepRead({ lang, intl }) {
+  const [entry, setEntry] = useState(null);
 
-  if (!currentUser) return null;
+  useEffect(() => {
+    async function fetchProgress() {
+      const res = await fetch("/api/library/manga/volumes");
+      const { data } = await res.json();
 
-  let volumes = await prisma.mangaVolume.findMany({
-    include: {
-      series: true,
-      metadataObj: true,
-      usersProgress: {
-        where: {
-          userId: currentUser.id,
-        },
-      },
-    },
-  });
+      const filtered = data
+        .map((vol) => {
+          const progress = vol.usersProgress?.[0] || null;
 
-  volumes = sortByPaddedTitle(volumes);
+          return {
+            ...vol,
+            isOneshot: vol.series?.isOneshot === true,
+            coverImage: vol.coverImage
+              ? `/api/library/manga/cover${vol.coverImage
+                  .replace(/\\/g, "/")
+                  .replace(/^\/?covers/, "")}`
+              : null,
+            meta: vol.metadataObj || null,
+            lastPage: progress?.lastPage ?? 0,
+            totalPages: progress?.totalPages ?? 0,
+            lastReadAt: progress?.lastReadAt
+              ? new Date(progress.lastReadAt)
+              : null,
+          };
+        })
+        .filter((vol) => {
+          if (!vol.lastReadAt) return false;
+          const notStarted = vol.lastPage === 0;
+          const alreadyFinished = vol.lastPage >= vol.totalPages - 1;
+          return !notStarted && !alreadyFinished;
+        })
+        .sort((a, b) => b.lastReadAt - a.lastReadAt);
 
-  const entry =
-    volumes
-      .map((vol) => {
-        const progress = vol.usersProgress?.[0] || null;
-        return {
-          ...vol,
-          isOneshot: vol.series?.isOneshot === true,
-          coverImage: vol.coverImage
-            ? `/api/library/manga/cover${vol.coverImage
-                .replace(/\\/g, "/")
-                .replace(/^\/?covers/, "")}`
-            : null,
-          meta: vol.metadataObj || null,
-          lastPage: progress?.lastPage ?? 0,
-          totalPages: progress?.totalPages ?? 0,
-          lastReadAt: progress?.lastReadAt
-            ? new Date(progress.lastReadAt)
-            : null,
-        };
-      })
-      .filter((vol) => {
-        if (!vol.lastReadAt) return false;
-        const notStarted = vol.lastPage === 0;
-        const alreadyFinished = vol.lastPage >= vol.totalPages - 1;
-        return !notStarted && !alreadyFinished;
-      })
-      .sort((a, b) => b.lastReadAt - a.lastReadAt)[0] ?? null;
+      setEntry(filtered[0] ?? null);
+    }
+
+    fetchProgress();
+  }, []);
 
   if (!entry) return null;
 
