@@ -8,6 +8,9 @@ export async function getReaderStats() {
 
   const now = new Date();
 
+  const thisYearUTC = now.getUTCFullYear();
+  const thisMonthUTC = now.getUTCMonth() + 1;
+
   const startOfThisMonth = startOfMonth(now);
   const endOfThisMonth = endOfMonth(now);
 
@@ -79,7 +82,6 @@ export async function getReaderStats() {
     }),
   ]);
 
-  // Formatea fecha a "YYYY-MM-DD" en zona local del servidor
   function formatLocalDate(date) {
     if (!date) return null;
     const d = new Date(date);
@@ -89,7 +91,6 @@ export async function getReaderStats() {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  // Días únicos leídos este mes (formateados localmente)
   const uniqueDays = new Set(
     readDaysRaw
       .map((entry) => formatLocalDate(entry.lastReadAt))
@@ -108,6 +109,8 @@ export async function getReaderStats() {
     currentMonth: {
       totalRead: readThisMonth,
       readDays: uniqueDays.size,
+      year: thisYearUTC,
+      month: thisMonthUTC,
     },
     totalCompleted: completedAllTime,
     previousMonth: {

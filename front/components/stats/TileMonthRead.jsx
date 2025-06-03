@@ -1,31 +1,38 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 export default function TileMonthRead({
   title,
-  allReadDates,
+  totalRead,
+  year,
+  month,
   bgColor,
   textColor,
 }) {
-  const now = new Date();
-  const thisYear = now.getFullYear();
-  const thisMonth = String(now.getMonth() + 1).padStart(2, "0");
+  const [displayRead, setDisplayRead] = useState(totalRead);
 
-  const totalRead = Array.isArray(allReadDates)
-    ? allReadDates.filter((dateStr) => {
-        const [year, month] = dateStr.split("-");
-        return year == thisYear && month === thisMonth;
-      }).length
-    : 0;
+  useEffect(() => {
+    const now = new Date();
+    const localYear = now.getFullYear();
+    const localMonth = now.getMonth() + 1;
+
+    if (localYear > year || (localYear === year && localMonth > month)) {
+      setDisplayRead(0);
+    } else {
+      setDisplayRead(totalRead);
+    }
+  }, [totalRead, year, month]);
 
   return (
     <div
-      className={`h-[110px] rounded-lg ${bgColor} p-4 2xl:px-4 2xl:pt-4 2xl:pb-5 flex flex-col justify-between`}
+      className={`h-[110px] rounded-lg ${bgColor} p-4 flex flex-col justify-between`}
     >
       <span className={`${textColor} text-sm uppercase`}>{title}</span>
       <div
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
-        {totalRead}
+        {displayRead}
       </div>
     </div>
   );

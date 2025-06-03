@@ -49,7 +49,7 @@ export default async function ReaderStatsPanel({
       />
       <TileMonthRead
         title={intl.home.monthRead}
-        allReadDates={stats.allReadDates}
+        totalRead={currentMonth.totalRead}
         bgColor={bgColor}
         textColor={textColor}
       />
