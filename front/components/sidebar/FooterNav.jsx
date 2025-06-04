@@ -13,7 +13,6 @@ export default function FooterNav({ intl }) {
   const [remoteVersion, setRemoteVersion] = useState(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
-  // Lang options
   const params = useParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -27,7 +26,6 @@ export default function FooterNav({ intl }) {
     router.push(`/${newLang}${pathWithoutLang}`);
   };
 
-  // Logout
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout");
@@ -37,10 +35,8 @@ export default function FooterNav({ intl }) {
     }
   };
 
-  // Session status
   const isLoggedIn = SessionStatus();
 
-  // Check version
   useEffect(() => {
     function isRemoteVersionNewer(local, remote) {
       const localParts = local.split(".").map(Number);
@@ -75,6 +71,31 @@ export default function FooterNav({ intl }) {
     return () => clearInterval(interval);
   }, []);
 
+  const buttons = [
+    {
+      type: "button",
+      icon: Languages,
+      title: intl.tooltip.switchLang,
+      onClick: toggleLang,
+    },
+    {
+      type: "link",
+      icon: BookOpen,
+      href: "https://bunko.amlab.site/referencia/app",
+      title: intl.tooltip.userGuide,
+    },
+    ...(isLoggedIn
+      ? [
+          {
+            type: "button",
+            icon: LogOut,
+            title: intl.tooltip.logout,
+            onClick: handleLogout,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <>
       {updateAvailable && (
@@ -108,36 +129,29 @@ export default function FooterNav({ intl }) {
         >
           v{version}
         </Link>
+
         <div className="flex items-center gap-2">
-          {/* Language Switcher */}
-          <button
-            className="border border-sand md:border-zinc-800 hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
-            aria-label="Switch Language"
-            title={intl.tooltip.switchLang}
-            onClick={toggleLang}
-          >
-            <Languages className="w-5 h-5" />
-          </button>
-          {/* Guides */}
-          <Link
-            href="https://bunko.amlab.site/referencia/app"
-            target="_blank"
-            rel="noopener"
-            title={intl.tooltip.userGuide}
-            className={`border border-sand md:border-zinc-800 rounded-lg p-2 hover:text-pearl hover:bg-onix transition-all duration-300 hover:border-lilah`}
-          >
-            <BookOpen className="w-5 h-5" />
-          </Link>
-          {/* Logout Button */}
-          {isLoggedIn && (
-            <button
-              className="border border-sand md:border-zinc-800 hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
-              aria-label="Logout"
-              title={intl.tooltip.logout}
-              onClick={handleLogout}
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+          {buttons.map(({ type, icon: Icon, ...props }, i) =>
+            type === "button" ? (
+              <button
+                key={i}
+                {...props}
+                className="border border-sand md:border-zinc-800 hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
+              >
+                <Icon className="w-5 h-5" />
+              </button>
+            ) : (
+              <Link
+                key={i}
+                href={props.href}
+                target="_blank"
+                rel="noopener"
+                title={props.title}
+                className="border border-sand md:border-zinc-800 rounded-lg p-2 hover:text-pearl hover:bg-onix transition-all duration-300 hover:border-lilah"
+              >
+                <Icon className="w-5 h-5" />
+              </Link>
+            )
           )}
         </div>
       </div>
