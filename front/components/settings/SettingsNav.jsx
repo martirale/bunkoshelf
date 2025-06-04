@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Bolt, UsersRound, FolderCog } from "lucide-react";
 import { usePathname, useParams } from "next/navigation";
+import { Bolt, UsersRound, FolderCog } from "lucide-react";
 import clsx from "clsx";
 
 export default function SettingsNav({ intl }) {
@@ -10,57 +10,47 @@ export default function SettingsNav({ intl }) {
   const pathname = usePathname();
   const currentLang = params.lang || "es";
 
-  const isSettings = pathname === `/${currentLang}/settings`;
-  const isUsers = pathname.startsWith(`/${currentLang}/settings/users`);
-  const isLibrary = pathname.startsWith(`/${currentLang}/settings/library`);
+  const links = [
+    {
+      label: intl.settings.overview,
+      href: `/${currentLang}/settings`,
+      icon: Bolt,
+      isActive: pathname === `/${currentLang}/settings`,
+    },
+    {
+      label: intl.settings.users,
+      href: `/${currentLang}/settings/users`,
+      icon: UsersRound,
+      isActive: pathname.startsWith(`/${currentLang}/settings/users`),
+    },
+    {
+      label: intl.settings.library,
+      href: `/${currentLang}/settings/library`,
+      icon: FolderCog,
+      isActive: pathname.startsWith(`/${currentLang}/settings/library`),
+    },
+  ];
 
   return (
-    <>
-      <div className="mt-4 md:mt-16">
-        <div className="md:space-y-2 md:block flex gap-1">
+    <div className="mt-4 md:mt-16">
+      <div className="md:space-y-2 md:block flex gap-1">
+        {links.map(({ label, href, icon: Icon, isActive }) => (
           <Link
-            href={`/${currentLang}/settings`}
+            key={href}
+            href={href}
             className={clsx(
               "flex items-center p-4 rounded-lg leading-none text-onix md:w-full justify-center md:justify-start flex-1 transition-all duration-300",
               {
-                "bg-sand": isSettings,
-                "hover:bg-sand": !isSettings,
+                "bg-sand": isActive,
+                "hover:bg-sand": !isActive,
               }
             )}
           >
-            <Bolt className="w-5 h-5 mr-0 md:mr-2" />
-            <span className="hidden md:inline">{intl.settings.overview}</span>
+            <Icon className="w-5 h-5 mr-0 md:mr-2" />
+            <span className="hidden md:inline">{label}</span>
           </Link>
-
-          <Link
-            href={`/${currentLang}/settings/users`}
-            className={clsx(
-              "flex items-center p-4 rounded-lg leading-none text-onix md:w-full justify-center md:justify-start flex-1 transition-all duration-300",
-              {
-                "bg-sand": isUsers,
-                "hover:bg-sand": !isUsers,
-              }
-            )}
-          >
-            <UsersRound className="w-5 h-5 mr-0 md:mr-2" />
-            <span className="hidden md:inline">{intl.settings.users}</span>
-          </Link>
-
-          <Link
-            href={`/${currentLang}/settings/library`}
-            className={clsx(
-              "flex items-center p-4 rounded-lg leading-none text-onix md:w-full justify-center md:justify-start flex-1 transition-all duration-300",
-              {
-                "bg-sand": isLibrary,
-                "hover:bg-sand": !isLibrary,
-              }
-            )}
-          >
-            <FolderCog className="w-5 h-5 mr-0 md:mr-2" />
-            <span className="hidden md:inline">{intl.settings.library}</span>
-          </Link>
-        </div>
+        ))}
       </div>
-    </>
+    </div>
   );
 }

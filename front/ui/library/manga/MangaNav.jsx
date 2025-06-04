@@ -2,37 +2,51 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Bolt, LibraryBig, BookCopy } from "lucide-react";
 import clsx from "clsx";
 
 export default function MangaNav({ lang, intl }) {
   const pathname = usePathname();
 
   const links = [
-    { label: intl.libraries.overview, href: `/${lang}/manga` },
-    { label: intl.libraries.series, href: `/${lang}/manga/series` },
-    { label: intl.libraries.volumes, href: `/${lang}/manga/volumes` },
+    {
+      label: intl.libraries.overview,
+      href: `/${lang}/manga`,
+      icon: Bolt,
+      isActive: pathname === `/${lang}/manga`,
+    },
+    {
+      label: intl.libraries.series,
+      href: `/${lang}/manga/series`,
+      icon: LibraryBig,
+      isActive: pathname === `/${lang}/manga/series`,
+    },
+    {
+      label: intl.libraries.volumes,
+      href: `/${lang}/manga/volumes`,
+      icon: BookCopy,
+      isActive: pathname === `/${lang}/manga/volumes`,
+    },
   ];
 
   return (
-    <nav className="flex justify-center pt-12 gap-2 md:gap-4">
-      {links.map(({ label, href }) => {
-        const isActive = pathname === href;
-
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={clsx(
-              "flex-1 md:flex-none md:basis-40 text-base md:text-lg text-center py-3 rounded-lg text-onix border uppercase transition-all duration-300",
-              isActive
-                ? "bg-sand border-sand"
-                : "border-pearl hover:bg-sand hover:border-sand"
-            )}
-          >
-            {label}
-          </Link>
-        );
-      })}
+    <nav className="flex justify-center pt-4 gap-2 md:gap-4">
+      {links.map(({ label, href, icon: Icon, isActive }) => (
+        <Link
+          key={href}
+          href={href}
+          className={clsx(
+            "flex items-center p-4 rounded-lg uppercase leading-none text-onix justify-center flex-1 2xl:flex-none 2xl:basis-50 transition-all duration-300",
+            {
+              "bg-sand": isActive,
+              "hover:bg-sand": !isActive,
+            }
+          )}
+        >
+          <Icon className="w-5 h-5 mr-0 md:mr-2" />
+          <span className="hidden md:inline">{label}</span>
+        </Link>
+      ))}
     </nav>
   );
 }
