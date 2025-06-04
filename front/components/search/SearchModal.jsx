@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { useSearchModal } from "@/hooks/useSearchModal";
 import { Search } from "lucide-react";
 import Link from "next/link";
+import {
+  UserRoundPen,
+  LibraryBig,
+  Book,
+  BookCopy,
+  Drama,
+  Tags,
+} from "lucide-react";
 
 export default function SearchModal({ lang, intl }) {
   const { open, setOpen } = useSearchModal();
@@ -156,57 +164,97 @@ export default function SearchModal({ lang, intl }) {
                 <Link href={href}>
                   <div className="bg-sand rounded-lg px-4 py-2 cursor-pointer">
                     <p className="font-bold truncate">
-                      {isSeries ? res.series || res.title : res.title}
-                    </p>
-
-                    <p className="text-base truncate">
-                      {intl.search.author}: {res.writer || "Desconocido"}
+                      {res.type === "series"
+                        ? res.series || res.title
+                        : res.title}
                     </p>
 
                     {isSeries ? (
-                      genres || tags ? (
-                        <p className="text-base truncate capitalize">
-                          {intl.search.series}{" "}
-                          <span className="capitalize">
-                            {genres && <>&bull; {genres} </>}
+                      <>
+                        <p className="text-base truncate">
+                          {/* Series Author */}
+                          <span className="flex items-center">
+                            <UserRoundPen className="w-4 h-4 mr-1" />
+                            {res.writer || "Desconocido"}
+                          </span>
+                        </p>
+                        <p className="text-base truncate">
+                          {/* Series Meta */}
+                          <span className="flex items-center">
+                            <LibraryBig className="w-4 h-4 mr-1" />
+                            {intl.search.series}
+                          </span>
+                          <span className="flex items-center capitalize">
+                            {genres && (
+                              <>
+                                <Drama className="w-4 h-4 mr-1" />
+                                {genres}
+                              </>
+                            )}
                             {tags && (
                               <>
-                                {genres ? " \u2022 " : " \u2022 "} {tags}
+                                <Tags className="w-4 h-4 mr-1 ml-2" />
+                                {tags}
                               </>
                             )}
                           </span>
                         </p>
-                      ) : null
-                    ) : res.isOneshot ? (
-                      genres || tags ? (
-                        <p className="text-base truncate capitalize">
-                          Oneshot{" "}
-                          <span className="capitalize">
-                            {genres && <>&bull; {genres} </>}
-                            {tags && (
-                              <>
-                                {genres ? " \u2022 " : " \u2022 "} {tags}
-                              </>
-                            )}
-                          </span>
-                        </p>
-                      ) : (
-                        <p className="text-base truncate">Oneshot</p>
-                      )
-                    ) : genres || tags ? (
-                      <p className="text-base truncate capitalize">
-                        {intl.search.volume}{" "}
-                        <span className="capitalize">
-                          {genres && <>&bull; {genres} </>}
-                          {tags && (
-                            <>
-                              {genres ? " \u2022 " : " \u2022 "} {tags}
-                            </>
-                          )}
-                        </span>
-                      </p>
+                      </>
                     ) : (
-                      <p className="text-base truncate">{intl.search.volume}</p>
+                      <>
+                        <p className="text-base truncate">
+                          {/* Volumes Author */}
+                          <span className="flex items-center">
+                            <UserRoundPen className="w-4 h-4 mr-1" />
+                            {res.writer || "Desconocido"}
+                          </span>
+                        </p>
+                        {res.isOneshot ? (
+                          <p className="text-base truncate">
+                            {/* Oneshot Meta */}
+                            <span className="flex items-center">
+                              <Book className="w-4 h-4 mr-1" />
+                              Oneshot
+                            </span>
+                            <span className="flex items-center capitalize">
+                              {genres && (
+                                <>
+                                  <Drama className="w-4 h-4 mr-1" />
+                                  {genres}
+                                </>
+                              )}
+                              {tags && (
+                                <>
+                                  <Tags className="w-4 h-4 mr-1 ml-2" />
+                                  {tags}
+                                </>
+                              )}
+                            </span>
+                          </p>
+                        ) : (
+                          <p className="text-base truncate">
+                            {/* Volumes Meta */}
+                            <span className="flex items-center">
+                              <BookCopy className="w-4 h-4 mr-1" />
+                              {intl.search.volume}
+                            </span>
+                            <span className="flex items-center capitalize">
+                              {genres && (
+                                <>
+                                  <Drama className="w-4 h-4 mr-1" />
+                                  {genres}
+                                </>
+                              )}
+                              {tags && (
+                                <>
+                                  <Tags className="w-4 h-4 mr-1 ml-2" />
+                                  {tags}
+                                </>
+                              )}
+                            </span>
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
                 </Link>

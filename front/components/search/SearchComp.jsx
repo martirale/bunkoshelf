@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import {
+  UserRoundPen,
+  LibraryBig,
+  Book,
+  BookCopy,
+  Drama,
+  Tags,
+} from "lucide-react";
 
 export default function SearchComp({ lang, intl }) {
   const router = useRouter();
@@ -141,32 +149,67 @@ export default function SearchComp({ lang, intl }) {
                     {isSeries ? (
                       <>
                         <p className="text-base truncate">
-                          {intl.search.author}: {res.writer || "Desconocido"}
+                          {/* Series Author */}
+                          <span className="flex items-center">
+                            <UserRoundPen className="w-4 h-4 mr-1" />
+                            {res.writer || "Desconocido"}
+                          </span>
                         </p>
                         <p className="text-base truncate">
-                          {intl.search.series}{" "}
-                          <span className="capitalize">
-                            {genres && <>&bull; {genres} </>}
+                          {/* Series Type */}
+                          <span className="flex items-center">
+                            <LibraryBig className="w-4 h-4 mr-1" />
+                            {intl.search.series}
+                          </span>
+                          <span className="flex items-center capitalize">
+                            {genres && (
+                              <>
+                                <Drama className="w-4 h-4 mr-1" />
+                                {genres}
+                              </>
+                            )}
                           </span>
                         </p>
                       </>
                     ) : (
                       <>
                         <p className="text-base truncate">
-                          {intl.search.author}: {res.writer || "Desconocido"}
+                          {/* Volumes Author */}
+                          <span className="flex items-center">
+                            <UserRoundPen className="w-4 h-4 mr-1" />
+                            {res.writer || "Desconocido"}
+                          </span>
                         </p>
                         {res.isOneshot ? (
                           <p className="text-base truncate">
-                            Oneshot{" "}
-                            <span className="capitalize">
-                              {genres && <>&bull; {genres} </>}
+                            {/* Oneshot Type */}
+                            <span className="flex items-center">
+                              <Book className="w-4 h-4 mr-1" />
+                              Oneshot
+                            </span>
+                            <span className="flex items-center capitalize">
+                              {genres && (
+                                <>
+                                  <Drama className="w-4 h-4 mr-1" />
+                                  {genres}
+                                </>
+                              )}
                             </span>
                           </p>
                         ) : (
                           <p className="text-base truncate">
-                            {intl.search.volume}{" "}
-                            <span className="capitalize">
-                              {genres && <>&bull; {genres} </>}
+                            {/* Volumes Type */}
+                            <span className="flex items-center">
+                              <BookCopy className="w-4 h-4 mr-1" />
+                              {intl.search.volume}
+                            </span>
+                            <span className="flex items-center capitalize">
+                              {genres && (
+                                <>
+                                  <Drama className="w-4 h-4 mr-1" />
+                                  {genres}
+                                </>
+                              )}
                             </span>
                           </p>
                         )}
