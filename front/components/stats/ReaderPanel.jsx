@@ -27,13 +27,13 @@ export default function ReaderStatsPanel({
         bgColor={bgColor}
         textColor={textColor}
       />
-      <TileMonthRead
-        title={intl.home.monthRead}
+      <TileDaysRead
+        title={intl.home.daysRead}
         bgColor={bgColor}
         textColor={textColor}
       />
-      <TileDaysRead
-        title={intl.home.daysRead}
+      <TileMonthRead
+        title={intl.home.monthRead}
         bgColor={bgColor}
         textColor={textColor}
       />
