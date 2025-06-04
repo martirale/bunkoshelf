@@ -110,7 +110,7 @@ export default function MangaReader({
   if (loading) return <Loader />;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center px-4">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center">
       <button
         onClick={onClose}
         className="absolute top-4 right-4 z-50"
@@ -140,7 +140,7 @@ export default function MangaReader({
           <img
             src={images[currentIndex]}
             alt={`Página ${images.length - currentIndex}`}
-            className="max-h-[93vh] w-auto"
+            className="max-h-[94vh] w-auto px-1"
           />
         ) : (
           <p>No se encontraron páginas.</p>
