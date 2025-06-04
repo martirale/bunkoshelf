@@ -19,10 +19,10 @@ export default async function HomePage({ params }) {
         <div className="w-full md:w-1/2 flex flex-col justify-between mt-8 md:mt-11">
           <div className="group">
             <ReaderStatsPanel lang={lang} intl={intl} mdCols="md:grid-cols-3" />
-            <div className="flex justify-end mt-2">
+            <div className="flex justify-center ml-4 mt-2 md:justify-end md:ml-0">
               <Link
                 href={`/${lang}/profile`}
-                className="w-max flex items-center text-base text-pearl group-hover:text-onix hover:underline transition-all duration-300"
+                className="w-max flex items-center text-base text-onix 2xl:text-pearl group-hover:text-onix hover:underline transition-all duration-300"
               >
                 {intl.home.goToProfile}
                 <ChevronRight className="w-5 h-5 ml-1" />
