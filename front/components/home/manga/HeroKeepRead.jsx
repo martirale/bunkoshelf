@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { LibraryBig, ChevronRight } from "lucide-react";
 import MangaCard from "@/ui/library/manga/MangaCard";
 
@@ -47,10 +48,6 @@ export default function HeroKeepRead({ lang, intl }) {
     fetchProgress();
   }, []);
 
-  if (!entry) return null;
-
-  const href = `/${lang}/manga/volume/${entry.slug}`;
-
   return (
     <div className="flex-shrink-0 w-full md:w-1/1 2xl:w-3/5">
       <div className="flex justify-between items-center mb-4">
@@ -64,17 +61,30 @@ export default function HeroKeepRead({ lang, intl }) {
       </div>
 
       <div className="w-full px-12 md:px-0">
-        <MangaCard
-          title={entry.meta?.title ?? entry.title}
-          href={href}
-          isSeries={false}
-          isOneshot={entry.isOneshot}
-          volumeCount={null}
-          cover={entry.coverImage}
-          intl={intl}
-          isDragging={false}
-          className="font-roboto font-bold leading-5 2xl:leading-6 text-xl 2xl:text-2xl"
-        />
+        {entry ? (
+          <MangaCard
+            title={entry.meta?.title ?? entry.title}
+            href={`/${lang}/manga/volume/${entry.slug}`}
+            isSeries={false}
+            isOneshot={entry.isOneshot}
+            volumeCount={null}
+            cover={entry.coverImage}
+            intl={intl}
+            isDragging={false}
+            className="font-roboto font-bold leading-5 2xl:leading-6 text-xl 2xl:text-2xl"
+          />
+        ) : (
+          <div className="flex justify-center items-center">
+            <Image
+              src="/placeholder-v.svg"
+              alt="No hay lectura activa"
+              width={460}
+              height={785}
+              className="object-contain rounded-lg"
+              priority
+            />
+          </div>
+        )}
       </div>
     </div>
   );
