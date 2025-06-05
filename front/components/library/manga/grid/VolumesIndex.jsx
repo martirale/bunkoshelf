@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { LibraryBig } from "lucide-react";
 import Pagination from "@/ui/library/manga/Pagination";
+import FiltersDrawer from "../FiltersDrawer";
 
 const PAGE_SIZE = 35;
 
@@ -79,6 +80,8 @@ export default async function VolumesIndex({
         <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
         {intl.manga.allVolumes}
       </h2>
+
+      <FiltersDrawer />
 
       <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">
         {paginatedEntries.map((entry) => {
