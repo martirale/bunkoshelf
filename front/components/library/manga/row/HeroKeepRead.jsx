@@ -158,7 +158,7 @@ export default function HeroKeepRead({ lang, intl }) {
                     cover={entry.coverImage}
                     intl={intl}
                     isDragging={isDragging}
-                    className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
+                    className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-xl"
                   />
                 </div>
               );
