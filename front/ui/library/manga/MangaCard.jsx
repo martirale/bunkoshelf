@@ -38,7 +38,7 @@ export default function MangaCard({
     <Link
       href={href}
       className={clsx(
-        "group flex flex-col overflow-hidden bg-onix border border-blackamber rounded-lg hover:bg-blackamber transition-all duration-300",
+        "group flex flex-col overflow-hidden rounded-lg transition-all duration-300",
         isDragging ? "cursor-grabbing" : "cursor-pointer"
       )}
     >
@@ -65,7 +65,7 @@ export default function MangaCard({
         )}
       </div>
 
-      <div className="flex flex-col justify-between p-3 h-24">
+      <div className="flex flex-col justify-between p-3 h-24 bg-onix group-hover:bg-blackamber">
         <h3
           className={clsx(
             "line-clamp-3 group-hover:text-lilah transition-all duration-300",
