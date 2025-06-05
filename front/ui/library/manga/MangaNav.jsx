@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bolt, LibraryBig, BookCopy } from "lucide-react";
+import { Bolt, LibraryBig, BookCopy, Bookmark } from "lucide-react";
 import clsx from "clsx";
 
 export default function MangaNav({ lang, intl }) {
@@ -26,6 +26,12 @@ export default function MangaNav({ lang, intl }) {
       href: `/${lang}/manga/volumes`,
       icon: BookCopy,
       isActive: pathname === `/${lang}/manga/volumes`,
+    },
+    {
+      label: intl.libraries.toRead,
+      href: `/${lang}/manga/toread`,
+      icon: Bookmark,
+      isActive: pathname === `/${lang}/manga/toread`,
     },
   ];
 

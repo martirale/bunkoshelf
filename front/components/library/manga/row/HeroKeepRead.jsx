@@ -90,15 +90,19 @@ export default function HeroKeepRead({ lang, intl }) {
     }
   };
 
-  // Extraemos segmentos para facilitar comparación
+  // Mostrar-Ocultar Hero Section
   const shouldHideHero = (() => {
-    const sp = pathname.split("/");
-    return (
-      (sp.length === 4 &&
-        sp[2] === "manga" &&
-        !["series", "volumes", "volume"].includes(sp[3])) ||
-      (sp.length === 5 && sp[2] === "manga" && sp[3] === "volume")
-    );
+    const parts = pathname.split("/").filter(Boolean);
+
+    if (parts[1] !== "manga") return true;
+
+    if (parts.length === 2) return false;
+
+    if (parts.length === 3) {
+      return !["series", "volumes", "toread"].includes(parts[2]);
+    }
+
+    return true;
   })();
 
   return (
