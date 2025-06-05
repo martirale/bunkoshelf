@@ -7,11 +7,50 @@ import Pagination from "@/ui/library/manga/Pagination";
 
 const PAGE_SIZE = 35;
 
-export default async function VolumesIndex({ lang, intl, page = 1 }) {
+export default async function VolumesIndex({
+  lang,
+  intl,
+  page = 1,
+  genreFilter = null,
+  tagFilter = null,
+}) {
+  const where = {};
+
+  if (genreFilter) {
+    where.genres = {
+      some: {
+        genre: {
+          name: genreFilter,
+        },
+      },
+    };
+  }
+
+  if (tagFilter) {
+    where.tags = {
+      some: {
+        tag: {
+          name: tagFilter,
+        },
+      },
+    };
+  }
+
   const volumes = await prisma.mangaVolume.findMany({
+    where,
     include: {
-      series: true,
       metadataObj: true,
+      genres: {
+        include: {
+          genre: true,
+        },
+      },
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
+      series: true,
     },
   });
 
@@ -25,6 +64,8 @@ export default async function VolumesIndex({ lang, intl, page = 1 }) {
           .replace(/^\/?covers/, "")}`
       : null,
     meta: vol.metadataObj || null,
+    genres: vol.genres.map((g) => g.genre.name),
+    tags: vol.tags.map((t) => t.tag.name),
   }));
 
   const total = entries.length;

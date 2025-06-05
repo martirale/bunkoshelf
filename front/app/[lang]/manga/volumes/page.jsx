@@ -6,7 +6,7 @@ export default async function MangaVolumesPage({
   params,
 }) {
   const searchParams = await _searchParams;
-  const { page: pageRaw = "1" } = searchParams;
+  const { page: pageRaw = "1", genre, tag } = searchParams;
   const page = parseInt(pageRaw, 10);
 
   const { lang = "es" } = await params;
@@ -14,7 +14,13 @@ export default async function MangaVolumesPage({
 
   return (
     <section className="p-4 mb-24">
-      <VolumesIndex lang={lang} intl={intl} page={page} />
+      <VolumesIndex
+        lang={lang}
+        intl={intl}
+        page={page}
+        genreFilter={genre}
+        tagFilter={tag}
+      />
     </section>
   );
 }
