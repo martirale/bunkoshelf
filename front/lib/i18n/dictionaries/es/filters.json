@@ -1,0 +1,10 @@
+{
+  "filters": {
+    "filter": "Filtrar",
+    "filters": "Filtros",
+    "genres": "Géneros",
+    "tags": "Etiquetas",
+    "apply": "Aplicar filtros",
+    "clean": "Limpiar filtros"
+  }
+}

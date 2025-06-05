@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Filter } from "lucide-react";
 import { ChevronRight } from "lucide-react";
 
-export default function FiltersDrawer() {
+export default function FiltersDrawer({ intl }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -84,7 +83,7 @@ export default function FiltersDrawer() {
         className="text-sm uppercase bg-pearl text-onix hover:bg-lilah hover:text-pearl px-3 py-1 mr-4 rounded-md cursor-pointer transition-all duration-300"
         aria-label="Abrir filtros"
       >
-        Filtrar
+        {intl.filters.filter}
       </button>
 
       {/* Overlay */}
@@ -104,7 +103,7 @@ export default function FiltersDrawer() {
         aria-label="Panel de filtros"
       >
         <header className="p-4 flex justify-between items-center">
-          <h2>Filtros</h2>
+          <h2>{intl.filters.filters}</h2>
           <button
             onClick={() => setIsOpen(false)}
             aria-label="Cerrar filtros"
@@ -117,8 +116,8 @@ export default function FiltersDrawer() {
         <div className="p-4 flex flex-col gap-8 flex-grow overflow-hidden">
           {/* Géneros */}
           <section className="flex-1 overflow-hidden flex flex-col">
-            <h3 className="text-base mb-2">Géneros</h3>
-            {genres.length === 0 && <p>Cargando géneros...</p>}
+            <h3 className="text-base mb-2">{intl.filters.genres}</h3>
+
             <ul className="space-y-1 overflow-auto flex-grow">
               {genres.map((genre) => (
                 <li key={genre.name}>
@@ -137,8 +136,8 @@ export default function FiltersDrawer() {
 
           {/* Etiquetas */}
           <section className="flex-1 overflow-hidden flex flex-col">
-            <h3 className="text-base mb-2">Etiquetas</h3>
-            {tags.length === 0 && <p>Cargando etiquetas...</p>}
+            <h3 className="text-base mb-2">{intl.filters.tags}</h3>
+
             <ul className="space-y-1 overflow-auto flex-grow">
               {tags.map((tag) => (
                 <li key={tag.name}>
@@ -161,13 +160,13 @@ export default function FiltersDrawer() {
             onClick={clearFilters}
             className="px-2 py-4 w-full bg-pearl text-onix leading-none rounded-lg hover:bg-lilah hover:text-pearl cursor-pointer transition-all duration-300"
           >
-            Limpiar filtros
+            {intl.filters.clean}
           </button>
           <button
             onClick={applyFilters}
             className="px-2 py-4 w-full bg-pearl text-onix leading-none rounded-lg hover:bg-lilah hover:text-pearl cursor-pointer transition-all duration-300"
           >
-            Aplicar filtros
+            {intl.filters.apply}
           </button>
         </footer>
       </aside>

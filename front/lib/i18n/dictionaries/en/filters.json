@@ -1,0 +1,10 @@
+{
+  "filters": {
+    "filter": "Filter",
+    "filters": "Filters",
+    "genres": "Genres",
+    "tags": "Tags",
+    "apply": "Apply Filters",
+    "clean": "Clean Filters"
+  }
+}
