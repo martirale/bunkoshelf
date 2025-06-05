@@ -4,15 +4,28 @@ import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { LibraryBig } from "lucide-react";
 import Pagination from "@/ui/library/manga/Pagination";
+import FiltersDrawer from "../FiltersDrawer";
 
 const PAGE_SIZE = 35;
 
-export default async function SeriesIndex({ lang, intl, page = 1 }) {
+export default async function SeriesIndex({
+  lang,
+  intl,
+  page = 1,
+  genreFilter = null,
+  tagFilter = null,
+}) {
   const series = await prisma.mangaSeries.findMany({
     include: {
       volumes: {
         include: {
           metadataObj: true,
+          genres: {
+            include: { genre: true },
+          },
+          tags: {
+            include: { tag: true },
+          },
         },
       },
     },
@@ -47,21 +60,40 @@ export default async function SeriesIndex({ lang, intl, page = 1 }) {
                   .replace(/^\/?covers/, "")}`
               : null,
             meta: vol.metadataObj || null,
+            genres: vol.genres.map((g) => g.genre.name),
+            tags: vol.tags.map((t) => t.tag.name),
           })) ?? [],
       };
     });
 
-  const total = entries.length;
+  const filteredEntries = entries.filter((entry) => {
+    const firstVolume = entry.volumes?.[0];
+    if (!firstVolume) return false;
+
+    const genreMatch = genreFilter
+      ? firstVolume.genres?.includes(genreFilter)
+      : true;
+
+    const tagMatch = tagFilter ? firstVolume.tags?.includes(tagFilter) : true;
+
+    return genreMatch && tagMatch;
+  });
+
+  const total = filteredEntries.length;
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const start = (page - 1) * PAGE_SIZE;
-  const paginatedEntries = entries.slice(start, start + PAGE_SIZE);
+  const paginatedEntries = filteredEntries.slice(start, start + PAGE_SIZE);
 
   return (
     <div className="mt-8">
-      <h2 className="flex items-center mb-4 text-base md:text-lg">
-        <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
-        {intl.manga.allSeries}
-      </h2>
+      <div className="flex items-center mb-4">
+        <h2 className="flex items-center text-base md:text-lg mr-4">
+          <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+          {intl.manga.allSeries}
+        </h2>
+
+        <FiltersDrawer />
+      </div>
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
         {paginatedEntries.map((entry) => {
