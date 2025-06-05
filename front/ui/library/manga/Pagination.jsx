@@ -18,7 +18,7 @@ export default function Pagination({ currentPage, totalPages, lang, intl }) {
       <button
         disabled={currentPage === 1}
         onClick={() => goToPage(currentPage - 1)}
-        className="p-3 2xl:p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300 disabled:hidden"
+        className="p-3 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300 disabled:hidden"
       >
         <ChevronLeft className="w-5 h-5" />
       </button>
@@ -28,7 +28,7 @@ export default function Pagination({ currentPage, totalPages, lang, intl }) {
       <button
         disabled={currentPage === totalPages}
         onClick={() => goToPage(currentPage + 1)}
-        className="p-3 2xl:p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300 disabled:hidden"
+        className="p-3 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300 disabled:hidden"
       >
         <ChevronRight className="w-5 h-5" />
       </button>
