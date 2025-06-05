@@ -81,10 +81,10 @@ export default function FiltersDrawer() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="p-2 bg-pearl text-onix rounded-md hover:bg-lilah hover:text-sand cursor-pointer transition-all duration-300"
+        className="text-sm uppercase bg-pearl text-onix hover:bg-lilah hover:text-pearl px-3 py-1 mr-4 rounded-md cursor-pointer transition-all duration-300"
         aria-label="Abrir filtros"
       >
-        <Filter className="w-5 h-5" />
+        Filtrar
       </button>
 
       {/* Overlay */}

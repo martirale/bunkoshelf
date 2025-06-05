@@ -76,12 +76,14 @@ export default async function VolumesIndex({
 
   return (
     <div className="mt-8">
-      <h2 className="flex items-center mb-4 text-base md:text-lg">
-        <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
-        {intl.manga.allVolumes}
-      </h2>
+      <div className="flex items-center mb-4">
+        <h2 className="flex items-center text-base md:text-lg mr-4">
+          <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+          {intl.manga.allVolumes}
+        </h2>
 
-      <FiltersDrawer />
+        <FiltersDrawer />
+      </div>
 
       <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">
         {paginatedEntries.map((entry) => {
