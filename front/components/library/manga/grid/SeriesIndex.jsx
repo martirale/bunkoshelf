@@ -15,7 +15,55 @@ export default async function SeriesIndex({
   genreFilter = null,
   tagFilter = null,
 }) {
+  const where = {};
+
+  if (genreFilter && tagFilter) {
+    where.volumes = {
+      some: {
+        genres: {
+          some: {
+            genre: {
+              name: genreFilter,
+            },
+          },
+        },
+        tags: {
+          some: {
+            tag: {
+              name: tagFilter,
+            },
+          },
+        },
+      },
+    };
+  } else if (genreFilter) {
+    where.volumes = {
+      some: {
+        genres: {
+          some: {
+            genre: {
+              name: genreFilter,
+            },
+          },
+        },
+      },
+    };
+  } else if (tagFilter) {
+    where.volumes = {
+      some: {
+        tags: {
+          some: {
+            tag: {
+              name: tagFilter,
+            },
+          },
+        },
+      },
+    };
+  }
+
   const series = await prisma.mangaSeries.findMany({
+    where,
     include: {
       volumes: {
         include: {
@@ -66,23 +114,10 @@ export default async function SeriesIndex({
       };
     });
 
-  const filteredEntries = entries.filter((entry) => {
-    const firstVolume = entry.volumes?.[0];
-    if (!firstVolume) return false;
-
-    const genreMatch = genreFilter
-      ? firstVolume.genres?.includes(genreFilter)
-      : true;
-
-    const tagMatch = tagFilter ? firstVolume.tags?.includes(tagFilter) : true;
-
-    return genreMatch && tagMatch;
-  });
-
-  const total = filteredEntries.length;
+  const total = entries.length;
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const start = (page - 1) * PAGE_SIZE;
-  const paginatedEntries = filteredEntries.slice(start, start + PAGE_SIZE);
+  const paginatedEntries = entries.slice(start, start + PAGE_SIZE);
 
   return (
     <div className="mt-8">
