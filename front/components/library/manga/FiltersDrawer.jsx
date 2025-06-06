@@ -150,13 +150,13 @@ export default function FiltersDrawer({ intl }) {
         <footer className="p-4 flex justify-between gap-4">
           <button
             onClick={clearFilters}
-            className="px-2 py-4 w-full bg-pearl text-onix leading-none rounded-lg hover:bg-lilah hover:text-pearl cursor-pointer transition-all duration-300"
+            className="px-2 py-3 w-full bg-pearl text-onix leading-none rounded-lg hover:bg-lilah hover:text-pearl cursor-pointer transition-all duration-300"
           >
             {intl.filters.clean}
           </button>
           <button
             onClick={applyFilters}
-            className="px-2 py-4 w-full bg-pearl text-onix leading-none rounded-lg hover:bg-lilah hover:text-pearl cursor-pointer transition-all duration-300"
+            className="px-2 py-3 w-full bg-pearl text-onix leading-none rounded-lg hover:bg-lilah hover:text-pearl cursor-pointer transition-all duration-300"
           >
             {intl.filters.apply}
           </button>
