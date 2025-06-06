@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight } from "lucide-react";
+import Accordion from "@/ui/Accordion";
 
 export default function FiltersDrawer({ intl }) {
   const router = useRouter();
@@ -11,7 +12,6 @@ export default function FiltersDrawer({ intl }) {
   const [isOpen, setIsOpen] = useState(false);
   const [genres, setGenres] = useState([]);
   const [tags, setTags] = useState([]);
-
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
 
@@ -38,7 +38,6 @@ export default function FiltersDrawer({ intl }) {
     fetchFilters();
   }, []);
 
-  // Handler checkbox género
   function toggleGenre(genreName) {
     setSelectedGenres((prev) =>
       prev.includes(genreName)
@@ -47,7 +46,6 @@ export default function FiltersDrawer({ intl }) {
     );
   }
 
-  // Handler checkbox tag
   function toggleTag(tagName) {
     setSelectedTags((prev) =>
       prev.includes(tagName)
@@ -56,7 +54,6 @@ export default function FiltersDrawer({ intl }) {
     );
   }
 
-  // Aplicación de filtros
   function applyFilters() {
     const params = new URLSearchParams();
 
@@ -68,7 +65,6 @@ export default function FiltersDrawer({ intl }) {
     setIsOpen(false);
   }
 
-  // Limpiar filtros
   function clearFilters() {
     setSelectedGenres([]);
     setSelectedTags([]);
@@ -80,13 +76,12 @@ export default function FiltersDrawer({ intl }) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="text-sm uppercase bg-pearl text-onix hover:bg-lilah hover:text-pearl px-3 py-1 mr-4 rounded-md cursor-pointer transition-all duration-300"
+        className="text-sm uppercase bg-pearl text-onix hover:bg-lilah hover:text-pearl px-3 py-1 rounded-md cursor-pointer transition-all duration-300"
         aria-label="Abrir filtros"
       >
         {intl.filters.filter}
       </button>
 
-      {/* Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/70 z-40"
@@ -95,9 +90,8 @@ export default function FiltersDrawer({ intl }) {
         />
       )}
 
-      {/* Drawer */}
       <aside
-        className={`fixed top-0 right-0 h-full w-75 2xl:w-90 bg-onix z-50 transform transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-full w-80 2xl:w-90 bg-onix z-50 transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } flex flex-col`}
         aria-label="Panel de filtros"
@@ -109,16 +103,14 @@ export default function FiltersDrawer({ intl }) {
             aria-label="Cerrar filtros"
             className="hover:text-lilah cursor-pointer transition-all duration-300"
           >
-            <ChevronRight className="w-7 h-7" />
+            <ChevronRight className="w-7 h-7 -mr-1" />
           </button>
         </header>
 
-        <div className="p-4 flex flex-col gap-8 flex-grow overflow-hidden">
-          {/* Géneros */}
-          <section className="flex-1 overflow-hidden flex flex-col">
-            <h3 className="text-base mb-2">{intl.filters.genres}</h3>
-
-            <ul className="space-y-1 overflow-auto flex-grow">
+        <div className="p-4 flex flex-col gap-4 flex-grow overflow-hidden">
+          {/* Acordeón de géneros */}
+          <Accordion title={intl.filters.genres}>
+            <ul className="space-y-1 max-h-44 md:max-h-64 overflow-auto pr-2">
               {genres.map((genre) => (
                 <li key={genre.name}>
                   <label className="inline-flex items-center space-x-2 cursor-pointer">
@@ -132,13 +124,11 @@ export default function FiltersDrawer({ intl }) {
                 </li>
               ))}
             </ul>
-          </section>
+          </Accordion>
 
-          {/* Etiquetas */}
-          <section className="flex-1 overflow-hidden flex flex-col">
-            <h3 className="text-base mb-2">{intl.filters.tags}</h3>
-
-            <ul className="space-y-1 overflow-auto flex-grow">
+          {/* Acordeón de etiquetas */}
+          <Accordion title={intl.filters.tags}>
+            <ul className="space-y-1 max-h-44 md:max-h-64 overflow-auto pr-2">
               {tags.map((tag) => (
                 <li key={tag.name}>
                   <label className="inline-flex items-center space-x-2 cursor-pointer">
@@ -152,7 +142,9 @@ export default function FiltersDrawer({ intl }) {
                 </li>
               ))}
             </ul>
-          </section>
+          </Accordion>
+
+          {/* Futuro: más acordeones */}
         </div>
 
         <footer className="p-4 flex justify-between gap-4">
