@@ -42,7 +42,7 @@ export default function MangaNav({ lang, intl }) {
           key={href}
           href={href}
           className={clsx(
-            "flex items-center p-4 rounded-lg uppercase leading-none text-onix justify-center flex-1 2xl:flex-none 2xl:basis-50 transition-all duration-300",
+            "flex items-center px-2 py-4 rounded-lg uppercase leading-none text-onix justify-center flex-1 2xl:flex-none 2xl:basis-50 transition-all duration-300",
             {
               "bg-sand": isActive,
               "hover:bg-sand": !isActive,
