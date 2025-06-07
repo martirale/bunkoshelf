@@ -13,39 +13,51 @@ export default async function WantToRead({
   lang,
   intl,
   page = 1,
-  genreFilter = null,
-  tagFilter = null,
+  genreFilter = [],
+  tagFilter = [],
 }) {
   const user = await verifySession();
   if (!user) return null;
 
-  const whereConditions = [];
+  const genreList =
+    typeof genreFilter === "string" ? genreFilter.split(",") : genreFilter;
+  const tagList =
+    typeof tagFilter === "string" ? tagFilter.split(",") : tagFilter;
 
-  if (genreFilter) {
-    whereConditions.push({
-      genres: {
-        some: {
-          genre: {
-            name: genreFilter,
+  const where = {
+    AND: [],
+  };
+
+  if (genreList.length > 0) {
+    where.AND.push(
+      ...genreList.map((genreName) => ({
+        genres: {
+          some: {
+            genre: {
+              name: genreName,
+            },
           },
         },
-      },
-    });
+      }))
+    );
   }
 
-  if (tagFilter) {
-    whereConditions.push({
-      tags: {
-        some: {
-          tag: {
-            name: tagFilter,
+  if (tagList.length > 0) {
+    where.AND.push(
+      ...tagList.map((tagName) => ({
+        tags: {
+          some: {
+            tag: {
+              name: tagName,
+            },
           },
         },
-      },
-    });
+      }))
+    );
   }
 
-  whereConditions.push({
+  // Condición para volúmenes no leídos
+  where.AND.push({
     OR: [
       {
         usersProgress: {
@@ -66,9 +78,7 @@ export default async function WantToRead({
   });
 
   const volumes = await prisma.mangaVolume.findMany({
-    where: {
-      AND: whereConditions,
-    },
+    where,
     include: {
       metadataObj: true,
       genres: {

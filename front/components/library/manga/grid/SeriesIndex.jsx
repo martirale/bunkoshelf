@@ -12,55 +12,51 @@ export default async function SeriesIndex({
   lang,
   intl,
   page = 1,
-  genreFilter = null,
-  tagFilter = null,
+  genreFilter = [],
+  tagFilter = [],
 }) {
-  const where = {};
+  const genreList =
+    typeof genreFilter === "string" ? genreFilter.split(",") : genreFilter;
+  const tagList =
+    typeof tagFilter === "string" ? tagFilter.split(",") : tagFilter;
 
-  if (genreFilter && tagFilter) {
-    where.volumes = {
-      some: {
-        genres: {
-          some: {
-            genre: {
-              name: genreFilter,
+  const genreConditions =
+    Array.isArray(genreList) && genreList.length > 0
+      ? genreList.map((genre) => ({
+          genres: {
+            some: {
+              genre: {
+                name: genre,
+              },
             },
           },
-        },
-        tags: {
-          some: {
-            tag: {
-              name: tagFilter,
+        }))
+      : [];
+
+  const tagConditions =
+    Array.isArray(tagList) && tagList.length > 0
+      ? tagList.map((tag) => ({
+          tags: {
+            some: {
+              tag: {
+                name: tag,
+              },
             },
           },
-        },
-      },
-    };
-  } else if (genreFilter) {
-    where.volumes = {
-      some: {
-        genres: {
+        }))
+      : [];
+
+  const volumeConditions = [...genreConditions, ...tagConditions];
+
+  const where = volumeConditions.length
+    ? {
+        volumes: {
           some: {
-            genre: {
-              name: genreFilter,
-            },
+            AND: volumeConditions,
           },
         },
-      },
-    };
-  } else if (tagFilter) {
-    where.volumes = {
-      some: {
-        tags: {
-          some: {
-            tag: {
-              name: tagFilter,
-            },
-          },
-        },
-      },
-    };
-  }
+      }
+    : {};
 
   const series = await prisma.mangaSeries.findMany({
     where,
