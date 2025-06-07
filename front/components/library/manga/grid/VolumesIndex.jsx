@@ -22,28 +22,36 @@ export default async function VolumesIndex({
 
   const where = {};
 
-  if (genreList.length > 0) {
-    where.genres = {
-      some: {
-        genre: {
-          name: {
-            in: genreList,
-          },
-        },
-      },
-    };
-  }
+  if (genreList.length > 0 || tagList.length > 0) {
+    where.AND = [];
 
-  if (tagList.length > 0) {
-    where.tags = {
-      some: {
-        tag: {
-          name: {
-            in: tagList,
+    if (genreList.length > 0) {
+      where.AND.push(
+        ...genreList.map((genreName) => ({
+          genres: {
+            some: {
+              genre: {
+                name: genreName,
+              },
+            },
           },
-        },
-      },
-    };
+        }))
+      );
+    }
+
+    if (tagList.length > 0) {
+      where.AND.push(
+        ...tagList.map((tagName) => ({
+          tags: {
+            some: {
+              tag: {
+                name: tagName,
+              },
+            },
+          },
+        }))
+      );
+    }
   }
 
   const volumes = await prisma.mangaVolume.findMany({
