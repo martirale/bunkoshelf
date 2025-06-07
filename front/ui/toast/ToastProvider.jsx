@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import ToastItem from "./ToastItem";
 
@@ -13,34 +13,59 @@ let toastIdCounter = 0;
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [mounted, setMounted] = useState(false);
+  const timeouts = useRef({});
 
   useEffect(() => {
     setMounted(true);
+    return () => {
+      Object.values(timeouts.current).forEach(clearTimeout);
+    };
   }, []);
+
+  const removeToast = (id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+    if (timeouts.current[id]) {
+      clearTimeout(timeouts.current[id]);
+      delete timeouts.current[id];
+    }
+  };
 
   const addToast = (toast) => {
     const id = Date.now() + toastIdCounter++;
-    const duration = toast.duration || 5000;
+    const duration = toast.manual ? null : toast.duration || 3500;
 
     setToasts((prev) => [...prev, { id, ...toast }]);
 
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, duration);
+    if (duration) {
+      timeouts.current[id] = setTimeout(() => {
+        removeToast(id);
+      }, duration);
+    }
 
     return id;
   };
 
   const updateToast = (id, updatedData) => {
-    const duration = updatedData.duration || 3500;
+    const duration = updatedData.manual ? null : updatedData.duration || 3500;
 
     setToasts((prev) =>
       prev.map((t) => (t.id === id ? { ...t, ...updatedData } : t))
     );
 
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, duration);
+    if (timeouts.current[id]) {
+      clearTimeout(timeouts.current[id]);
+      delete timeouts.current[id];
+    }
+
+    if (duration) {
+      timeouts.current[id] = setTimeout(() => {
+        removeToast(id);
+      }, duration);
+    }
+
+    if (updatedData.open === false) {
+      removeToast(id);
+    }
   };
 
   return (

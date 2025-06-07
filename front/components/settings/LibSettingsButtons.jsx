@@ -21,7 +21,6 @@ export default function LibSettingsButtons({ intl }) {
 
         const { currentTask } = data;
         const taskText = currentTask || intl.toastScan.noTask;
-
         const toastContent = <p>{taskText}</p>;
 
         if (toastIdRef.current) {
@@ -29,43 +28,65 @@ export default function LibSettingsButtons({ intl }) {
             title: intl.toastScan.progressTt,
             description: toastContent,
             variant: "default",
-            duration: 3000,
+            manual: true,
+            open: true,
           });
         } else {
           toastIdRef.current = addToast({
             title: intl.toastScan.progressTt,
             description: toastContent,
             variant: "default",
-            duration: 3000,
+            manual: true,
+            open: true,
           });
         }
 
         if (data.status === "done") {
           clearInterval(pollingRef.current);
           pollingRef.current = null;
-          toastIdRef.current = null;
           setLoadingFullScan(false);
-          addToast({
-            title: intl.toastScan.successTt,
-            description: intl.toastScan.successDesc,
-            variant: "success",
-          });
+
           setTimeout(() => {
-            window.location.reload();
-          }, 3500);
+            if (toastIdRef.current) {
+              updateToast(toastIdRef.current, {
+                open: false,
+              });
+              toastIdRef.current = null;
+            }
+
+            addToast({
+              title: intl.toastScan.successTt,
+              description: intl.toastScan.successDesc,
+              variant: "success",
+              duration: 3000,
+            });
+
+            setTimeout(() => {
+              window.location.reload();
+            }, 3500);
+          }, 300);
         }
       } catch (error) {
+        console.error("Error en polling de escaneo:", error);
         clearInterval(pollingRef.current);
         pollingRef.current = null;
-        toastIdRef.current = null;
         setLoadingFullScan(false);
+
+        if (toastIdRef.current) {
+          updateToast(toastIdRef.current, {
+            open: false,
+          });
+          toastIdRef.current = null;
+        }
+
         addToast({
           title: intl.toastScan.errorTt,
           description: intl.toastScan.errorDesc,
           variant: "error",
+          duration: 3000,
         });
       }
-    }, 3500);
+    }, 3000);
   };
 
   const handleFullScan = async () => {
