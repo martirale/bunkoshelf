@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import Accordion from "@/ui/Accordion";
+import clsx from "clsx";
 
 export default function FiltersDrawer({ intl }) {
   const router = useRouter();
@@ -72,14 +73,23 @@ export default function FiltersDrawer({ intl }) {
     setIsOpen(false);
   }
 
+  const totalFilters = selectedGenres.length + selectedTags.length;
+  const isFiltering = totalFilters > 0;
+
   return (
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="text-sm uppercase bg-pearl text-onix hover:bg-lilah hover:text-pearl px-3 py-1 rounded-md cursor-pointer transition-all duration-300"
+        className={clsx(
+          "text-sm px-3 py-1 rounded-md cursor-pointer transition-all duration-300",
+          isFiltering
+            ? "bg-lilah text-pearl"
+            : "bg-pearl text-onix hover:bg-lilah hover:text-pearl"
+        )}
         aria-label="Abrir filtros"
       >
-        {intl.filters.filter}
+        <span className="uppercase">{intl.filters.filter}</span>
+        {isFiltering && ` (x${totalFilters})`}
       </button>
 
       {isOpen && (
@@ -143,8 +153,6 @@ export default function FiltersDrawer({ intl }) {
               ))}
             </ul>
           </Accordion>
-
-          {/* Futuro: más acordeones */}
         </div>
 
         <footer className="p-4 flex justify-between gap-4">
