@@ -12,26 +12,35 @@ export default async function VolumesIndex({
   lang,
   intl,
   page = 1,
-  genreFilter = null,
-  tagFilter = null,
+  genreFilter = [],
+  tagFilter = [],
 }) {
+  const genreList =
+    typeof genreFilter === "string" ? genreFilter.split(",") : genreFilter;
+  const tagList =
+    typeof tagFilter === "string" ? tagFilter.split(",") : tagFilter;
+
   const where = {};
 
-  if (genreFilter) {
+  if (genreList.length > 0) {
     where.genres = {
       some: {
         genre: {
-          name: genreFilter,
+          name: {
+            in: genreList,
+          },
         },
       },
     };
   }
 
-  if (tagFilter) {
+  if (tagList.length > 0) {
     where.tags = {
       some: {
         tag: {
-          name: tagFilter,
+          name: {
+            in: tagList,
+          },
         },
       },
     };
