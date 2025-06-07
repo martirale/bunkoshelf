@@ -88,8 +88,13 @@ export default function FiltersDrawer({ intl }) {
         )}
         aria-label="Abrir filtros"
       >
-        <span className="uppercase">{intl.filters.filter}</span>
-        {isFiltering && ` (x${totalFilters})`}
+        {isFiltering ? (
+          <span className="uppercase">
+            {intl.filters.filtering} (x{totalFilters})
+          </span>
+        ) : (
+          <span className="uppercase">{intl.filters.filter}</span>
+        )}
       </button>
 
       {isOpen && (
