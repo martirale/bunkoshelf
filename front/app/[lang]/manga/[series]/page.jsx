@@ -38,12 +38,6 @@ function aggregateMetadata(volumes) {
   return result;
 }
 
-function capitalize(text) {
-  return (
-    text.trim().charAt(0).toUpperCase() + text.trim().slice(1).toLowerCase()
-  );
-}
-
 export default async function SeriesMangaPage({ params }) {
   const { lang = "es", series } = await params;
   const intl = await getDictionary(lang);
@@ -97,7 +91,7 @@ export default async function SeriesMangaPage({ params }) {
             genres: Array.isArray(vol.genres)
               ? vol.genres
                   .map((g) =>
-                    g.genre?.name ? { name: capitalize(g.genre.name) } : null
+                    g.genre?.name ? { name: g.genre.name.trim() } : null
                   )
                   .filter(Boolean)
               : [],

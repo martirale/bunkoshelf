@@ -38,20 +38,11 @@ export default async function VolumeMangaPage({ params }) {
       );
     }
 
-    // Ayudante para capitalizar
-    function capitalize(text) {
-      return (
-        text.trim().charAt(0).toUpperCase() + text.trim().slice(1).toLowerCase()
-      );
-    }
-
     const meta = {
       ...(volumeEntry.metadataObj || null),
       genres: Array.isArray(volumeEntry.genres)
         ? volumeEntry.genres
-            .map((g) =>
-              g.genre?.name ? { name: capitalize(g.genre.name) } : null
-            )
+            .map((g) => (g.genre?.name ? { name: g.genre.name.trim() } : null))
             .filter(Boolean)
         : [],
       tags: Array.isArray(volumeEntry.tags)

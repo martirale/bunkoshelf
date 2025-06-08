@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import MangaCard from "@/ui/library/manga/MangaCard";
 import ReadButtonsSeries from "@/ui/library/manga/ReadButtonsSeries";
 import MangaSummary from "./MangaSummary";
@@ -201,32 +202,42 @@ export default function SeriesContent({
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.genre}
               </p>
-              <div className="w-2/3 md:w-4/5 flex flex-wrap gap-1">
+              <div className="w-2/3 md:w-4/5 flex flex-wrap gap-2">
                 {meta.genres.map((genre, idx) => (
-                  <span
+                  <Link
                     key={idx}
-                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1"
+                    href={{
+                      pathname: `/${lang}/manga/series`,
+                      query: { genre: genre.name },
+                    }}
+                    scroll={false}
+                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
                   >
                     {genre.name}
-                  </span>
+                  </Link>
                 ))}
               </div>
             </div>
           )}
 
           {meta.tags.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl mt-1">
+            <div className="flex flex-row items-baseline max-w-3xl mt-2">
               <p className="text-sm uppercase w-1/3 md:w-1/5">
                 {intl.manga.tags}
               </p>
-              <div className="w-2/3 md:w-4/5 flex flex-wrap gap-1">
+              <div className="w-2/3 md:w-4/5 flex flex-wrap gap-2">
                 {meta.tags.map((tag, idx) => (
-                  <span
+                  <Link
                     key={idx}
-                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1"
+                    href={{
+                      pathname: `/${lang}/manga/series`,
+                      query: { tag: tag.name },
+                    }}
+                    scroll={false}
+                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
                   >
                     {tag.name}
-                  </span>
+                  </Link>
                 ))}
               </div>
             </div>
