@@ -63,3 +63,4 @@ yarn-error.log*
 /library/
 start.bat
 /front/public/covers/
+/front/certs
