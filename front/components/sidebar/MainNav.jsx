@@ -61,11 +61,14 @@ export default function MainNav({ intl }) {
     },
   ];
 
+  const isLibraryActive =
+    pathname.startsWith(`/${currentLang}/manga`) ||
+    pathname.startsWith(`/${currentLang}/books`);
+
   useEffect(() => {
-    const isLibraryActive =
-      pathname.startsWith(`/${currentLang}/manga`) ||
-      pathname.startsWith(`/${currentLang}/books`);
-    if (!isLibraryActive) setOpenLibraryMenu(false);
+    if (!isLibraryActive) {
+      setOpenLibraryMenu(false);
+    }
   }, [pathname]);
 
   return (
