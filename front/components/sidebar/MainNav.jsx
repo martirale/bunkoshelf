@@ -9,7 +9,7 @@ import {
   Heart,
   UserRound,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePathname, useParams } from "next/navigation";
 import clsx from "clsx";
 
@@ -18,7 +18,28 @@ export default function MainNav({ intl }) {
   const currentLang = params.lang || "es";
   const pathname = usePathname();
 
+  const isLibraryActive =
+    pathname.startsWith(`/${currentLang}/manga`) ||
+    pathname.startsWith(`/${currentLang}/books`);
+
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false);
+  const hasManuallyToggled = useRef(false);
+
+  useEffect(() => {
+    if (isLibraryActive && !hasManuallyToggled.current) {
+      setOpenLibraryMenu(true);
+    }
+
+    if (!isLibraryActive) {
+      setOpenLibraryMenu(false);
+      hasManuallyToggled.current = false;
+    }
+  }, [pathname]);
+
+  const handleToggleLibrary = () => {
+    setOpenLibraryMenu((prev) => !prev);
+    hasManuallyToggled.current = true;
+  };
 
   const links = [
     {
@@ -31,9 +52,7 @@ export default function MainNav({ intl }) {
       label: intl.sidebar.library,
       icon: LibraryBig,
       isDropdown: true,
-      isActive:
-        pathname.startsWith(`/${currentLang}/manga`) ||
-        pathname.startsWith(`/${currentLang}/books`),
+      isActive: isLibraryActive,
       subItems: [
         {
           label: intl.sidebar.manga,
@@ -61,16 +80,6 @@ export default function MainNav({ intl }) {
     },
   ];
 
-  const isLibraryActive =
-    pathname.startsWith(`/${currentLang}/manga`) ||
-    pathname.startsWith(`/${currentLang}/books`);
-
-  useEffect(() => {
-    if (!isLibraryActive) {
-      setOpenLibraryMenu(false);
-    }
-  }, [pathname]);
-
   return (
     <nav className="mt-8 space-y-2">
       {links.map((link) => {
@@ -78,7 +87,7 @@ export default function MainNav({ intl }) {
           return (
             <div key={link.label} className="relative">
               <button
-                onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
+                onClick={handleToggleLibrary}
                 className={clsx(
                   "w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border hover:border-lilah transition-all duration-300",
                   link.isActive
