@@ -29,7 +29,7 @@ export default function VolumesContent({
   const ageMin = ageRatingMap(meta.ageRating);
   const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-2 border ${
     ageMin >= 18
-      ? "border-[#f54180] text-[#f54180]"
+      ? "border-red-500 text-red-500"
       : ageMin >= 16
       ? "border-[#f5a524] text-[#f5a524]"
       : ageMin !== null
