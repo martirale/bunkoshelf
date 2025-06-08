@@ -17,8 +17,8 @@
     "genre": "Género",
     "tags": "Etiquetas",
     "seriesVolumes": "Volúmenes de la serie",
-    "allSeries": "Todas las series",
-    "allVolumes": "Todos los volúmenes",
-    "wantToRead": "Volúmenes por leer"
+    "allSeries": "Series (todas)",
+    "allVolumes": "Volúmenes (todos)",
+    "wantToRead": "Por leer"
   }
 }

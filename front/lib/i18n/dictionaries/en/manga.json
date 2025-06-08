@@ -17,8 +17,8 @@
     "genre": "Genre",
     "tags": "Tags",
     "seriesVolumes": "Series Volumes",
-    "allSeries": "All Series",
-    "allVolumes": "All Volumes",
-    "wantToRead": "Volumes to Read"
+    "allSeries": "Series (All)",
+    "allVolumes": "Volumes (All)",
+    "wantToRead": "Want to Read"
   }
 }
