@@ -59,7 +59,7 @@ export default function SeriesContent({
           />
 
           {/* Meta Tags */}
-          <div className="mt-8 2xl:mt-16">
+          <div className="mt-8">
             {meta.ageRating && (
               <span className={badgeClass}>
                 {ageRatingMap(meta.ageRating) !== null

@@ -62,12 +62,14 @@ export default function VolumesContent({
             {meta.title}
           </h1>
           {!isOneshot && (
-            <Link
-              href={`/${lang}/manga/${seriesSlug}`}
-              className="italic hover:underline"
-            >
-              {intl.manga.series} {meta.series || seriesTitle}
-            </Link>
+            <div className="py-2">
+              <Link
+                href={`/${lang}/manga/${seriesSlug}`}
+                className="italic hover:underline"
+              >
+                {intl.manga.series} {meta.series || seriesTitle}
+              </Link>
+            </div>
           )}
 
           {/* Read Buttons */}
@@ -81,7 +83,7 @@ export default function VolumesContent({
           />
 
           {/* Meta Tags */}
-          <div className="mt-8 2xl:mt-10">
+          <div className="mt-8">
             {meta.ageRating && (
               <span className={badgeClass}>
                 {ageRatingMap(meta.ageRating) !== null
