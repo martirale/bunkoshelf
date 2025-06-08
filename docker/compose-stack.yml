@@ -18,11 +18,10 @@ services:
     expose:
       - "3000"
     volumes:
-      - bunko_db:/app/prisma/data
-      - /path/to/your/library/manga:/library/manga
+      - ./bunko_db:/app/prisma/data
       - ./public/covers:/app/public/covers
+      - /local-2tb/media/books/Mangas:/library/manga
 
 volumes:
   npm_data:
   npm_letsencrypt:
-  bunko_db:
