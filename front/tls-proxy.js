@@ -1,8 +1,10 @@
 import { spawn } from "child_process";
 import fs from "fs";
 import https from "https";
-import { createProxyServer } from "http-proxy";
+import httpProxy from "http-proxy";
 import path from "path";
+
+const { createProxyServer } = httpProxy;
 
 const certPath = path.join(process.cwd(), "certs");
 const keyFile = path.join(certPath, "key.pem");
