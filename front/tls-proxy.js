@@ -9,46 +9,50 @@ const keyFile = path.join(certPath, "key.pem");
 const certFile = path.join(certPath, "cert.pem");
 
 function generateSelfSignedCert() {
-  if (!fs.existsSync(certPath)) {
-    fs.mkdirSync(certPath);
-  }
-
-  if (fs.existsSync(certFile) && fs.existsSync(keyFile)) {
-    return;
-  }
-
-  console.log("Generating self-signed certificate...");
-
-  const subj = "/CN=localhost";
-  const args = [
-    "req",
-    "-x509",
-    "-newkey",
-    "rsa:2048",
-    "-nodes",
-    "-keyout",
-    keyFile,
-    "-out",
-    certFile,
-    "-days",
-    "365",
-    "-subj",
-    subj,
-  ];
-
-  const openssl = spawn("openssl", args);
-
-  openssl.stderr.on("data", (data) => {
-    console.error(data.toString());
-  });
-
-  openssl.on("exit", (code) => {
-    if (code === 0) {
-      console.log("Self-signed certificate generated.");
-    } else {
-      console.error("OpenSSL certificate generation failed. Exiting...");
-      process.exit(1);
+  return new Promise((resolve, reject) => {
+    if (!fs.existsSync(certPath)) {
+      fs.mkdirSync(certPath);
     }
+
+    if (fs.existsSync(certFile) && fs.existsSync(keyFile)) {
+      console.log("Certificate already exists.");
+      return resolve();
+    }
+
+    console.log("Generating self-signed certificate...");
+
+    const subj = "/CN=localhost";
+    const args = [
+      "req",
+      "-x509",
+      "-newkey",
+      "rsa:2048",
+      "-nodes",
+      "-keyout",
+      keyFile,
+      "-out",
+      certFile,
+      "-days",
+      "365",
+      "-subj",
+      subj,
+    ];
+
+    const openssl = spawn("openssl", args);
+
+    openssl.stderr.on("data", (data) => {
+      console.error(data.toString());
+    });
+
+    openssl.on("exit", (code) => {
+      if (code === 0) {
+        console.log("Self-signed certificate generated.");
+        resolve();
+      } else {
+        console.error("OpenSSL certificate generation failed. Exiting...");
+        reject(new Error("OpenSSL failed"));
+      }
+    });
   });
 }
 
@@ -80,6 +84,15 @@ function startProxy() {
   });
 }
 
-generateSelfSignedCert();
-startNextApp();
-startProxy();
+async function main() {
+  try {
+    await generateSelfSignedCert();
+    startNextApp();
+    startProxy();
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+}
+
+main();

@@ -13,8 +13,7 @@ COPY public public
 COPY tls-proxy.js tls-proxy.js
 COPY certs certs/
 
-RUN pnpm install --prod --filter next
-RUN pnpm install --prod --filter @prisma/client
+RUN pnpm install --prod --filter next --filter http-proxy --filter @prisma/client
 RUN pnpm dlx prisma generate
 RUN pnpm store prune && rm -rf /usr/share/man /usr/share/doc /root/.npm /root/.cache /tmp/*
 
