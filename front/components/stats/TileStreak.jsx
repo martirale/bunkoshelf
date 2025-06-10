@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toZonedTime } from "date-fns-tz";
 
 export default function TileStreak({ title, intl, bgColor, textColor }) {
   const [streak, setStreak] = useState("—");
@@ -12,6 +13,8 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
         const data = await res.json();
         const allReadDates = data?.allReadDates || [];
 
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
         const formatDate = (date) =>
           new Date(
             date.getFullYear(),
@@ -20,7 +23,10 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
           ).getTime();
 
         const readDays = new Set(
-          allReadDates.map((entry) => formatDate(new Date(entry.lastReadAt)))
+          allReadDates.map((entry) => {
+            const zonedDate = toZonedTime(entry.lastReadAt, timeZone);
+            return formatDate(zonedDate);
+          })
         );
 
         const today = new Date();
