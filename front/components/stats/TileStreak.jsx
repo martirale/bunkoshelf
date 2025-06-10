@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toZonedTime, format } from "date-fns-tz";
-import { format as formatDateFns } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+import { format } from "date-fns";
 
 export default function TileStreak({ title, intl, bgColor, textColor }) {
   const [streak, setStreak] = useState("—");
@@ -10,33 +10,42 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/api/stats/reader");
+        const res = await fetch("/api/stats/reader", { cache: "no-store" });
         const data = await res.json();
         const allReadDates = data?.allReadDates || [];
 
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        // Función para obtener la fecha en formato yyyy-MM-dd según zona horaria local
-        const formatDate = (date) => {
-          const zoned = toZonedTime(date, timeZone);
-          return formatDateFns(zoned, "yyyy-MM-dd");
-        };
 
-        // Crear Set con días únicos donde hubo lectura
-        const readDays = new Set(
-          allReadDates.map((entry) => formatDate(new Date(entry.lastReadAt)))
+        const readDaySet = new Set(
+          allReadDates.map(({ lastReadAt }) => {
+            const zoned = toZonedTime(new Date(lastReadAt), timeZone);
+            return format(zoned, "yyyy-MM-dd");
+          })
         );
 
-        // Empezamos desde hoy y vamos retrocediendo un día mientras haya lectura
+        // console.log("📅 Días leídos (formato yyyy-MM-dd):", [...readDaySet]);
+
         let count = 0;
-        let cursor = new Date();
-        while (readDays.has(formatDate(cursor))) {
-          count++;
-          cursor.setDate(cursor.getDate() - 1);
+        let currentDate = new Date();
+
+        while (true) {
+          const localDate = toZonedTime(currentDate, timeZone);
+          const dayKey = format(localDate, "yyyy-MM-dd");
+
+          if (readDaySet.has(dayKey)) {
+            // console.log(`✅ Día ${dayKey} contado en la racha`);
+            count++;
+            currentDate.setDate(currentDate.getDate() - 1);
+          } else {
+            // console.log(`🛑 Día ${dayKey} NO encontrado, se detiene la racha`);
+            break;
+          }
         }
 
         setStreak(count.toString());
       } catch (error) {
-        console.error("Error calculating streak:", error);
+        console.error("Error al calcular la racha de lectura:", error);
+        setStreak("—");
       }
     }
 

@@ -9,7 +9,7 @@ export default function TileDaysRead({ title, bgColor, textColor }) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/api/stats/reader");
+        const res = await fetch("/api/stats/reader", { cache: "no-store" });
         const data = await res.json();
         const allReadDates = data?.allReadDates || [];
 
@@ -23,11 +23,13 @@ export default function TileDaysRead({ title, bgColor, textColor }) {
         allReadDates.forEach((entry) => {
           const zonedDate = toZonedTime(new Date(entry.lastReadAt), timeZone);
 
-          if (
-            zonedDate.getMonth() === thisMonth &&
-            zonedDate.getFullYear() === thisYear
-          ) {
-            uniqueDays.add(zonedDate.getDate());
+          if (!isNaN(zonedDate)) {
+            if (
+              zonedDate.getMonth() === thisMonth &&
+              zonedDate.getFullYear() === thisYear
+            ) {
+              uniqueDays.add(zonedDate.getDate());
+            }
           }
         });
 
