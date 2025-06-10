@@ -15,14 +15,14 @@ export default async function ProfilePage({ params }) {
       </h2>
 
       {/* User Stats */}
+      <ReadingChallenge intl={intl} />
+
       <ReaderStatsPanel
         intl={intl}
         bgColor="bg-blackamber"
         textColor="text-sand"
         mdCols="md:grid-cols-3 2xl:grid-cols-6"
       />
-
-      <ReadingChallenge intl={intl} />
     </>
   );
 }

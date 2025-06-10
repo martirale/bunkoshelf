@@ -75,7 +75,7 @@ export default function ReadingChallenge({ intl }) {
   if (loading) return null;
 
   return (
-    <div className="w-full mx-auto rounded-lg bg-blackamber p-4 mt-8">
+    <div className="w-full mx-auto rounded-lg bg-blackamber p-4 mt-8 mb-4">
       <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-2">
         <h2>{intl.profile.ttChallenge}</h2>
 
