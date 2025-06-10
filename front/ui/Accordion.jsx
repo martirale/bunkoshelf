@@ -7,7 +7,7 @@ export default function Accordion({ title, children, defaultOpen = false }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border-b border-zinc-700">
+    <div className="border-b border-neutral-700">
       <button
         className="w-full flex justify-between items-center py-3 text-left cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}

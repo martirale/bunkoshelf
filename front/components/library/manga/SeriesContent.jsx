@@ -23,8 +23,8 @@ export default function SeriesContent({
       : ageMin >= 16
       ? "border-[#f5a524] text-[#f5a524]"
       : ageMin !== null
-      ? "border-zinc-700"
-      : "border-zinc-700"
+      ? "border-neutral-700"
+      : "border-neutral-700"
   }`;
 
   return (
@@ -69,11 +69,11 @@ export default function SeriesContent({
               </span>
             )}
             {meta.languageISO && (
-              <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1 mr-2">
+              <span className="text-sm uppercase border border-neutral-700 rounded-md px-3 py-1 mr-2">
                 {meta.languageISO}
               </span>
             )}
-            <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1">
+            <span className="text-sm uppercase border border-neutral-700 rounded-md px-3 py-1">
               {intl.manga.reading}
             </span>
           </div>
@@ -94,7 +94,7 @@ export default function SeriesContent({
             </>
           )}
 
-          <div className="border-t border-zinc-800 my-6"></div>
+          <div className="border-t border-neutral-700 my-6"></div>
 
           {/* Author Info */}
           {aggregatedMeta.writer?.length > 0 && (
@@ -211,7 +211,7 @@ export default function SeriesContent({
                       query: { genre: genre.name },
                     }}
                     scroll={false}
-                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
+                    className="text-xs uppercase border border-neutral-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
                   >
                     {genre.name}
                   </Link>
@@ -234,7 +234,7 @@ export default function SeriesContent({
                       query: { tag: tag.name },
                     }}
                     scroll={false}
-                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
+                    className="text-xs uppercase border border-neutral-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
                   >
                     {tag.name}
                   </Link>
@@ -247,7 +247,7 @@ export default function SeriesContent({
 
       {/* SERIES VOLUMES */}
       <section>
-        <div className="border-t border-zinc-800 my-6"></div>
+        <div className="border-t border-neutral-700 my-6"></div>
 
         <h2>{intl.manga.seriesVolumes}</h2>
 

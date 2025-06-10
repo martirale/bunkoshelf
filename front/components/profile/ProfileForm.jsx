@@ -54,14 +54,14 @@ export default function ProfileForm({ user, intl }) {
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className="text-sand bg-onix border border-zinc-700 hover:border-pearl rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="text-sand bg-onix border border-neutral-700 hover:border-pearl rounded-lg w-full px-5 py-3 transition-all duration-300"
           placeholder={intl.profile.name}
         />
         <input
           name="lastname"
           value={formData.lastname}
           onChange={handleChange}
-          className="text-sand bg-onix border border-zinc-700 hover:border-pearl rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="text-sand bg-onix border border-neutral-700 hover:border-pearl rounded-lg w-full px-5 py-3 transition-all duration-300"
           placeholder={intl.profile.lastname}
         />
         <input
@@ -69,7 +69,7 @@ export default function ProfileForm({ user, intl }) {
           type="password"
           value={formData.password}
           onChange={handleChange}
-          className="text-sand bg-onix border border-zinc-700 hover:border-pearl rounded-lg w-full px-5 py-3 transition-all duration-300"
+          className="text-sand bg-onix border border-neutral-700 hover:border-pearl rounded-lg w-full px-5 py-3 transition-all duration-300"
           placeholder={intl.profile.password}
         />
         <button

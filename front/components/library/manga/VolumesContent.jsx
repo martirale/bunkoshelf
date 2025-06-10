@@ -33,8 +33,8 @@ export default function VolumesContent({
       : ageMin >= 16
       ? "border-[#f5a524] text-[#f5a524]"
       : ageMin !== null
-      ? "border-zinc-700"
-      : "border-zinc-700"
+      ? "border-neutral-700"
+      : "border-neutral-700"
   }`;
 
   return (
@@ -92,11 +92,11 @@ export default function VolumesContent({
               </span>
             )}
             {meta.languageISO && (
-              <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1 mr-2">
+              <span className="text-sm uppercase border border-neutral-700 rounded-md px-3 py-1 mr-2">
                 {meta.languageISO}
               </span>
             )}
-            <span className="text-sm uppercase border border-zinc-700 rounded-md px-3 py-1">
+            <span className="text-sm uppercase border border-neutral-700 rounded-md px-3 py-1">
               {intl.manga.reading}
             </span>
           </div>
@@ -119,7 +119,7 @@ export default function VolumesContent({
             </>
           )}
 
-          <div className="border-t border-zinc-800 my-6"></div>
+          <div className="border-t border-neutral-700 my-6"></div>
 
           {/* Author Info */}
           {meta.writer && (
@@ -218,7 +218,7 @@ export default function VolumesContent({
                       query: { genre: genre.name },
                     }}
                     scroll={false}
-                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
+                    className="text-xs uppercase border border-neutral-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
                   >
                     {genre.name}
                   </Link>
@@ -241,7 +241,7 @@ export default function VolumesContent({
                       query: { tag: tag.name },
                     }}
                     scroll={false}
-                    className="text-xs uppercase border border-zinc-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
+                    className="text-xs uppercase border border-neutral-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
                   >
                     {tag.name}
                   </Link>

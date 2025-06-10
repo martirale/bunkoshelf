@@ -18,7 +18,7 @@ export default function SearchInput({ intl }) {
 
   return (
     <div
-      className="flex items-center w-full border border-zinc-800 hover:border-lilah rounded-lg cursor-pointer transition-all duration-300"
+      className="flex items-center w-full border border-neutral-800 hover:border-lilah rounded-lg cursor-pointer transition-all duration-300"
       onClick={openSearchModal}
     >
       <div className="p-1 ml-3">

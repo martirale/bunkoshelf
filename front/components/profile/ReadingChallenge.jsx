@@ -82,7 +82,7 @@ export default function ReadingChallenge({ intl }) {
         <div className="flex items-center justify-center gap-2">
           <button
             onClick={handleDecrement}
-            className="rounded-full border border-zinc-800 p-2 hover:border-lilah hover:bg-onix cursor-pointer transition-all duration-300"
+            className="rounded-full border border-neutral-800 p-2 hover:border-lilah hover:bg-onix cursor-pointer transition-all duration-300"
           >
             <Minus className="w-4 h-4" />
           </button>
@@ -91,7 +91,7 @@ export default function ReadingChallenge({ intl }) {
 
           <button
             onClick={handleIncrement}
-            className="rounded-full border border-zinc-800 p-2 hover:border-lilah hover:bg-onix cursor-pointer transition-all duration-300"
+            className="rounded-full border border-neutral-800 p-2 hover:border-lilah hover:bg-onix cursor-pointer transition-all duration-300"
           >
             <Plus className="w-4 h-4" />
           </button>
