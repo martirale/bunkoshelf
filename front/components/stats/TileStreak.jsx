@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toZonedTime } from "date-fns-tz";
+import { toZonedTime, format } from "date-fns-tz";
+import { format as formatDateFns } from "date-fns";
 
 export default function TileStreak({ title, intl, bgColor, textColor }) {
   const [streak, setStreak] = useState("—");
@@ -14,46 +15,34 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
         const allReadDates = data?.allReadDates || [];
 
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        console.log("🕒 Time zone detectada:", timeZone);
 
-        const formatDate = (date) =>
-          new Date(
-            date.getFullYear(),
-            date.getMonth(),
-            date.getDate()
-          ).getTime();
+        const formatDate = (date) => {
+          const zoned = toZonedTime(date, timeZone);
+          const dayKey = formatDateFns(zoned, "yyyy-MM-dd");
+          console.log("📚 Día leído:", date, "→", dayKey);
+          return dayKey;
+        };
 
         const readDays = new Set(
-          allReadDates.map((entry) => {
-            const zonedDate = toZonedTime(entry.lastReadAt, timeZone);
-            return formatDate(zonedDate);
-          })
+          allReadDates.map((entry) => formatDate(new Date(entry.lastReadAt)))
         );
 
-        const today = toZonedTime(new Date(), timeZone);
-        const todayKey = formatDate(today);
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-        const yesterdayKey = formatDate(yesterday);
-
-        let baseDate = readDays.has(todayKey)
-          ? new Date(today)
-          : readDays.has(yesterdayKey)
-          ? new Date(yesterday)
-          : null;
-
-        if (!baseDate) {
-          setStreak("0");
-          return;
-        }
+        const now = new Date();
+        const today = toZonedTime(now, timeZone);
 
         let count = 0;
-        const cursor = new Date(baseDate);
+        let cursor = new Date(today);
 
         while (readDays.has(formatDate(cursor))) {
+          console.log("🟢 Dato leído para:", formatDate(cursor));
           count++;
+          cursor = new Date(cursor);
           cursor.setDate(cursor.getDate() - 1);
         }
+        console.log("🔴 Fecha donde se detuvo:", formatDate(cursor));
 
+        console.log("🔥 Racha final:", count);
         setStreak(count.toString());
       } catch (error) {
         console.error("Error calculating streak:", error);
