@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toZonedTime } from "date-fns-tz";
 
 export default function TileLastRead({ title, lang, bgColor, textColor }) {
   const [lastRead, setLastRead] = useState("—");
@@ -14,19 +15,23 @@ export default function TileLastRead({ title, lang, bgColor, textColor }) {
         const dates = data?.allReadDates ?? [];
 
         if (dates.length > 0 && dates[0].lastReadAt) {
+          const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
           const mostRecentStr = dates[0].lastReadAt;
-          const mostRecent = new Date(mostRecentStr);
+          const mostRecentUTC = new Date(mostRecentStr);
+          const zonedDate = toZonedTime(mostRecentUTC, timeZone);
 
-          if (!isNaN(mostRecent.getTime())) {
-            const now = new Date();
+          if (!isNaN(zonedDate.getTime())) {
+            const now = toZonedTime(new Date(), timeZone);
+
             const options = {
               day: "numeric",
               month: "short",
-              ...(mostRecent.getFullYear() !== now.getFullYear()
+              ...(zonedDate.getFullYear() !== now.getFullYear()
                 ? { year: "numeric" }
                 : {}),
             };
-            const formatted = mostRecent.toLocaleDateString(lang, options);
+
+            const formatted = zonedDate.toLocaleDateString(lang, options);
             setLastRead(formatted);
           } else {
             setLastRead("—");

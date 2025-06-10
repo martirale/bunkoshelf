@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toZonedTime } from "date-fns-tz";
 
 export default function TileMonthRead({ title, bgColor, textColor }) {
   const [count, setCount] = useState("—");
@@ -12,12 +13,13 @@ export default function TileMonthRead({ title, bgColor, textColor }) {
         const data = await res.json();
         const volumesRead = data?.volumesRead || [];
 
-        const now = new Date();
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const now = toZonedTime(new Date(), timeZone);
         const thisMonth = now.getMonth();
         const thisYear = now.getFullYear();
 
         const thisMonthReads = volumesRead.filter((entry) => {
-          const readDate = new Date(entry.lastReadAt);
+          const readDate = toZonedTime(new Date(entry.lastReadAt), timeZone);
           return (
             readDate.getMonth() === thisMonth &&
             readDate.getFullYear() === thisYear

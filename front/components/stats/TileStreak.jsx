@@ -29,16 +29,25 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
           })
         );
 
-        const today = new Date();
+        const today = toZonedTime(new Date(), timeZone);
         const todayKey = formatDate(today);
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        const yesterdayKey = formatDate(yesterday);
 
-        if (!readDays.has(todayKey)) {
+        let baseDate = readDays.has(todayKey)
+          ? new Date(today)
+          : readDays.has(yesterdayKey)
+          ? new Date(yesterday)
+          : null;
+
+        if (!baseDate) {
           setStreak("0");
           return;
         }
 
         let count = 0;
-        let cursor = new Date();
+        const cursor = new Date(baseDate);
 
         while (readDays.has(formatDate(cursor))) {
           count++;

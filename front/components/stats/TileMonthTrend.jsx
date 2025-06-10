@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { toZonedTime } from "date-fns-tz";
 
 export default function TileMonthTrend({ title, bgColor, textColor }) {
   const [percentageChange, setPercentageChange] = useState("—");
@@ -14,7 +15,8 @@ export default function TileMonthTrend({ title, bgColor, textColor }) {
         const data = await res.json();
         const volumes = data?.volumesRead || [];
 
-        const now = new Date();
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const now = toZonedTime(new Date(), timeZone);
         const thisMonth = now.getMonth();
         const thisYear = now.getFullYear();
 
@@ -25,7 +27,7 @@ export default function TileMonthTrend({ title, bgColor, textColor }) {
         let previousMonthReads = 0;
 
         volumes.forEach((entry) => {
-          const readDate = new Date(entry.lastReadAt);
+          const readDate = toZonedTime(new Date(entry.lastReadAt), timeZone);
           const m = readDate.getMonth();
           const y = readDate.getFullYear();
 
