@@ -19,6 +19,8 @@
     "seriesVolumes": "Volúmenes de la serie",
     "allSeries": "Series (todas)",
     "allVolumes": "Volúmenes (todos)",
-    "wantToRead": "Por leer"
+    "wantToRead": "Por leer",
+    "showMore": "Mostrar más",
+    "showLess": "Mostrar menos"
   }
 }

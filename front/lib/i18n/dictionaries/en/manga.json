@@ -19,6 +19,8 @@
     "seriesVolumes": "Series Volumes",
     "allSeries": "Series (All)",
     "allVolumes": "Volumes (All)",
-    "wantToRead": "Want to Read"
+    "wantToRead": "Want to Read",
+    "showMore": "Show More",
+    "showLess": "Show Less"
   }
 }

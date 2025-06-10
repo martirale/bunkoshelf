@@ -115,7 +115,7 @@ export default function VolumesContent({
           {meta.summary && (
             <>
               <h2 className="text-sm mt-8 mb-1">{intl.manga.synopsis}</h2>
-              <MangaSummary meta={meta} />
+              <MangaSummary meta={meta} intl={intl} />
             </>
           )}
 

@@ -90,7 +90,7 @@ export default function SeriesContent({
               <h2 className="text-sm mt-8 mb-1">
                 {intl.manga.synopsis} (vol. 1)
               </h2>
-              <MangaSummary meta={meta} />
+              <MangaSummary meta={meta} intl={intl} />
             </>
           )}
 

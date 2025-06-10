@@ -3,7 +3,7 @@
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState } from "react";
 
-export default function MangaSummary({ meta }) {
+export default function MangaSummary({ meta, intl }) {
   const [expanded, setExpanded] = useState(false);
 
   if (!meta.summary) return null;
@@ -24,11 +24,11 @@ export default function MangaSummary({ meta }) {
         >
           {expanded ? (
             <>
-              Mostrar menos <ChevronUp className="w-4 h-4" />
+              {intl.manga.showLess} <ChevronUp className="w-4 h-4" />
             </>
           ) : (
             <>
-              Mostrar más <ChevronDown className="w-4 h-4" />
+              {intl.manga.showMore} <ChevronDown className="w-4 h-4" />
             </>
           )}
         </button>
