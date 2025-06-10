@@ -24,7 +24,7 @@ export default function SearchInputMob({ intl }) {
   return (
     <Link
       href={`/${currentLang}/search`}
-      className="flex items-center w-full border border-sand rounded-lg cursor-pointer transition-all duration-300"
+      className="flex items-center w-full border border-stone-300 rounded-lg cursor-pointer transition-all duration-300"
     >
       <div className="p-1 ml-3">
         <Search className="w-5 h-5" />
