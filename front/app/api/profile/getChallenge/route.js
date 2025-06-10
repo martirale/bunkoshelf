@@ -26,10 +26,15 @@ export async function GET(req) {
       userId: user.id,
       isRead: true,
     },
+    select: {
+      id: true,
+      isRead: true,
+      lastReadAt: true,
+    },
   });
 
   return NextResponse.json({
     challenge,
-    progress: userVolumes.length,
+    userVolumes,
   });
 }

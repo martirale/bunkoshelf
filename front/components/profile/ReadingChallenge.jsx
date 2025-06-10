@@ -20,7 +20,18 @@ export default function ReadingChallenge({ intl }) {
 
         if (res.ok) {
           setGoal(data.challenge?.goal ?? 0);
-          setProgress(data.progress || 0);
+
+          // Filtrar por el año actual
+          const completedThisYear = data.userVolumes?.filter((vol) => {
+            if (!vol.lastReadAt) return false;
+            const lastReadDate = new Date(vol.lastReadAt);
+            return (
+              vol.isRead === true && lastReadDate.getFullYear() === currentYear
+            );
+          }).length;
+          setProgress(completedThisYear ?? 0);
+
+          setProgress(completedThisYear ?? 0);
         } else {
           console.error("Error fetching challenge:", data.error);
         }
@@ -34,10 +45,8 @@ export default function ReadingChallenge({ intl }) {
     fetchData();
   }, [currentYear]);
 
-  // Handler para actualizar el goal en la DB
   const updateGoal = async (newGoal) => {
     setGoal(newGoal);
-
     try {
       await fetch("/api/profile/updateChallenge", {
         method: "POST",
@@ -60,6 +69,8 @@ export default function ReadingChallenge({ intl }) {
       updateGoal(newGoal);
     }
   };
+
+  const percentage = goal === 0 ? 0 : Math.min((progress / goal) * 100, 100);
 
   if (loading) return null;
 
@@ -87,7 +98,7 @@ export default function ReadingChallenge({ intl }) {
         </div>
       </div>
 
-      {/* <div className="mt-8 md:mt-4 space-y-1">
+      <div className="mt-8 md:mt-4 space-y-1">
         <div className="flex justify-between text-sm uppercase">
           <span>
             {intl.profile.completed}: {progress}
@@ -100,7 +111,7 @@ export default function ReadingChallenge({ intl }) {
             style={{ width: `${percentage}%` }}
           ></div>
         </div>
-      </div> */}
+      </div>
     </div>
   );
 }
