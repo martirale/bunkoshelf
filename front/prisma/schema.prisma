@@ -9,17 +9,32 @@ datasource db {
 
 // Users
 model User {
-  id             Int      @id @default(autoincrement())
-  createdAt      DateTime @default(now())
-  username       String   @unique
-  password       String
-  isAdmin        Boolean  @default(false)
-  name           String?
-  lastname       String?
-  birthYear      Int?
+  id               Int      @id @default(autoincrement())
+  createdAt        DateTime @default(now())
+  username         String   @unique
+  password         String
+  isAdmin          Boolean  @default(false)
+  name             String?
+  lastname         String?
+  birthYear        Int?
 
-  seriesProgress UserToSeries[]
-  volumeProgress UserToVolume[]
+  seriesProgress   UserToSeries[]
+  volumeProgress   UserToVolume[]
+  ReadingChallenge ReadingChallenge[]
+}
+
+model ReadingChallenge {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+
+  year      Int
+  goal      Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, year])
 }
 
 // Library Status
