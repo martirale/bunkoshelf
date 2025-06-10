@@ -1,6 +1,7 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { Bolt } from "lucide-react";
 import ReaderStatsPanel from "@/components/stats/ReaderPanel";
+import ReadingChallenge from "@/components/profile/ReadingChallenge";
 
 export default async function ProfilePage({ params }) {
   const { lang = "es" } = await params;
@@ -20,6 +21,8 @@ export default async function ProfilePage({ params }) {
         textColor="text-sand"
         mdCols="md:grid-cols-3 2xl:grid-cols-6"
       />
+
+      <ReadingChallenge intl={intl} />
     </>
   );
 }

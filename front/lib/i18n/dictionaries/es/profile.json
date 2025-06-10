@@ -7,6 +7,8 @@
     "password": "Nueva contraseña",
     "save": "Guardar cambios",
     "greeting": "Hola,",
-    "updateProfile": "Actualizar perfil"
+    "updateProfile": "Actualizar perfil",
+    "readingChallenge": "Reto de lectura",
+    "completed": "Completados"
   }
 }
