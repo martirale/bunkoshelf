@@ -8,7 +8,7 @@
     "save": "Guardar cambios",
     "greeting": "Hola,",
     "updateProfile": "Actualizar perfil",
-    "readingChallenge": "Reto de lectura",
+    "ttChallenge": "Reto de lectura",
     "completed": "Completados"
   }
 }

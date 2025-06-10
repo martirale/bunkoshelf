@@ -66,7 +66,7 @@ export default function ReadingChallenge({ intl }) {
   return (
     <div className="w-full mx-auto rounded-lg bg-blackamber p-4 mt-8">
       <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-2">
-        <h2>{intl.profile.readingChallenge}</h2>
+        <h2>{intl.profile.ttChallenge}</h2>
 
         <div className="flex items-center justify-center gap-2">
           <button
