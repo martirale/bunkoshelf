@@ -125,7 +125,7 @@ export default function FooterNav({ intl }) {
           href={versionUrl}
           target="_blank"
           rel="noopener"
-          className="text-sm px-4 py-1 border border-sand md:border-neutral-800 rounded-full hover:text-pearl hover:bg-onix transition-all duration-300 hover:border-lilah"
+          className="text-sm px-4 py-1 border border-sand md:border-neutral-800 rounded-full hover:text-pearl transition-all duration-300 hover:border-lilah"
         >
           v{version}
         </Link>
@@ -136,7 +136,7 @@ export default function FooterNav({ intl }) {
               <button
                 key={i}
                 {...props}
-                className="border border-sand md:border-neutral-800 hover:text-pearl hover:bg-onix rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
+                className="border border-sand md:border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
               >
                 <Icon className="w-5 h-5" />
               </button>
@@ -147,7 +147,7 @@ export default function FooterNav({ intl }) {
                 target="_blank"
                 rel="noopener"
                 title={props.title}
-                className="border border-sand md:border-neutral-800 rounded-lg p-2 hover:text-pearl hover:bg-onix transition-all duration-300 hover:border-lilah"
+                className="border border-sand md:border-neutral-800 rounded-lg p-2 hover:text-pearl transition-all duration-300 hover:border-lilah"
               >
                 <Icon className="w-5 h-5" />
               </Link>
