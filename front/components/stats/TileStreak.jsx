@@ -15,34 +15,25 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
         const allReadDates = data?.allReadDates || [];
 
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        console.log("🕒 Time zone detectada:", timeZone);
-
+        // Función para obtener la fecha en formato yyyy-MM-dd según zona horaria local
         const formatDate = (date) => {
           const zoned = toZonedTime(date, timeZone);
-          const dayKey = formatDateFns(zoned, "yyyy-MM-dd");
-          console.log("📚 Día leído:", date, "→", dayKey);
-          return dayKey;
+          return formatDateFns(zoned, "yyyy-MM-dd");
         };
 
+        // Crear Set con días únicos donde hubo lectura
         const readDays = new Set(
           allReadDates.map((entry) => formatDate(new Date(entry.lastReadAt)))
         );
 
-        const now = new Date();
-        const today = toZonedTime(now, timeZone);
-
+        // Empezamos desde hoy y vamos retrocediendo un día mientras haya lectura
         let count = 0;
-        let cursor = new Date(today);
-
+        let cursor = new Date();
         while (readDays.has(formatDate(cursor))) {
-          console.log("🟢 Dato leído para:", formatDate(cursor));
           count++;
-          cursor = new Date(cursor);
           cursor.setDate(cursor.getDate() - 1);
         }
-        console.log("🔴 Fecha donde se detuvo:", formatDate(cursor));
 
-        console.log("🔥 Racha final:", count);
         setStreak(count.toString());
       } catch (error) {
         console.error("Error calculating streak:", error);
