@@ -1,15 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Minus } from "lucide-react";
 
 export default function ReadingChallenge({ intl }) {
-  const [goal, setGoal] = useState(12);
-  const [progress] = useState(5);
-  const percentage = Math.min((progress / goal) * 100, 100);
+  const [goal, setGoal] = useState(null);
+  const [progress, setProgress] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleIncrement = () => setGoal((prev) => prev + 1);
-  const handleDecrement = () => setGoal((prev) => Math.max(prev - 1, 1));
+  const currentYear = new Date().getFullYear();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(
+          `/api/profile/getChallenge?year=${currentYear}`
+        );
+        const data = await res.json();
+
+        if (res.ok) {
+          setGoal(data.challenge?.goal ?? 0);
+          setProgress(data.progress || 0);
+        } else {
+          console.error("Error fetching challenge:", data.error);
+        }
+      } catch (error) {
+        console.error("Fetch failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentYear]);
+
+  // Handler para actualizar el goal en la DB
+  const updateGoal = async (newGoal) => {
+    setGoal(newGoal);
+
+    try {
+      await fetch("/api/profile/updateChallenge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ year: currentYear, goal: newGoal }),
+      });
+    } catch (error) {
+      console.error("Failed to update goal:", error);
+    }
+  };
+
+  const handleIncrement = () => {
+    const newGoal = goal + 1;
+    updateGoal(newGoal);
+  };
+
+  const handleDecrement = () => {
+    if (goal > 1) {
+      const newGoal = goal - 1;
+      updateGoal(newGoal);
+    }
+  };
+
+  if (loading) return null;
 
   return (
     <div className="w-full mx-auto rounded-lg bg-blackamber p-4 mt-8">
@@ -35,7 +87,7 @@ export default function ReadingChallenge({ intl }) {
         </div>
       </div>
 
-      <div className="mt-8 md:mt-4 space-y-1">
+      {/* <div className="mt-8 md:mt-4 space-y-1">
         <div className="flex justify-between text-sm uppercase">
           <span>
             {intl.profile.completed}: {progress}
@@ -48,7 +100,7 @@ export default function ReadingChallenge({ intl }) {
             style={{ width: `${percentage}%` }}
           ></div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
