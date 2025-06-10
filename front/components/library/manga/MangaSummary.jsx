@@ -20,7 +20,7 @@ export default function MangaSummary({ meta }) {
       <div className="flex justify-center">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="mt-2 text-sm text-zinc-500 underline flex items-center gap-1 cursor-pointer"
+          className="mt-2 text-sm text-neutral-600 uppercase underline flex items-center gap-1 cursor-pointer"
         >
           {expanded ? (
             <>

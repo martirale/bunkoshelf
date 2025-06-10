@@ -99,7 +99,7 @@ export default function ReadingChallenge({ intl }) {
       </div>
 
       <div className="mt-8 md:mt-4 space-y-1">
-        <div className="flex justify-between text-sm uppercase">
+        <div className="text-neutral-500 flex justify-between text-sm uppercase">
           <span>
             {intl.profile.completed}: {progress}
           </span>

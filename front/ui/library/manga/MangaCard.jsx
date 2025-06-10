@@ -76,7 +76,7 @@ export default function MangaCard({
         </h3>
 
         {isSeries && volumeCount != null && (
-          <p className="mt-2 text-xs uppercase text-zinc-400">
+          <p className="mt-2 text-xs uppercase text-neutral-500">
             {volumeCount} {intl.manga.volumes}
           </p>
         )}
