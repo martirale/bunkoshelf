@@ -21,6 +21,7 @@ model User {
   seriesProgress   UserToSeries[]
   volumeProgress   UserToVolume[]
   ReadingChallenge ReadingChallenge[]
+  DailyReadingLog DailyReadingLog[]
 }
 
 model ReadingChallenge {
@@ -71,6 +72,18 @@ model UserToVolume {
 
   @@unique([userId, volumeId])
 }
+
+model DailyReadingLog {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
 
 // Manga Library
 model MangaSeries {
