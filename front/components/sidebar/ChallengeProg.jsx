@@ -1,51 +1,42 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
+import { verifySession } from "@/lib/auth/verifySession";
+import prisma from "@/lib/prisma";
 
-export default function ChallengeProg({ lang, intl }) {
-  const [goal, setGoal] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [loading, setLoading] = useState(true);
+export default async function ChallengeProg({ lang, intl }) {
+  const user = await verifySession();
+  if (!user) return null;
 
   const currentYear = new Date().getFullYear();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch(
-          `/api/profile/getChallenge?year=${currentYear}`
-        );
-        const data = await res.json();
+  const [challenge, userVolumes] = await Promise.all([
+    prisma.readingChallenge.findFirst({
+      where: {
+        userId: user.id,
+        year: currentYear,
+      },
+    }),
+    prisma.userToVolume.findMany({
+      where: {
+        userId: user.id,
+        isRead: true,
+      },
+      select: {
+        isRead: true,
+        lastReadAt: true,
+      },
+    }),
+  ]);
 
-        if (res.ok) {
-          const challengeGoal = data.challenge?.goal ?? 0;
-          setGoal(challengeGoal);
+  const goal = challenge?.goal ?? 0;
 
-          const completedThisYear =
-            data.userVolumes?.filter((vol) => {
-              if (!vol.lastReadAt) return false;
-              const lastReadDate = new Date(vol.lastReadAt);
-              return vol.isRead && lastReadDate.getFullYear() === currentYear;
-            }).length ?? 0;
-
-          setProgress(completedThisYear);
-        } else {
-          console.error("Error fetching challenge:", data.error);
-        }
-      } catch (error) {
-        console.error("Fetch failed:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [currentYear]);
+  const progress =
+    userVolumes?.filter((vol) => {
+      if (!vol.lastReadAt) return false;
+      const lastReadDate = new Date(vol.lastReadAt);
+      return lastReadDate.getFullYear() === currentYear;
+    }).length ?? 0;
 
   const percentage = goal === 0 ? 0 : Math.min((progress / goal) * 100, 100);
-
-  if (loading) return null;
 
   return (
     <Link href={`/${lang}/profile`} className="group">

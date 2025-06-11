@@ -3,6 +3,7 @@ import SidebarLogo from "./siebarLogo";
 import SecondNav from "./SecondNav";
 import MainNav from "./MainNav";
 import AdminNav from "./AdminNav";
+import ChallengeProg from "./ChallengeProg";
 import FooterNav from "./FooterNav";
 import { verifySession } from "@/lib/auth/verifySession";
 import SearchInput from "../search/SearchImput";
@@ -31,6 +32,8 @@ export default async function Sidebar({ lang }) {
             </div>
           </div>
         )}
+
+        <ChallengeProg lang={lang} intl={intl} />
 
         <FooterNav lang={lang} intl={intl} />
       </aside>

@@ -7,7 +7,6 @@ import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
 import AlertBox from "../ui/AlertBox";
 import { getBuildInfo } from "@/lib/utils";
-import ChallengeProg from "./ChallengeProg";
 
 export default function FooterNav({ lang, intl }) {
   const { version, versionUrl, changelogUrl } = getBuildInfo();
@@ -120,8 +119,6 @@ export default function FooterNav({ lang, intl }) {
           <AlertBox title={intl.toastDev.appDevelopTt} variant="warning" />
         </Link>
       </div> */}
-
-      <ChallengeProg lang={lang} intl={intl} />
 
       <div className="flex justify-between items-center">
         <Link
