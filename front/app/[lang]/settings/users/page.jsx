@@ -1,8 +1,8 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import prisma from "@/lib/prisma";
+import { verifySession } from "@/lib/auth/verifySession";
 import { UsersRound } from "lucide-react";
 import UsersTable from "@/components/settings/UsersTable";
-import { verifySession } from "@/lib/auth/verifySession";
 import AddUserButton from "@/components/settings/AddUserButton";
 
 export default async function SettingsUsersPage({ params }) {

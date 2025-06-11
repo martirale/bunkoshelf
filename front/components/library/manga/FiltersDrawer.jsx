@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import Accordion from "@/ui/Accordion";
+import Accordion from "@/components/ui/Accordion";
 import clsx from "clsx";
 
 export default function FiltersDrawer({ intl }) {

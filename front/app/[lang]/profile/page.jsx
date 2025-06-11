@@ -1,7 +1,7 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { Bolt } from "lucide-react";
-import ReaderStatsPanel from "@/components/stats/ReaderPanel";
 import ReadingChallenge from "@/components/profile/ReadingChallenge";
+import ReaderStatsPanel from "@/components/stats/ReaderPanel";
 
 export default async function ProfilePage({ params }) {
   const { lang = "es" } = await params;

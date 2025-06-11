@@ -1,9 +1,9 @@
 import React from "react";
-import MangaCard from "@/ui/library/manga/MangaCard";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { LibraryBig } from "lucide-react";
-import Pagination from "@/ui/library/manga/Pagination";
+import MangaCard from "@/components/ui/MangaCard";
+import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "../FiltersDrawer";
 
 const PAGE_SIZE = 35;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import CreateUserForm from "./CreateUserForm";
-import Modal from "@/ui/Modal";
+import Modal from "../ui/Modal";
 import { UserRoundPlus } from "lucide-react";
 
 export default function AddUserButton({ intl }) {

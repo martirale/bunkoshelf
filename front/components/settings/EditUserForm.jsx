@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { UserRoundPen } from "lucide-react";
-import { useToast } from "@/ui/toast/ToastProvider";
+import { useToast } from "../ToastProvider";
 
 export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
   const [username, setUsername] = useState("");

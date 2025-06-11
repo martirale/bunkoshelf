@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { LibraryBig, ChevronRight } from "lucide-react";
-import MangaCard from "@/ui/library/manga/MangaCard";
+import MangaCard from "@/components/ui/MangaCard";
 
 export default function HeroKeepRead({ lang, intl }) {
   const [entry, setEntry] = useState(null);

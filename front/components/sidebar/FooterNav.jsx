@@ -5,7 +5,7 @@ import { Languages, LogOut, BookOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
-import AlertBox from "@/ui/AlertBox";
+import AlertBox from "../ui/AlertBox";
 import { getBuildInfo } from "@/lib/utils";
 
 export default function FooterNav({ intl }) {

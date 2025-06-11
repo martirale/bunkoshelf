@@ -2,8 +2,8 @@
 
 import { useRef, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import MangaCard from "@/ui/library/manga/MangaCard";
-import MangaNav from "@/ui/library/manga/MangaNav";
+import MangaCard from "@/components/ui/MangaCard";
+import MangaNav from "../MangaNav";
 import { LibraryBig, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function HeroKeepRead({ lang, intl }) {

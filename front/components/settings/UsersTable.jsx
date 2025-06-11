@@ -2,7 +2,7 @@
 
 import { UserRoundPen } from "lucide-react";
 import { useState } from "react";
-import Modal from "@/ui/Modal";
+import Modal from "../ui/Modal";
 import EditUserForm from "./EditUserForm";
 
 export default function UsersTable({ users, intl, currentUserId }) {

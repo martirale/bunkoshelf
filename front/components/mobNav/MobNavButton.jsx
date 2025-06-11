@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import Modal from "@/ui/Modal";
 import { Menu } from "lucide-react";
+import Modal from "../ui/Modal";
 import MenuLogo from "./menuLogo";
-import MainNav from "@/components/sidebar/MainNav";
-import AdminNav from "@/components/sidebar/AdminNav";
-import SecondNav from "@/components/sidebar/SecondNav";
-import FooterNav from "@/components/sidebar/FooterNav";
-import SearchInputMob from "@/components/search/SearchInputMob";
+import MainNav from "../sidebar/MainNav";
+import AdminNav from "../sidebar/AdminNav";
+import SecondNav from "../sidebar/SecondNav";
+import FooterNav from "../sidebar/FooterNav";
+import SearchInputMob from "../search/SearchInputMob";
 
 export default function MobNavButton({ intl, user }) {
   const [open, setOpen] = useState(false);

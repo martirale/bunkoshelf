@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Minimize2, ChevronLeft, ChevronRight } from "lucide-react";
-import Loader from "@/ui/Loader";
+import Loader from "../ui/Loader";
 
 export default function MangaReader({
   slug,

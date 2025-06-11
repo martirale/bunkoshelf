@@ -1,4 +1,4 @@
-import MangaCard from "@/ui/library/manga/MangaCard";
+import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";

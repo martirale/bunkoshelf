@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ScanSearch, DatabaseBackup, Loader2 } from "lucide-react";
-import { useToast } from "@/ui/toast/ToastProvider";
+import { useToast } from "../ToastProvider";
 
 export default function LibSettingsButtons({ intl }) {
   const [loadingFullScan, setLoadingFullScan] = useState(false);

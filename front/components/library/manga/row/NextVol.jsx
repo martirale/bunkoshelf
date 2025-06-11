@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import MangaCard from "@/ui/library/manga/MangaCard";
+import MangaCard from "@/components/ui/MangaCard";
 import { BookMarked, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function NextVol({ lang, intl, maxItems = 12 }) {

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import ReadButtonsVolume from "@/ui/library/manga/ReadButtonsVolume";
+import ReadButtonsVolume from "./ReadButtonsVolume";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import MangaCard from "@/ui/library/manga/MangaCard";
-import ReadButtonsSeries from "@/ui/library/manga/ReadButtonsSeries";
+import MangaCard from "@/components/ui/MangaCard";
+import ReadButtonsSeries from "./ReadButtonsSeries";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 

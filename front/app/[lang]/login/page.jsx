@@ -1,6 +1,6 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import LoginForm from "./LoginForm";
-import MainLogo from "@/ui/MainLogo";
+import MainLogo from "@/components/ui/MainLogo";
 
 export default async function LoginPage({ params }) {
   const { lang = "es" } = await params;

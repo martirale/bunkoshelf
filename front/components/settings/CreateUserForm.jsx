@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { UserRoundPlus } from "lucide-react";
-import { useToast } from "@/ui/toast/ToastProvider";
+import { useToast } from "../ToastProvider";
 
 export default function CreateUserForm({ intl }) {
   const [username, setUsername] = useState("");

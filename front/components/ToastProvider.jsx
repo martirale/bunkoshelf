@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import ToastItem from "./ToastItem";
+import ToastItem from "./ui/ToastItem";
 
 const ToastContext = createContext();
 

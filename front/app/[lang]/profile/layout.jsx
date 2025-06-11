@@ -1,6 +1,6 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { verifySession } from "@/lib/auth/verifySession";
-import SidebarMisc from "@/ui/SidebarMisc";
+import SidebarMisc from "@/components/ui/SidebarMisc";
 import ProfileNav from "@/components/profile/ProfileNav";
 import { UserRound } from "lucide-react";
 

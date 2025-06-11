@@ -1,8 +1,8 @@
 import { robotoCondensed, boldonse } from "../fonts";
 import "../globals.css";
 import Sidebar from "@/components/sidebar/sidebar";
-import MobNav from "@/ui/mobNav/MobNav";
-import { ToastProvider } from "@/ui/toast/ToastProvider";
+import MobNav from "@/components/mobNav/MobNav";
+import { ToastProvider } from "@/components/ToastProvider";
 
 export const metadata = {
   title: "Bunko Shelf",
