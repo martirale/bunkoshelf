@@ -53,17 +53,16 @@ export async function POST(req) {
     });
 
     const now = new Date();
-    const normalizedDate = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate()
-    );
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
 
     const existingLog = await prisma.dailyReadingLog.findUnique({
       where: {
         userId_date: {
           userId,
-          date: normalizedDate,
+          date: formattedDate,
         },
       },
     });
@@ -72,7 +71,7 @@ export async function POST(req) {
       await prisma.dailyReadingLog.create({
         data: {
           userId,
-          date: normalizedDate,
+          date: formattedDate,
         },
       });
     }

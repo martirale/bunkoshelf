@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toZonedTime } from "date-fns-tz";
 
 export default function TileDaysRead({ title, bgColor, textColor }) {
   const [display, setDisplay] = useState("—");
@@ -13,27 +12,24 @@ export default function TileDaysRead({ title, bgColor, textColor }) {
         const data = await res.json();
         const dailyReading = data?.dailyReading || [];
 
-        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const now = toZonedTime(new Date(), timeZone);
-        const thisMonth = now.getMonth();
+        const now = new Date();
+        const thisMonth = now.getMonth() + 1;
         const thisYear = now.getFullYear();
 
         const uniqueDays = new Set();
 
-        dailyReading.forEach((entry) => {
-          const zonedDate = toZonedTime(new Date(entry.date), timeZone);
+        dailyReading.forEach(({ date }) => {
+          const [yearStr, monthStr, dayStr] = date.split("-");
+          const year = parseInt(yearStr, 10);
+          const month = parseInt(monthStr, 10);
+          const day = parseInt(dayStr, 10);
 
-          if (!isNaN(zonedDate)) {
-            if (
-              zonedDate.getMonth() === thisMonth &&
-              zonedDate.getFullYear() === thisYear
-            ) {
-              uniqueDays.add(zonedDate.getDate());
-            }
+          if (year === thisYear && month === thisMonth) {
+            uniqueDays.add(day);
           }
         });
 
-        const daysInMonth = new Date(thisYear, thisMonth + 1, 0).getDate();
+        const daysInMonth = new Date(thisYear, thisMonth, 0).getDate();
         setDisplay(`${uniqueDays.size} / ${daysInMonth}`);
       } catch (error) {
         console.error("Error fetching days read:", error);

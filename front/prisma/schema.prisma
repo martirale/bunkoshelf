@@ -78,7 +78,7 @@ model DailyReadingLog {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
 
-  date      DateTime
+  date      String
   createdAt DateTime @default(now())
 
   @@unique([userId, date])

@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toZonedTime } from "date-fns-tz";
-import { format } from "date-fns";
 
 export default function TileStreak({ title, intl, bgColor, textColor }) {
   const [streak, setStreak] = useState("—");
@@ -14,16 +12,9 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
         const data = await res.json();
         const dailyReading = data?.dailyReading || [];
 
-        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const readDaySet = new Set(dailyReading.map(({ date }) => date));
 
-        const readDaySet = new Set(
-          dailyReading.map(({ date }) => {
-            const zoned = toZonedTime(new Date(date), timeZone);
-            return format(zoned, "yyyy-MM-dd");
-          })
-        );
-
-        const now = toZonedTime(new Date(), timeZone);
+        const now = new Date();
         let currentDate = new Date(
           now.getFullYear(),
           now.getMonth(),
@@ -33,8 +24,10 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
         let count = 0;
 
         while (true) {
-          const localDate = toZonedTime(currentDate, timeZone);
-          const dayKey = format(localDate, "yyyy-MM-dd");
+          const year = currentDate.getFullYear();
+          const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+          const day = String(currentDate.getDate()).padStart(2, "0");
+          const dayKey = `${year}-${month}-${day}`;
 
           if (readDaySet.has(dayKey)) {
             count++;
