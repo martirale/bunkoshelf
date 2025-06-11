@@ -156,6 +156,7 @@ export default async function WantToRead({
             totalPages={totalPages}
             lang={lang}
             intl={intl}
+            basePath="/toread"
           />
         </div>
       )}

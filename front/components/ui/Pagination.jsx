@@ -3,14 +3,20 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function Pagination({ currentPage, totalPages, lang, intl }) {
+export default function Pagination({
+  currentPage,
+  totalPages,
+  lang,
+  intl,
+  basePath,
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const goToPage = (page) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page);
-    router.push(`/${lang}/manga/volumes?${params.toString()}`);
+    router.push(`/${lang}/manga${basePath}?${params.toString()}`);
   };
 
   return (

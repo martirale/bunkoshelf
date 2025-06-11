@@ -161,6 +161,7 @@ export default async function SeriesIndex({
             totalPages={totalPages}
             lang={lang}
             intl={intl}
+            basePath="/series"
           />
         </div>
       )}

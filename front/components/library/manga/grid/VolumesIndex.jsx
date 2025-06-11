@@ -129,6 +129,7 @@ export default async function VolumesIndex({
             totalPages={totalPages}
             lang={lang}
             intl={intl}
+            basePath="/volumes"
           />
         </div>
       )}
