@@ -23,8 +23,14 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
           })
         );
 
+        const now = toZonedTime(new Date(), timeZone);
+        let currentDate = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+
         let count = 0;
-        let currentDate = new Date();
 
         while (true) {
           const localDate = toZonedTime(currentDate, timeZone);
