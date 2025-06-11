@@ -26,11 +26,14 @@ export async function POST(req) {
       return NextResponse.json({ error: "Volume not found" }, { status: 404 });
     }
 
+    const userId = user.id;
+    const volumeId = volume.id;
+
     await prisma.userToVolume.upsert({
       where: {
         userId_volumeId: {
-          userId: user.id,
-          volumeId: volume.id,
+          userId,
+          volumeId,
         },
       },
       update: {
@@ -40,14 +43,39 @@ export async function POST(req) {
         isRead: lastPage >= totalPages - 1,
       },
       create: {
-        userId: user.id,
-        volumeId: volume.id,
+        userId,
+        volumeId,
         lastPage,
         totalPages,
         lastReadAt,
         isRead: lastPage >= totalPages - 1,
       },
     });
+
+    const now = new Date();
+    const normalizedDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+    const existingLog = await prisma.dailyReadingLog.findUnique({
+      where: {
+        userId_date: {
+          userId,
+          date: normalizedDate,
+        },
+      },
+    });
+
+    if (!existingLog) {
+      await prisma.dailyReadingLog.create({
+        data: {
+          userId,
+          date: normalizedDate,
+        },
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
