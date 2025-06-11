@@ -8,10 +8,11 @@ import MenuLogo from "./menuLogo";
 import MainNav from "../sidebar/MainNav";
 import AdminNav from "../sidebar/AdminNav";
 import SecondNav from "../sidebar/SecondNav";
+import ChallengeProg from "../sidebar/ChallengeProg";
 import FooterNav from "../sidebar/FooterNav";
 import SearchInputMob from "../search/SearchInputMob";
 
-export default function MobNavButton({ lang, intl, user }) {
+export default function MobNavButton({ lang, intl, user, challengeData }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -49,6 +50,7 @@ export default function MobNavButton({ lang, intl, user }) {
         )}
 
         <div className="mt-8 -mb-7">
+          <ChallengeProg lang={lang} intl={intl} data={challengeData} />
           <FooterNav lang={lang} intl={intl} />
         </div>
       </Modal>

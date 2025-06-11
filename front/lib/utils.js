@@ -1,4 +1,5 @@
 import buildInfo from "./buildInfo.json";
+import prisma from "./prisma";
 
 // Sorting volumes by title and number
 export function sortByPaddedTitle(items, getValue = (item) => item.title) {
@@ -40,4 +41,27 @@ export function ageRatingMap(ageRating) {
 // Current version info
 export function getBuildInfo() {
   return buildInfo;
+}
+
+// Reading challenge data
+export async function getChallengeData(user) {
+  if (!user) return null;
+  const currentYear = new Date().getFullYear();
+
+  const challenge = await prisma.readingChallenge.findFirst({
+    where: { userId: user.id, year: currentYear },
+  });
+  const userVolumes = await prisma.userToVolume.findMany({
+    where: { userId: user.id, isRead: true },
+    select: { isRead: true, lastReadAt: true },
+  });
+
+  const goal = challenge?.goal ?? 0;
+  const progress = userVolumes.filter((vol) => {
+    if (!vol.lastReadAt) return false;
+    return new Date(vol.lastReadAt).getFullYear() === currentYear;
+  }).length;
+  const percentage = goal === 0 ? 0 : Math.min((progress / goal) * 100, 100);
+
+  return { goal, progress, percentage };
 }
