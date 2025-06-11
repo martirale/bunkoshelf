@@ -11,7 +11,7 @@ import SecondNav from "../sidebar/SecondNav";
 import FooterNav from "../sidebar/FooterNav";
 import SearchInputMob from "../search/SearchInputMob";
 
-export default function MobNavButton({ intl, user }) {
+export default function MobNavButton({ lang, intl, user }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -49,7 +49,7 @@ export default function MobNavButton({ intl, user }) {
         )}
 
         <div className="mt-8 -mb-7">
-          <FooterNav intl={intl} />
+          <FooterNav lang={lang} intl={intl} />
         </div>
       </Modal>
     </>

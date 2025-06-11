@@ -8,7 +8,7 @@ export default async function MobNav({ lang }) {
 
   return (
     <div className="fixed bottom-8 right-6 z-50 md:hidden">
-      <MobNavButton intl={intl} user={user} />
+      <MobNavButton lang={lang} intl={intl} user={user} />
     </div>
   );
 }

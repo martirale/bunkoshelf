@@ -32,7 +32,7 @@ export default async function Sidebar({ lang }) {
           </div>
         )}
 
-        <FooterNav intl={intl} />
+        <FooterNav lang={lang} intl={intl} />
       </aside>
 
       <SearchModal lang={lang} intl={intl} />
