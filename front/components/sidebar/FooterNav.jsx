@@ -109,7 +109,7 @@ export default function FooterNav({ intl }) {
         </div>
       )}
 
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <Link
           href="https://bunko.amlab.site/otros/roadmap"
           target="_blank"
@@ -118,7 +118,7 @@ export default function FooterNav({ intl }) {
         >
           <AlertBox title={intl.toastDev.appDevelopTt} variant="warning" />
         </Link>
-      </div>
+      </div> */}
 
       <div className="flex justify-between items-center">
         <Link
