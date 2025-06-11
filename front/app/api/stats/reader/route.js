@@ -7,7 +7,7 @@ export async function GET() {
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [volumesRead, readEntries, allCompleted, allReadDates] =
+  const [volumesRead, readEntries, allCompleted, allReadDates, dailyReading] =
     await Promise.all([
       prisma.userToVolume.findMany({
         where: {
@@ -43,6 +43,18 @@ export async function GET() {
         },
         select: { lastReadAt: true },
       }),
+
+      prisma.dailyReadingLog.findMany({
+        where: {
+          userId: user.id,
+        },
+        orderBy: {
+          date: "desc",
+        },
+        select: {
+          date: true,
+        },
+      }),
     ]);
 
   return NextResponse.json({
@@ -50,5 +62,6 @@ export async function GET() {
     readEntries,
     allCompleted,
     allReadDates,
+    dailyReading,
   });
 }

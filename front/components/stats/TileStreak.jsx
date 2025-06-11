@@ -12,18 +12,16 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
       try {
         const res = await fetch("/api/stats/reader", { cache: "no-store" });
         const data = await res.json();
-        const allReadDates = data?.allReadDates || [];
+        const dailyReading = data?.dailyReading || [];
 
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         const readDaySet = new Set(
-          allReadDates.map(({ lastReadAt }) => {
-            const zoned = toZonedTime(new Date(lastReadAt), timeZone);
+          dailyReading.map(({ date }) => {
+            const zoned = toZonedTime(new Date(date), timeZone);
             return format(zoned, "yyyy-MM-dd");
           })
         );
-
-        // console.log("📅 Días leídos (formato yyyy-MM-dd):", [...readDaySet]);
 
         let count = 0;
         let currentDate = new Date();
@@ -33,11 +31,9 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
           const dayKey = format(localDate, "yyyy-MM-dd");
 
           if (readDaySet.has(dayKey)) {
-            // console.log(`✅ Día ${dayKey} contado en la racha`);
             count++;
             currentDate.setDate(currentDate.getDate() - 1);
           } else {
-            // console.log(`🛑 Día ${dayKey} NO encontrado, se detiene la racha`);
             break;
           }
         }

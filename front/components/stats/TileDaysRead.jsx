@@ -11,7 +11,7 @@ export default function TileDaysRead({ title, bgColor, textColor }) {
       try {
         const res = await fetch("/api/stats/reader", { cache: "no-store" });
         const data = await res.json();
-        const allReadDates = data?.allReadDates || [];
+        const dailyReading = data?.dailyReading || [];
 
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const now = toZonedTime(new Date(), timeZone);
@@ -20,8 +20,8 @@ export default function TileDaysRead({ title, bgColor, textColor }) {
 
         const uniqueDays = new Set();
 
-        allReadDates.forEach((entry) => {
-          const zonedDate = toZonedTime(new Date(entry.lastReadAt), timeZone);
+        dailyReading.forEach((entry) => {
+          const zonedDate = toZonedTime(new Date(entry.date), timeZone);
 
           if (!isNaN(zonedDate)) {
             if (
