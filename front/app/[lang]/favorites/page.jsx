@@ -8,7 +8,7 @@ export default async function FavoritesPage({ params }) {
   const intl = await getDictionary(lang);
 
   return (
-    <div className="p-4 mb-24">
+    <div className="p-4 mb-24 md:mb-4">
       <h1 className="flex items-center">
         <Heart className="w-7 h-7 mr-2" />
         {intl.favorites.title}

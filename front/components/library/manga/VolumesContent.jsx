@@ -38,7 +38,7 @@ export default function VolumesContent({
   }`;
 
   return (
-    <div className="p-4 mb-24">
+    <div className="p-4 mb-24 md:mb-4">
       <section className="flex flex-col md:flex-row">
         {/* Cover Image */}
         <div className="w-full md:w-5/12 2xl:w-1/3">

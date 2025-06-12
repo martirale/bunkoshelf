@@ -8,7 +8,7 @@ export default async function MangaPage({ params }) {
   const intl = await getDictionary(lang);
 
   return (
-    <div className="p-4 mb-24">
+    <div className="p-4 mb-24 md:mb-4">
       {/* Next Reading */}
       <NextVol lang={lang} intl={intl} />
 

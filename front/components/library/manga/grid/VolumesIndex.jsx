@@ -92,7 +92,7 @@ export default async function VolumesIndex({
   const paginatedEntries = entries.slice(start, start + PAGE_SIZE);
 
   return (
-    <div className="mt-8">
+    <>
       <div className="flex items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg mr-4">
           <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
@@ -123,7 +123,7 @@ export default async function VolumesIndex({
       </section>
 
       {total > PAGE_SIZE && (
-        <div className="mt-12">
+        <div className="mt-8">
           <Pagination
             currentPage={page}
             totalPages={totalPages}
@@ -133,6 +133,6 @@ export default async function VolumesIndex({
           />
         </div>
       )}
-    </div>
+    </>
   );
 }

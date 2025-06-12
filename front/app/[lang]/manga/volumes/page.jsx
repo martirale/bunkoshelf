@@ -13,7 +13,7 @@ export default async function MangaVolumesPage({
   const intl = await getDictionary(lang);
 
   return (
-    <section className="p-4 mb-24">
+    <section className="p-4 mt-4 mb-24 md:mb-4">
       <VolumesIndex
         lang={lang}
         intl={intl}

@@ -110,7 +110,7 @@ export default function NextVol({ lang, intl, maxItems = 12 }) {
   };
 
   return (
-    <section className="mt-8">
+    <section className="mt-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg">
           <BookMarked className="w-6 h-6 md:w-7 md:h-7 mr-2" />

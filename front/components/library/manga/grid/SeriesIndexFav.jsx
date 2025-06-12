@@ -67,7 +67,7 @@ export default async function SeriesIndexFav({ lang, intl }) {
 
   return (
     <>
-      <h2 className="mt-8 mb-4 pt-4">Series: Manga</h2>
+      <h2 className="my-4 pt-4">Series: Manga</h2>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
         {entries.map((entry) => {
