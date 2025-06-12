@@ -29,7 +29,7 @@ export default async function UserAvatar({ intl }) {
       : null;
 
   return (
-    <div className="flex flex-col items-center gap-4 text-center my-8 md:mb-16">
+    <div className="flex flex-col items-center gap-4 text-center my-8 2xl:mb-12">
       <div
         className={clsx(
           "rounded-full bg-lilah text-sand flex items-center justify-center font-bold",
