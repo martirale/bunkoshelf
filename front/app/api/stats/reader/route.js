@@ -14,7 +14,10 @@ export async function GET() {
     allReadDates,
     dailyReading,
     totalVolumes,
+    totalSeries,
+    userProgressVolumes,
   ] = await Promise.all([
+    // volumesRead
     prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -23,6 +26,7 @@ export async function GET() {
       select: { id: true, volumeId: true, lastReadAt: true },
     }),
 
+    // readEntries
     prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -31,6 +35,7 @@ export async function GET() {
       select: { lastReadAt: true },
     }),
 
+    // allCompleted
     prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -39,6 +44,7 @@ export async function GET() {
       select: { id: true, volumeId: true },
     }),
 
+    // allReadDates
     prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -50,6 +56,7 @@ export async function GET() {
       select: { lastReadAt: true },
     }),
 
+    // dailyReading
     prisma.dailyReadingLog.findMany({
       where: {
         userId: user.id,
@@ -62,8 +69,41 @@ export async function GET() {
       },
     }),
 
+    // totalVolumes
     prisma.mangaVolume.count(),
+
+    // totalSeries
+    prisma.mangaSeries.count({
+      where: { isOneshot: false },
+    }),
+
+    // userProgressVolumes
+    prisma.mangaVolume.findMany({
+      where: {
+        usersProgress: {
+          some: {
+            userId: user.id,
+          },
+        },
+      },
+      include: {
+        usersProgress: {
+          where: {
+            userId: user.id,
+          },
+          select: {
+            isRead: true,
+          },
+        },
+      },
+    }),
   ]);
+
+  const totalTracked = userProgressVolumes.length;
+  const totalRead = userProgressVolumes.filter(
+    (volume) => volume.usersProgress[0]?.isRead
+  ).length;
+  const totalUnread = totalVolumes - totalRead;
 
   return NextResponse.json({
     volumesRead,
@@ -72,5 +112,11 @@ export async function GET() {
     allReadDates,
     dailyReading,
     totalVolumes,
+    totalSeries,
+    readingProgressSummary: {
+      totalTracked,
+      totalRead,
+      totalUnread,
+    },
   });
 }
