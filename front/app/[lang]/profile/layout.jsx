@@ -11,7 +11,7 @@ export default async function ProfileLayout({ children, params }) {
   const user = await verifySession();
 
   return (
-    <div className="flex flex-col md:flex-row">
+    <div className="flex flex-col md:flex-row md:h-screen overflow-hidden">
       <SidebarMisc>
         {!user || !user.name ? (
           <h2 className="flex items-center text-onix">
@@ -28,7 +28,9 @@ export default async function ProfileLayout({ children, params }) {
         <ProfileNav intl={intl} />
       </SidebarMisc>
 
-      <div className="w-full md:w-8/12 2xl:w-9/12 p-4 mb-24">{children}</div>
+      <div className="w-full md:w-8/12 2xl:w-9/12 p-4 overflow-y-auto">
+        <div className="mb-24">{children}</div>
+      </div>
     </div>
   );
 }
