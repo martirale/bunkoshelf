@@ -63,7 +63,7 @@ export default function LibSettingsButtons({ intl }) {
 
             setTimeout(() => {
               window.location.reload();
-            }, 3500);
+            }, 1000);
           }, 300);
         }
       } catch (error) {
