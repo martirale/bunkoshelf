@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { LibraryBig, ChevronRight } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
+import ReloadButton from "@/components/ui/ReloadButton";
 
 export default function HeroKeepRead({ lang, intl }) {
   const [entry, setEntry] = useState(null);
@@ -58,6 +59,10 @@ export default function HeroKeepRead({ lang, intl }) {
             <ChevronRight className="w-6 h-6 md:w-7 md:h-7 ml-2 text-pearl group-hover:text-onix transition-all duration-300" />
           </h2>
         </Link>
+
+        <div className="md:hidden">
+          <ReloadButton />
+        </div>
       </div>
 
       <div className="w-full px-12 md:px-0">

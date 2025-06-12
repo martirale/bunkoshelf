@@ -5,6 +5,7 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
+import ReloadButton from "@/components/ui/ReloadButton";
 
 export default async function HomePage({ params }) {
   const { lang = "es" } = await params;
@@ -22,9 +23,17 @@ export default async function HomePage({ params }) {
           <HeroKeepRead lang={lang} intl={intl} />
         </div>
 
-        <div className="w-full md:w-1/2 flex flex-col justify-between mt-8 md:mt-11">
+        <div className="w-full md:w-1/2 flex flex-col justify-between">
           <div className="group">
-            <ReaderStatsPanel lang={lang} intl={intl} mdCols="md:grid-cols-3" />
+            <div className="hidden md:flex justify-end">
+              <ReloadButton />
+            </div>
+
+            <ReaderStatsPanel
+              lang={lang}
+              intl={intl}
+              mdCols="md:grid-cols-3 mt-4"
+            />
             <div className="flex justify-center ml-4 mt-2 md:justify-end md:ml-0">
               <Link
                 href={`/${lang}/profile`}
@@ -39,6 +48,7 @@ export default async function HomePage({ params }) {
               </Link>
             </div>
           </div>
+
           <RowNewVols lang={lang} intl={intl} />
         </div>
       </div>
