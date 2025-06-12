@@ -4,7 +4,7 @@ import SidebarMisc from "@/components/ui/SidebarMisc";
 import ProfileNav from "@/components/profile/ProfileNav";
 import { UserRound } from "lucide-react";
 
-export default async function ProfilePage({ children, params }) {
+export default async function ProfileLayout({ children, params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
 
