@@ -9,6 +9,9 @@
     "greeting": "Hola,",
     "updateProfile": "Actualizar perfil",
     "ttChallenge": "Reto de lectura",
-    "completed": "Completados"
+    "completed": "Completados",
+    "usrAdmin": "Admin",
+    "usrNormal": "Normal",
+    "age": "Años"
   }
 }
