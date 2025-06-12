@@ -95,6 +95,19 @@ export default function ReadButtonsVolume({
     }
   };
 
+  const getLocalDateString = () => {
+    const now = new Date();
+    const localDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, "0");
+    const day = String(localDate.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const handleClose = async () => {
     try {
       const storageKey = `reader-progress:${slug}`;
@@ -110,6 +123,7 @@ export default function ReadButtonsVolume({
             lastPage,
             totalPages,
             lastReadAt,
+            date: getLocalDateString(),
           }),
         });
 

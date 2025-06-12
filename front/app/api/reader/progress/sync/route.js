@@ -10,7 +10,7 @@ export async function POST(req) {
   }
 
   const body = await req.json();
-  const { volumeSlug, lastPage, totalPages, lastReadAt } = body;
+  const { volumeSlug, lastPage, totalPages, lastReadAt, date } = body;
 
   if (!volumeSlug || lastPage == null || totalPages == null || !lastReadAt) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
@@ -52,17 +52,11 @@ export async function POST(req) {
       },
     });
 
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const formattedDate = `${year}-${month}-${day}`;
-
     const existingLog = await prisma.dailyReadingLog.findUnique({
       where: {
         userId_date: {
           userId,
-          date: formattedDate,
+          date,
         },
       },
     });
@@ -71,7 +65,7 @@ export async function POST(req) {
       await prisma.dailyReadingLog.create({
         data: {
           userId,
-          date: formattedDate,
+          date,
         },
       });
     }
