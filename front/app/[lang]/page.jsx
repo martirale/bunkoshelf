@@ -4,6 +4,7 @@ import ReaderStatsPanel from "@/components/stats/ReaderPanel";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import clsx from "clsx";
 
 export default async function HomePage({ params }) {
   const { lang = "es" } = await params;
@@ -11,7 +12,12 @@ export default async function HomePage({ params }) {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row p-4 mb-24 2xl:mb-0 gap-4 bg-pearl">
+      <div
+        className={clsx(
+          "bg-pearl flex flex-col p-4 mb-24 gap-4",
+          "md:flex-row md:mb-0"
+        )}
+      >
         <div className="w-full md:w-1/2">
           <HeroKeepRead lang={lang} intl={intl} />
         </div>
@@ -22,7 +28,11 @@ export default async function HomePage({ params }) {
             <div className="flex justify-center ml-4 mt-2 md:justify-end md:ml-0">
               <Link
                 href={`/${lang}/profile`}
-                className="w-max flex items-center text-base text-onix 2xl:text-pearl group-hover:text-onix hover:underline transition-all duration-300"
+                className={clsx(
+                  "text-onix 2xl:text-pearl w-max flex items-center text-base",
+                  "group-hover:text-onix hover:underline",
+                  "transition-all duration-300"
+                )}
               >
                 {intl.home.goToProfile}
                 <ChevronRight className="w-5 h-5 ml-1" />

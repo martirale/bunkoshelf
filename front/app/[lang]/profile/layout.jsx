@@ -29,7 +29,7 @@ export default async function ProfileLayout({ children, params }) {
       </SidebarMisc>
 
       <div className="w-full md:w-8/12 2xl:w-9/12 p-4 overflow-y-auto">
-        <div className="mb-24">{children}</div>
+        <div className="mb-24 md:mb-0">{children}</div>
       </div>
     </div>
   );
