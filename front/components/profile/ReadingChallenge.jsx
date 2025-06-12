@@ -75,11 +75,11 @@ export default function ReadingChallenge({ intl }) {
   if (loading) return null;
 
   return (
-    <div className="w-full mx-auto rounded-lg bg-blackamber p-4 mt-8 mb-4">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-2">
+    <div className="flex flex-col justify-between w-full mx-auto rounded-lg bg-blackamber p-4 h-auto md:h-[128px] 2xl:h-auto">
+      <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 md:gap-2">
         <h2>{intl.profile.ttChallenge}</h2>
 
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center md:mt-1 2xl:mt-0 gap-2">
           <button
             onClick={handleDecrement}
             className="rounded-full border border-neutral-800 p-2 hover:border-lilah cursor-pointer transition-all duration-300"
@@ -87,7 +87,9 @@ export default function ReadingChallenge({ intl }) {
             <Minus className="w-4 h-4" />
           </button>
 
-          <span className="font-boldonse text-2xl mx-4">{goal}</span>
+          <span className="font-boldonse text-5xl md:text-3xl mx-4 2xl:hidden">
+            {goal}
+          </span>
 
           <button
             onClick={handleIncrement}
@@ -97,6 +99,8 @@ export default function ReadingChallenge({ intl }) {
           </button>
         </div>
       </div>
+
+      <span className="font-boldonse text-5xl hidden 2xl:block">{goal}</span>
 
       <div className="mt-8 md:mt-4 space-y-1">
         <div className="text-neutral-500 flex justify-between text-sm uppercase">

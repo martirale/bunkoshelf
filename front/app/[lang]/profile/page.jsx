@@ -15,14 +15,20 @@ export default async function ProfilePage({ params }) {
       </h2>
 
       {/* User Stats */}
-      <ReadingChallenge intl={intl} />
+      <div className="flex flex-col 2xl:flex-row gap-4">
+        <div className="flex w-full 2xl:w-1/2">
+          <ReadingChallenge intl={intl} />
+        </div>
 
-      <ReaderStatsPanel
-        intl={intl}
-        bgColor="bg-blackamber"
-        textColor="text-sand"
-        mdCols="md:grid-cols-3 2xl:grid-cols-6"
-      />
+        <div className="flex w-full 2xl:w-1/2">
+          <ReaderStatsPanel
+            intl={intl}
+            bgColor="bg-blackamber"
+            textColor="text-sand"
+            mdCols="md:grid-cols-3"
+          />
+        </div>
+      </div>
     </>
   );
 }
