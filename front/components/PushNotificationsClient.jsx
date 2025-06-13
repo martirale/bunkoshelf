@@ -20,20 +20,23 @@ function urlBase64ToUint8Array(base64String) {
 
 export default function PushNotificationsClient() {
   const [supported, setSupported] = useState(false);
-  const [permission, setPermission] = useState(Notification.permission);
+  const [permission, setPermission] = useState("default");
 
   useEffect(() => {
-    if ("serviceWorker" in navigator && "PushManager" in window) {
-      setSupported(true);
+    if (typeof window !== "undefined") {
+      if ("serviceWorker" in navigator && "PushManager" in window) {
+        setSupported(true);
+        setPermission(Notification.permission);
 
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((registration) => {
-          console.log("Service Worker registrado", registration);
-        })
-        .catch((err) => {
-          console.error("Error al registrar SW", err);
-        });
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((registration) => {
+            console.log("Service Worker registrado", registration);
+          })
+          .catch((err) => {
+            console.error("Error al registrar SW", err);
+          });
+      }
     }
   }, []);
 
@@ -55,7 +58,6 @@ export default function PushNotificationsClient() {
         });
         console.log("Suscripción obtenida:", subscription);
 
-        // Envía la suscripción a tu microservicio push para guardarla o usarla
         await fetch("http://push.amlab.site:4000/send", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
