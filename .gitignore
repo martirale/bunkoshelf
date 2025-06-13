@@ -64,3 +64,4 @@ yarn-error.log*
 start.bat
 /front/public/covers/
 /front/certs
+/front/payload.json
