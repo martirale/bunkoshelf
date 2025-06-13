@@ -23,6 +23,7 @@ export default function MangaReader({
     async function fetchPages() {
       setLoading(true);
       try {
+        // Paso 1: Obtener las imágenes del volumen
         const res = await fetch("/api/reader/manga", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -34,6 +35,7 @@ export default function MangaReader({
         if (res.ok && data.images?.length) {
           setImages(data.images);
 
+          // Paso 2: Consultar progreso del usuario desde la DB
           if (!isYoureiMode) {
             const progressRes = await fetch("/api/reader/progress/get", {
               method: "POST",
@@ -70,6 +72,14 @@ export default function MangaReader({
     fetchPages();
   }, [slug, isYoureiMode]);
 
+  const goPrev = () => {
+    if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
+  };
+
+  const goNext = () => {
+    if (currentIndex > 0) setCurrentIndex((i) => i - 1);
+  };
+
   // Guardar progreso en localStorage
   useEffect(() => {
     if (!isYoureiMode && images.length > 0) {
@@ -83,26 +93,6 @@ export default function MangaReader({
       );
     }
   }, [currentIndex, images.length, isYoureiMode]);
-
-  const triggerHaptic = () => {
-    if (typeof window !== "undefined" && "vibrate" in navigator) {
-      navigator.vibrate(10);
-    }
-  };
-
-  const goPrev = () => {
-    if (currentIndex < images.length - 1) {
-      setCurrentIndex((i) => i + 1);
-      triggerHaptic();
-    }
-  };
-
-  const goNext = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((i) => i - 1);
-      triggerHaptic();
-    }
-  };
 
   useEffect(() => {
     const handleGoNext = () => goNext();
