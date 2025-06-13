@@ -58,7 +58,7 @@ export default function PushNotificationsClient() {
         });
         console.log("Suscripción obtenida:", subscription);
 
-        await fetch("http://push.amlab.site:4000/send", {
+        await fetch("https://push.amlab.site/send", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
