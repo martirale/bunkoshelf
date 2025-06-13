@@ -1,12 +1,16 @@
 self.addEventListener("push", (event) => {
-  const data = event.data?.json() ?? {};
-  const title = data.title || "Notificación";
+  const payload = event.data?.json() ?? {};
+
+  const title = payload.title || "Notificación";
   const options = {
-    body: data.body || "Tienes una nueva notificación.",
+    body: payload.body || "Tienes una nueva notificación.",
     icon: "/pwa/bunkoshelf-icon-192.png",
     badge: "/pwa/bunkoshelf-icon-192.png",
-    data: data.url || "/",
+    data: {
+      url: payload.url || "/",
+    },
   };
+
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
