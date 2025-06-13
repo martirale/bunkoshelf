@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
 import ReloadButton from "@/components/ui/ReloadButton";
+import PushNotificationsClient from "@/components/PushNotificationsClient";
 
 export default async function HomePage({ params }) {
   const { lang = "es" } = await params;
@@ -52,6 +53,8 @@ export default async function HomePage({ params }) {
           <RowNewVols lang={lang} intl={intl} />
         </div>
       </div>
+
+      <PushNotificationsClient />
     </>
   );
 }
