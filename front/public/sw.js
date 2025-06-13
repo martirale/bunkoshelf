@@ -1,9 +1,9 @@
 self.addEventListener("push", (event) => {
   const payload = event.data?.json() ?? {};
 
-  const title = payload.title || "Notificación";
+  const title = payload.title || "Bunko Shelf";
   const options = {
-    body: payload.body || "Tienes una nueva notificación.",
+    body: payload.body || "Tienes una nueva notificación",
     icon: "/pwa/bunkoshelf-icon-192.png",
     badge: "/pwa/bunkoshelf-icon-192.png",
     data: {
@@ -16,5 +16,5 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data));
+  event.waitUntil(clients.openWindow(event.notification.data.url));
 });

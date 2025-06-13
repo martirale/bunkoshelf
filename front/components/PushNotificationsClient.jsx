@@ -18,7 +18,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-export default function PushNotificationsClient() {
+export default function PushNotificationsClient({ lang }) {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState("default");
 
@@ -60,17 +60,20 @@ export default function PushNotificationsClient() {
 
         await fetch("https://push.amlab.site/send", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             subscription,
-            payload: "¡Suscripción exitosa! Esto es una prueba",
+            payload: {
+              title: "Bunko Shelf",
+              body: "Notificaciones activadas",
+              url: `/${lang}/`,
+            },
           }),
         });
-
-        alert("Suscripción push enviada al servidor");
       } catch (err) {
         console.error("Error al subscribir:", err);
-        alert("Error al subscribir al push");
       }
     }
   }
