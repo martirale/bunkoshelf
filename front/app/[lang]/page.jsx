@@ -54,7 +54,7 @@ export default async function HomePage({ params }) {
         </div>
       </div>
 
-      <PushNotificationsClient />
+      <PushNotificationsClient lang={lang} />
     </>
   );
 }

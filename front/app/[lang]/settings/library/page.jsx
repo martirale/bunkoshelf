@@ -13,7 +13,7 @@ export default async function SettingsLibraryPage({ params }) {
         {intl.settings.library}
       </h2>
 
-      <LibSettingsButtons intl={intl} />
+      <LibSettingsButtons lang={lang} intl={intl} />
     </>
   );
 }

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { ScanSearch, DatabaseBackup, Loader2 } from "lucide-react";
 import { useToast } from "../ToastProvider";
 
-export default function LibSettingsButtons({ intl }) {
+export default function LibSettingsButtons({ lang, intl }) {
   const [loadingFullScan, setLoadingFullScan] = useState(false);
   const [scanStatus, setScanStatus] = useState(null);
   const { addToast, updateToast } = useToast();
@@ -45,6 +45,27 @@ export default function LibSettingsButtons({ intl }) {
           clearInterval(pollingRef.current);
           pollingRef.current = null;
           setLoadingFullScan(false);
+
+          navigator.serviceWorker.ready.then(async (registration) => {
+            const subscription =
+              await registration.pushManager.getSubscription();
+            if (!subscription) return console.warn("No hay suscripción activa");
+
+            await fetch("https://push.amlab.site/send", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                subscription,
+                payload: {
+                  title: "Bunko Shelf",
+                  body: "¡Nuevos mangas disponibles!",
+                  url: `/${lang}/manga`,
+                },
+              }),
+            });
+          });
 
           setTimeout(() => {
             if (toastIdRef.current) {
