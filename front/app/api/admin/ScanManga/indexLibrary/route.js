@@ -57,6 +57,8 @@ export async function POST() {
 
       seriesCount++;
 
+      const volumeSlugsInDisk = new Set();
+
       for (const volFile of volumeFiles) {
         const volPath = path.join(entryPath, volFile);
         const volSlug = toSlug(path.basename(volFile, path.extname(volFile)));
@@ -84,40 +86,54 @@ export async function POST() {
         });
 
         volumeCount++;
+        volumeSlugsInDisk.add(volFile);
         console.log(`Volumen indexado: ${volPath}`);
+      }
+
+      // Paso 2: Limpia volúmenes que ya no están en disco
+      const dbVolumes = await prisma.mangaVolume.findMany({
+        where: { seriesId: mangaSeries.id },
+        select: { id: true, filename: true },
+      });
+
+      for (const vol of dbVolumes) {
+        if (!volumeSlugsInDisk.has(vol.filename)) {
+          await prisma.mangaVolume.delete({ where: { id: vol.id } });
+          console.log(`Volumen eliminado: ${vol.filename}`);
+        }
       }
     }
 
-    // Paso 2: limpiar series eliminadas del disco
-    const currentSeries = dirContents
-      .filter((e) => e.isDirectory())
-      .map((e) => toSlug(e.name.replace("[oneshot]", "").trim()));
+    // Paso 3: Limpia series eliminadas del disco
+    const currentPaths = new Set(
+      dirContents
+        .filter((e) => e.isDirectory())
+        .map((e) => path.join(LIBRARY_PATH, e.name))
+    );
 
     const existingSeries = await prisma.mangaSeries.findMany({
-      select: { id: true, slug: true },
+      select: { id: true, path: true },
     });
 
     for (const series of existingSeries) {
-      if (!currentSeries.includes(series.slug)) {
-        await prisma.mangaSeries.delete({
-          where: { id: series.id },
-        });
+      if (!currentPaths.has(series.path)) {
+        // Aquí se borra la serie, el cascada se encarga del resto
+        await prisma.mangaSeries.delete({ where: { id: series.id } });
+        console.log(`Serie eliminada: ${series.path}`);
       }
     }
 
-    // Paso 3: limpiar volúmenes huérfanos (solo si su archivo no existe)
+    // Paso 4: Limpia volúmenes huérfanos cuyo archivo ya no existe
     const existingVolumes = await prisma.mangaVolume.findMany({
-      select: { id: true, fullPath: true, seriesId: true },
+      select: { id: true, fullPath: true },
     });
 
     for (const volume of existingVolumes) {
       try {
         await fs.access(volume.fullPath);
       } catch {
-        // Evitamos errores si ya fue borrado con la serie
-        await prisma.mangaVolume.deleteMany({
-          where: { id: volume.id },
-        });
+        await prisma.mangaVolume.delete({ where: { id: volume.id } });
+        console.log(`Volumen huérfano eliminado: ${volume.fullPath}`);
       }
     }
 

@@ -21,7 +21,7 @@ model User {
   seriesProgress   UserToSeries[]
   volumeProgress   UserToVolume[]
   ReadingChallenge ReadingChallenge[]
-  DailyReadingLog DailyReadingLog[]
+  DailyReadingLog  DailyReadingLog[]
   PushSubscription PushSubscription[]
 }
 
@@ -96,7 +96,6 @@ model DailyReadingLog {
   @@unique([userId, date])
 }
 
-
 // Manga Library
 model MangaSeries {
   id            Int             @id @default(autoincrement())
@@ -107,6 +106,7 @@ model MangaSeries {
   mtime         DateTime        @default(now())
 
   volumes       MangaVolume[]
+
   metadataObj   SeriesMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
   metadataId    String?         @unique
 
@@ -215,30 +215,30 @@ model Tag {
 }
 
 model VolumeToGenre {
-  id        Int            @id @default(autoincrement())
-  volume    MangaVolume    @relation(fields: [volumeId], references: [id])
+  id        Int          @id @default(autoincrement())
+  volume    MangaVolume  @relation(fields: [volumeId], references: [id], onDelete: Cascade)
   volumeId  Int
-  genre     Genre          @relation(fields: [genreId], references: [id])
+  genre     Genre        @relation(fields: [genreId], references: [id])
   genreId   Int
 
   @@unique([volumeId, genreId])
 }
 
 model VolumeToTag {
-  id        Int            @id @default(autoincrement())
-  volume    MangaVolume    @relation(fields: [volumeId], references: [id])
+  id        Int          @id @default(autoincrement())
+  volume    MangaVolume  @relation(fields: [volumeId], references: [id], onDelete: Cascade)
   volumeId  Int
-  tag       Tag            @relation(fields: [tagId], references: [id])
+  tag       Tag          @relation(fields: [tagId], references: [id])
   tagId     Int
 
   @@unique([volumeId, tagId])
 }
 
 model SeriesToGenre {
-  id        Int            @id @default(autoincrement())
-  series    MangaSeries    @relation(fields: [seriesId], references: [id])
+  id        Int          @id @default(autoincrement())
+  series    MangaSeries  @relation(fields: [seriesId], references: [id], onDelete: Cascade)
   seriesId  Int
-  genre     Genre          @relation(fields: [genreId], references: [id])
+  genre     Genre        @relation(fields: [genreId], references: [id])
   genreId   Int
 
   @@unique([seriesId, genreId])
