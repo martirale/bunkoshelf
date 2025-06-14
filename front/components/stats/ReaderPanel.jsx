@@ -17,6 +17,7 @@ export default function ReaderStatsPanel({
     <section className={`grid grid-cols-2 ${mdCols} gap-4`}>
       <TileStreak
         title={intl.home.streak}
+        lang={lang}
         intl={intl}
         bgColor={bgColor}
         textColor={textColor}

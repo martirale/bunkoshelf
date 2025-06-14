@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export default function TileStreak({ title, intl, bgColor, textColor }) {
+export default function TileStreak({ title, lang, intl, bgColor, textColor }) {
   const [streak, setStreak] = useState("—");
 
   useEffect(() => {
@@ -38,6 +38,41 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
         }
 
         setStreak(count.toString());
+
+        const nowHour = now.getHours();
+        const today = now.toISOString().split("T")[0];
+
+        const yesterdayDate = new Date(now);
+        yesterdayDate.setDate(now.getDate() - 1);
+        const yYear = yesterdayDate.getFullYear();
+        const yMonth = String(yesterdayDate.getMonth() + 1).padStart(2, "0");
+        const yDay = String(yesterdayDate.getDate()).padStart(2, "0");
+        const yesterday = `${yYear}-${yMonth}-${yDay}`;
+
+        const readYesterday = readDaySet.has(yesterday);
+        const readToday = readDaySet.has(today);
+
+        if (nowHour >= 20 && readYesterday && !readToday) {
+          const registration = await navigator.serviceWorker.ready;
+          const subscription = await registration.pushManager.getSubscription();
+
+          if (subscription) {
+            await fetch("https://push.amlab.site/send", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                subscription,
+                payload: {
+                  title: intl.push.ttReadStreak,
+                  body: intl.push.bodyReadStreak,
+                  url: `/${lang}/manga`,
+                },
+              }),
+            });
+          }
+        }
       } catch (error) {
         console.error("Error al calcular la racha de lectura:", error);
         setStreak("—");
@@ -45,7 +80,7 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
     }
 
     fetchData();
-  }, []);
+  }, [intl, lang]);
 
   return (
     <div

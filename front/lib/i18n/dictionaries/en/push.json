@@ -3,6 +3,8 @@
     "ttSubscription": "Notification",
     "bodySubscription": "Notifications activated",
     "ttLibraryUpd": "Updated library",
-    "bodyLibraryUpd": "New mangas available"
+    "bodyLibraryUpd": "New mangas available",
+    "ttReadStreak": "Reading streak",
+    "bodyReadStreak": "Don't lose your streak, you still have time"
   }
 }
