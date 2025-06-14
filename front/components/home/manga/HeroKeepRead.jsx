@@ -62,7 +62,7 @@ export default function HeroKeepRead({ lang, intl }) {
         </Link>
 
         <div className="flex md:hidden gap-2">
-          <PushButton lang={lang} />
+          <PushButton lang={lang} intl={intl} />
           <ReloadButton />
         </div>
       </div>

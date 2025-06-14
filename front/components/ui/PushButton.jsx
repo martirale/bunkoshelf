@@ -19,7 +19,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-export default function PushButton({ lang }) {
+export default function PushButton({ lang, intl }) {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState("default");
 
@@ -67,8 +67,8 @@ export default function PushButton({ lang }) {
           body: JSON.stringify({
             subscription,
             payload: {
-              title: "Bunko Shelf",
-              body: "Notificaciones activadas",
+              title: intl.push.titleSub,
+              body: intl.push.bodySub,
               url: `/${lang}/`,
             },
           }),
