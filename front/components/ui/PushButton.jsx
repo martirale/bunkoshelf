@@ -67,8 +67,8 @@ export default function PushButton({ lang, intl }) {
           body: JSON.stringify({
             subscription,
             payload: {
-              title: intl.push.titleSub,
-              body: intl.push.bodySub,
+              title: intl.push.ttSubscription,
+              body: intl.push.bodySubscription,
               url: `/${lang}/`,
             },
           }),

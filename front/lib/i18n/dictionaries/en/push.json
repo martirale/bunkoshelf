@@ -1,6 +1,8 @@
 {
   "push": {
-    "titleSub": "Notification",
-    "bodySub": "Notifications activated"
+    "ttSubscription": "Notification",
+    "bodySubscription": "Notifications activated",
+    "ttLibraryUpd": "New content",
+    "bodyLibraryUpd": "New mangas available"
   }
 }

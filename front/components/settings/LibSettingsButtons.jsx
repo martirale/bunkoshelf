@@ -59,8 +59,8 @@ export default function LibSettingsButtons({ lang, intl }) {
               body: JSON.stringify({
                 subscription,
                 payload: {
-                  title: "Bunko Shelf",
-                  body: "¡Nuevos mangas disponibles!",
+                  title: intl.push.ttLibraryUpd,
+                  body: intl.push.bodyLibraryUpd,
                   url: `/${lang}/manga`,
                 },
               }),
