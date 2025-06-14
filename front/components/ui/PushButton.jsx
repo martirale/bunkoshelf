@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Bell } from "lucide-react";
 
 const VAPID_PUBLIC_KEY =
   "BI7ycHYWezzuK3ulcjtiz7OEk4P_ZFCB0i4IUa8m5Bfh1snde-6L-fUdnfPKu-s11Uc3AAv7qPuggLv0ppmnFPQ";
@@ -18,7 +19,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-export default function PushNotificationsClient({ lang }) {
+export default function PushButton({ lang }) {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState("default");
 
@@ -78,15 +79,14 @@ export default function PushNotificationsClient({ lang }) {
     }
   }
 
+  if (!supported || permission === "granted") return null;
+
   return (
-    <div>
-      <p>Soporte Push: {supported ? "Sí" : "No"}</p>
-      <p>Permiso: {permission}</p>
-      <button onClick={subscribeUser} disabled={permission === "granted"}>
-        {permission === "granted"
-          ? "Suscrito a notificaciones"
-          : "Suscribirse a notificaciones"}
-      </button>
-    </div>
+    <button
+      onClick={subscribeUser}
+      className="text-onix p-2 rounded-lg border border-neutral-300 hover:border-lilah transition-all duration-300 cursor-pointer"
+    >
+      <Bell className="w-4 h-4" />
+    </button>
   );
 }

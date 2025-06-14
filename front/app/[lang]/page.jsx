@@ -6,7 +6,7 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
 import ReloadButton from "@/components/ui/ReloadButton";
-import PushNotificationsClient from "@/components/PushNotificationsClient";
+import PushButton from "@/components/ui/PushButton";
 
 export default async function HomePage({ params }) {
   const { lang = "es" } = await params;
@@ -26,7 +26,8 @@ export default async function HomePage({ params }) {
 
         <div className="w-full md:w-1/2 flex flex-col justify-between">
           <div className="group">
-            <div className="hidden md:flex justify-end">
+            <div className="hidden md:flex justify-end gap-2">
+              <PushButton lang={lang} />
               <ReloadButton />
             </div>
 
@@ -53,8 +54,6 @@ export default async function HomePage({ params }) {
           <RowNewVols lang={lang} intl={intl} />
         </div>
       </div>
-
-      <PushNotificationsClient lang={lang} />
     </>
   );
 }

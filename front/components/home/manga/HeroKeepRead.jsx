@@ -6,6 +6,7 @@ import Image from "next/image";
 import { LibraryBig, ChevronRight } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import ReloadButton from "@/components/ui/ReloadButton";
+import PushButton from "@/components/ui/PushButton";
 
 export default function HeroKeepRead({ lang, intl }) {
   const [entry, setEntry] = useState(null);
@@ -60,7 +61,8 @@ export default function HeroKeepRead({ lang, intl }) {
           </h2>
         </Link>
 
-        <div className="md:hidden">
+        <div className="flex md:hidden gap-2">
+          <PushButton lang={lang} />
           <ReloadButton />
         </div>
       </div>
