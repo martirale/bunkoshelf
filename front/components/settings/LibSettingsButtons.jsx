@@ -46,27 +46,36 @@ export default function LibSettingsButtons({ lang, intl }) {
           pollingRef.current = null;
           setLoadingFullScan(false);
 
-          navigator.serviceWorker.ready.then(async (registration) => {
-            const subscription =
-              await registration.pushManager.getSubscription();
-            if (!subscription) return console.warn("No hay suscripción activa");
+          // Obtener las suscripciones desde tu API local
+          try {
+            const subsRes = await fetch("/api/admin/push/getSubs");
+            if (!subsRes.ok) throw new Error("Error al obtener suscripciones");
 
-            await fetch("https://push.amlab.site/send", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                subscription,
-                payload: {
-                  title: intl.push.ttLibraryUpd,
-                  body: intl.push.bodyLibraryUpd,
-                  url: `/${lang}/manga`,
+            const { subscriptions } = await subsRes.json();
+            if (!subscriptions?.length) {
+              console.warn("No hay suscripciones activas");
+            } else {
+              // Enviar las suscripciones al servidor push
+              await fetch("https://push.amlab.site/send-many", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
                 },
-              }),
-            });
-          });
+                body: JSON.stringify({
+                  subscriptions,
+                  payload: {
+                    title: intl.push.ttLibraryUpd,
+                    body: intl.push.bodyLibraryUpd,
+                    url: `/${lang}/manga`,
+                  },
+                }),
+              });
+            }
+          } catch (err) {
+            console.error("Error al enviar notificaciones push:", err);
+          }
 
+          // Cierre de toast y feedback final
           setTimeout(() => {
             if (toastIdRef.current) {
               updateToast(toastIdRef.current, {
@@ -156,8 +165,6 @@ export default function LibSettingsButtons({ lang, intl }) {
       });
   };
 
-  const isLoading = loadingFullScan;
-
   useEffect(() => {
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
@@ -168,7 +175,7 @@ export default function LibSettingsButtons({ lang, intl }) {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <button
         onClick={handleFullScan}
-        disabled={isLoading}
+        disabled={loadingFullScan}
         className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
       >
         {loadingFullScan ? (
@@ -181,7 +188,7 @@ export default function LibSettingsButtons({ lang, intl }) {
 
       <button
         onClick={handleDownload}
-        disabled={isLoading}
+        disabled={loadingFullScan}
         className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
       >
         <DatabaseBackup className="w-9 h-9 mb-4" />
