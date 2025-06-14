@@ -39,8 +39,12 @@ export default function TileStreak({ title, lang, intl, bgColor, textColor }) {
 
         setStreak(count.toString());
 
+        // Notificación de racha
         const nowHour = now.getHours();
-        const today = now.toISOString().split("T")[0];
+        const nowMinutes = now.getMinutes();
+
+        const todayStr = now.toISOString().split("T")[0];
+        const lastNotified = localStorage.getItem("lastStreakNotify");
 
         const yesterdayDate = new Date(now);
         yesterdayDate.setDate(now.getDate() - 1);
@@ -50,9 +54,17 @@ export default function TileStreak({ title, lang, intl, bgColor, textColor }) {
         const yesterday = `${yYear}-${yMonth}-${yDay}`;
 
         const readYesterday = readDaySet.has(yesterday);
-        const readToday = readDaySet.has(today);
+        const readToday = readDaySet.has(todayStr);
 
-        if (nowHour >= 20 && readYesterday && !readToday) {
+        const isAfter2030 =
+          nowHour > 20 || (nowHour === 20 && nowMinutes >= 30);
+
+        if (
+          isAfter2030 &&
+          readYesterday &&
+          !readToday &&
+          lastNotified !== todayStr
+        ) {
           const registration = await navigator.serviceWorker.ready;
           const subscription = await registration.pushManager.getSubscription();
 
@@ -71,6 +83,8 @@ export default function TileStreak({ title, lang, intl, bgColor, textColor }) {
                 },
               }),
             });
+
+            localStorage.setItem("lastStreakNotify", todayStr);
           }
         }
       } catch (error) {
