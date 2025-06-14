@@ -2,7 +2,7 @@
   "push": {
     "ttSubscription": "Notificación",
     "bodySubscription": "Notificaciones activadas",
-    "ttLibraryUpd": "Nuevo contenido",
+    "ttLibraryUpd": "Biblioteca actualizada",
     "bodyLibraryUpd": "Nuevos mangas disponibles"
   }
 }
