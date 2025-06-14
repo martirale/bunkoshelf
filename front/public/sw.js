@@ -3,7 +3,7 @@ self.addEventListener("push", (event) => {
 
   const title = payload.title || "Notificación";
   const options = {
-    body: payload.body || "Notificaciones activadas",
+    body: payload.body || "Tienes una notificación",
     icon: "/pwa/bunkoshelf-icon-192.png",
     badge: "/pwa/bunkoshelf-icon-192.png",
     data: {
