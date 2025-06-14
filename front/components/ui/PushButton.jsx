@@ -73,6 +73,14 @@ export default function PushButton({ lang, intl }) {
             },
           }),
         });
+
+        await fetch("/api/admin/push/subscribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(subscription),
+        });
       } catch (err) {
         console.error("Error al subscribir:", err);
       }
