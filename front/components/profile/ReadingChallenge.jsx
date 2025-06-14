@@ -87,7 +87,7 @@ export default function ReadingChallenge({ intl }) {
             <Minus className="w-4 h-4" />
           </button>
 
-          <span className="font-boldonse text-5xl md:text-3xl mx-4 2xl:hidden">
+          <span className="font-boldonse text-[42px] md:text-3xl mx-4 2xl:hidden leading-none">
             {goal}
           </span>
 
