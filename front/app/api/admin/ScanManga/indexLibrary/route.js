@@ -84,6 +84,7 @@ export async function POST() {
         });
 
         volumeCount++;
+        console.log(`Volumen indexado: ${volPath}`);
       }
     }
 

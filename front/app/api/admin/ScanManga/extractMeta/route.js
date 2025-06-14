@@ -188,7 +188,7 @@ export async function POST() {
           }
         }
 
-        console.log(`Metadatos actualizados para: ${volume.fullPath}`);
+        console.log(`Metadatos procesados: ${volume.fullPath}`);
       } catch (volumeError) {
         console.error(
           `Error procesando volumen ${volume.fullPath}:`,
@@ -198,12 +198,12 @@ export async function POST() {
     }
 
     return NextResponse.json({
-      message: "Metadatos escaneados, actualizados y vinculados correctamente.",
+      message: "Metadatos procesados correctamente.",
     });
   } catch (error) {
-    console.error("Error general al escanear metadatos:", error);
+    console.error("Error general al procesar metadatos:", error);
     return NextResponse.json(
-      { error: "Error interno al escanear metadatos." },
+      { error: "Error interno al procesar metadatos." },
       { status: 500 }
     );
   }

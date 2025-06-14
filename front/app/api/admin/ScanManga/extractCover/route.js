@@ -69,6 +69,7 @@ export async function POST() {
         });
 
         updated++;
+        console.log(`Portada extraída: ${volume.fullPath}`);
       } catch (err) {
         console.warn(
           `No se pudo extraer la portada de ${volume.fullPath}:`,
