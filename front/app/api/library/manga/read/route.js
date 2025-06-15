@@ -11,7 +11,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { volumeId, read, totalPages } = body;
+    const { volumeId, read, totalPages, lastReadAt, firstRead } = body;
 
     if (
       typeof volumeId !== "number" ||
@@ -23,26 +23,43 @@ export async function POST(req) {
       });
     }
 
+    const existing = await prisma.userToVolume.findUnique({
+      where: {
+        userId_volumeId: {
+          userId: user.id,
+          volumeId,
+        },
+      },
+      select: {
+        firstRead: true,
+      },
+    });
+
+    const updatePayload = {
+      isRead: read,
+      lastPage: read ? totalPages - 1 : 0,
+      totalPages,
+      lastReadAt: read ? new Date(lastReadAt || Date.now()) : null,
+    };
+
+    // Solo setear firstRead si está marcando como leído y no hay un valor previo
+    if (read && !existing?.firstRead && typeof firstRead === "string") {
+      updatePayload.firstRead = firstRead;
+    }
+
     await prisma.userToVolume.upsert({
       where: {
         userId_volumeId: {
           userId: user.id,
-          volumeId: volumeId,
+          volumeId,
         },
       },
-      update: {
-        isRead: read,
-        lastPage: read ? totalPages - 1 : 0,
-        totalPages,
-        lastReadAt: read ? new Date(body.lastReadAt || Date.now()) : null,
-      },
+      update: updatePayload,
       create: {
         userId: user.id,
-        volumeId: volumeId,
-        isRead: read,
-        lastPage: read ? totalPages - 1 : 0,
-        totalPages,
-        lastReadAt: read ? new Date(body.lastReadAt || Date.now()) : null,
+        volumeId,
+        ...updatePayload,
+        firstRead: read ? firstRead ?? null : null,
       },
     });
 

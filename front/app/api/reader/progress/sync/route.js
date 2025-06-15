@@ -10,7 +10,8 @@ export async function POST(req) {
   }
 
   const body = await req.json();
-  const { volumeSlug, lastPage, totalPages, lastReadAt, date } = body;
+  const { volumeSlug, lastPage, totalPages, lastReadAt, date, firstRead } =
+    body;
 
   if (!volumeSlug || lastPage == null || totalPages == null || !lastReadAt) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
@@ -29,6 +30,26 @@ export async function POST(req) {
     const userId = user.id;
     const volumeId = volume.id;
 
+    const isNowRead = lastPage >= totalPages - 1;
+
+    // Verificamos si ya existía
+    const existing = await prisma.userToVolume.findUnique({
+      where: {
+        userId_volumeId: {
+          userId,
+          volumeId,
+        },
+      },
+      select: {
+        isRead: true,
+        firstRead: true,
+      },
+    });
+
+    // Condición para asignar firstRead
+    const shouldSetFirstRead =
+      isNowRead && (!existing?.isRead || !existing?.firstRead) && !!firstRead;
+
     await prisma.userToVolume.upsert({
       where: {
         userId_volumeId: {
@@ -40,7 +61,8 @@ export async function POST(req) {
         lastPage,
         totalPages,
         lastReadAt,
-        isRead: lastPage >= totalPages - 1,
+        isRead: isNowRead,
+        ...(shouldSetFirstRead && { firstRead }), // solo si aplica
       },
       create: {
         userId,
@@ -48,7 +70,8 @@ export async function POST(req) {
         lastPage,
         totalPages,
         lastReadAt,
-        isRead: lastPage >= totalPages - 1,
+        isRead: isNowRead,
+        ...(shouldSetFirstRead && { firstRead }), // solo si aplica
       },
     });
 

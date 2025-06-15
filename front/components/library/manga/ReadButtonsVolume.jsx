@@ -45,6 +45,8 @@ export default function ReadButtonsVolume({
       }
 
       const totalPages = imagesData.images.length;
+      const now = new Date();
+      const localDate = getLocalDateString();
 
       const res = await fetch("/api/library/manga/read", {
         method: "POST",
@@ -53,7 +55,8 @@ export default function ReadButtonsVolume({
           volumeId,
           read: !isRead,
           totalPages,
-          lastReadAt: !isRead ? new Date().toISOString() : null,
+          lastReadAt: !isRead ? now.toISOString() : null,
+          firstRead: !isRead ? localDate : null,
         }),
       });
 
@@ -115,16 +118,23 @@ export default function ReadButtonsVolume({
 
       if (saved && !isYoureiMode) {
         const { lastPage, totalPages, lastReadAt } = JSON.parse(saved);
+
+        const isFinished = lastPage >= totalPages - 1;
+        const today = getLocalDateString();
+
+        const body = {
+          volumeSlug: slug,
+          lastPage,
+          totalPages,
+          lastReadAt,
+          date: today,
+          ...(isFinished && { firstRead: today }),
+        };
+
         const res = await fetch("/api/reader/progress/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            volumeSlug: slug,
-            lastPage,
-            totalPages,
-            lastReadAt,
-            date: getLocalDateString(),
-          }),
+          body: JSON.stringify(body),
         });
 
         const data = await res.json();
