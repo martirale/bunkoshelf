@@ -19,6 +19,8 @@ export const getDictionary = async (locale) => {
     import(`./dictionaries/${locale}/search.json`).then((m) => m.default),
     import(`./dictionaries/${locale}/filters.json`).then((m) => m.default),
     import(`./dictionaries/${locale}/push.json`).then((m) => m.default),
+    import(`./dictionaries/${locale}/months.json`).then((m) => m.default),
+    import(`./dictionaries/${locale}/stats.json`).then((m) => m.default),
   ]);
 
   return Object.assign({}, ...modules);

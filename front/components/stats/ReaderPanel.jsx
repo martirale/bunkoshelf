@@ -16,35 +16,35 @@ export default function ReaderStatsPanel({
   return (
     <section className={`grid grid-cols-2 ${mdCols} gap-4`}>
       <TileStreak
-        title={intl.home.streak}
+        title={intl.stats.streak}
         lang={lang}
         intl={intl}
         bgColor={bgColor}
         textColor={textColor}
       />
       <TileLastRead
-        title={intl.home.lastRead}
+        title={intl.stats.lastRead}
         lang={lang}
         bgColor={bgColor}
         textColor={textColor}
       />
       <TileDaysRead
-        title={intl.home.daysRead}
+        title={intl.stats.daysRead}
         bgColor={bgColor}
         textColor={textColor}
       />
       <TileMonthRead
-        title={intl.home.monthRead}
+        title={intl.stats.monthRead}
         bgColor={bgColor}
         textColor={textColor}
       />
       <TileAllRead
-        title={intl.home.mangaRead}
+        title={intl.stats.mangaRead}
         bgColor={bgColor}
         textColor={textColor}
       />
       <TileMonthTrend
-        title={intl.home.prevMonth}
+        title={intl.stats.prevMonth}
         bgColor={bgColor}
         textColor={textColor}
       />

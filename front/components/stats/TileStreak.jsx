@@ -55,7 +55,7 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
       <div
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
-        {streak} {intl.home.days}
+        {streak} {intl.stats.days}
       </div>
     </div>
   );
