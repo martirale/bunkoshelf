@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
+import fsp from "fs/promises";
 import path from "path";
 import prisma from "@/lib/prisma";
 import AdmZip from "adm-zip";
@@ -42,6 +43,25 @@ async function extractCoverImage(cbzPath, outputDir) {
   });
 }
 
+async function cleanUnusedCoverDirs(validSlugs) {
+  try {
+    const existingDirs = await fsp.readdir(COVERS_DIR, { withFileTypes: true });
+
+    for (const dirent of existingDirs) {
+      if (dirent.isDirectory() && !validSlugs.includes(dirent.name)) {
+        const dirPath = path.join(COVERS_DIR, dirent.name);
+        await fsp.rm(dirPath, { recursive: true, force: true });
+        console.log(`Directorio de portada eliminado: ${dirent.name}`);
+      }
+    }
+  } catch (err) {
+    // Si el directorio no existe, no hay problema.
+    if (err.code !== "ENOENT") {
+      console.error("Error al limpiar directorios de portadas:", err);
+    }
+  }
+}
+
 export async function POST() {
   let updated = 0;
   let errors = 0;
@@ -54,6 +74,9 @@ export async function POST() {
         fullPath: true,
       },
     });
+
+    const validSlugs = volumes.map((v) => v.slug);
+    await cleanUnusedCoverDirs(validSlugs);
 
     for (const volume of volumes) {
       const coverOutputDir = path.join(COVERS_DIR, volume.slug);
