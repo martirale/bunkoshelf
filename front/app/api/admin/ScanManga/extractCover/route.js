@@ -82,6 +82,11 @@ export async function POST() {
       const coverOutputDir = path.join(COVERS_DIR, volume.slug);
 
       try {
+        const files = await fsp.readdir(coverOutputDir).catch(() => []);
+        await Promise.all(
+          files.map((file) => fsp.unlink(path.join(coverOutputDir, file)))
+        );
+
         const coverPath = await extractCoverImage(
           volume.fullPath,
           coverOutputDir
