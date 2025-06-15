@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
+  LabelList,
 } from "recharts";
 
 export default function MonthlyReads({ intl, bgColor, textColor }) {
@@ -36,7 +36,7 @@ export default function MonthlyReads({ intl, bgColor, textColor }) {
     >
       <h3 className="mb-4">{intl.stats.ttMonthlyRead}</h3>
       <div className="overflow-x-auto">
-        <div className="min-w-[400px] md:min-w-[500px] 2xl:min-w-full h-64 uppercase">
+        <div className="min-w-[400px] md:min-w-[500px] 2xl:min-w-full h-42 uppercase">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
@@ -57,7 +57,7 @@ export default function MonthlyReads({ intl, bgColor, textColor }) {
                 allowDecimals={false}
               />
               <Tooltip
-                cursor={{ fill: "#151515" }}
+                cursor={{ fill: "transparent" }}
                 contentStyle={{
                   backgroundColor: "#151515",
                   border: "none",
@@ -67,7 +67,19 @@ export default function MonthlyReads({ intl, bgColor, textColor }) {
                 labelStyle={{ color: "#e5e0dc" }}
                 formatter={(value) => [`${value}`, intl.stats.tooltip]}
               />
-              <Bar dataKey="count" fill="#8a6fdc" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="count"
+                fill="#8a6fdc"
+                radius={[4, 4, 0, 0]}
+                activeBar={{ fill: "#f7f2ec" }}
+              >
+                <LabelList
+                  dataKey="count"
+                  position="top"
+                  fill="#737373"
+                  fontSize={14}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
