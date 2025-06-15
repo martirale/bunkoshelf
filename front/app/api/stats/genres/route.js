@@ -81,7 +81,10 @@ export async function GET() {
         user: count,
       }));
 
-    return NextResponse.json({ topGenres: sorted });
+    // 6. Mezclar aleatoriamente el arreglo (Fisher-Yates)
+    const shuffled = sorted.sort(() => Math.random() - 0.5);
+
+    return NextResponse.json({ topGenres: shuffled });
   } catch (error) {
     console.error("Error fetching top genres:", error);
     return NextResponse.json(
