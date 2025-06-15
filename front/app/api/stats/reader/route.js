@@ -16,6 +16,7 @@ export async function GET() {
     totalVolumes,
     totalSeries,
     userProgressVolumes,
+    allFirstReadDates,
   ] = await Promise.all([
     // volumesRead
     prisma.userToVolume.findMany({
@@ -97,6 +98,17 @@ export async function GET() {
         },
       },
     }),
+
+    // allFirstReadDates
+    prisma.userToVolume.findMany({
+      where: {
+        userId: user.id,
+        firstRead: { not: null },
+      },
+      select: {
+        firstRead: true,
+      },
+    }),
   ]);
 
   const totalTracked = userProgressVolumes.length;
@@ -104,6 +116,26 @@ export async function GET() {
     (volume) => volume.usersProgress[0]?.isRead
   ).length;
   const totalUnread = totalVolumes - totalRead;
+
+  const now = new Date();
+  const monthlyReadCount = Array(12).fill(0);
+
+  for (const entry of allFirstReadDates) {
+    const [yearStr, monthStr] = entry.firstRead.split("-");
+    const year = Number(yearStr);
+    const month = Number(monthStr);
+
+    if (year === now.getFullYear() && month >= 1 && month <= 12) {
+      monthlyReadCount[month - 1]++;
+    }
+  }
+
+  const monthlyReads = monthlyReadCount
+    .map((count, index) => ({
+      month: index + 1,
+      count,
+    }))
+    .filter((_, index) => index <= now.getMonth());
 
   return NextResponse.json({
     volumesRead,
@@ -118,5 +150,6 @@ export async function GET() {
       totalRead,
       totalUnread,
     },
+    monthlyReads,
   });
 }
