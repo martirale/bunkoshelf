@@ -40,9 +40,8 @@ export default async function HomePage({ params }) {
               <Link
                 href={`/${lang}/profile`}
                 className={clsx(
-                  "text-onix 2xl:text-pearl w-max flex items-center text-base",
-                  "group-hover:text-onix hover:underline",
-                  "transition-all duration-300"
+                  "text-onix w-max flex items-center text-base",
+                  "hover:underline transition-all duration-300"
                 )}
               >
                 {intl.home.goToProfile}
