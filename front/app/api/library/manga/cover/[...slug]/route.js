@@ -23,6 +23,7 @@ export async function GET(req, context) {
     return new Response(file, {
       headers: {
         "Content-Type": contentType,
+        "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch {
@@ -32,6 +33,7 @@ export async function GET(req, context) {
       return new Response(fallbackFile, {
         headers: {
           "Content-Type": "image/svg+xml",
+          "Cache-Control": "no-store",
         },
       });
     } catch {

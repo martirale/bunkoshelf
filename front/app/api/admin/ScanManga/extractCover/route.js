@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import prisma from "@/lib/prisma";
 import AdmZip from "adm-zip";
+import crc from "crc";
 
 const COVERS_DIR = path.resolve(process.cwd(), "public/covers");
 
@@ -20,10 +21,12 @@ async function extractCoverImage(cbzPath, outputDir) {
           fs.mkdirSync(outputDir, { recursive: true });
 
           const ext = path.extname(entry.entryName).toLowerCase();
-          const filename = `cover${ext}`;
+          const fileData = entry.getData();
+          const hash = crc.crc32(fileData).toString(16);
+
+          const filename = `cover-${hash}${ext}`;
           const outputPath = path.join(outputDir, filename);
 
-          const fileData = entry.getData();
           fs.writeFileSync(outputPath, fileData);
 
           resolve(path.join("/covers", path.basename(outputDir), filename));
