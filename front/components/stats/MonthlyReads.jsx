@@ -36,7 +36,7 @@ export default function MonthlyReads({ intl, bgColor, textColor }) {
     >
       <h3 className="mb-4">{intl.stats.ttMonthlyRead}</h3>
       <div className="overflow-x-auto">
-        <div className="min-w-[600px] md:min-w-[800px] 2xl:min-w-full h-64 uppercase">
+        <div className="min-w-[400px] md:min-w-[500px] 2xl:min-w-full h-64 uppercase">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
