@@ -9,55 +9,45 @@ export default function TileMonthTrend({ title, bgColor, textColor }) {
   const [trend, setTrend] = useState(null);
 
   useEffect(() => {
-    async function fetchVolumes() {
+    async function fetchTrend() {
       try {
         const res = await fetch("/api/stats/reader", { cache: "no-store" });
         const data = await res.json();
-        const volumes = data?.volumesRead || [];
+        const monthlyReads = data?.monthlyReads || [];
 
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const now = toZonedTime(new Date(), timeZone);
-        const thisMonth = now.getMonth();
+
+        const thisMonth = now.getMonth() + 1;
+        const lastMonth = thisMonth === 1 ? 12 : thisMonth - 1;
         const thisYear = now.getFullYear();
+        const lastMonthYear = thisMonth === 1 ? thisYear - 1 : thisYear;
 
-        const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
-        const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+        const current =
+          monthlyReads.find((m) => m.month === thisMonth)?.count ?? 0;
+        const previous =
+          monthlyReads.find((m) => m.month === lastMonth)?.count ?? 0;
 
-        let currentMonthReads = 0;
-        let previousMonthReads = 0;
-
-        volumes.forEach((entry) => {
-          const readDate = toZonedTime(new Date(entry.lastReadAt), timeZone);
-          const m = readDate.getMonth();
-          const y = readDate.getFullYear();
-
-          if (m === thisMonth && y === thisYear) {
-            currentMonthReads++;
-          } else if (m === lastMonth && y === lastMonthYear) {
-            previousMonthReads++;
-          }
-        });
-
-        if (previousMonthReads === 0 && currentMonthReads === 0) {
+        if (previous === 0 && current === 0) {
           setPercentageChange(0);
           setTrend("flat");
-        } else if (previousMonthReads === 0) {
+        } else if (previous === 0) {
           setPercentageChange(100);
           setTrend("up");
         } else {
-          const diff = currentMonthReads - previousMonthReads;
-          const percent = Math.round((diff / previousMonthReads) * 100);
+          const diff = current - previous;
+          const percent = Math.round((diff / previous) * 100);
           setPercentageChange(Math.abs(percent));
           setTrend(percent > 0 ? "up" : percent < 0 ? "down" : "flat");
         }
       } catch (error) {
-        console.error("Error fetching volumes:", error);
+        console.error("Error fetching trend:", error);
         setPercentageChange("—");
         setTrend(null);
       }
     }
 
-    fetchVolumes();
+    fetchTrend();
   }, []);
 
   const color =
@@ -78,9 +68,8 @@ export default function TileMonthTrend({ title, bgColor, textColor }) {
       <div
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
-        {percentageChange}
-        <span className="text-sm">%</span>
-        <IconComponent className={`w-5 h-5 ${color}`} />
+        <span>{percentageChange}%</span>
+        <IconComponent className={`w-6 h-6 ml-2 ${color}`} />
       </div>
     </div>
   );

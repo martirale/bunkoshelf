@@ -11,24 +11,19 @@ export default function TileMonthRead({ title, bgColor, textColor }) {
       try {
         const res = await fetch("/api/stats/reader", { cache: "no-store" });
         const data = await res.json();
-        const volumesRead = data?.volumesRead || [];
+        const monthlyReads = data?.monthlyReads || [];
 
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const now = toZonedTime(new Date(), timeZone);
-        const thisMonth = now.getMonth();
-        const thisYear = now.getFullYear();
+        const thisMonth = now.getMonth() + 1;
 
-        const thisMonthReads = volumesRead.filter((entry) => {
-          const readDate = toZonedTime(new Date(entry.lastReadAt), timeZone);
-          return (
-            readDate.getMonth() === thisMonth &&
-            readDate.getFullYear() === thisYear
-          );
-        });
+        const currentMonthEntry = monthlyReads.find(
+          (entry) => entry.month === thisMonth
+        );
 
-        setCount(thisMonthReads.length ?? "—");
+        setCount(currentMonthEntry?.count ?? 0);
       } catch (error) {
-        console.error("Error fetching month reads:", error);
+        console.error("Error fetching monthly reads:", error);
       }
     }
 
