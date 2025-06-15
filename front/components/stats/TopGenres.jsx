@@ -34,7 +34,7 @@ export default function TopGenres({ intl, bgColor, textColor }) {
     <div
       className={`${bgColor} ${textColor} p-4 2xl:px-4 2xl:pt-4 rounded-lg flex flex-col justify-between`}
     >
-      <h3 className="text-base mb-4">Top (géneros)</h3>
+      <h3 className="text-base mb-4">{intl.stats.ttGenres}</h3>
       <div className="w-full h-72">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={data}>

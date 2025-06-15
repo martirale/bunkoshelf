@@ -8,6 +8,7 @@
     "days": "días",
     "lastRead": "Último día leído",
     "ttMonthlyRead": "Lecturas mensuales",
-    "tooltip": "Leídos"
+    "tooltip": "Leídos",
+    "ttGenres": "Top (géneros)"
   }
 }

@@ -8,6 +8,7 @@
     "days": "days",
     "lastRead": "Last day read",
     "ttMonthlyRead": "Monthly Read",
-    "tooltip": "Read"
+    "tooltip": "Read",
+    "ttGenres": "Top (genres)"
   }
 }
