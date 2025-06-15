@@ -72,8 +72,6 @@ export default function ReadingChallenge({ intl }) {
 
   const percentage = goal === 0 ? 0 : Math.min((progress / goal) * 100, 100);
 
-  if (loading) return null;
-
   return (
     <div className="flex flex-col justify-between w-full mx-auto rounded-lg bg-blackamber p-4 h-auto md:h-[128px] 2xl:h-auto">
       <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 md:gap-2">
