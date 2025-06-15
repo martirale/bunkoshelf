@@ -9,7 +9,7 @@ export default async function ProfilePage({ params }) {
   const intl = await getDictionary(lang);
 
   return (
-    <>
+    <div className="mb-24 md:mb-4">
       <UserAvatar intl={intl} />
 
       {/* User Stats */}
@@ -36,6 +36,6 @@ export default async function ProfilePage({ params }) {
           textColor="text-sand"
         />
       </div>
-    </>
+    </div>
   );
 }
