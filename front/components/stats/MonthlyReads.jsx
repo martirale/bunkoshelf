@@ -32,11 +32,11 @@ export default function MonthlyReads({ intl, bgColor, textColor }) {
 
   return (
     <div
-      className={`${bgColor} ${textColor} p-4 2xl:px-4 2xl:pt-4 2xl:pb-5 rounded-lg flex flex-col justify-between`}
+      className={`${bgColor} ${textColor} p-4 2xl:px-4 2xl:pt-4 rounded-lg flex flex-col justify-between`}
     >
-      <h3 className="mb-4">{intl.stats.ttMonthlyRead}</h3>
+      <h3 className="text-base mb-4">{intl.stats.ttMonthlyRead}</h3>
       <div className="overflow-x-auto">
-        <div className="min-w-[400px] md:min-w-[500px] 2xl:min-w-full h-42 uppercase">
+        <div className="min-w-[400px] md:min-w-[500px] h-72 uppercase">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}

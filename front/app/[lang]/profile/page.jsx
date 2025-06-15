@@ -3,6 +3,7 @@ import ReadingChallenge from "@/components/profile/ReadingChallenge";
 import ReaderStatsPanel from "@/components/stats/ReaderPanel";
 import UserAvatar from "@/components/profile/UserAvatar";
 import MonthlyReads from "@/components/stats/MonthlyReads";
+import TopGenres from "@/components/stats/TopGenres";
 
 export default async function ProfilePage({ params }) {
   const { lang = "es" } = await params;
@@ -28,13 +29,22 @@ export default async function ProfilePage({ params }) {
         </div>
       </div>
 
-      {/* Monthly Reads */}
-      <div className="mt-4">
-        <MonthlyReads
-          intl={intl}
-          bgColor="bg-blackamber"
-          textColor="text-sand"
-        />
+      <div className="flex flex-col 2xl:flex-row gap-4 mt-4">
+        <div className="flex-1/2">
+          <MonthlyReads
+            intl={intl}
+            bgColor="bg-blackamber"
+            textColor="text-sand"
+          />
+        </div>
+
+        <div className="flex-1/2">
+          <TopGenres
+            intl={intl}
+            bgColor="bg-blackamber"
+            textColor="text-sand"
+          />
+        </div>
       </div>
     </div>
   );
