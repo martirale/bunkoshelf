@@ -78,6 +78,7 @@ model UserToVolume {
   lastPage   Int?
   totalPages Int?
   lastReadAt DateTime?
+  firstRead  String?
 
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
