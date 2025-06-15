@@ -9,7 +9,21 @@ export async function GET() {
   }
 
   try {
-    // 1. Obtener IDs de los volúmenes leídos
+    const ignoreList = [
+      "shonen",
+      "shojo",
+      "seinen",
+      "josei",
+      "kodomo",
+      "manhwa",
+      "manhua",
+      "webcomic",
+      "doujinshi",
+      "color",
+      "one-shot",
+    ];
+
+    // 1. Obtener IDs de los volúmenes leídos por el usuario
     const readVolumes = await prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -26,28 +40,40 @@ export async function GET() {
       return NextResponse.json({ topGenres: [] });
     }
 
-    // 2. Obtener géneros asociados a esos volúmenes
-    const genres = await prisma.volumeToGenre.findMany({
-      where: {
-        volumeId: {
-          in: readVolumeIds,
+    // 2. Obtener géneros y etiquetas de esos volúmenes
+    const [genres, tags] = await Promise.all([
+      prisma.volumeToGenre.findMany({
+        where: {
+          volumeId: { in: readVolumeIds },
         },
-      },
-      include: {
-        genre: true,
-      },
-    });
+        include: { genre: true },
+      }),
+      prisma.volumeToTag.findMany({
+        where: {
+          volumeId: { in: readVolumeIds },
+        },
+        include: { tag: true },
+      }),
+    ]);
 
-    // 3. Contar ocurrencias de cada género
-    const genreCountMap = new Map();
+    // 3. Contar géneros
+    const countMap = new Map();
 
     for (const entry of genres) {
       const name = entry.genre.name;
-      genreCountMap.set(name, (genreCountMap.get(name) || 0) + 1);
+      countMap.set(name, (countMap.get(name) || 0) + 1);
     }
 
-    // 4. Ordenar por cantidad y tomar los 10 más comunes
-    const sorted = Array.from(genreCountMap.entries())
+    // 4. Contar etiquetas útiles (omitiendo las de la lista ignorada)
+    for (const entry of tags) {
+      const name = entry.tag.name;
+      if (!ignoreList.includes(name)) {
+        countMap.set(name, (countMap.get(name) || 0) + 1);
+      }
+    }
+
+    // 5. Ordenar y tomar el top 10
+    const sorted = Array.from(countMap.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
       .map(([genre, count]) => ({
