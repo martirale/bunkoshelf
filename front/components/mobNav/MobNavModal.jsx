@@ -57,16 +57,16 @@ export default function MobNavModal({
           {user && (
             <div>
               <MainNav intl={intl} />
-
-              <div className="mt-2">
-                <SearchInputMob intl={intl} />
-              </div>
             </div>
           )}
         </div>
 
         {/* Footer Nav */}
         <div className="mt-8 mb-4">
+          <div className="mb-8">
+            <SearchInputMob intl={intl} />
+          </div>
+
           <ChallengeProg lang={lang} intl={intl} data={challengeData} />
           <FooterNav lang={lang} intl={intl} user={user} />
         </div>
