@@ -68,7 +68,7 @@ export default function MobNavModal({
         </div>
 
         {/* Footer Nav */}
-        <div className="mt-12 mb-4">
+        <div className="mt-8 mb-4">
           <ChallengeProg lang={lang} intl={intl} data={challengeData} />
           <FooterNav lang={lang} intl={intl} />
         </div>
