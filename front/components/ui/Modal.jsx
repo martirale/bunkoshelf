@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Minimize2 } from "lucide-react";
 
 export default function Modal({ isOpen, onClose, children }) {
+  const modalRef = useRef(null);
+
   useEffect(() => {
     const handleEscPress = (event) => {
       if (event.key === "Escape" && isOpen) {
@@ -20,11 +22,24 @@ export default function Modal({ isOpen, onClose, children }) {
     };
   }, [isOpen, onClose]);
 
+  // Forzar focus al abrir
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      const timeout = setTimeout(() => {
+        modalRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+      id="mob-nav-modal"
+      ref={modalRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 pointer-events-auto transition-opacity duration-200 ease-in-out opacity-100"
       onClick={onClose}
     >
       <div

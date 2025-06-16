@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Minimize2, ChevronLeft, ChevronRight } from "lucide-react";
 import Loader from "../ui/Loader";
 
@@ -11,6 +11,8 @@ export default function MangaReader({
   intl,
   isYoureiMode,
 }) {
+  const modalRef = useRef(null);
+
   // Funciones del lector
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -118,11 +120,26 @@ export default function MangaReader({
     };
   }, [isOpen, onClose, goNext, goPrev]);
 
+  // Forzar focus al abrir
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      const timeout = setTimeout(() => {
+        modalRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
   if (loading) return <Loader />;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center">
+    <div
+      id="mob-nav-modal"
+      ref={modalRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center pointer-events-auto transition-opacity duration-200 ease-in-out opacity-100"
+    >
       <button
         onClick={onClose}
         className="absolute top-4 right-4 z-50"
