@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Minimize2 } from "lucide-react";
 import MobNavLogo from "./MobNavLogo";
 import MainNav from "../sidebar/MainNav";
@@ -17,6 +17,9 @@ export default function MobNavModal({
   user,
   challengeData,
 }) {
+  const modalRef = useRef(null);
+
+  // Cerrar con Escape
   useEffect(() => {
     const handleEscPress = (event) => {
       if (event.key === "Escape" && isOpen) {
@@ -33,10 +36,25 @@ export default function MobNavModal({
     };
   }, [isOpen, onClose]);
 
+  // Forzar focus al abrir
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      const timeout = setTimeout(() => {
+        modalRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-pearl text-onix flex p-4">
+    <div
+      id="mob-nav-modal"
+      ref={modalRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-pearl text-onix flex p-4 pointer-events-auto transition-opacity duration-200 ease-in-out opacity-100"
+    >
       <div
         className="flex flex-col justify-between w-full max-w-5xl space-y-4 relative"
         onClick={(e) => e.stopPropagation()}
@@ -44,7 +62,6 @@ export default function MobNavModal({
         {/* Header */}
         <div className="flex flex-row items-center justify-between">
           <MobNavLogo width={150} height={30} />
-
           <button onClick={onClose} className="cursor-pointer">
             <Minimize2 className="w-7 h-7 hover:scale-90 transition-all duration-300" />
           </button>
@@ -53,12 +70,7 @@ export default function MobNavModal({
         {/* Nav Content */}
         <div>
           {!user && <SecondNav intl={intl} />}
-
-          {user && (
-            <div>
-              <MainNav intl={intl} />
-            </div>
-          )}
+          {user && <MainNav intl={intl} />}
         </div>
 
         {/* Footer Nav */}
@@ -66,7 +78,6 @@ export default function MobNavModal({
           <div className="mb-8">
             <SearchInputMob intl={intl} />
           </div>
-
           <ChallengeProg lang={lang} intl={intl} data={challengeData} />
           <FooterNav lang={lang} intl={intl} user={user} />
         </div>
