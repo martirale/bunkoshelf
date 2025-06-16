@@ -4,7 +4,7 @@ import path from "path";
 import prisma from "@/lib/prisma";
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library/manga");
-const SUPPORTED_EXTENSIONS = [".cbz"];
+const SUPPORTED_EXTENSIONS = [".cbz", ".zip"];
 
 function toSlug(str) {
   return str
