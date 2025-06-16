@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Languages, LogOut, BookOpen } from "lucide-react";
+import { Languages, LogOut, BookOpen, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
 import AlertBox from "../ui/AlertBox";
 import { getBuildInfo } from "@/lib/utils";
 
-export default function FooterNav({ lang, intl }) {
+export default function FooterNav({ lang, intl, user }) {
   const { version, versionUrl, changelogUrl } = getBuildInfo();
   const [remoteVersion, setRemoteVersion] = useState(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
@@ -73,16 +73,28 @@ export default function FooterNav({ lang, intl }) {
 
   const buttons = [
     {
+      type: "link",
+      icon: BookOpen,
+      href: "https://bunko.amlab.site/referencia/app",
+      target: "_blank",
+      title: intl.tooltip.userGuide,
+    },
+    ...(user?.isAdmin
+      ? [
+          {
+            type: "link",
+            icon: Settings2,
+            href: `/${lang}/settings`,
+            target: "_self",
+            title: intl.tooltip.settings,
+          },
+        ]
+      : []),
+    {
       type: "button",
       icon: Languages,
       title: intl.tooltip.switchLang,
       onClick: toggleLang,
-    },
-    {
-      type: "link",
-      icon: BookOpen,
-      href: "https://bunko.amlab.site/referencia/app",
-      title: intl.tooltip.userGuide,
     },
     ...(isLoggedIn
       ? [
@@ -109,17 +121,6 @@ export default function FooterNav({ lang, intl }) {
         </div>
       )}
 
-      {/* <div className="mb-4">
-        <Link
-          href="https://bunko.amlab.site/otros/roadmap"
-          target="_blank"
-          rel="noopener"
-          className="text-pearl"
-        >
-          <AlertBox title={intl.toastDev.appDevelopTt} variant="warning" />
-        </Link>
-      </div> */}
-
       <div className="flex justify-between items-center">
         <Link
           href={versionUrl}
@@ -144,7 +145,7 @@ export default function FooterNav({ lang, intl }) {
               <Link
                 key={i}
                 href={props.href}
-                target="_blank"
+                target={props.target}
                 rel="noopener"
                 title={props.title}
                 className="border border-stone-300 md:border-neutral-800 rounded-lg p-2 hover:text-pearl transition-all duration-300 hover:border-lilah"

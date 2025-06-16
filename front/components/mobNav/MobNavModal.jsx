@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { Minimize2 } from "lucide-react";
 import MobNavLogo from "./MobNavLogo";
 import MainNav from "../sidebar/MainNav";
-import AdminNav from "../sidebar/AdminNav";
 import SecondNav from "../sidebar/SecondNav";
 import ChallengeProg from "../sidebar/ChallengeProg";
 import FooterNav from "../sidebar/FooterNav";
@@ -58,7 +57,6 @@ export default function MobNavModal({
           {user && (
             <div>
               <MainNav intl={intl} />
-              {user.isAdmin && <AdminNav intl={intl} />}
 
               <div className="mt-2">
                 <SearchInputMob intl={intl} />
@@ -70,7 +68,7 @@ export default function MobNavModal({
         {/* Footer Nav */}
         <div className="mt-8 mb-4">
           <ChallengeProg lang={lang} intl={intl} data={challengeData} />
-          <FooterNav lang={lang} intl={intl} />
+          <FooterNav lang={lang} intl={intl} user={user} />
         </div>
       </div>
     </div>

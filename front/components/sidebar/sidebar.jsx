@@ -2,7 +2,6 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import SidebarLogo from "./siebarLogo";
 import SecondNav from "./SecondNav";
 import MainNav from "./MainNav";
-import AdminNav from "./AdminNav";
 import ChallengeProg from "./ChallengeProg";
 import FooterNav from "./FooterNav";
 import { verifySession } from "@/lib/auth/verifySession";
@@ -27,7 +26,6 @@ export default async function Sidebar({ lang }) {
         {user && (
           <div className="flex-1">
             <MainNav intl={intl} />
-            {user.isAdmin && <AdminNav intl={intl} />}
 
             <div className="mt-16">
               <SearchInput intl={intl} />
@@ -37,7 +35,7 @@ export default async function Sidebar({ lang }) {
 
         <ChallengeProg lang={lang} intl={intl} data={challengeData} />
 
-        <FooterNav lang={lang} intl={intl} />
+        <FooterNav lang={lang} intl={intl} user={user} />
       </aside>
 
       <SearchModal lang={lang} intl={intl} />
