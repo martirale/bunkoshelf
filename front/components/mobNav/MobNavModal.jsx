@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { Minimize2 } from "lucide-react";
-import MenuLogo from "./MenuLogo";
+import MobNavLogo from "./MobNavLogo";
 import MainNav from "../sidebar/MainNav";
 import AdminNav from "../sidebar/AdminNav";
 import SecondNav from "../sidebar/SecondNav";
@@ -10,7 +10,7 @@ import ChallengeProg from "../sidebar/ChallengeProg";
 import FooterNav from "../sidebar/FooterNav";
 import SearchInputMob from "../search/SearchInputMob";
 
-export default function ModalMobNav({
+export default function MobNavModal({
   lang,
   intl,
   isOpen,
@@ -44,7 +44,7 @@ export default function ModalMobNav({
       >
         {/* Header */}
         <div className="flex flex-row items-center justify-between">
-          <MenuLogo width={150} height={30} />
+          <MobNavLogo width={150} height={30} />
 
           <button onClick={onClose} className="cursor-pointer">
             <Minimize2 className="w-7 h-7 hover:scale-90 transition-all duration-300" />
@@ -68,7 +68,7 @@ export default function ModalMobNav({
         </div>
 
         {/* Footer Nav */}
-        <div className="mt-8">
+        <div className="mt-12 mb-4">
           <ChallengeProg lang={lang} intl={intl} data={challengeData} />
           <FooterNav lang={lang} intl={intl} />
         </div>

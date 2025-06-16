@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
-import ModalMobNav from "./ModalMobNav";
+import MobNavModal from "./MobNavModal";
 
 export default function MobNavButton({ lang, intl, user, challengeData }) {
   const [open, setOpen] = useState(false);
@@ -24,7 +24,7 @@ export default function MobNavButton({ lang, intl, user, challengeData }) {
         <Menu className="w-7 h-7 text-onix" />
       </button>
 
-      <ModalMobNav
+      <MobNavModal
         isOpen={open}
         onClose={() => setOpen(false)}
         lang={lang}
