@@ -3,6 +3,7 @@
     "logout": "Log Out",
     "userGuide": "User Guide",
     "switchLang": "Switch to Spanish",
-    "closeModal": "Close Window"
+    "closeModal": "Close Window",
+    "settings": "Settings"
   }
 }

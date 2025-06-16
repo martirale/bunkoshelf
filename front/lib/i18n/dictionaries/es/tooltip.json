@@ -3,6 +3,7 @@
     "logout": "Cerrar sesión",
     "userGuide": "Guía de usuario",
     "switchLang": "Cambiar a Inglés",
-    "closeModal": "Cerrar ventana"
+    "closeModal": "Cerrar ventana",
+    "settings": "Ajustes"
   }
 }
