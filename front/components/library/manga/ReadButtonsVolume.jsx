@@ -3,7 +3,7 @@
 import { useState } from "react";
 import clsx from "clsx";
 import { BookCheck, Ghost, Check, Heart, HeartOff } from "lucide-react";
-import ReaderModal from "@/components/reader/ReaderModal";
+import MangaReader from "@/components/reader/MangaReader";
 
 export default function ReadButtonsVolume({
   lang,
@@ -212,11 +212,10 @@ export default function ReadButtonsVolume({
       </div>
 
       {/* Modal lector */}
-      <ReaderModal
+      <MangaReader
         isOpen={isReaderOpen}
         onClose={handleClose}
         slug={slug}
-        lang={lang}
         intl={intl}
         isYoureiMode={isYoureiMode}
       />

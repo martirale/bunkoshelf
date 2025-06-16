@@ -5,12 +5,13 @@ import { Minimize2, ChevronLeft, ChevronRight } from "lucide-react";
 import Loader from "../ui/Loader";
 
 export default function MangaReader({
-  slug,
-  lang,
-  intl,
+  isOpen,
   onClose,
+  slug,
+  intl,
   isYoureiMode,
 }) {
+  // Funciones del lector
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -72,14 +73,6 @@ export default function MangaReader({
     fetchPages();
   }, [slug, isYoureiMode]);
 
-  const goPrev = () => {
-    if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
-  };
-
-  const goNext = () => {
-    if (currentIndex > 0) setCurrentIndex((i) => i - 1);
-  };
-
   // Guardar progreso en localStorage
   useEffect(() => {
     if (!isYoureiMode && images.length > 0) {
@@ -94,19 +87,38 @@ export default function MangaReader({
     }
   }, [currentIndex, images.length, isYoureiMode]);
 
-  useEffect(() => {
-    const handleGoNext = () => goNext();
-    const handleGoPrev = () => goPrev();
+  // Navegación inversa (oriental)
+  const goPrev = () => {
+    if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
+  };
+  const goNext = () => {
+    if (currentIndex > 0) setCurrentIndex((i) => i - 1);
+  };
 
-    window.addEventListener("reader:goNext", handleGoNext);
-    window.addEventListener("reader:goPrev", handleGoPrev);
+  // Soporte para navegación con teclado
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      } else if (e.key === "ArrowLeft") {
+        goPrev();
+      } else if (e.key === "ArrowRight") {
+        goNext();
+      }
+    };
+
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKey);
+    }
 
     return () => {
-      window.removeEventListener("reader:goNext", handleGoNext);
-      window.removeEventListener("reader:goPrev", handleGoPrev);
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKey);
     };
-  }, [currentIndex, images.length]);
+  }, [isOpen, onClose, goNext, goPrev]);
 
+  if (!isOpen) return null;
   if (loading) return <Loader />;
 
   return (
