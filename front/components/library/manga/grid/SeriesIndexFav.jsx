@@ -1,7 +1,7 @@
 import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
-import { Ghost } from "lucide-react";
+import { Ghost, LibraryBig } from "lucide-react";
 import { sortByPaddedTitle } from "@/lib/utils";
 
 export default async function SeriesIndexFav({ lang, intl }) {
@@ -67,9 +67,12 @@ export default async function SeriesIndexFav({ lang, intl }) {
 
   return (
     <>
-      <h2 className="my-4 pt-4">Series: Manga</h2>
+      <h2 className="flex items-center mb-4">
+        <LibraryBig className="w-7 h-7 mr-2" />
+        {intl.favorites.ttSeries}
+      </h2>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 2xl:grid-cols-5">
         {entries.map((entry) => {
           const isSeries =
             (entry.volumes && entry.volumes.length > 1) || entry.metadata;

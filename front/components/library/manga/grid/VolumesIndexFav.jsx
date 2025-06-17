@@ -2,7 +2,7 @@ import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
-import { Ghost } from "lucide-react";
+import { Ghost, BookCopy } from "lucide-react";
 
 export default async function VolumesIndexFav({ lang, intl }) {
   const user = await verifySession();
@@ -52,9 +52,12 @@ export default async function VolumesIndexFav({ lang, intl }) {
 
   return (
     <>
-      <h2 className="my-4 pt-4">Volúmenes</h2>
+      <h2 className="flex items-center mt-8 mb-4">
+        <BookCopy className="w-7 h-7 mr-2" />
+        {intl.favorites.ttVolumes}
+      </h2>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 2xl:grid-cols-5">
         {entries.map((entry) => {
           const href = `/${lang}/manga/volume/${entry.slug}`;
           const coverImage = entry.coverImage;
