@@ -60,8 +60,9 @@ yarn-error.log*
 /front/next-env.d.ts
 
 # Bunko Shelf specific
-/library/
+/library
 start.bat
-/front/public/covers/
+/front/public/covers
 /front/certs
 /front/payload.json
+/front/logs
