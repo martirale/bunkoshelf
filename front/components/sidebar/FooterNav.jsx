@@ -79,6 +79,12 @@ export default function FooterNav({ lang, intl, user }) {
       target: "_blank",
       title: intl.tooltip.userGuide,
     },
+    {
+      type: "button",
+      icon: Languages,
+      title: intl.tooltip.switchLang,
+      onClick: toggleLang,
+    },
     ...(user?.isAdmin
       ? [
           {
@@ -90,12 +96,6 @@ export default function FooterNav({ lang, intl, user }) {
           },
         ]
       : []),
-    {
-      type: "button",
-      icon: Languages,
-      title: intl.tooltip.switchLang,
-      onClick: toggleLang,
-    },
     ...(isLoggedIn
       ? [
           {
