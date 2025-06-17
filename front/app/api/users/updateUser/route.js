@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { hash } from "bcryptjs";
+import { log } from "@/lib/logger";
+
+export const runtime = "nodejs";
 
 export async function POST(req) {
   const session = await verifySession();
@@ -9,6 +12,7 @@ export async function POST(req) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const start = Date.now();
   const { name, lastname, password } = await req.json();
 
   const data = {
@@ -24,6 +28,20 @@ export async function POST(req) {
     await prisma.user.update({
       where: { id: session.id },
       data,
+    });
+
+    const duration = Date.now() - start;
+
+    log({
+      event: "User update",
+      category: "USERS",
+      duration,
+      meta: {
+        userId: session.id,
+        name: name || "",
+        lastname: lastname || "",
+        passwordUpdated: !!password,
+      },
     });
 
     return NextResponse.json({ success: true });

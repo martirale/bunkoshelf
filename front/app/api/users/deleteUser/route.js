@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { log } from "@/lib/logger";
+
+export const runtime = "nodejs";
 
 export async function DELETE(req) {
   const { id } = await req.json();
@@ -11,9 +14,30 @@ export async function DELETE(req) {
     );
   }
 
+  const start = Date.now();
+
   try {
+    const userToDelete = await prisma.user.findUnique({
+      where: { id },
+      select: { username: true, name: true, lastname: true },
+    });
+
     await prisma.user.delete({
       where: { id },
+    });
+
+    const duration = Date.now() - start;
+
+    log({
+      event: "User deletion",
+      category: "ADMIN",
+      duration,
+      meta: {
+        userId: id,
+        username: userToDelete?.username || "N/D",
+        name: userToDelete?.name || "",
+        lastname: userToDelete?.lastname || "",
+      },
     });
 
     return NextResponse.json({ success: true });

@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { log } from "@/lib/logger";
+
+export const runtime = "nodejs";
 
 export async function PUT(req) {
+  const start = Date.now();
   const body = await req.json();
   const { id, username, password, name, lastname, birthYear, isAdmin } = body;
 
@@ -29,6 +33,22 @@ export async function PUT(req) {
     const updatedUser = await prisma.user.update({
       where: { id },
       data: dataToUpdate,
+    });
+
+    const duration = Date.now() - start;
+
+    log({
+      event: "User update",
+      category: "ADMIN",
+      duration,
+      meta: {
+        targetUserId: id,
+        updatedByAdmin: true,
+        name: name || "",
+        lastname: lastname || "",
+        passwordUpdated: !!password,
+        isAdmin: !!isAdmin,
+      },
     });
 
     return NextResponse.json({ success: true, user: updatedUser });

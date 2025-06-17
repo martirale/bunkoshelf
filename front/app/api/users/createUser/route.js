@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { log } from "@/lib/logger";
+
+export const runtime = "nodejs";
 
 export async function POST(req) {
+  const start = Date.now();
   const { username, password, name, lastname, birthYear, isAdmin } =
     await req.json();
 
@@ -35,6 +39,19 @@ export async function POST(req) {
         lastname: lastname || null,
         birthYear: birthYear || null,
         isAdmin: isAdmin || false,
+      },
+    });
+
+    const duration = Date.now() - start;
+
+    log({
+      event: "User creation",
+      category: "ADMIN",
+      duration,
+      meta: {
+        userId: newUser.id,
+        username: newUser.username,
+        isAdmin: newUser.isAdmin,
       },
     });
 
