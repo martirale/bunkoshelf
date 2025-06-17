@@ -26,8 +26,8 @@ async function getAdminStats() {
 
   return {
     totalVolumes,
-    totalSeries,
     volumesAddedThisMonth,
+    totalSeries,
     totalUsers,
   };
 }
@@ -38,11 +38,11 @@ export default async function AdminStatsPanel({ intl }) {
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <StatCard title={intl.settings.totalVolumes} value={stats.totalVolumes} />
-      <StatCard title={intl.settings.totalSeries} value={stats.totalSeries} />
       <StatCard
         title={intl.settings.totalAddedMonth}
         value={stats.volumesAddedThisMonth}
       />
+      <StatCard title={intl.settings.totalSeries} value={stats.totalSeries} />
       <StatCard title={intl.settings.totalUsers} value={stats.totalUsers} />
     </section>
   );
