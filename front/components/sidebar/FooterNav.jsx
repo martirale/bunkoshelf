@@ -111,7 +111,7 @@ export default function FooterNav({ lang, intl, user }) {
   return (
     <>
       {updateAvailable && (
-        <div className="mb-4">
+        <div className="text-sand mb-4">
           <Link href={changelogUrl} target="_blank" rel="noopener">
             <AlertBox
               title={`${intl.toastVersion.title} (${remoteVersion})`}
