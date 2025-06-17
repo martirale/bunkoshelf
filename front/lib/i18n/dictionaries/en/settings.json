@@ -31,6 +31,8 @@
     "passwordNew": "New Password",
     "scanLibrary": "Scan Library",
     "scanning": "Scanning...",
-    "backupdb": "Download Database"
+    "backupdb": "Download Database",
+    "ttActivity": "Recent Activity",
+    "noActivity": "No recent activity..."
   }
 }

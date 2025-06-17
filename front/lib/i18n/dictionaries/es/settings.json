@@ -31,6 +31,8 @@
     "passwordNew": "Nueva contraseña",
     "scanLibrary": "Escanear biblioteca",
     "scanning": "Escaneando...",
-    "backupdb": "Descargar database"
+    "backupdb": "Descargar database",
+    "ttActivity": "Actividad reciente",
+    "noActivity": "Sin actividad reciente..."
   }
 }
