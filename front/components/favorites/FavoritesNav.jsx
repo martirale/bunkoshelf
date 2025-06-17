@@ -12,15 +12,15 @@ export default function FavoritesNav({ intl }) {
 
   const links = [
     {
+      label: intl.favorites.sectionManga,
       href: `/${currentLang}/favorites`,
       icon: BookHeart,
-      label: intl.favorites.sectionManga,
       isActive: pathname === `/${currentLang}/favorites`,
     },
     {
+      label: intl.favorites.sectionBooks,
       href: `/${currentLang}/favorites/books`,
       icon: BookHeart,
-      label: intl.favorites.sectionBooks,
       isActive: pathname === `/${currentLang}/favorites/books`,
     },
   ];
