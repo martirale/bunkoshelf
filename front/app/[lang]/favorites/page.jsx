@@ -7,10 +7,10 @@ export default async function FavoritesPage({ params }) {
   const intl = await getDictionary(lang);
 
   return (
-    <>
+    <div className="mb-24 md:mb-4">
       <SeriesIndexFav lang={lang} intl={intl} />
 
       <VolumesIndexFav lang={lang} intl={intl} />
-    </>
+    </div>
   );
 }
