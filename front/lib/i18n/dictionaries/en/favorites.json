@@ -1,5 +1,10 @@
 {
   "favorites": {
-    "title": "Favorites"
+    "title": "Favorites",
+    "ttManga": "Manga",
+    "ttSeries": "Favorite Series",
+    "ttVolumes": "Favorite Volumes",
+    "sectionManga": "Manga",
+    "sectionBooks": "Books"
   }
 }
