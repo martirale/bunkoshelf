@@ -20,7 +20,7 @@ async function fetchLogs() {
 }
 
 export default async function SettingsPage({ params }) {
-  const { lang = "es" } = params;
+  const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
   const { version, versionUrl, buildDate } = getBuildInfo();
 
