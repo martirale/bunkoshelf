@@ -1,8 +1,9 @@
 import path from "path";
 import fs from "fs/promises";
 
-export async function GET(req, context) {
-  const segments = context.params?.slug;
+export async function GET(req, contextPromise) {
+  const { params } = await contextPromise;
+  const segments = params?.slug;
 
   if (!segments || !Array.isArray(segments) || segments.length === 0) {
     return new Response("Missing or invalid path", { status: 400 });
@@ -16,7 +17,7 @@ export async function GET(req, context) {
   );
 
   try {
-    await fs.access(requestedPath); // Verifica si existe
+    await fs.access(requestedPath);
     const file = await fs.readFile(requestedPath);
     const contentType = getContentType(requestedPath);
 
