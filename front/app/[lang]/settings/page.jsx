@@ -6,6 +6,8 @@ import Link from "next/link";
 import AdminStatsPanel from "@/components/stats/AdminPanel";
 import { FileClock } from "lucide-react";
 import ClearLogsButton from "@/components/settings/ClearLogsButton";
+import { GitCommitHorizontal } from "lucide-react";
+import { Calendar } from "lucide-react";
 
 async function fetchLogs() {
   const res = await fetch(
@@ -45,20 +47,25 @@ export default async function SettingsPage({ params }) {
           <div className="flex items-center mt-4 gap-8">
             <div>
               <p className="font-bold">{intl.settings.semVer}</p>
-              <Link
-                href={versionUrl}
-                target="_blank"
-                className="hover:underline"
-              >
-                v{version}
-              </Link>
+              <div className="flex items-center">
+                <GitCommitHorizontal className="w-5 h-5 mr-2" />
+                <Link
+                  href={versionUrl}
+                  target="_blank"
+                  className="hover:underline"
+                >
+                  v{version}
+                </Link>
+              </div>
             </div>
 
-            <p>
-              <span className="font-bold">{intl.settings.buildDate}</span>
-              <br />
-              {buildDate}
-            </p>
+            <div>
+              <p className="font-bold">{intl.settings.buildDate}</p>
+              <div className="flex items-center">
+                <Calendar className="w-5 h-5 mr-2" />
+                <span>{buildDate}</span>
+              </div>
+            </div>
           </div>
         </div>
 
