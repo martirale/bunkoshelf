@@ -66,3 +66,4 @@ start.bat
 /front/certs
 /front/payload.json
 /front/logs
+/front/tmp
