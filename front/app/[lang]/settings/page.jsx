@@ -8,6 +8,7 @@ import { FileClock } from "lucide-react";
 import ClearLogsButton from "@/components/settings/ClearLogsButton";
 import { GitCommitHorizontal } from "lucide-react";
 import { Calendar } from "lucide-react";
+import clsx from "clsx";
 
 async function fetchLogs() {
   const res = await fetch(
@@ -35,40 +36,47 @@ export default async function SettingsPage({ params }) {
         {intl.settings.overview}
       </h2>
 
+      {/* Stats Bunko */}
       <div className="flex flex-col 2xl:flex-row gap-4">
         <div className="2xl:flex-1/2">
-          <div className="mb-12">
+          <div className="mb-4">
             <AdminStatsPanel intl={intl} />
           </div>
 
-          <h3 className="text-base mb-2">{intl.settings.infoServerTt}</h3>
-          <p>{intl.settings.infoServerDesc}</p>
-
-          <div className="flex items-center mt-4 gap-8">
+          {/* About Bunko */}
+          <div className="bg-blackamber p-4 rounded-lg h-[196px] 2xl:h-[256px] flex flex-col justify-between">
             <div>
-              <p className="font-bold">{intl.settings.semVer}</p>
-              <div className="flex items-center">
-                <GitCommitHorizontal className="w-5 h-5 mr-2" />
-                <Link
-                  href={versionUrl}
-                  target="_blank"
-                  className="hover:underline"
-                >
-                  v{version}
-                </Link>
-              </div>
+              <h3 className="text-base mb-2">{intl.settings.infoServerTt}</h3>
+              <p>{intl.settings.infoServerDesc}</p>
             </div>
 
-            <div>
-              <p className="font-bold">{intl.settings.buildDate}</p>
-              <div className="flex items-center">
-                <Calendar className="w-5 h-5 mr-2" />
-                <span>{buildDate}</span>
+            <div className="flex items-center mt-4 gap-8 md:gap-12">
+              <div>
+                <p className="font-bold">{intl.settings.semVer}</p>
+                <div className="flex items-center">
+                  <GitCommitHorizontal className="w-5 h-5 mr-2" />
+                  <Link
+                    href={versionUrl}
+                    target="_blank"
+                    className="hover:underline"
+                  >
+                    v{version}
+                  </Link>
+                </div>
+              </div>
+
+              <div>
+                <p className="font-bold">{intl.settings.buildDate}</p>
+                <div className="flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  <span>{buildDate}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Activity Log */}
         <div className="bg-blackamber rounded-lg p-4 2xl:flex-1/2 mt-8 2xl:mt-0">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base">{intl.settings.ttActivity}</h2>
