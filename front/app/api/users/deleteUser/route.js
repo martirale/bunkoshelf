@@ -19,7 +19,7 @@ export async function DELETE(req) {
   try {
     const userToDelete = await prisma.user.findUnique({
       where: { id },
-      select: { username: true, name: true, lastname: true },
+      select: { username: true, name: true, lastname: true, isAdmin: true },
     });
 
     await prisma.user.delete({
@@ -34,9 +34,8 @@ export async function DELETE(req) {
       duration,
       meta: {
         userId: id,
-        username: userToDelete?.username || "N/D",
-        name: userToDelete?.name || "",
-        lastname: userToDelete?.lastname || "",
+        username: userToDelete?.username || "unknown",
+        isAdmin: userToDelete?.isAdmin,
       },
     });
 

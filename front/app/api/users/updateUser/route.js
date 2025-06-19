@@ -25,6 +25,11 @@ export async function POST(req) {
   }
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { username: true },
+    });
+
     await prisma.user.update({
       where: { id: session.id },
       data,
@@ -38,8 +43,7 @@ export async function POST(req) {
       duration,
       meta: {
         userId: session.id,
-        name: name || "",
-        lastname: lastname || "",
+        username: user?.username || "unknown",
         passwordUpdated: !!password,
       },
     });

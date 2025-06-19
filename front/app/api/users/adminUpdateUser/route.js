@@ -44,8 +44,7 @@ export async function PUT(req) {
       meta: {
         targetUserId: id,
         updatedByAdmin: true,
-        name: name || "",
-        lastname: lastname || "",
+        username: username || "unknown",
         passwordUpdated: !!password,
         isAdmin: !!isAdmin,
       },
