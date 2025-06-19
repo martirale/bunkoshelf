@@ -4,17 +4,17 @@ import { indexVolumesJob } from "./indexVolumesJob";
 import { extractCoverJob } from "./extractCoverJob";
 import { extractMetadataJob } from "./extractMetadataJob";
 import { updateScanStatus } from "./updateScanStatus";
+import { log } from "@/lib/logger";
 
 const statusFile = path.join(process.cwd(), "tmp", "scan-status.json");
 
 export async function mainJob() {
   try {
-    // Asegura que el directorio tmp existe
     await fs.mkdir(path.dirname(statusFile), { recursive: true });
 
+    const start = Date.now();
     const startedAt = new Date().toISOString();
 
-    // Estado inicial
     await updateScanStatus({
       startedAt,
       status: "working",
@@ -42,12 +42,24 @@ export async function mainJob() {
       status: "working",
     });
 
+    const duration = Date.now() - start;
+
     await extractMetadataJob();
     await updateScanStatus({
       steps: { metadata: "done" },
       status: "done",
       currentTask: null,
       finishedAt: new Date().toISOString(),
+    });
+
+    log({
+      event: "Library scan completed",
+      category: "LIBRARY",
+      duration,
+      meta: {
+        result: "success",
+        steps: ["index", "covers", "metadata"],
+      },
     });
   } catch (error) {
     console.error("Error general en mainJob:", error);
@@ -56,6 +68,16 @@ export async function mainJob() {
       error: error.message || "Error desconocido",
       currentTask: null,
       finishedAt: new Date().toISOString(),
+    });
+
+    log({
+      event: "Library scan failed",
+      category: "LIBRARY",
+      duration,
+      meta: {
+        result: "error",
+        message: error.message || "Error desconocido",
+      },
     });
   }
 }
