@@ -77,7 +77,7 @@ export default async function SettingsPage({ params }) {
         </div>
 
         {/* Activity Log */}
-        <div className="bg-blackamber rounded-lg p-4 2xl:flex-1/2 mt-8 2xl:mt-0">
+        <div className="bg-blackamber rounded-lg p-4 2xl:flex-1/2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base">{intl.settings.ttActivity}</h2>
             <ClearLogsButton />
