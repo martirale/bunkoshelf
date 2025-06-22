@@ -81,7 +81,7 @@ export default function ReadingHeatmap({ intl }) {
 
   return (
     <div className="bg-blackamber rounded-lg p-4 mt-4">
-      <h2 className="text-base mb-4">{intl.stats.daysRead}</h2>
+      <h2 className="text-base mb-4">{intl.stats.daysReadYear}</h2>
 
       <div className="flex flex-col gap-1 w-full overflow-x-auto">
         <div className="min-w-[960px] 2xl:min-w-0 w-fit">

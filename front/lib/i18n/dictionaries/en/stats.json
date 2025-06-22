@@ -1,9 +1,10 @@
 {
   "stats": {
-    "monthRead": "Manga read this month",
-    "daysRead": "Days read",
-    "mangaRead": "Read mangas (total)",
-    "prevMonth": "Compared to prev month",
+    "monthRead": "Read this month",
+    "daysRead": "Days read this month",
+    "daysReadYear": "Days read in the last year",
+    "mangaRead": "Read in total",
+    "prevMonth": "Compared to previous month",
     "streak": "Reading streak",
     "days": "days",
     "lastRead": "Last day read",
