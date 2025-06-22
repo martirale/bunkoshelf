@@ -1,6 +1,6 @@
 {
   "name": "bunkoshelf",
-  "version": "0.58.6",
+  "version": "0.59.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
