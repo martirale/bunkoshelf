@@ -1,14 +1,16 @@
-import prisma from "@/lib/prisma";
+"use client";
+
+import { useEffect, useState } from "react";
+import clsx from "clsx";
 import {
   format,
   startOfToday,
   subDays,
-  getDay,
+  addDays,
   getMonth,
   startOfWeek,
-  addDays,
+  eachDayOfInterval,
 } from "date-fns";
-import clsx from "clsx";
 
 const DAYS_TO_DISPLAY = 365;
 const MONTHS = [
@@ -26,58 +28,70 @@ const MONTHS = [
   "Dic",
 ];
 
-export default async function ReadingHeatmap({ userId }) {
-  const dailyReading = await prisma.dailyReadingLog.findMany({
-    where: { userId },
-    select: { date: true },
-  });
+export default function ReadingHeatmap() {
+  const [weeks, setWeeks] = useState([]);
+  const [monthLabels, setMonthLabels] = useState([]);
 
-  const activityDates = new Set(
-    dailyReading.map((entry) => format(new Date(entry.date), "yyyy-MM-dd"))
-  );
+  useEffect(() => {
+    async function loadData() {
+      const res = await fetch("/api/stats/reader", { cache: "no-store" });
+      const json = await res.json();
+      const dailyReading = json?.dailyReading || [];
 
-  const today = startOfToday();
-  const startDate = startOfWeek(subDays(today, DAYS_TO_DISPLAY - 1), {
-    weekStartsOn: 0,
-  });
-
-  const totalDays = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
-  const weeks = [];
-
-  for (let i = 0; i < totalDays; i += 7) {
-    const week = [];
-    for (let j = 0; j < 7; j++) {
-      const date = addDays(startDate, i + j);
-      if (date > today) break;
-
-      const iso = format(date, "yyyy-MM-dd");
-      week.push({
-        date: iso,
-        active: activityDates.has(iso),
-        rawDate: date,
+      const today = startOfToday();
+      const startDate = startOfWeek(subDays(today, DAYS_TO_DISPLAY - 1), {
+        weekStartsOn: 0,
       });
-    }
-    weeks.push(week);
-  }
 
-  const monthLabels = [];
-  let lastMonth = null;
+      const daysArray = eachDayOfInterval({ start: startDate, end: today });
 
-  for (let i = 0; i < weeks.length; i++) {
-    const week = weeks[i];
-    const firstDay = week.find(Boolean);
-    if (firstDay) {
-      const month = getMonth(firstDay.rawDate);
-      if (month !== lastMonth) {
-        monthLabels.push(MONTHS[month]);
-        lastMonth = month;
-      } else {
-        monthLabels.push("");
+      const activityDates = new Set(dailyReading.map((entry) => entry.date));
+
+      const tempWeeks = [];
+
+      for (let i = 0; i < daysArray.length; i += 7) {
+        const week = [];
+
+        for (let j = 0; j < 7; j++) {
+          const date = daysArray[i + j];
+          if (!date) break;
+
+          const iso = format(date, "yyyy-MM-dd");
+          week.push({
+            date: iso,
+            active: activityDates.has(iso),
+            rawDate: date,
+          });
+        }
+
+        tempWeeks.push(week);
       }
-    } else {
-      monthLabels.push("");
+
+      setWeeks(tempWeeks);
+
+      const labels = [];
+      let lastMonth = null;
+
+      for (let i = 0; i < tempWeeks.length; i++) {
+        const firstDay = tempWeeks[i].find(Boolean);
+        if (firstDay) {
+          const month = getMonth(firstDay.rawDate);
+          if (month !== lastMonth) {
+            labels.push(MONTHS[month]);
+            lastMonth = month;
+          } else {
+            labels.push("");
+          }
+        } else {
+          labels.push("");
+        }
+      }
+
+      setMonthLabels(labels);
     }
-  }
+
+    loadData();
+  }, []);
 
   return (
     <div className="bg-blackamber rounded-lg p-4 mt-4">
