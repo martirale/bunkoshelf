@@ -84,36 +84,38 @@ export default async function ReadingHeatmap({ userId }) {
       <h2 className="text-base mb-4">Días leídos</h2>
 
       <div className="flex flex-col gap-1 w-full overflow-x-auto">
-        <div className="grid grid-cols-53 gap-2 text-xs">
-          {monthLabels.map((label, i) => (
-            <div key={i} className="text-center h-4 uppercase">
-              {label}
-            </div>
-          ))}
-        </div>
+        <div className="min-w-[960px] 2xl:min-w-0 w-fit">
+          <div className="grid grid-cols-53 gap-2 text-xs mb-1">
+            {monthLabels.map((label, i) => (
+              <div key={i} className="text-center h-4 uppercase">
+                {label}
+              </div>
+            ))}
+          </div>
 
-        <div className="grid grid-cols-53 gap-2">
-          {weeks.map((week, i) => (
-            <div key={i} className="flex flex-col gap-2">
-              {Array.from({ length: 7 }).map((_, j) => {
-                const day = week[j];
-                return (
-                  <div
-                    key={j}
-                    title={day?.date || ""}
-                    className={clsx(
-                      "w-3 h-3 rounded-sm transition-colors duration-300",
-                      day
-                        ? day.active
-                          ? "bg-lilah hover:brightness-110"
-                          : "bg-neutral-700"
-                        : "invisible"
-                    )}
-                  />
-                );
-              })}
-            </div>
-          ))}
+          <div className="grid grid-cols-53 gap-2">
+            {weeks.map((week, i) => (
+              <div key={i} className="flex flex-col gap-2">
+                {Array.from({ length: 7 }).map((_, j) => {
+                  const day = week[j];
+                  return (
+                    <div
+                      key={j}
+                      title={day?.date || ""}
+                      className={clsx(
+                        "w-3 h-3 rounded-sm transition-colors duration-300",
+                        day
+                          ? day.active
+                            ? "bg-lilah hover:brightness-110"
+                            : "bg-neutral-700"
+                          : "invisible"
+                      )}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
