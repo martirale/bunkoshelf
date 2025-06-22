@@ -81,18 +81,20 @@ export default async function ReadingHeatmap({ userId }) {
 
   return (
     <div className="bg-blackamber rounded-lg p-4 mt-4">
-      <div className="flex flex-col gap-1">
-        <div className="flex gap-1 text-xs">
+      <h2 className="text-base mb-4">Días leídos</h2>
+
+      <div className="flex flex-col gap-1 w-full overflow-x-auto">
+        <div className="grid grid-cols-53 gap-2 text-xs">
           {monthLabels.map((label, i) => (
-            <div key={i} className="w-3 h-4 text-center uppercase">
+            <div key={i} className="text-center h-4 uppercase">
               {label}
             </div>
           ))}
         </div>
 
-        <div className="flex gap-1">
+        <div className="grid grid-cols-53 gap-2">
           {weeks.map((week, i) => (
-            <div key={i} className="flex flex-col gap-1">
+            <div key={i} className="flex flex-col gap-2">
               {Array.from({ length: 7 }).map((_, j) => {
                 const day = week[j];
                 return (
