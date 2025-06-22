@@ -13,22 +13,8 @@ import {
 } from "date-fns";
 
 const DAYS_TO_DISPLAY = 365;
-const MONTHS = [
-  "Ene",
-  "Feb",
-  "Mar",
-  "Abr",
-  "May",
-  "Jun",
-  "Jul",
-  "Ago",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dic",
-];
 
-export default function ReadingHeatmap() {
+export default function ReadingHeatmap({ intl }) {
   const [weeks, setWeeks] = useState([]);
   const [monthLabels, setMonthLabels] = useState([]);
 
@@ -77,7 +63,7 @@ export default function ReadingHeatmap() {
         if (firstDay) {
           const month = getMonth(firstDay.rawDate);
           if (month !== lastMonth) {
-            labels.push(MONTHS[month]);
+            labels.push(intl.months[month + 1]);
             lastMonth = month;
           } else {
             labels.push("");
@@ -91,11 +77,11 @@ export default function ReadingHeatmap() {
     }
 
     loadData();
-  }, []);
+  }, [intl]);
 
   return (
     <div className="bg-blackamber rounded-lg p-4 mt-4">
-      <h2 className="text-base mb-4">Días leídos</h2>
+      <h2 className="text-base mb-4">{intl.stats.daysRead}</h2>
 
       <div className="flex flex-col gap-1 w-full overflow-x-auto">
         <div className="min-w-[960px] 2xl:min-w-0 w-fit">

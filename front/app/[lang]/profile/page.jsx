@@ -34,7 +34,7 @@ export default async function ProfilePage({ params }) {
         </div>
       </div>
 
-      <ReadingHeatmap userId={user.id} />
+      <ReadingHeatmap userId={user.id} intl={intl} />
 
       <div className="flex flex-col 2xl:flex-row gap-4 mt-4">
         <div className="flex-1/2">
