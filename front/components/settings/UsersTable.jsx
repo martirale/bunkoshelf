@@ -20,7 +20,7 @@ export default function UsersTable({ users, intl, currentUserId }) {
 
   return (
     <>
-      <div className="bg-blackamber p-4 rounded-lg space-y-4 relative">
+      <div className="bg-blackamber p-4 rounded-lg relative">
         {/* Scroll horizontal solo para columnas de datos */}
         <div className="overflow-x-auto">
           <div className="min-w-[800px] xl:min-w-full h-72 overflow-y-auto pr-24">
