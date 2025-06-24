@@ -13,15 +13,15 @@ export default function SettingsNav({ intl }) {
   const links = [
     {
       label: intl.settings.overview,
-      href: `/${currentLang}/settings`,
+      href: `/${currentLang}/settings#overview`,
       icon: Bolt,
-      isActive: pathname === `/${currentLang}/settings`,
+      isActive: pathname === `/${currentLang}/settings#overview`,
     },
     {
       label: intl.settings.users,
-      href: `/${currentLang}/settings/users`,
+      href: `/${currentLang}/settings#users`,
       icon: UsersRound,
-      isActive: pathname.startsWith(`/${currentLang}/settings/users`),
+      isActive: pathname === `/${currentLang}/settings#users`,
     },
     {
       label: intl.settings.library,
