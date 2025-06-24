@@ -23,9 +23,9 @@ export default function UsersTable({ users, intl, currentUserId }) {
       <div className="bg-blackamber p-4 rounded-lg space-y-4 relative">
         {/* Scroll horizontal solo para columnas de datos */}
         <div className="overflow-x-auto">
-          <div className="min-w-[800px] xl:min-w-0 w-fit h-72 overflow-y-auto pr-16">
+          <div className="min-w-[800px] xl:min-w-full h-72 overflow-y-auto pr-24">
             {/* Header sin columna de edición */}
-            <div className="grid grid-cols-5 font-bold uppercase bg-onix sticky top-0 z-10">
+            <div className="grid grid-cols-5 font-bold uppercase bg-onix sticky top-0 z-10 rounded-l-md">
               <div className="p-4 text-left">{intl.settings.username}</div>
               <div className="p-4 text-center">{intl.settings.type}</div>
               <div className="p-4 text-center">{intl.settings.name}</div>
@@ -54,9 +54,9 @@ export default function UsersTable({ users, intl, currentUserId }) {
         </div>
 
         {/* Columna fija de edición */}
-        <div className="absolute top-4 right-4 h-full w-20 pointer-events-none">
+        <div className="bg-blackamber absolute top-0 right-0 h-full w-24 pointer-events-none rounded-r-lg">
           {/* Header sticky */}
-          <div className="p-4 text-center uppercase font-bold bg-onix sticky top-0 z-20 pointer-events-auto">
+          <div className="p-4 text-center uppercase font-bold bg-onix sticky mt-4 mr-4 -ml-4 z-20 pointer-events-auto rounded-r-md">
             {intl.settings.edit}
           </div>
 
@@ -64,7 +64,7 @@ export default function UsersTable({ users, intl, currentUserId }) {
           {userList.map((user) => (
             <div
               key={`edit-${user.id}`}
-              className="p-4 bg-blackamber z-10 pointer-events-auto"
+              className="p-4 -ml-4 z-10 pointer-events-auto"
             >
               <div className="flex justify-center">
                 <UserRoundPen
