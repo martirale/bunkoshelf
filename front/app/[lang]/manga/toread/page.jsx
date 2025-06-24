@@ -13,7 +13,7 @@ export default async function ToReadPage({
   const intl = await getDictionary(lang);
 
   return (
-    <section className="p-4 mt-4 mb-24 md:mb-4">
+    <section className="p-4 mt-4">
       <WantToRead
         lang={lang}
         intl={intl}

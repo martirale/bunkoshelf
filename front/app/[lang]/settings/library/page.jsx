@@ -8,7 +8,7 @@ export default async function SettingsLibraryPage({ params }) {
 
   return (
     <>
-      <h2 className="flex items-center mb-8">
+      <h2 className="flex items-center mb-4">
         <FolderCog className="w-7 h-7 mr-2" />
         {intl.settings.library}
       </h2>

@@ -15,7 +15,7 @@ export default async function ProfilePage({ params }) {
   if (!user) return <p>No autorizado</p>;
 
   return (
-    <div className="mb-24 md:mb-4">
+    <>
       <UserAvatar intl={intl} />
 
       {/* User Stats */}
@@ -53,6 +53,6 @@ export default async function ProfilePage({ params }) {
           />
         </div>
       </div>
-    </div>
+    </>
   );
 }

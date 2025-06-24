@@ -9,7 +9,7 @@ export default async function MangaLayout({ children, params }) {
     <>
       <HeroKeepRead lang={lang} intl={intl} />
 
-      {children}
+      <div className="mb-24 md:mb-4">{children}</div>
     </>
   );
 }

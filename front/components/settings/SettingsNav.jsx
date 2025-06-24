@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Bolt, UsersRound, FolderCog } from "lucide-react";
 import clsx from "clsx";
 
@@ -10,18 +11,33 @@ export default function SettingsNav({ intl }) {
   const pathname = usePathname();
   const currentLang = params.lang || "es";
 
+  const [hash, setHash] = useState("");
+
+  useEffect(() => {
+    const updateHash = () => {
+      setHash(window.location.hash);
+    };
+
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, []);
+
   const links = [
     {
       label: intl.settings.overview,
       href: `/${currentLang}/settings#overview`,
       icon: Bolt,
-      isActive: pathname === `/${currentLang}/settings#overview`,
+      isActive:
+        pathname === `/${currentLang}/settings` &&
+        (hash === "#overview" || hash === ""),
     },
     {
       label: intl.settings.users,
       href: `/${currentLang}/settings#users`,
       icon: UsersRound,
-      isActive: pathname === `/${currentLang}/settings#users`,
+      isActive: pathname === `/${currentLang}/settings` && hash === "#users",
     },
     {
       label: intl.settings.library,
