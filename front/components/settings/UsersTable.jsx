@@ -26,8 +26,7 @@ export default function UsersTable({ users, intl, currentUserId }) {
 
   return (
     <>
-      {/* Vista en pantallas grandes */}
-      <div className="hidden md:block bg-blackamber p-4 rounded-lg space-y-4">
+      <div className="bg-blackamber p-4 rounded-lg space-y-4">
         <table className="table-fixed w-full">
           <thead className="bg-onix uppercase">
             <tr>
@@ -69,49 +68,6 @@ export default function UsersTable({ users, intl, currentUserId }) {
             })}
           </tbody>
         </table>
-      </div>
-
-      {/* Vista en móviles */}
-      <div className="md:hidden space-y-4">
-        {userList.map((user) => {
-          const currentYear = new Date().getFullYear();
-          const age = user.birthYear ? currentYear - user.birthYear : "—";
-          return (
-            <div
-              key={user.id}
-              className="bg-blackamber rounded-lg p-4 space-y-2 shadow-md"
-            >
-              <div className="flex justify-between">
-                <span className="font-semibold">{intl.settings.username}:</span>
-                <span>{user.username}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-semibold">{intl.settings.type}:</span>
-                <span>
-                  {user.isAdmin ? intl.settings.admin : intl.settings.user}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-semibold">{intl.settings.name}:</span>
-                <span>{user.name || "—"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-semibold">{intl.settings.lastname}:</span>
-                <span>{user.lastname || "—"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-semibold">{intl.settings.age}:</span>
-                <span>{age}</span>
-              </div>
-              <div className="flex justify-end pt-2">
-                <UserRoundPen
-                  onClick={() => handleEdit(user)}
-                  className="w-5 h-5 cursor-pointer text-pearl"
-                />
-              </div>
-            </div>
-          );
-        })}
       </div>
 
       {/* Modal para editar */}
