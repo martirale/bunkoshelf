@@ -21,7 +21,7 @@ export default async function ProfilePage({ params }) {
       {/* User Stats */}
       <div className="flex flex-col 2xl:flex-row gap-4">
         <div className="flex w-full 2xl:w-1/2">
-          <ReadingChallenge intl={intl} />
+          <ReadingChallenge lang={lang} intl={intl} />
         </div>
 
         <div className="flex w-full 2xl:w-1/2">

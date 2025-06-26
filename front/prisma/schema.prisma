@@ -32,6 +32,7 @@ model ReadingChallenge {
 
   year      Int
   goal      Int
+  notified  Boolean  @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

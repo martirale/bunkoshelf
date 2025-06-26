@@ -7,29 +7,47 @@ export async function POST(req) {
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { year, goal } = await req.json();
+  const { year, goal, notified } = await req.json();
 
-  if (!year || !goal || typeof goal !== "number" || goal < 1) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  if (!year || typeof year !== "number") {
+    return NextResponse.json({ error: "Invalid year" }, { status: 400 });
   }
 
-  // Intenta actualizar el challenge existente
+  // Validar goal solo si viene en la petición
+  if (goal !== undefined && (typeof goal !== "number" || goal < 1)) {
+    return NextResponse.json({ error: "Invalid goal" }, { status: 400 });
+  }
+
+  // Intentar encontrar challenge
   let challenge = await prisma.readingChallenge.findFirst({
     where: { userId: user.id, year },
   });
 
   if (challenge) {
+    // Construir objeto para update solo con campos que vienen
+    const dataToUpdate = {};
+    if (goal !== undefined) dataToUpdate.goal = goal;
+    if (notified !== undefined) dataToUpdate.notified = notified;
+
     challenge = await prisma.readingChallenge.update({
       where: { id: challenge.id },
-      data: { goal },
+      data: dataToUpdate,
     });
   } else {
-    // Si no existe, crea uno nuevo
+    // Crear nuevo challenge, goal es obligatorio para crear
+    if (goal === undefined) {
+      return NextResponse.json(
+        { error: "Goal is required for new challenge" },
+        { status: 400 }
+      );
+    }
+
     challenge = await prisma.readingChallenge.create({
       data: {
         userId: user.id,
         year,
         goal,
+        notified: notified ?? false,
       },
     });
   }

@@ -7,6 +7,8 @@
     "ttReadStreak": "Reading streak",
     "bodyReadStreak": "Don't lose your streak, you still have time",
     "ttFirstRead": "Volume completed!",
-    "bodyFirstRead": "You have finished reading volume: {title}"
+    "bodyFirstRead": "You have finished reading volume: {title}",
+    "ttChallengeDone": "Reading challenge completed!",
+    "bodyChallengeDone": "Congratulations, you completed your {year} reading challenge"
   }
 }

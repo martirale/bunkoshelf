@@ -7,6 +7,8 @@
     "ttReadStreak": "Racha de lectura",
     "bodyReadStreak": "No pierdas tu racha, todavía estás a tiempo",
     "ttFirstRead": "¡Volumen completado!",
-    "bodyFirstRead": "Has terminado de leer el volumen: {title}"
+    "bodyFirstRead": "Has terminado de leer el volumen: {title}",
+    "ttChallengeDone": "¡Reto de lectura completado!",
+    "bodyChallengeDone": "En hora buena, completaste tu reto de lectura {year}"
   }
 }

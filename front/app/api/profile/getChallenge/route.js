@@ -19,6 +19,10 @@ export async function GET(req) {
       userId: user.id,
       year,
     },
+    select: {
+      goal: true,
+      notified: true,
+    },
   });
 
   const userVolumes = await prisma.userToVolume.findMany({
