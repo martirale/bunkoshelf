@@ -5,6 +5,8 @@
     "ttLibraryUpd": "Biblioteca actualizada",
     "bodyLibraryUpd": "Nuevos mangas disponibles",
     "ttReadStreak": "Racha de lectura",
-    "bodyReadStreak": "No pierdas tu racha, todavía estás a tiempo"
+    "bodyReadStreak": "No pierdas tu racha, todavía estás a tiempo",
+    "ttFirstRead": "¡Volumen completado!",
+    "bodyFirstRead": "Has terminado de leer el volumen: {title}"
   }
 }

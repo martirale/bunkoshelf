@@ -9,6 +9,7 @@ export default function ReadButtonsVolume({
   lang,
   intl,
   volumeId,
+  volumeTitle,
   slug,
   initFavorite,
   initRead,
@@ -140,6 +141,42 @@ export default function ReadButtonsVolume({
         const data = await res.json();
         if (!data.success) {
           console.error("Sync failed:", data.error);
+        }
+
+        // Enviar notificación push si fue una primera lectura completa
+        if (
+          isFinished &&
+          data.success &&
+          "serviceWorker" in navigator &&
+          "PushManager" in window
+        ) {
+          try {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription =
+              await registration.pushManager.getSubscription();
+
+            if (subscription) {
+              await fetch("https://push.amlab.site/send", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  subscription,
+                  payload: {
+                    title: intl.push.ttFirstRead,
+                    body: intl.push.bodyFirstRead.replace(
+                      "{title}",
+                      volumeTitle
+                    ),
+                    url: `/${lang}/library`,
+                  },
+                }),
+              });
+            }
+          } catch (pushErr) {
+            console.error("Error al enviar notificación push:", pushErr);
+          }
         }
       }
     } catch (err) {

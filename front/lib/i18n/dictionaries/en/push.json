@@ -5,6 +5,8 @@
     "ttLibraryUpd": "Updated library",
     "bodyLibraryUpd": "New mangas available",
     "ttReadStreak": "Reading streak",
-    "bodyReadStreak": "Don't lose your streak, you still have time"
+    "bodyReadStreak": "Don't lose your streak, you still have time",
+    "ttFirstRead": "Volume completed!",
+    "bodyFirstRead": "You have finished reading volume: {title}"
   }
 }

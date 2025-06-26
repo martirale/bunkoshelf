@@ -77,6 +77,7 @@ export default function VolumesContent({
             lang={lang}
             intl={intl}
             volumeId={volume.id}
+            volumeTitle={meta.title}
             initFavorite={isFavorite}
             initRead={isRead}
             slug={volume.slug}
