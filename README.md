@@ -1,47 +1,36 @@
-<div class="title-block" style="text-align: center;" align="center">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-# Bunko Shelf
+## Getting Started
 
-<p><img title="Bunko Shelf Logo" src="front/public/favicon.png" width="196" height="196"></p>
-
-</div>
-
-## Introducción
-
-**Bunko Shelf** es un servidor gratuito y auto-hospedado para organización y lectura de manga y libros digitales. Está completamente desarrollado con Next.js 15, SQLite y Prisma.
-
-## Docker Compose
-
-```yaml
-services:
-  bunkoshelf:
-    image: itsmrtr/bunkoshelf:latest
-    container_name: bunkoshelf
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - bunko_db:/app/prisma/data
-      - /path/to/your/library/manga:/library/manga
-      - ./public/covers:/app/public/covers
-
-volumes:
-  bunko_db:
-```
-
-## Docker CLI
+First, run the development server:
 
 ```bash
-docker run -d \
-  --name bunkoshelf \
-  --restart unless-stopped \
-  -p 3000:3000 \
-  -v bunko_db:/app/prisma/data \
-  -v /path/to/your/library/manga:/library/manga \
-  -v $(pwd)/public/covers:/app/public/covers \
-  itsmrtr/bunkoshelf:latest
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-<br>
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Licencia y documentación: [Bunko Shelf](https://bunko.amlab.site).
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
