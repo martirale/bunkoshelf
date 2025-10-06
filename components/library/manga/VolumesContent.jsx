@@ -37,6 +37,8 @@ export default function VolumesContent({
       : "border-neutral-700"
   }`;
 
+  const isWesternReading = meta.mangaStyle === "YesAndLeftToRight";
+
   return (
     <div className="p-4">
       <section className="flex flex-col md:flex-row">
@@ -99,7 +101,7 @@ export default function VolumesContent({
               </span>
             )}
             <span className="text-sm uppercase border border-neutral-700 rounded-md px-3 py-1">
-              {intl.manga.reading}
+              {isWesternReading ? intl.manga.readingEn : intl.manga.readingJp}
             </span>
           </div>
 

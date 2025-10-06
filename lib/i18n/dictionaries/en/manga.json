@@ -2,7 +2,8 @@
   "manga": {
     "read": "Read",
     "series": "Series:",
-    "reading": "Right to Left",
+    "readingJp": "Right to Left",
+    "readingEn": "Left to Right",
     "volumes": "Volumes",
     "synopsis": "Synopsis",
     "author": "Author",
