@@ -97,104 +97,51 @@ export default function SeriesContent({
           <div className="border-t border-neutral-700 my-6"></div>
 
           {/* Author Info */}
-          {aggregatedMeta.writer?.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.author}
-              </p>
-              <p className="w-2/3 md:w-4/5">
-                {aggregatedMeta.writer.join(", ")}
-              </p>
-            </div>
-          )}
+          {(() => {
+            const normalize = (field) => {
+              if (!field) return null;
+              if (Array.isArray(field)) {
+                if (field.length === 0) return null;
+                return field.join(", ");
+              }
+              if (typeof field === "string") {
+                const parts = field
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean);
+                if (parts.length === 0) return null;
+                return parts.join(", ");
+              }
+              return String(field);
+            };
 
-          {aggregatedMeta.penciller?.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.penciller}
-              </p>
-              <p className="w-2/3 md:w-4/5">
-                {aggregatedMeta.penciller.join(", ")}
-              </p>
-            </div>
-          )}
+            const renderMetaField = (field, labelKey) => {
+              const value = normalize(field);
+              if (!value) return null;
+              return (
+                <div className="flex flex-row items-baseline max-w-3xl">
+                  <p className="text-sm uppercase w-1/3 md:w-1/5">
+                    {intl.manga[labelKey]}
+                  </p>
+                  <p className="w-2/3 md:w-4/5">{value}</p>
+                </div>
+              );
+            };
 
-          {aggregatedMeta.inker?.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.inker}
-              </p>
-              <p className="w-2/3 md:w-4/5">
-                {aggregatedMeta.inker.join(", ")}
-              </p>
-            </div>
-          )}
-
-          {aggregatedMeta.colorist?.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.colorist}
-              </p>
-              <p className="w-2/3 md:w-4/5">
-                {aggregatedMeta.colorist.join(", ")}
-              </p>
-            </div>
-          )}
-
-          {aggregatedMeta.letterer?.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.letterer}
-              </p>
-              <p className="w-2/3 md:w-4/5">
-                {aggregatedMeta.letterer.join(", ")}
-              </p>
-            </div>
-          )}
-
-          {aggregatedMeta.coverArtist?.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.coverArtist}
-              </p>
-              <p className="w-2/3 md:w-4/5">
-                {aggregatedMeta.coverArtist.join(", ")}
-              </p>
-            </div>
-          )}
-
-          {aggregatedMeta.editor?.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.editor}
-              </p>
-              <p className="w-2/3 md:w-4/5">
-                {aggregatedMeta.editor.join(", ")}
-              </p>
-            </div>
-          )}
-
-          {aggregatedMeta.translator?.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.translator}
-              </p>
-              <p className="w-2/3 md:w-4/5">
-                {aggregatedMeta.translator.join(", ")}
-              </p>
-            </div>
-          )}
-
-          {aggregatedMeta.publisher?.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.publisher}
-              </p>
-              <p className="w-2/3 md:w-4/5">
-                {aggregatedMeta.publisher.join(", ")}
-              </p>
-            </div>
-          )}
+            return (
+              <>
+                {renderMetaField(aggregatedMeta.writer, "author")}
+                {renderMetaField(aggregatedMeta.penciller, "penciller")}
+                {renderMetaField(aggregatedMeta.inker, "inker")}
+                {renderMetaField(aggregatedMeta.colorist, "colorist")}
+                {renderMetaField(aggregatedMeta.letterer, "letterer")}
+                {renderMetaField(aggregatedMeta.coverArtist, "coverArtist")}
+                {renderMetaField(aggregatedMeta.editor, "editor")}
+                {renderMetaField(aggregatedMeta.translator, "translator")}
+                {renderMetaField(aggregatedMeta.publisher, "publisher")}
+              </>
+            );
+          })()}
 
           {/* Classification */}
           {meta.genres.length > 0 && (

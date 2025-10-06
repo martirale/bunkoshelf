@@ -122,87 +122,51 @@ export default function VolumesContent({
 
           <div className="border-t border-neutral-700 my-6"></div>
 
-          {/* Author Info */}
-          {meta.writer && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.author}
-              </p>
-              <p className="w-2/3 md:w-4/5">{meta.writer}</p>
-            </div>
-          )}
+          {(() => {
+            const normalize = (field) => {
+              if (!field) return null;
+              if (Array.isArray(field)) {
+                if (field.length === 0) return null;
+                return field.join(", ");
+              }
+              if (typeof field === "string") {
+                const parts = field
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean);
+                if (parts.length === 0) return null;
+                return parts.join(", ");
+              }
+              return String(field);
+            };
 
-          {meta.penciller && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.penciller}
-              </p>
-              <p className="w-2/3 md:w-4/5">{meta.penciller}</p>
-            </div>
-          )}
+            const renderMetaField = (field, labelKey) => {
+              const value = normalize(field);
+              if (!value) return null;
+              return (
+                <div className="flex flex-row items-baseline max-w-3xl">
+                  <p className="text-sm uppercase w-1/3 md:w-1/5">
+                    {intl.manga[labelKey]}
+                  </p>
+                  <p className="w-2/3 md:w-4/5">{value}</p>
+                </div>
+              );
+            };
 
-          {meta.inker && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.inker}
-              </p>
-              <p className="w-2/3 md:w-4/5">{meta.inker}</p>
-            </div>
-          )}
-
-          {meta.colorist && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.colorist}
-              </p>
-              <p className="w-2/3 md:w-4/5">{meta.colorist}</p>
-            </div>
-          )}
-
-          {meta.letterer && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.letterer}
-              </p>
-              <p className="w-2/3 md:w-4/5">{meta.letterer}</p>
-            </div>
-          )}
-
-          {meta.coverArtist && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.coverArtist}
-              </p>
-              <p className="w-2/3 md:w-4/5">{meta.coverArtist}</p>
-            </div>
-          )}
-
-          {meta.editor && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.editor}
-              </p>
-              <p className="w-2/3 md:w-4/5">{meta.editor}</p>
-            </div>
-          )}
-
-          {meta.translator && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.translator}
-              </p>
-              <p className="w-2/3 md:w-4/5">{meta.translator}</p>
-            </div>
-          )}
-
-          {meta.publisher && (
-            <div className="flex flex-row items-baseline max-w-3xl">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.publisher}
-              </p>
-              <p className="w-2/3 md:w-4/5">{meta.publisher}</p>
-            </div>
-          )}
+            return (
+              <>
+                {renderMetaField(meta.writer, "author")}
+                {renderMetaField(meta.penciller, "penciller")}
+                {renderMetaField(meta.inker, "inker")}
+                {renderMetaField(meta.colorist, "colorist")}
+                {renderMetaField(meta.letterer, "letterer")}
+                {renderMetaField(meta.coverArtist, "coverArtist")}
+                {renderMetaField(meta.editor, "editor")}
+                {renderMetaField(meta.translator, "translator")}
+                {renderMetaField(meta.publisher, "publisher")}
+              </>
+            );
+          })()}
 
           {/* Classification */}
           {meta.genres.length > 0 && (
