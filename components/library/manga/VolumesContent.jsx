@@ -81,6 +81,7 @@ export default function VolumesContent({
             initFavorite={isFavorite}
             initRead={isRead}
             slug={volume.slug}
+            mangaStyle={meta.mangaStyle}
           />
 
           {/* Meta Tags */}

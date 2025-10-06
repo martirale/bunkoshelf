@@ -13,12 +13,15 @@ export default function ReadButtonsVolume({
   slug,
   initFavorite,
   initRead,
+  mangaStyle,
 }) {
   const [isFavorite, setIsFavorite] = useState(initFavorite);
   const [isRead, setIsRead] = useState(initRead);
   const [isLoading, setIsLoading] = useState(false);
   const [isReaderOpen, setIsReaderOpen] = useState(false);
   const [isYoureiMode, setIsYoureiMode] = useState(false);
+
+  const readingDirection = mangaStyle === "YesAndLeftToRight" ? "ltr" : "rtl";
 
   const openNormalReader = () => {
     setIsYoureiMode(false);
@@ -31,6 +34,8 @@ export default function ReadButtonsVolume({
   };
 
   const toggleRead = async () => {
+    let error = null;
+
     setIsLoading(true);
     try {
       const imagesRes = await fetch("/api/reader/manga", {
@@ -68,13 +73,18 @@ export default function ReadButtonsVolume({
         console.error("Failed to toggle read state:", result.error);
       }
     } catch (err) {
-      console.error("Request error:", err);
+      error = err;
     } finally {
+      if (error) {
+        console.error("Request error:", error);
+      }
       setIsLoading(false);
     }
   };
 
   const toggleFavorite = async () => {
+    let error = null;
+
     setIsLoading(true);
     try {
       const res = await fetch("/api/library/manga/favorites/volumes", {
@@ -93,8 +103,11 @@ export default function ReadButtonsVolume({
         console.error("Failed to toggle favorite:", result.error);
       }
     } catch (err) {
-      console.error("Request error:", err);
+      error = err;
     } finally {
+      if (error) {
+        console.error("Request error:", error);
+      }
       setIsLoading(false);
     }
   };
@@ -113,6 +126,8 @@ export default function ReadButtonsVolume({
   };
 
   const handleClose = async () => {
+    let error = null;
+
     try {
       const storageKey = `reader-progress:${slug}`;
       const saved = localStorage.getItem(storageKey);
@@ -143,7 +158,6 @@ export default function ReadButtonsVolume({
           console.error("Sync failed:", data.error);
         }
 
-        // Enviar notificación push si fue una primera lectura completa
         if (
           isFinished &&
           data.success &&
@@ -180,16 +194,18 @@ export default function ReadButtonsVolume({
         }
       }
     } catch (err) {
-      console.error("Error syncing progress:", err);
+      error = err;
+    } finally {
+      if (error) {
+        console.error("Error syncing progress:", error);
+      }
+      setIsReaderOpen(false);
     }
-
-    setIsReaderOpen(false);
   };
 
   return (
     <>
       <div className="flex flex-row mt-4 gap-2">
-        {/* Botón lector normal */}
         <button
           onClick={openNormalReader}
           className="flex items-center font-bold px-5 py-2 2xl:px-6 2xl:py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
@@ -198,7 +214,6 @@ export default function ReadButtonsVolume({
           {intl.manga.read}
         </button>
 
-        {/* Botón lector incógnito */}
         <button
           onClick={openYoureiReader}
           title="Leer de incógnito"
@@ -207,7 +222,6 @@ export default function ReadButtonsVolume({
           <Ghost className="w-5 h-5" />
         </button>
 
-        {/* Botón marcar como leído */}
         <button
           onClick={toggleRead}
           disabled={isLoading}
@@ -225,7 +239,6 @@ export default function ReadButtonsVolume({
           <Check className="w-5 h-5" />
         </button>
 
-        {/* Botón favoritos */}
         <button
           onClick={toggleFavorite}
           disabled={isLoading}
@@ -248,13 +261,13 @@ export default function ReadButtonsVolume({
         </button>
       </div>
 
-      {/* Modal lector */}
       <MangaReader
         isOpen={isReaderOpen}
         onClose={handleClose}
         slug={slug}
         intl={intl}
         isYoureiMode={isYoureiMode}
+        readingDirection={readingDirection}
       />
     </>
   );

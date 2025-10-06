@@ -7,23 +7,33 @@ import prisma from "@/lib/prisma";
 const parser = new xml2js.Parser();
 
 async function parseXmlContent(xml) {
+  let error = null;
+  let result = null;
+
   try {
-    const result = await parser.parseStringPromise(xml);
+    result = await parser.parseStringPromise(xml);
     return result && result.ComicInfo ? result.ComicInfo : null;
-  } catch (error) {
-    console.error("Error al parsear XML:", error);
-    return null;
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error("Error al parsear XML:", error);
+      return null;
+    }
   }
 }
 
 async function extractMetaCbz(filePath) {
+  let error = null;
+  let zip = null;
+
   try {
     if (!fs.existsSync(filePath)) {
       console.warn(`Archivo no encontrado: ${filePath}`);
       return null;
     }
 
-    const zip = new AdmZip(filePath);
+    zip = new AdmZip(filePath);
     const comicInfoEntry = zip.getEntry("ComicInfo.xml");
 
     if (!comicInfoEntry) {
@@ -33,9 +43,13 @@ async function extractMetaCbz(filePath) {
 
     const xmlContent = comicInfoEntry.getData().toString("utf8");
     return await parseXmlContent(xmlContent);
-  } catch (error) {
-    console.error(`Error extrayendo metadatos en: ${filePath}`, error);
-    return null;
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error(`Error extrayendo metadatos en: ${filePath}`, error);
+      return null;
+    }
   }
 }
 
@@ -64,11 +78,13 @@ function transformMeta(meta) {
     month: getFirst("Month") ? parseInt(getFirst("Month"), 10) : null,
     day: getFirst("Day") ? parseInt(getFirst("Day"), 10) : null,
     gtin: getFirst("GTIN"),
-    mangaStyle: getFirst("MangaStyle"),
+    mangaStyle: getFirst("Manga"),
   };
 }
 
 export async function POST() {
+  let error = null;
+
   try {
     const volumes = await prisma.mangaVolume.findMany({
       select: { id: true, fullPath: true },
@@ -115,7 +131,6 @@ export async function POST() {
           create: Object.assign({ filePath: volume.fullPath }, upsertData),
         });
 
-        // Solo actualiza si el metadataId es distinto para evitar writes innecesarios
         const currentVolume = await prisma.mangaVolume.findUnique({
           where: { id: volume.id },
           select: { metadataId: true },
@@ -128,7 +143,6 @@ export async function POST() {
           });
         }
 
-        // Procesar géneros
         if (meta.Genre && meta.Genre[0]) {
           const genreList = meta.Genre[0]
             .split(/[;,]/)
@@ -158,7 +172,6 @@ export async function POST() {
           }
         }
 
-        // Procesar tags
         if (meta.Tags && meta.Tags[0]) {
           const tagList = meta.Tags[0]
             .split(/[;,]/)
@@ -200,11 +213,15 @@ export async function POST() {
     return NextResponse.json({
       message: "Metadatos procesados correctamente.",
     });
-  } catch (error) {
-    console.error("Error general al procesar metadatos:", error);
-    return NextResponse.json(
-      { error: "Error interno al procesar metadatos." },
-      { status: 500 }
-    );
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error("Error general al procesar metadatos:", error);
+      return NextResponse.json(
+        { error: "Error interno al procesar metadatos." },
+        { status: 500 }
+      );
+    }
   }
 }

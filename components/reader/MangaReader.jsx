@@ -10,23 +10,24 @@ export default function MangaReader({
   slug,
   intl,
   isYoureiMode,
+  readingDirection = "rtl",
 }) {
   const modalRef = useRef(null);
-
-  // Funciones del lector
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const storageKey = `reader-progress:${slug}`;
+  const isRTL = readingDirection === "rtl";
 
   useEffect(() => {
     if (!slug) return;
 
     async function fetchPages() {
+      let error = null;
+
       setLoading(true);
       try {
-        // Paso 1: Obtener las imágenes del volumen
         const res = await fetch("/api/reader/manga", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -38,7 +39,6 @@ export default function MangaReader({
         if (res.ok && data.images?.length) {
           setImages(data.images);
 
-          // Paso 2: Consultar progreso del usuario desde la DB
           if (!isYoureiMode) {
             const progressRes = await fetch("/api/reader/progress/get", {
               method: "POST",
@@ -47,7 +47,7 @@ export default function MangaReader({
             });
 
             const progress = await progressRes.json();
-            let startIndex = 0;
+            let startIndex = isRTL ? data.images.length - 1 : 0;
 
             if (
               progressRes.ok &&
@@ -55,57 +55,80 @@ export default function MangaReader({
               progress.lastPage >= 0 &&
               progress.lastPage < data.images.length
             ) {
-              startIndex = progress.lastPage;
+              startIndex = isRTL
+                ? data.images.length - 1 - progress.lastPage
+                : progress.lastPage;
             }
 
             setCurrentIndex(startIndex);
           } else {
-            setCurrentIndex(0);
+            setCurrentIndex(isRTL ? data.images.length - 1 : 0);
           }
         } else {
           console.error(data.error || "No se encontraron imágenes");
         }
       } catch (err) {
-        console.error("Reader error:", err);
+        error = err;
       } finally {
+        if (error) {
+          console.error("Reader error:", error);
+        }
         setLoading(false);
       }
     }
 
     fetchPages();
-  }, [slug, isYoureiMode]);
+  }, [slug, isYoureiMode, isRTL]);
 
-  // Guardar progreso en localStorage
   useEffect(() => {
     if (!isYoureiMode && images.length > 0) {
+      const currentPage = isRTL
+        ? images.length - currentIndex
+        : currentIndex + 1;
+
       localStorage.setItem(
         storageKey,
         JSON.stringify({
-          lastPage: currentIndex,
+          lastPage: currentPage - 1,
           totalPages: images.length,
           lastReadAt: new Date().toISOString(),
         })
       );
     }
-  }, [currentIndex, images.length, isYoureiMode]);
+  }, [currentIndex, images.length, isYoureiMode, storageKey, isRTL]);
 
-  // Navegación inversa (oriental)
   const goPrev = () => {
-    if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
-  };
-  const goNext = () => {
-    if (currentIndex > 0) setCurrentIndex((i) => i - 1);
+    if (isRTL) {
+      if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
+    } else {
+      if (currentIndex > 0) setCurrentIndex((i) => i - 1);
+    }
   };
 
-  // Soporte para navegación con teclado
+  const goNext = () => {
+    if (isRTL) {
+      if (currentIndex > 0) setCurrentIndex((i) => i - 1);
+    } else {
+      if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
+    }
+  };
+
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "Escape") {
         onClose();
       } else if (e.key === "ArrowLeft") {
-        goPrev();
+        if (isRTL) {
+          goNext();
+        } else {
+          goPrev();
+        }
       } else if (e.key === "ArrowRight") {
-        goNext();
+        if (isRTL) {
+          goPrev();
+        } else {
+          goNext();
+        }
       }
     };
 
@@ -118,9 +141,8 @@ export default function MangaReader({
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKey);
     };
-  }, [isOpen, onClose, goNext, goPrev]);
+  }, [isOpen, onClose, currentIndex, images.length, isRTL]);
 
-  // Forzar focus al abrir
   useEffect(() => {
     if (isOpen && modalRef.current) {
       const timeout = setTimeout(() => {
@@ -132,6 +154,8 @@ export default function MangaReader({
 
   if (!isOpen) return null;
   if (loading) return <Loader />;
+
+  const currentPage = isRTL ? images.length - currentIndex : currentIndex + 1;
 
   return (
     <div
@@ -148,27 +172,17 @@ export default function MangaReader({
         <Minimize2 className="w-7 h-7 hover:scale-90 transition-all duration-300 cursor-pointer" />
       </button>
 
-      {/* Zonas táctiles invisibles */}
       <div className="absolute inset-0 z-40 flex">
-        {/* Zona izquierda (avanza →) */}
-        <div className="w-1/3 h-full" onTouchStart={goPrev} />
-        {/* Zona centro (neutral) */}
-        <div
-          className="w-1/3 h-full"
-          onTouchStart={() => {
-            console.log("Tocado centro (neutral)");
-          }}
-        />
-        {/* Zona derecha (retrocede ←) */}
-        <div className="w-1/3 h-full" onTouchStart={goNext} />
+        <div className="w-1/3 h-full" onTouchStart={isRTL ? goPrev : goNext} />
+        <div className="w-1/3 h-full" />
+        <div className="w-1/3 h-full" onTouchStart={isRTL ? goNext : goPrev} />
       </div>
 
-      {/* Imágenes */}
       <div className="flex-grow flex items-center justify-center z-30 mt-8 md:mt-0">
         {images.length > 0 ? (
           <img
             src={images[currentIndex]}
-            alt={`Página ${images.length - currentIndex}`}
+            alt={`Página ${currentPage}`}
             className="max-h-[93vh] w-auto px-0.5"
           />
         ) : (
@@ -176,11 +190,12 @@ export default function MangaReader({
         )}
       </div>
 
-      {/* Nav Controls */}
       <div className="flex items-center justify-between w-full max-w-md z-50 mb-5 md:mb-2">
         <button
           onClick={goPrev}
-          disabled={currentIndex >= images.length - 1}
+          disabled={
+            isRTL ? currentIndex >= images.length - 1 : currentIndex <= 0
+          }
           className="p-2 disabled:opacity-30"
           title={intl.reader.ttNext}
         >
@@ -188,12 +203,14 @@ export default function MangaReader({
         </button>
 
         <span>
-          {intl.reader.page} {currentIndex + 1} / {images.length}
+          {intl.reader.page} {currentPage} / {images.length}
         </span>
 
         <button
           onClick={goNext}
-          disabled={currentIndex <= 0}
+          disabled={
+            isRTL ? currentIndex <= 0 : currentIndex >= images.length - 1
+          }
           className="p-2 disabled:opacity-30"
           title={intl.reader.ttPrev}
         >
