@@ -10,8 +10,8 @@ import { getBuildInfo } from "@/lib/utils";
 
 export default function FooterNav({ lang, intl, user }) {
   const { version, versionUrl, changelogUrl } = getBuildInfo();
-  const [remoteVersion, setRemoteVersion] = useState(null);
-  const [updateAvailable, setUpdateAvailable] = useState(false);
+  // const [remoteVersion, setRemoteVersion] = useState(null);
+  // const [updateAvailable, setUpdateAvailable] = useState(false);
 
   const params = useParams();
   const router = useRouter();
@@ -37,39 +37,39 @@ export default function FooterNav({ lang, intl, user }) {
 
   const isLoggedIn = SessionStatus();
 
-  useEffect(() => {
-    function isRemoteVersionNewer(local, remote) {
-      const localParts = local.split(".").map(Number);
-      const remoteParts = remote.split(".").map(Number);
+  // useEffect(() => {
+  //   function isRemoteVersionNewer(local, remote) {
+  //     const localParts = local.split(".").map(Number);
+  //     const remoteParts = remote.split(".").map(Number);
 
-      for (let i = 0; i < 3; i++) {
-        if ((remoteParts[i] ?? 0) > (localParts[i] ?? 0)) return true;
-        if ((remoteParts[i] ?? 0) < (localParts[i] ?? 0)) return false;
-      }
+  //     for (let i = 0; i < 3; i++) {
+  //       if ((remoteParts[i] ?? 0) > (localParts[i] ?? 0)) return true;
+  //       if ((remoteParts[i] ?? 0) < (localParts[i] ?? 0)) return false;
+  //     }
 
-      return false;
-    }
+  //     return false;
+  //   }
 
-    async function checkVersion() {
-      try {
-        const res = await fetch("https://bunko.amlab.site/version.json", {
-          cache: "no-cache",
-        });
-        const data = await res.json();
+  //   async function checkVersion() {
+  //     try {
+  //       const res = await fetch("https://bunko.amlab.site/version.json", {
+  //         cache: "no-cache",
+  //       });
+  //       const data = await res.json();
 
-        if (data.latest && isRemoteVersionNewer(version, data.latest)) {
-          setRemoteVersion(data.latest);
-          setUpdateAvailable(true);
-        }
-      } catch (err) {
-        console.warn("No se pudo verificar la versión más reciente");
-      }
-    }
+  //       if (data.latest && isRemoteVersionNewer(version, data.latest)) {
+  //         setRemoteVersion(data.latest);
+  //         setUpdateAvailable(true);
+  //       }
+  //     } catch (err) {
+  //       console.warn("No se pudo verificar la versión más reciente");
+  //     }
+  //   }
 
-    checkVersion();
-    const interval = setInterval(checkVersion, 24 * 60 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+  //   checkVersion();
+  //   const interval = setInterval(checkVersion, 24 * 60 * 60 * 1000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const buttons = [
     {
@@ -110,7 +110,7 @@ export default function FooterNav({ lang, intl, user }) {
 
   return (
     <>
-      {updateAvailable && (
+      {/* {updateAvailable && (
         <div className="text-sand mb-4">
           <Link href={changelogUrl} target="_blank" rel="noopener">
             <AlertBox
@@ -119,7 +119,7 @@ export default function FooterNav({ lang, intl, user }) {
             />
           </Link>
         </div>
-      )}
+      )} */}
 
       <div className="flex justify-between items-center">
         <Link
