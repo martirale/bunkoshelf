@@ -6,16 +6,37 @@ const locales = ["es", "en"];
 const defaultLocale = "es";
 
 function getLocale(request) {
-  // Verifica si ya hay una cookie de idioma
   const cookieLocale = request.cookies.get("lang")?.value;
   if (cookieLocale && locales.includes(cookieLocale)) return cookieLocale;
 
-  // Si no, negocia por headers
   const negotiatorHeaders = {};
   request.headers.forEach((value, key) => (negotiatorHeaders[key] = value));
-  const languages = new Negotiator({ headers: negotiatorHeaders }).languages();
 
-  return match(languages, locales, defaultLocale);
+  let languages = [];
+  try {
+    languages = new Negotiator({ headers: negotiatorHeaders }).languages();
+  } catch (err) {
+    console.error("[I18N_NEGOTIATOR_ERROR]", err);
+    return defaultLocale;
+  }
+
+  const validLanguages = languages.filter((lang) => {
+    try {
+      Intl.getCanonicalLocales(lang);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
+  if (validLanguages.length === 0) return defaultLocale;
+
+  try {
+    return match(validLanguages, locales, defaultLocale);
+  } catch (err) {
+    console.error("[I18N_MATCH_ERROR]", err);
+    return defaultLocale;
+  }
 }
 
 export function i18nMiddleware(request) {
