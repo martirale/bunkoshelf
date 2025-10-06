@@ -47,7 +47,7 @@ export default function MangaReader({
             });
 
             const progress = await progressRes.json();
-            let startIndex = isRTL ? data.images.length - 1 : 0;
+            let startIndex = 0;
 
             if (
               progressRes.ok &&
@@ -55,14 +55,12 @@ export default function MangaReader({
               progress.lastPage >= 0 &&
               progress.lastPage < data.images.length
             ) {
-              startIndex = isRTL
-                ? data.images.length - 1 - progress.lastPage
-                : progress.lastPage;
+              startIndex = progress.lastPage;
             }
 
             setCurrentIndex(startIndex);
           } else {
-            setCurrentIndex(isRTL ? data.images.length - 1 : 0);
+            setCurrentIndex(0);
           }
         } else {
           console.error(data.error || "No se encontraron imágenes");
@@ -82,24 +80,20 @@ export default function MangaReader({
 
   useEffect(() => {
     if (!isYoureiMode && images.length > 0) {
-      const currentPage = isRTL
-        ? images.length - currentIndex
-        : currentIndex + 1;
-
       localStorage.setItem(
         storageKey,
         JSON.stringify({
-          lastPage: currentPage - 1,
+          lastPage: currentIndex,
           totalPages: images.length,
           lastReadAt: new Date().toISOString(),
         })
       );
     }
-  }, [currentIndex, images.length, isYoureiMode, storageKey, isRTL]);
+  }, [currentIndex, images.length, isYoureiMode, storageKey]);
 
   const goPrev = () => {
     if (isRTL) {
-      if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
+      if (currentIndex > 0) setCurrentIndex((i) => i - 1);
     } else {
       if (currentIndex > 0) setCurrentIndex((i) => i - 1);
     }
@@ -107,7 +101,7 @@ export default function MangaReader({
 
   const goNext = () => {
     if (isRTL) {
-      if (currentIndex > 0) setCurrentIndex((i) => i - 1);
+      if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
     } else {
       if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
     }
@@ -155,7 +149,7 @@ export default function MangaReader({
   if (!isOpen) return null;
   if (loading) return <Loader />;
 
-  const currentPage = isRTL ? images.length - currentIndex : currentIndex + 1;
+  const currentPage = currentIndex + 1;
 
   return (
     <div
@@ -173,9 +167,9 @@ export default function MangaReader({
       </button>
 
       <div className="absolute inset-0 z-40 flex">
-        <div className="w-1/3 h-full" onTouchStart={isRTL ? goPrev : goNext} />
-        <div className="w-1/3 h-full" />
         <div className="w-1/3 h-full" onTouchStart={isRTL ? goNext : goPrev} />
+        <div className="w-1/3 h-full" />
+        <div className="w-1/3 h-full" onTouchStart={isRTL ? goPrev : goNext} />
       </div>
 
       <div className="flex-grow flex items-center justify-center z-30 mt-8 md:mt-0">
@@ -192,12 +186,12 @@ export default function MangaReader({
 
       <div className="flex items-center justify-between w-full max-w-md z-50 mb-5 md:mb-2">
         <button
-          onClick={goPrev}
+          onClick={isRTL ? goNext : goPrev}
           disabled={
             isRTL ? currentIndex >= images.length - 1 : currentIndex <= 0
           }
           className="p-2 disabled:opacity-30"
-          title={intl.reader.ttNext}
+          title={isRTL ? intl.reader.ttNext : intl.reader.ttPrev}
         >
           <ChevronLeft className="w-7 h-7 hover:scale-125 transition-all duration-300 cursor-pointer" />
         </button>
@@ -207,12 +201,12 @@ export default function MangaReader({
         </span>
 
         <button
-          onClick={goNext}
+          onClick={isRTL ? goPrev : goNext}
           disabled={
             isRTL ? currentIndex <= 0 : currentIndex >= images.length - 1
           }
           className="p-2 disabled:opacity-30"
-          title={intl.reader.ttPrev}
+          title={isRTL ? intl.reader.ttPrev : intl.reader.ttNext}
         >
           <ChevronRight className="w-7 h-7 hover:scale-125 transition-all duration-300 cursor-pointer" />
         </button>
