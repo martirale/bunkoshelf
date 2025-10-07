@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
-import { createWriteStream } from "fs";
 import path from "path";
 import { verifySession } from "@/lib/auth/verifySession";
 import { log } from "@/lib/logger";
@@ -39,7 +38,6 @@ export async function GET(request) {
     _err = e;
   } finally {
     if (_err) {
-      console.error("[UPLOAD] Error in GET:", _err);
       return NextResponse.json(
         { error: _err.message || "Error processing request" },
         { status: 500 }
@@ -57,23 +55,17 @@ export async function POST(request) {
   let _err;
   let targetDirectory;
   try {
-    console.log("[UPLOAD] Starting POST request");
+    const contentType = request.headers.get("content-type");
+
+    if (!contentType || !contentType.includes("multipart/form-data")) {
+      throw new Error("Invalid content type");
+    }
 
     const formData = await request.formData();
-    console.log("[UPLOAD] FormData received");
 
     const type = formData.get("type");
     const isNew = formData.get("isNew") === "true";
     const files = formData.getAll("files");
-
-    console.log(
-      "[UPLOAD] Type:",
-      type,
-      "isNew:",
-      isNew,
-      "Files count:",
-      files.length
-    );
 
     if (!files || files.length === 0) {
       throw new Error("No files provided");
@@ -82,41 +74,23 @@ export async function POST(request) {
     const libraryType = type === "manga" ? "manga" : "books";
     const basePath = path.join(LIBRARY_PATH, libraryType);
 
-    console.log("[UPLOAD] Base path:", basePath);
-
     if (isNew) {
       const newDirectoryName = formData.get("newDirectoryName");
       const isOneshot = formData.get("isOneshot") === "true";
       const suffix = isOneshot ? " [oneshot]" : "";
       targetDirectory = path.join(basePath, `${newDirectoryName}${suffix}`);
-
-      console.log("[UPLOAD] Creating new directory:", targetDirectory);
       await fs.mkdir(targetDirectory, { recursive: true });
-      console.log("[UPLOAD] Directory created successfully");
     } else {
       const existingDirectory = formData.get("existingDirectory");
       targetDirectory = path.join(basePath, existingDirectory);
-      console.log("[UPLOAD] Using existing directory:", targetDirectory);
     }
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      console.log(
-        `[UPLOAD] Processing file ${i + 1}/${files.length}: ${
-          file.name
-        }, size: ${file.size} bytes`
-      );
-
+    for (const file of files) {
       const filePath = path.join(targetDirectory, file.name);
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-
-      console.log(`[UPLOAD] Writing file to: ${filePath}`);
       await fs.writeFile(filePath, buffer);
-      console.log(`[UPLOAD] File ${file.name} written successfully`);
     }
-
-    console.log("[UPLOAD] All files uploaded successfully");
 
     log({
       event: "Files uploaded to library",
@@ -140,8 +114,6 @@ export async function POST(request) {
     _err = e;
   } finally {
     if (_err) {
-      console.error("[UPLOAD] Error in POST:", _err);
-      console.error("[UPLOAD] Error stack:", _err.stack);
       return NextResponse.json(
         { error: _err.message || "Error uploading files" },
         { status: 500 }
