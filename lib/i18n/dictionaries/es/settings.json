@@ -33,6 +33,7 @@
     "scanning": "Escaneando...",
     "backupdb": "Descargar database",
     "ttActivity": "Actividad reciente",
-    "noActivity": "Sin actividad reciente..."
+    "noActivity": "Sin actividad reciente...",
+    "uploadMangas": "Subir mangas/libros"
   }
 }
