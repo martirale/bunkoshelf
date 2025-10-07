@@ -4,6 +4,9 @@ import path from "path";
 import { verifySession } from "@/lib/auth/verifySession";
 import { log } from "@/lib/logger";
 
+export const runtime = "nodejs";
+export const maxDuration = 300;
+
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
 
 export async function GET(request) {
