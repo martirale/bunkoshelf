@@ -3,7 +3,9 @@ import fs from "fs/promises";
 import path from "path";
 import { verifySession } from "@/lib/auth/verifySession";
 import { log } from "@/lib/logger";
+import { writeFile } from "fs/promises";
 
+export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
@@ -79,10 +81,10 @@ export async function POST(request) {
     }
 
     for (const file of files) {
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
       const filePath = path.join(targetDirectory, file.name);
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      await fs.writeFile(filePath, buffer);
+      await writeFile(filePath, buffer);
     }
 
     log({
