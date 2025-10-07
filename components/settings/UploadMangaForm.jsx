@@ -5,6 +5,8 @@ import { BookOpenIcon } from "lucide-react";
 import { useToast } from "../ToastProvider";
 import DropzoneUpload from "../DropzoneUpload";
 
+const CHUNK_SIZE = 5 * 1024 * 1024;
+
 export default function UploadMangaForm({ intl }) {
   const [isManga, setIsManga] = useState(true);
   const [directories, setDirectories] = useState([]);
@@ -13,6 +15,7 @@ export default function UploadMangaForm({ intl }) {
   const [isOneshot, setIsOneshot] = useState(false);
   const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
 
   const { addToast } = useToast();
 
@@ -49,32 +52,33 @@ export default function UploadMangaForm({ intl }) {
     setFiles(acceptedFiles);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    let _err;
+  const uploadFileInChunks = async (file, metadata, fileIndex, totalFiles) => {
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
-    try {
-      setIsLoading(true);
+    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+      const start = chunkIndex * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, file.size);
+      const chunk = file.slice(start, end);
+
+      setUploadProgress(
+        `${intl.settings.uploadLibraryUploading} ${
+          fileIndex + 1
+        }/${totalFiles}: ${file.name} (${chunkIndex + 1}/${totalChunks})`
+      );
 
       const formData = new FormData();
-      formData.append("type", isManga ? "manga" : "books");
-      formData.append("isNew", selectedDirectory === "new" ? "true" : "false");
-
-      if (selectedDirectory === "new") {
-        formData.append("newDirectoryName", newDirectoryName);
-        formData.append("isOneshot", isOneshot ? "true" : "false");
-      } else {
-        formData.append("existingDirectory", selectedDirectory);
-      }
-
-      files.forEach((file) => {
-        formData.append("files", file);
-      });
+      formData.append("metadata", JSON.stringify(metadata));
+      formData.append("chunk", chunk);
+      formData.append("fileName", file.name);
+      formData.append("chunkIndex", chunkIndex.toString());
+      formData.append("totalChunks", totalChunks.toString());
+      formData.append("fileIndex", fileIndex.toString());
+      formData.append("totalFiles", totalFiles.toString());
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 600000);
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
 
-      const res = await fetch("/api/admin/upload/library", {
+      const res = await fetch("/api/admin/upload/library/chunk", {
         method: "POST",
         body: formData,
         signal: controller.signal,
@@ -82,28 +86,50 @@ export default function UploadMangaForm({ intl }) {
 
       clearTimeout(timeoutId);
 
-      const data = await res.json();
-
-      if (res.ok) {
-        addToast({
-          title: "Éxito",
-          description: `${isManga ? "Manga" : "Libro"} subido correctamente`,
-          variant: "success",
-        });
-        setSelectedDirectory("");
-        setNewDirectoryName("");
-        setIsOneshot(false);
-        setFiles([]);
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
-        throw new Error(data.error || "Error al subir archivos");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || `Error al subir chunk ${chunkIndex + 1}`);
       }
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    let _err;
+
+    try {
+      setIsLoading(true);
+
+      const metadata = {
+        type: isManga ? "manga" : "books",
+        isNew: selectedDirectory === "new",
+        newDirectoryName: selectedDirectory === "new" ? newDirectoryName : null,
+        isOneshot: selectedDirectory === "new" ? isOneshot : false,
+        existingDirectory:
+          selectedDirectory !== "new" ? selectedDirectory : null,
+      };
+
+      for (let i = 0; i < files.length; i++) {
+        await uploadFileInChunks(files[i], metadata, i, files.length);
+      }
+
+      addToast({
+        title: "Éxito",
+        description: `${files.length} archivo(s) subido(s) correctamente`,
+        variant: "success",
+      });
+      setSelectedDirectory("");
+      setNewDirectoryName("");
+      setIsOneshot(false);
+      setFiles([]);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (e) {
       _err = e;
     } finally {
       setIsLoading(false);
+      setUploadProgress("");
       if (_err) {
         addToast({
           title: "Error",
@@ -198,6 +224,10 @@ export default function UploadMangaForm({ intl }) {
           }}
           intl={intl}
         />
+
+        {uploadProgress && (
+          <p className="text-sm text-pearl">{uploadProgress}</p>
+        )}
 
         <button
           type="submit"
