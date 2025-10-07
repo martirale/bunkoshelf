@@ -34,6 +34,15 @@
     "backupdb": "Descargar database",
     "ttActivity": "Actividad reciente",
     "noActivity": "Sin actividad reciente...",
-    "uploadMangas": "Subir mangas/libros"
+    "uploadLibrary": "Subir mangas/libros",
+    "uploadLibraryTt": "Subir Manga o Libro",
+    "uploadLibraryManga": "Manga",
+    "uploadLibraryBook": "Libro",
+    "uploadLibrarySelect": "Seleccionar un directorio",
+    "uploadLibraryNewManga": "Nuevo manga",
+    "uploadLibraryNewBook": "Nuevo libro",
+    "uploadLibraryNewFolder": "Nombre del nuevo directorio",
+    "uploadLibraryUploading": "Subiendo...",
+    "uploadLibraryBtn": "Subir Archivos"
   }
 }

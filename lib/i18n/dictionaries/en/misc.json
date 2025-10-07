@@ -2,6 +2,10 @@
   "misc": {
     "coming": "Feature coming soon",
     "noSeriesFav": "There are no favorite series...",
-    "noVolumesFav": "There is no favorite manga..."
+    "noVolumesFav": "There is no favorite manga...",
+    "dropzoneTt": "Drag and drop files here or click to select",
+    "dropzoneMulti": "You can upload multiple files (max. 5GB)",
+    "dropzoneSingle": "You can upload a single file (max. 5GB)",
+    "dropzoneActive": "Drop the files here..."
   }
 }

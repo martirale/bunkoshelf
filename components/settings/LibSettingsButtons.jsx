@@ -79,7 +79,7 @@ export default function LibSettingsButtons({ lang, intl }) {
         className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
       >
         <FolderUpIcon className="w-9 h-9 mb-4" />
-        {intl.settings.uploadMangas}
+        {intl.settings.uploadLibrary}
       </button>
 
       <button

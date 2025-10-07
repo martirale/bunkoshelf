@@ -112,7 +112,7 @@ export default function UploadMangaForm({ intl }) {
     <div className="max-w-7xl mx-auto p-2">
       <h2 className="flex items-center mb-4">
         <BookOpenIcon className="w-7 h-7 mr-2" />
-        Subir Manga o Libro
+        {intl.settings.uploadLibraryTt}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -126,7 +126,7 @@ export default function UploadMangaForm({ intl }) {
                 : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
             }`}
           >
-            Manga
+            {intl.settings.uploadLibraryManga}
           </button>
           <button
             type="button"
@@ -137,7 +137,7 @@ export default function UploadMangaForm({ intl }) {
                 : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
             }`}
           >
-            Libro
+            {intl.settings.uploadLibraryBook}
           </button>
         </div>
 
@@ -147,8 +147,12 @@ export default function UploadMangaForm({ intl }) {
           className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
           required
         >
-          <option value="">Selecciona un directorio</option>
-          <option value="new">{isManga ? "Nuevo manga" : "Nuevo libro"}</option>
+          <option value="">{intl.settings.uploadLibrarySelect}</option>
+          <option value="new">
+            {isManga
+              ? intl.settings.uploadLibraryNewManga
+              : intl.settings.uploadLibraryNewBook}
+          </option>
           {directories.map((dir) => (
             <option key={dir} value={dir}>
               {dir}
@@ -162,7 +166,7 @@ export default function UploadMangaForm({ intl }) {
               type="text"
               value={newDirectoryName}
               onChange={(e) => setNewDirectoryName(e.target.value)}
-              placeholder="Nombre del nuevo directorio"
+              placeholder={intl.settings.uploadLibraryNewFolder}
               className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
               required
             />
@@ -182,11 +186,11 @@ export default function UploadMangaForm({ intl }) {
           onDropAccepted={handleFilesAccepted}
           multiple={true}
           accept={{
-            "image/*": [".png", ".jpg", ".jpeg", ".webp"],
             "application/pdf": [".pdf"],
             "application/zip": [".zip", ".cbz"],
             "application/x-rar-compressed": [".rar", ".cbr"],
           }}
+          intl={intl}
         />
 
         <button
@@ -194,7 +198,9 @@ export default function UploadMangaForm({ intl }) {
           disabled={isLoading || files.length === 0}
           className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Subiendo..." : "Subir archivos"}
+          {isLoading
+            ? intl.settings.uploadLibraryUploading
+            : intl.settings.uploadLibraryBtn}
         </button>
       </form>
     </div>

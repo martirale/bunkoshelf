@@ -16,6 +16,7 @@ export default function DropzoneUpload({
   onDropAccepted,
   multiple = false,
   accept,
+  intl,
 }) {
   const [isDragActive, setIsDragActive] = useState(false);
   const [files, setFiles] = useState([]);
@@ -91,12 +92,10 @@ export default function DropzoneUpload({
       <input {...getInputProps()} />
       <div className="flex flex-col gap-2 items-center">
         <span className="font-medium text-muted-foreground">
-          {isDragActive
-            ? "Suelta los archivos aquí..."
-            : "Arrastra y suelta aquí o haz clic para seleccionar"}
+          {isDragActive ? intl.misc.dropzoneActive : intl.misc.dropzoneTt}
         </span>
         <span className="text-xs text-muted-foreground uppercase">
-          {multiple ? "Puedes subir varios archivos" : "Solo un archivo"}
+          {multiple ? intl.misc.dropzoneMulti : intl.misc.dropzoneSingle}
         </span>
       </div>
       {files.length > 0 && (
