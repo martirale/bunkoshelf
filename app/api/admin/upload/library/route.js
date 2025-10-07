@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
+import { createWriteStream } from "fs";
 import path from "path";
 import { verifySession } from "@/lib/auth/verifySession";
 import { log } from "@/lib/logger";
@@ -25,14 +26,10 @@ export async function GET(request) {
       const libraryType = type === "manga" ? "manga" : "books";
       const targetPath = path.join(LIBRARY_PATH, libraryType);
 
-      console.log("[UPLOAD] Listing directories in:", targetPath);
-
       const entries = await fs.readdir(targetPath, { withFileTypes: true });
       const directories = entries
         .filter((entry) => entry.isDirectory())
         .map((entry) => entry.name);
-
-      console.log("[UPLOAD] Found directories:", directories.length);
 
       return NextResponse.json({ directories });
     }
@@ -102,8 +99,6 @@ export async function POST(request) {
       console.log("[UPLOAD] Using existing directory:", targetDirectory);
     }
 
-    console.log("[UPLOAD] Starting file upload, total files:", files.length);
-
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       console.log(
@@ -112,11 +107,9 @@ export async function POST(request) {
         }, size: ${file.size} bytes`
       );
 
-      const bytes = await file.arrayBuffer();
-      console.log(`[UPLOAD] File ${file.name} converted to buffer`);
-
-      const buffer = Buffer.from(bytes);
       const filePath = path.join(targetDirectory, file.name);
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
 
       console.log(`[UPLOAD] Writing file to: ${filePath}`);
       await fs.writeFile(filePath, buffer);
