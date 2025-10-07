@@ -4,7 +4,6 @@ import path from "path";
 import { verifySession } from "@/lib/auth/verifySession";
 import { log } from "@/lib/logger";
 
-export const runtime = "nodejs";
 export const maxDuration = 300;
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
@@ -55,12 +54,6 @@ export async function POST(request) {
   let _err;
   let targetDirectory;
   try {
-    const contentType = request.headers.get("content-type");
-
-    if (!contentType || !contentType.includes("multipart/form-data")) {
-      throw new Error("Invalid content type");
-    }
-
     const formData = await request.formData();
 
     const type = formData.get("type");
