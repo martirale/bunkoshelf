@@ -5,7 +5,7 @@ import { BookOpenIcon } from "lucide-react";
 import { useToast } from "../ToastProvider";
 import DropzoneUpload from "../DropzoneUpload";
 
-const CHUNK_SIZE = 5 * 1024 * 1024;
+const CHUNK_SIZE = 50 * 1024 * 1024;
 
 export default function UploadMangaForm({ intl }) {
   const [isManga, setIsManga] = useState(true);
@@ -76,7 +76,7 @@ export default function UploadMangaForm({ intl }) {
       formData.append("totalFiles", totalFiles.toString());
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000);
+      const timeoutId = setTimeout(() => controller.abort(), 300000);
 
       const res = await fetch("/api/admin/upload/library/chunk", {
         method: "POST",
