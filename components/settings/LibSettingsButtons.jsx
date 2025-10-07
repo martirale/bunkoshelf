@@ -10,6 +10,7 @@ import {
 import { useToast } from "../ToastProvider";
 import useScanPolling from "@/hooks/useScanPolling";
 import Modal from "../ui/Modal";
+import UploadMangaForm from "./UploadMangaForm";
 
 export default function LibSettingsButtons({ lang, intl }) {
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -26,19 +27,25 @@ export default function LibSettingsButtons({ lang, intl }) {
   };
 
   const handleFullScan = async () => {
+    let _err;
     try {
       await startPolling();
-    } catch (err) {
-      addToast({
-        title: intl.toastSettings.scanErrorTt,
-        description: intl.toastSettings.scanError,
-        variant: "error",
-      });
+    } catch (e) {
+      _err = e;
+    } finally {
+      if (_err) {
+        addToast({
+          title: intl.toastSettings.scanErrorTt,
+          description: intl.toastSettings.scanError,
+          variant: "error",
+        });
+      }
     }
   };
 
   const handleDownload = async () => {
     let url;
+    let _err;
     try {
       const res = await fetch("/api/admin/db/download");
       if (!res.ok) throw new Error("No se pudo descargar la base de datos");
@@ -50,14 +57,17 @@ export default function LibSettingsButtons({ lang, intl }) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-    } catch (err) {
-      console.error(err);
-      alert(
-        intl.toastSettings.backupErrorAlert ||
-          "Ocurrió un error al descargar la base de datos."
-      );
+    } catch (e) {
+      _err = e;
     } finally {
       if (url) window.URL.revokeObjectURL(url);
+      if (_err) {
+        console.error(_err);
+        alert(
+          intl.toastSettings.backupErrorAlert ||
+            "Ocurrió un error al descargar la base de datos."
+        );
+      }
     }
   };
 
@@ -95,7 +105,7 @@ export default function LibSettingsButtons({ lang, intl }) {
       </button>
 
       <Modal isOpen={uploadOpen} onClose={() => setUploadOpen(false)}>
-        <div />
+        <UploadMangaForm intl={intl} />
       </Modal>
     </div>
   );
