@@ -116,14 +116,29 @@ export default function UploadMangaForm({ intl }) {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={!isManga}
-            onChange={() => setIsManga(!isManga)}
-            id="isBook"
-          />
-          <label htmlFor="isBook">{isManga ? "Manga" : "Libro"}</label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setIsManga(true)}
+            className={`font-bold px-6 py-2 rounded-lg leading-none uppercase transition-all duration-300 cursor-pointer ${
+              isManga
+                ? "text-sand bg-onix border border-onix"
+                : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
+            }`}
+          >
+            Manga
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsManga(false)}
+            className={`font-bold px-6 py-2 rounded-lg leading-none uppercase transition-all duration-300 cursor-pointer ${
+              !isManga
+                ? "text-sand bg-onix border border-onix"
+                : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
+            }`}
+          >
+            Libro
+          </button>
         </div>
 
         <select
@@ -133,7 +148,7 @@ export default function UploadMangaForm({ intl }) {
           required
         >
           <option value="">Selecciona un directorio</option>
-          <option value="new">Nuevo</option>
+          <option value="new">{isManga ? "Nuevo manga" : "Nuevo libro"}</option>
           {directories.map((dir) => (
             <option key={dir} value={dir}>
               {dir}
