@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { verifySession } from "@/lib/auth/verifySession";
+import { log } from "@/lib/logger";
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
 
 export async function GET(request) {
+  const session = await verifySession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let _err;
   try {
     const { searchParams } = new URL(request.url);
@@ -37,6 +44,11 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const session = await verifySession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let _err;
   try {
     const formData = await request.formData();
@@ -48,7 +60,7 @@ export async function POST(request) {
       throw new Error("No files provided");
     }
 
-    const libraryType = type === "manga" ? "manga" : "book";
+    const libraryType = type === "manga" ? "manga" : "books";
     const basePath = path.join(LIBRARY_PATH, libraryType);
 
     let targetDirectory;
@@ -71,6 +83,19 @@ export async function POST(request) {
       const filePath = path.join(targetDirectory, file.name);
       await fs.writeFile(filePath, buffer);
     }
+
+    log({
+      event: "Files uploaded to library",
+      category: "LIBRARY",
+      meta: {
+        userId: session.id,
+        username: session.username,
+        isAdmin: session.isAdmin,
+        type: libraryType,
+        directory: path.basename(targetDirectory),
+        filesCount: files.length,
+      },
+    });
 
     return NextResponse.json({
       success: true,
