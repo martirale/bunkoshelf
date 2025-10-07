@@ -71,10 +71,16 @@ export default function UploadMangaForm({ intl }) {
         formData.append("files", file);
       });
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 600000);
+
       const res = await fetch("/api/admin/upload/library", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const data = await res.json();
 
