@@ -39,13 +39,13 @@ export async function POST(request) {
 
     const tempFilePath = path.join(TEMP_PATH, `${fileName}.part`);
 
-    const bytes = await chunk.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const arrayBuffer = await chunk.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
 
     if (chunkIndex === 0) {
-      await fs.writeFile(tempFilePath, buffer);
+      await fs.writeFile(tempFilePath, uint8Array);
     } else {
-      await fs.appendFile(tempFilePath, buffer);
+      await fs.appendFile(tempFilePath, uint8Array);
     }
 
     if (chunkIndex === totalChunks - 1) {
@@ -92,6 +92,7 @@ export async function POST(request) {
     _err = e;
   } finally {
     if (_err) {
+      console.error("[CHUNK UPLOAD] Error:", _err);
       return NextResponse.json(
         { error: _err.message || "Error uploading chunk" },
         { status: 500 }
