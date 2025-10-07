@@ -65,7 +65,8 @@ export async function POST(request) {
       }
 
       const finalPath = path.join(targetDirectory, fileName);
-      await fs.rename(tempFilePath, finalPath);
+      await fs.copyFile(tempFilePath, finalPath);
+      await fs.unlink(tempFilePath);
 
       if (fileIndex === totalFiles - 1) {
         log({
