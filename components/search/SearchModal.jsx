@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useSearchModal } from "@/hooks/useSearchModal";
-import { Search } from "lucide-react";
 import Link from "next/link";
 import {
-  UserRoundPen,
-  LibraryBig,
-  Book,
-  BookCopy,
-  Drama,
-  Tags,
+  SearchIcon,
+  UserRoundPenIcon,
+  LibraryBigIcon,
+  BookIcon,
+  BookCopyIcon,
+  DramaIcon,
+  TagsIcon,
 } from "lucide-react";
 
 export default function SearchModal({ lang, intl }) {
@@ -113,7 +113,7 @@ export default function SearchModal({ lang, intl }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative">
-          <Search className="absolute left-4 top-4 w-5 h-5" />
+          <SearchIcon size={20} className="absolute left-4 top-4" />
 
           <input
             type="search"
@@ -174,26 +174,26 @@ export default function SearchModal({ lang, intl }) {
                         <p className="text-base truncate">
                           {/* Series Author */}
                           <span className="flex items-center">
-                            <UserRoundPen className="w-4 h-4 mr-1" />
+                            <UserRoundPenIcon size={16} className="mr-1" />
                             {res.writer || "Desconocido"}
                           </span>
                         </p>
                         <p className="text-base truncate">
                           {/* Series Meta */}
                           <span className="flex items-center">
-                            <LibraryBig className="w-4 h-4 mr-1" />
+                            <LibraryBigIcon size={16} className="mr-1" />
                             {intl.search.series}
                           </span>
                           <span className="flex items-center capitalize">
                             {genres && (
                               <>
-                                <Drama className="w-4 h-4 mr-1" />
+                                <DramaIcon size={16} className="mr-1" />
                                 {genres}
                               </>
                             )}
                             {tags && (
                               <>
-                                <Tags className="w-4 h-4 mr-1 ml-2" />
+                                <TagsIcon size={16} className="mr-1 ml-2" />
                                 {tags}
                               </>
                             )}
@@ -205,7 +205,7 @@ export default function SearchModal({ lang, intl }) {
                         <p className="text-base truncate">
                           {/* Volumes Author */}
                           <span className="flex items-center">
-                            <UserRoundPen className="w-4 h-4 mr-1" />
+                            <UserRoundPenIcon size={16} className="mr-1" />
                             {res.writer || "Desconocido"}
                           </span>
                         </p>
@@ -213,19 +213,19 @@ export default function SearchModal({ lang, intl }) {
                           <p className="text-base truncate">
                             {/* Oneshot Meta */}
                             <span className="flex items-center">
-                              <Book className="w-4 h-4 mr-1" />
+                              <BookIcon size={16} className="mr-1" />
                               Oneshot
                             </span>
                             <span className="flex items-center capitalize">
                               {genres && (
                                 <>
-                                  <Drama className="w-4 h-4 mr-1" />
+                                  <DramaIcon size={16} className="mr-1" />
                                   {genres}
                                 </>
                               )}
                               {tags && (
                                 <>
-                                  <Tags className="w-4 h-4 mr-1 ml-2" />
+                                  <TagsIcon size={16} className="mr-1 ml-2" />
                                   {tags}
                                 </>
                               )}
@@ -235,19 +235,19 @@ export default function SearchModal({ lang, intl }) {
                           <p className="text-base truncate">
                             {/* Volumes Meta */}
                             <span className="flex items-center">
-                              <BookCopy className="w-4 h-4 mr-1" />
+                              <BookCopyIcon size={16} className="mr-1" />
                               {intl.search.volume}
                             </span>
                             <span className="flex items-center capitalize">
                               {genres && (
                                 <>
-                                  <Drama className="w-4 h-4 mr-1" />
+                                  <DramaIcon size={16} className="mr-1" />
                                   {genres}
                                 </>
                               )}
                               {tags && (
                                 <>
-                                  <Tags className="w-4 h-4 mr-1 ml-2" />
+                                  <TagsIcon size={16} className="mr-1 ml-2" />
                                   {tags}
                                 </>
                               )}

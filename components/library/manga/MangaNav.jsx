@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bolt, LibraryBig, BookCopy, Bookmark } from "lucide-react";
+import {
+  BoltIcon,
+  LibraryBigIcon,
+  BookCopyIcon,
+  BookmarkIcon,
+} from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 
@@ -38,27 +43,27 @@ export default function MangaNav({ lang, intl }) {
     {
       label: intl.libraries.overview,
       href: `/${lang}/manga`,
-      icon: Bolt,
+      icon: BoltIcon,
       isActive: pathname === `/${lang}/manga`,
     },
     {
       label: intl.libraries.series,
       href: `/${lang}/manga/series`,
-      icon: LibraryBig,
+      icon: LibraryBigIcon,
       isActive: pathname === `/${lang}/manga/series`,
       count: stats.totalSeries,
     },
     {
       label: intl.libraries.volumes,
       href: `/${lang}/manga/volumes`,
-      icon: BookCopy,
+      icon: BookCopyIcon,
       isActive: pathname === `/${lang}/manga/volumes`,
       count: stats.totalVolumes,
     },
     {
       label: intl.libraries.toRead,
       href: `/${lang}/manga/toread`,
-      icon: Bookmark,
+      icon: BookmarkIcon,
       isActive: pathname === `/${lang}/manga/toread`,
       count: stats.totalUnread,
     },
@@ -80,7 +85,7 @@ export default function MangaNav({ lang, intl }) {
             "transition-all duration-300 group"
           )}
         >
-          <Icon className="w-5 h-5 mr-0 md:mr-2" />
+          <Icon size={20} className="mr-0 md:mr-2" />
           <span className="hidden md:inline">{label}</span>
           {typeof count === "number" && (
             <span

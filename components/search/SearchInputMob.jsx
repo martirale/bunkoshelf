@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function SearchInputMob({ intl }) {
@@ -27,7 +27,7 @@ export default function SearchInputMob({ intl }) {
       className="flex items-center w-full border border-stone-300 rounded-lg cursor-pointer transition-all duration-300"
     >
       <div className="p-1 ml-3">
-        <Search className="w-5 h-5" />
+        <SearchIcon size={20} />
       </div>
 
       <input

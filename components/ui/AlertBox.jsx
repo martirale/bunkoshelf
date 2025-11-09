@@ -1,9 +1,9 @@
 import {
-  CheckCircle,
-  XCircle,
-  Info,
-  ShieldAlert,
-  TriangleAlert,
+  CheckCircleIcon,
+  XCircleIcon,
+  InfoIcon,
+  ShieldAlertIcon,
+  TriangleAlertIcon,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -17,11 +17,11 @@ export default function AlertBox({ title, description, variant = "default" }) {
   };
 
   const icons = {
-    success: <CheckCircle className="w-5 h-5 text-[#17c964]" />,
-    warning: <ShieldAlert className="w-5 h-5 text-[#f5a524]" />,
-    danger: <TriangleAlert className="w-5 h-5 text-[#f54180]" />,
-    error: <XCircle className="w-5 h-5 text-[#f54180]" />,
-    default: <Info className="w-5 h-5 text-pearl" />,
+    success: <CheckCircleIcon size={20} className="text-[#17c964]" />,
+    warning: <ShieldAlertIcon size={20} className="text-[#f5a524]" />,
+    danger: <TriangleAlertIcon size={20} className="text-[#f54180]" />,
+    error: <XCircleIcon size={20} className="text-[#f54180]" />,
+    default: <InfoIcon size={20} className="text-pearl" />,
   };
 
   return (

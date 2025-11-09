@@ -7,9 +7,9 @@ import {
   DatabaseBackupIcon,
   Loader2Icon,
 } from "lucide-react";
-import { useToast } from "../ToastProvider";
+import { useToast } from "@/components/ToastProvider";
 import useScanPolling from "@/hooks/useScanPolling";
-import Modal from "../ui/Modal";
+import Modal from "@/components/ui/Modal";
 import UploadMangaForm from "./UploadMangaForm";
 
 export default function LibSettingsButtons({ lang, intl }) {
@@ -78,7 +78,7 @@ export default function LibSettingsButtons({ lang, intl }) {
         disabled={loading}
         className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
       >
-        <FolderUpIcon className="w-9 h-9 mb-4" />
+        <FolderUpIcon size={36} className="mb-4" />
         {intl.settings.uploadLibrary}
       </button>
 
@@ -88,9 +88,9 @@ export default function LibSettingsButtons({ lang, intl }) {
         className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
       >
         {loading ? (
-          <Loader2Icon className="w-9 h-9 mb-4 animate-spin" />
+          <Loader2Icon size={36} className="mb-4 animate-spin" />
         ) : (
-          <ScanSearchIcon className="w-9 h-9 mb-4" />
+          <ScanSearchIcon size={36} className="mb-4" />
         )}
         {loading ? intl.settings.scanning : intl.settings.scanLibrary}
       </button>
@@ -100,7 +100,7 @@ export default function LibSettingsButtons({ lang, intl }) {
         disabled={loading}
         className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
       >
-        <DatabaseBackupIcon className="w-9 h-9 mb-4" />
+        <DatabaseBackupIcon size={36} className="mb-4" />
         {intl.settings.backupdb}
       </button>
 

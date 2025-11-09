@@ -1,7 +1,7 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { verifySession } from "@/lib/auth/verifySession";
 import ProfileForm from "@/components/profile/ProfileForm";
-import { UserRoundPen } from "lucide-react";
+import { UserRoundPenIcon } from "lucide-react";
 
 export default async function UpdateProfilePage({ params }) {
   const { lang = "es" } = await params;
@@ -12,7 +12,7 @@ export default async function UpdateProfilePage({ params }) {
   return (
     <>
       <h2 className="flex items-center mb-4">
-        <UserRoundPen className="w-7 h-7 mr-2" />
+        <UserRoundPenIcon size={28} className="mr-2" />
         {intl.profile.updateProfile}
       </h2>
 

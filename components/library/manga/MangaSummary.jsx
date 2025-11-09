@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronUpIcon, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
 export default function MangaSummary({ meta, intl }) {
@@ -24,11 +24,11 @@ export default function MangaSummary({ meta, intl }) {
         >
           {expanded ? (
             <>
-              {intl.manga.showLess} <ChevronUp className="w-4 h-4" />
+              {intl.manga.showLess} <ChevronUpIcon size={16} />
             </>
           ) : (
             <>
-              {intl.manga.showMore} <ChevronDown className="w-4 h-4" />
+              {intl.manga.showMore} <ChevronDownIcon size={16} />
             </>
           )}
         </button>

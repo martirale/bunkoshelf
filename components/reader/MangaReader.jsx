@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Minimize2, ChevronLeft, ChevronRight } from "lucide-react";
-import Loader from "../ui/Loader";
+import { Minimize2Icon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import Loader from "@/components/ui/Loader";
 
 export default function MangaReader({
   isOpen,
@@ -163,7 +163,10 @@ export default function MangaReader({
         className="absolute top-4 right-4 z-50"
         title={intl.reader.ttExit}
       >
-        <Minimize2 className="w-7 h-7 hover:scale-90 transition-all duration-300 cursor-pointer" />
+        <Minimize2Icon
+          size={28}
+          className="hover:scale-90 transition-all duration-300 cursor-pointer"
+        />
       </button>
 
       <div className="absolute inset-0 z-40 flex">
@@ -193,7 +196,10 @@ export default function MangaReader({
           className="p-2 disabled:opacity-30"
           title={isRTL ? intl.reader.ttNext : intl.reader.ttPrev}
         >
-          <ChevronLeft className="w-7 h-7 hover:scale-125 transition-all duration-300 cursor-pointer" />
+          <ChevronLeftIcon
+            size={28}
+            className="hover:scale-125 transition-all duration-300 cursor-pointer"
+          />
         </button>
 
         <span>
@@ -208,7 +214,10 @@ export default function MangaReader({
           className="p-2 disabled:opacity-30"
           title={isRTL ? intl.reader.ttPrev : intl.reader.ttNext}
         >
-          <ChevronRight className="w-7 h-7 hover:scale-125 transition-all duration-300 cursor-pointer" />
+          <ChevronRightIcon
+            size={28}
+            className="hover:scale-125 transition-all duration-300 cursor-pointer"
+          />
         </button>
       </div>
     </div>

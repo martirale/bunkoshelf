@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { UserRoundPlus } from "lucide-react";
-import { useToast } from "../ToastProvider";
+import { UserRoundPlusIcon } from "lucide-react";
+import { useToast } from "@/components/ToastProvider";
 
 export default function CreateUserForm({ intl }) {
   const [username, setUsername] = useState("");
@@ -65,7 +65,7 @@ export default function CreateUserForm({ intl }) {
   return (
     <div className="max-w-7xl mx-auto p-2">
       <h2 className="flex items-center mb-4">
-        <UserRoundPlus className="w-7 h-7 mr-2" />
+        <UserRoundPlusIcon size={28} className="mr-2" />
         {intl.settings.createUser}
       </h2>
 

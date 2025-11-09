@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell } from "lucide-react";
+import { BellIcon } from "lucide-react";
 
 const VAPID_PUBLIC_KEY =
   "BI7ycHYWezzuK3ulcjtiz7OEk4P_ZFCB0i4IUa8m5Bfh1snde-6L-fUdnfPKu-s11Uc3AAv7qPuggLv0ppmnFPQ";
@@ -94,7 +94,7 @@ export default function PushButton({ lang, intl }) {
       onClick={subscribeUser}
       className="text-onix p-2 rounded-lg border border-neutral-300 hover:border-lilah transition-all duration-300 cursor-pointer"
     >
-      <Bell className="w-4 h-4" />
+      <BellIcon size={20} />
     </button>
   );
 }

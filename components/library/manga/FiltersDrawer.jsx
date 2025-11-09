@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
 import Accordion from "@/components/ui/Accordion";
 import clsx from "clsx";
 
@@ -118,7 +118,7 @@ export default function FiltersDrawer({ intl }) {
             aria-label="Cerrar filtros"
             className="hover:text-lilah cursor-pointer transition-all duration-300"
           >
-            <ChevronRight className="w-7 h-7 -mr-1" />
+            <ChevronRightIcon size={28} className="-mr-1" />
           </button>
         </header>
 

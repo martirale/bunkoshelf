@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Minimize2 } from "lucide-react";
+import { Minimize2Icon } from "lucide-react";
 import MobNavLogo from "./MobNavLogo";
-import MainNav from "../sidebar/MainNav";
-import SecondNav from "../sidebar/SecondNav";
-import ChallengeProg from "../sidebar/ChallengeProg";
-import FooterNav from "../sidebar/FooterNav";
-import SearchInputMob from "../search/SearchInputMob";
+import MainNav from "@/components/sidebar/MainNav";
+import SecondNav from "@/components/sidebar/SecondNav";
+import ChallengeProg from "@/components/sidebar/ChallengeProg";
+import FooterNav from "@/components/sidebar/FooterNav";
+import SearchInputMob from "@/components/search/SearchInputMob";
 
 export default function MobNavModal({
   lang,
@@ -63,7 +63,10 @@ export default function MobNavModal({
         <div className="flex flex-row items-center justify-between">
           <MobNavLogo width={150} height={30} />
           <button onClick={onClose} className="cursor-pointer">
-            <Minimize2 className="w-7 h-7 hover:scale-90 transition-all duration-300" />
+            <Minimize2Icon
+              size={28}
+              className="hover:scale-90 transition-all duration-300"
+            />
           </button>
         </div>
 

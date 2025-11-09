@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Minimize2 } from "lucide-react";
+import { Minimize2Icon } from "lucide-react";
 
 export default function Modal({ isOpen, onClose, children }) {
   const modalRef = useRef(null);
@@ -50,7 +50,10 @@ export default function Modal({ isOpen, onClose, children }) {
           onClick={onClose}
           className="absolute top-4 right-4 text-onix cursor-pointer"
         >
-          <Minimize2 className="w-7 h-7 hover:scale-90 transition-all duration-300" />
+          <Minimize2Icon
+            size={28}
+            className="hover:scale-90 transition-all duration-300"
+          />
         </button>
         <div className="my-5 md:m-4">{children}</div>
       </div>

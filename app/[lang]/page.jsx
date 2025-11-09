@@ -2,7 +2,7 @@ import HeroKeepRead from "@/components/home/manga/HeroKeepRead";
 import RowNewVols from "@/components/home/manga/RowNewVols";
 import ReaderStatsPanel from "@/components/stats/ReaderPanel";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import { ChevronRight } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
 import ReloadButton from "@/components/ui/ReloadButton";
@@ -45,7 +45,7 @@ export default async function HomePage({ params }) {
                 )}
               >
                 {intl.home.goToProfile}
-                <ChevronRight className="w-5 h-5 ml-1" />
+                <ChevronRightIcon size={20} className="ml-1" />
               </Link>
             </div>
           </div>

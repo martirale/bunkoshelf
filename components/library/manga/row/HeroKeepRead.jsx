@@ -3,8 +3,12 @@
 import { useRef, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import MangaCard from "@/components/ui/MangaCard";
-import MangaNav from "../MangaNav";
-import { LibraryBig, ChevronLeft, ChevronRight } from "lucide-react";
+import MangaNav from "@/components/library/manga/MangaNav";
+import {
+  LibraryBigIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "lucide-react";
 
 export default function HeroKeepRead({ lang, intl }) {
   const scrollRef = useRef(null);
@@ -111,7 +115,7 @@ export default function HeroKeepRead({ lang, intl }) {
         <section className="w-full p-4 bg-pearl">
           <div className="flex justify-between items-center mb-4">
             <h2 className="flex items-center text-base md:text-lg text-onix">
-              <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+              <LibraryBigIcon size={28} className="mr-2" />
               {intl.libraries.keepReading}
             </h2>
             <div className="flex gap-4 text-onix">
@@ -119,13 +123,19 @@ export default function HeroKeepRead({ lang, intl }) {
                 onClick={() => scrollCards("left")}
                 className="cursor-pointer"
               >
-                <ChevronLeft className="w-7 h-7 hover:scale-110 transition-all duration-150" />
+                <ChevronLeftIcon
+                  size={28}
+                  className="hover:scale-110 transition-all duration-150"
+                />
               </button>
               <button
                 onClick={() => scrollCards("right")}
                 className="cursor-pointer"
               >
-                <ChevronRight className="w-7 h-7 hover:scale-110 transition-all duration-150" />
+                <ChevronRightIcon
+                  size={28}
+                  className="hover:scale-110 transition-all duration-150"
+                />
               </button>
             </div>
           </div>

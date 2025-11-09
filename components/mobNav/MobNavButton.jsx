@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { MenuIcon } from "lucide-react";
 import MobNavModal from "./MobNavModal";
 
 export default function MobNavButton({ lang, intl, user, challengeData }) {
@@ -21,7 +21,7 @@ export default function MobNavButton({ lang, intl, user, challengeData }) {
         onClick={() => setOpen(true)}
         className="bg-pearl border border-stone-300 rounded-full p-3"
       >
-        <Menu className="w-7 h-7 text-onix" />
+        <MenuIcon size={28} className="text-onix" />
       </button>
 
       <MobNavModal

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 export default function Accordion({ title, children, defaultOpen = false }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -14,11 +14,7 @@ export default function Accordion({ title, children, defaultOpen = false }) {
         aria-expanded={isOpen}
       >
         <span className="text-sm font-boldonse">{title}</span>
-        {isOpen ? (
-          <ChevronUp className="w-5 h-5" />
-        ) : (
-          <ChevronDown className="w-5 h-5" />
-        )}
+        {isOpen ? <ChevronUpIcon size={20} /> : <ChevronDownIcon size={20} />}
       </button>
       {isOpen && <div className="pb-3">{children}</div>}
     </div>

@@ -1,10 +1,10 @@
 import React from "react";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
-import { LibraryBig } from "lucide-react";
+import { LibraryBigIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import Pagination from "@/components/ui/Pagination";
-import FiltersDrawer from "../FiltersDrawer";
+import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
 
 const PAGE_SIZE = 35;
 
@@ -95,7 +95,7 @@ export default async function VolumesIndex({
     <>
       <div className="flex items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg mr-4">
-          <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+          <LibraryBigIcon size={28} className="mr-2" />
           {intl.manga.allVolumes}
         </h2>
 

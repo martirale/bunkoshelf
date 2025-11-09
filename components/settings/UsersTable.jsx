@@ -1,8 +1,8 @@
 "use client";
 
-import { UserRoundPen } from "lucide-react";
+import { UserRoundPenIcon } from "lucide-react";
 import { useState } from "react";
-import Modal from "../ui/Modal";
+import Modal from "@/components/ui/Modal";
 import EditUserForm from "./EditUserForm";
 
 export default function UsersTable({ users, intl, currentUserId }) {
@@ -67,9 +67,10 @@ export default function UsersTable({ users, intl, currentUserId }) {
               className="p-4 -ml-4 z-10 pointer-events-auto"
             >
               <div className="flex justify-center">
-                <UserRoundPen
+                <UserRoundPenIcon
                   onClick={() => handleEdit(user)}
-                  className="w-5 h-5 cursor-pointer hover:text-lilah transition-colors duration-300"
+                  size={20}
+                  className="cursor-pointer hover:text-lilah transition-colors duration-300"
                 />
               </div>
             </div>

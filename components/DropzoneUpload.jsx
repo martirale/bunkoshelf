@@ -57,24 +57,24 @@ export default function DropzoneUpload({
     if (
       ["png", "jpg", "jpeg", "gif", "svg", "webp", "tif", "tiff"].includes(ext)
     ) {
-      return <ImageIcon className="w-8 h-8 text-foreground" />;
+      return <ImageIcon size={32} className="text-foreground" />;
     }
     if (ext === "pdf") {
-      return <FileTextIcon className="w-8 h-8 text-red-500" />;
+      return <FileTextIcon size={32} className="text-red-500" />;
     }
     if (["xls", "xlsx", "csv"].includes(ext)) {
-      return <FileSpreadsheetIcon className="w-8 h-8 text-green-600" />;
+      return <FileSpreadsheetIcon size={32} className="text-green-600" />;
     }
     if (["mp3", "wav", "ogg", "m4a"].includes(ext)) {
-      return <MusicIcon className="w-8 h-8 text-amber-600" />;
+      return <MusicIcon size={32} className="text-amber-600" />;
     }
     if (["mp4", "mov", "avi", "mkv"].includes(ext)) {
-      return <VideoIcon className="w-8 h-8 text-purple-600" />;
+      return <VideoIcon size={32} className="text-purple-600" />;
     }
     if (["zip", "rar", "7z"].includes(ext)) {
-      return <FileArchiveIcon className="w-8 h-8 text-foreground" />;
+      return <FileArchiveIcon size={32} className="text-foreground" />;
     }
-    return <FileIcon className="w-8 h-8 text-muted-foreground" />;
+    return <FileIcon size={32} className="text-muted-foreground" />;
   }
 
   return (

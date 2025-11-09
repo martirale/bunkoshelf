@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bolt, UsersRound, FolderCog } from "lucide-react";
+import { BoltIcon, UsersRoundIcon, FolderCogIcon } from "lucide-react";
 import clsx from "clsx";
 
 export default function SettingsNav({ intl }) {
@@ -28,7 +28,7 @@ export default function SettingsNav({ intl }) {
     {
       label: intl.settings.overview,
       href: `/${currentLang}/settings#overview`,
-      icon: Bolt,
+      icon: BoltIcon,
       isActive:
         pathname === `/${currentLang}/settings` &&
         (hash === "#overview" || hash === ""),
@@ -36,13 +36,13 @@ export default function SettingsNav({ intl }) {
     {
       label: intl.settings.users,
       href: `/${currentLang}/settings#users`,
-      icon: UsersRound,
+      icon: UsersRoundIcon,
       isActive: pathname === `/${currentLang}/settings` && hash === "#users",
     },
     {
       label: intl.settings.library,
       href: `/${currentLang}/settings/library`,
-      icon: FolderCog,
+      icon: FolderCogIcon,
       isActive: pathname.startsWith(`/${currentLang}/settings/library`),
     },
   ];
@@ -62,7 +62,7 @@ export default function SettingsNav({ intl }) {
               }
             )}
           >
-            <Icon className="w-5 h-5 mr-0 md:mr-2" />
+            <Icon size={20} className="mr-0 md:mr-2" />
             <span className="hidden md:inline">{label}</span>
           </Link>
         ))}

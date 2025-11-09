@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserRoundPen } from "lucide-react";
-import { useToast } from "../ToastProvider";
+import { UserRoundPenIcon } from "lucide-react";
+import { useToast } from "@/components/ToastProvider";
 
 export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
   const [username, setUsername] = useState("");
@@ -105,7 +105,7 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
   return (
     <div className="max-w-7xl mx-auto p-2">
       <h2 className="flex items-center mb-4">
-        <UserRoundPen className="w-7 h-7 mr-2" />
+        <UserRoundPenIcon size={28} className="mr-2" />
         {intl.settings.updateUser}
       </h2>
 

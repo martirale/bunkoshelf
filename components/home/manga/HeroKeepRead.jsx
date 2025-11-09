@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { LibraryBig, ChevronRight } from "lucide-react";
+import { LibraryBigIcon, ChevronRightIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import ReloadButton from "@/components/ui/ReloadButton";
 import PushButton from "@/components/ui/PushButton";
@@ -55,9 +55,12 @@ export default function HeroKeepRead({ lang, intl }) {
       <div className="flex justify-between items-center mb-4">
         <Link href={`/${lang}/manga`}>
           <h2 className="text-onix flex items-center text-base md:text-lg group">
-            <LibraryBig className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+            <LibraryBigIcon size={28} className="mr-2" />
             {intl.libraries.keepReading}
-            <ChevronRight className="w-6 h-6 md:w-7 md:h-7 ml-2 text-pearl group-hover:text-onix transition-all duration-300" />
+            <ChevronRightIcon
+              size={28}
+              className="ml-2 text-pearl group-hover:text-onix transition-all duration-300"
+            />
           </h2>
         </Link>
 

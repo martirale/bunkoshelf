@@ -2,7 +2,7 @@ import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
-import { Ghost, BookCopy } from "lucide-react";
+import { GhostIcon, BookCopyIcon } from "lucide-react";
 
 export default async function VolumesIndexFav({ lang, intl }) {
   const user = await verifySession();
@@ -44,7 +44,7 @@ export default async function VolumesIndexFav({ lang, intl }) {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
-        <Ghost className="w-16 h-16" />
+        <GhostIcon size={64} />
         <h2>{intl.misc.noVolumesFav}</h2>
       </div>
     );
@@ -53,7 +53,7 @@ export default async function VolumesIndexFav({ lang, intl }) {
   return (
     <>
       <h2 className="flex items-center mt-8 mb-4">
-        <BookCopy className="w-7 h-7 mr-2" />
+        <BookCopyIcon size={28} className="mr-2" />
         {intl.favorites.ttVolumes}
       </h2>
 

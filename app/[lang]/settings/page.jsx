@@ -1,11 +1,11 @@
 import React from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import {
-  Bolt,
-  FileClock,
-  GitCommitHorizontal,
-  Calendar,
-  UsersRound,
+  BoltIcon,
+  FileClockIcon,
+  GitCommitHorizontalIcon,
+  CalendarIcon,
+  UsersRoundIcon,
 } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth/verifySession";
@@ -55,7 +55,7 @@ export default async function SettingsPage({ params }) {
       {/* Overview */}
       <div id="overview" />
       <h2 className="flex items-center mb-4">
-        <Bolt className="w-7 h-7 mr-2" />
+        <BoltIcon size={28} className="mr-2" />
         {intl.settings.overview}
       </h2>
 
@@ -76,7 +76,7 @@ export default async function SettingsPage({ params }) {
               <div>
                 <p className="font-bold">{intl.settings.semVer}</p>
                 <div className="flex items-center">
-                  <GitCommitHorizontal className="w-5 h-5 mr-2" />
+                  <GitCommitHorizontalIcon size={20} className="mr-2" />
                   <Link
                     href={versionUrl}
                     target="_blank"
@@ -90,7 +90,7 @@ export default async function SettingsPage({ params }) {
               <div>
                 <p className="font-bold">{intl.settings.buildDate}</p>
                 <div className="flex items-center">
-                  <Calendar className="w-5 h-5 mr-2" />
+                  <CalendarIcon size={20} className="mr-2" />
                   <span>{buildDate}</span>
                 </div>
               </div>
@@ -111,7 +111,7 @@ export default async function SettingsPage({ params }) {
               .map((line, i) => (
                 <div key={i} className="flex items-start gap-1">
                   <div className="min-w-6 min-h-6">
-                    <FileClock className="w-5 h-5 mt-1.5" />
+                    <FileClockIcon size={20} className="mt-1.5" />
                   </div>
                   <div>{line}</div>
                 </div>
@@ -127,7 +127,7 @@ export default async function SettingsPage({ params }) {
       <div id="users" />
       <div className="flex items-center justify-between mt-8 mb-4">
         <h2 className="flex items-center">
-          <UsersRound className="w-7 h-7 mr-2" />
+          <UsersRoundIcon size={28} className="mr-2" />
           {intl.settings.users}
         </h2>
 

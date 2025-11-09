@@ -1,7 +1,7 @@
 import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
-import { Ghost, LibraryBig } from "lucide-react";
+import { GhostIcon, LibraryBigIcon } from "lucide-react";
 import { sortByPaddedTitle } from "@/lib/utils";
 
 export default async function SeriesIndexFav({ lang, intl }) {
@@ -59,7 +59,7 @@ export default async function SeriesIndexFav({ lang, intl }) {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
-        <Ghost className="w-16 h-16" />
+        <GhostIcon size={64} />
         <h2>{intl.misc.noSeriesFav}</h2>
       </div>
     );
@@ -68,7 +68,7 @@ export default async function SeriesIndexFav({ lang, intl }) {
   return (
     <>
       <h2 className="flex items-center mb-4">
-        <LibraryBig className="w-7 h-7 mr-2" />
+        <LibraryBigIcon size={28} className="mr-2" />
         {intl.favorites.ttSeries}
       </h2>
 

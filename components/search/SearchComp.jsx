@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import {
-  UserRoundPen,
-  LibraryBig,
-  Book,
-  BookCopy,
-  Drama,
-  Tags,
+  ChevronLeftIcon,
+  UserRoundPenIcon,
+  LibraryBigIcon,
+  BookIcon,
+  BookCopyIcon,
+  DramaIcon,
+  TagsIcon,
 } from "lucide-react";
 
 export default function SearchComp({ lang, intl }) {
@@ -88,8 +88,9 @@ export default function SearchComp({ lang, intl }) {
     <>
       <div className="rounded-lg w-full" onClick={(e) => e.stopPropagation()}>
         <div className="relative">
-          <ChevronLeft
-            className="absolute left-4 top-3 w-7 h-7"
+          <ChevronLeftIcon
+            size={28}
+            className="absolute left-4 top-3"
             onClick={() => router.back()}
           />
 
@@ -151,20 +152,20 @@ export default function SearchComp({ lang, intl }) {
                         <p className="text-base truncate">
                           {/* Series Author */}
                           <span className="flex items-center">
-                            <UserRoundPen className="w-4 h-4 mr-1" />
+                            <UserRoundPenIcon size={16} className="mr-1" />
                             {res.writer || "Desconocido"}
                           </span>
                         </p>
                         <p className="text-base truncate">
                           {/* Series Type */}
                           <span className="flex items-center">
-                            <LibraryBig className="w-4 h-4 mr-1" />
+                            <LibraryBigIcon size={16} className="mr-1" />
                             {intl.search.series}
                           </span>
                           <span className="flex items-center capitalize">
                             {genres && (
                               <>
-                                <Drama className="w-4 h-4 mr-1" />
+                                <DramaIcon size={16} className="mr-1" />
                                 {genres}
                               </>
                             )}
@@ -176,7 +177,7 @@ export default function SearchComp({ lang, intl }) {
                         <p className="text-base truncate">
                           {/* Volumes Author */}
                           <span className="flex items-center">
-                            <UserRoundPen className="w-4 h-4 mr-1" />
+                            <UserRoundPenIcon size={16} className="mr-1" />
                             {res.writer || "Desconocido"}
                           </span>
                         </p>
@@ -184,13 +185,13 @@ export default function SearchComp({ lang, intl }) {
                           <p className="text-base truncate">
                             {/* Oneshot Type */}
                             <span className="flex items-center">
-                              <Book className="w-4 h-4 mr-1" />
+                              <BookIcon size={16} className="mr-1" />
                               Oneshot
                             </span>
                             <span className="flex items-center capitalize">
                               {genres && (
                                 <>
-                                  <Drama className="w-4 h-4 mr-1" />
+                                  <DramaIcon size={16} className="mr-1" />
                                   {genres}
                                 </>
                               )}
@@ -200,13 +201,13 @@ export default function SearchComp({ lang, intl }) {
                           <p className="text-base truncate">
                             {/* Volumes Type */}
                             <span className="flex items-center">
-                              <BookCopy className="w-4 h-4 mr-1" />
+                              <BookCopyIcon size={16} className="mr-1" />
                               {intl.search.volume}
                             </span>
                             <span className="flex items-center capitalize">
                               {genres && (
                                 <>
-                                  <Drama className="w-4 h-4 mr-1" />
+                                  <DramaIcon size={16} className="mr-1" />
                                   {genres}
                                 </>
                               )}

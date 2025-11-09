@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "../ToastProvider";
+import { useToast } from "@/components/ToastProvider";
 
 export default function ProfileForm({ user, intl }) {
   const router = useRouter();

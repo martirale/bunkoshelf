@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
-import { BookHeart } from "lucide-react";
+import { BookHeartIcon } from "lucide-react";
 import clsx from "clsx";
 
 export default function FavoritesNav({ intl }) {
@@ -14,13 +14,13 @@ export default function FavoritesNav({ intl }) {
     {
       label: intl.favorites.sectionManga,
       href: `/${currentLang}/favorites`,
-      icon: BookHeart,
+      icon: BookHeartIcon,
       isActive: pathname === `/${currentLang}/favorites`,
     },
     {
       label: intl.favorites.sectionBooks,
       href: `/${currentLang}/favorites/books`,
-      icon: BookHeart,
+      icon: BookHeartIcon,
       isActive: pathname === `/${currentLang}/favorites/books`,
     },
   ];
@@ -38,7 +38,7 @@ export default function FavoritesNav({ intl }) {
             )}
           >
             <span className="flex">
-              <Icon className="w-5 h-5 mr-1 md:mr-2" />
+              <Icon size={20} className="mr-1 md:mr-2" />
               {label}
             </span>
           </Link>

@@ -1,7 +1,7 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import SidebarMisc from "@/components/ui/SidebarMisc";
 import FavoritesNav from "@/components/favorites/FavoritesNav";
-import { Heart } from "lucide-react";
+import { HeartIcon } from "lucide-react";
 
 export default async function FavoritesLayout({ children, params }) {
   const { lang = "es" } = await params;
@@ -11,7 +11,7 @@ export default async function FavoritesLayout({ children, params }) {
     <div className="flex flex-col md:flex-row md:h-screen overflow-hidden">
       <SidebarMisc>
         <h2 className="flex items-center text-onix">
-          <Heart className="w-7 h-7 mr-2" />
+          <HeartIcon size={28} className="mr-2" />
           {intl.favorites.title}
         </h2>
 

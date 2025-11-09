@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import MangaCard from "@/components/ui/MangaCard";
-import { BookCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookCheckIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 export default function RecentlyRead({ lang, intl, maxItems = 12 }) {
   const scrollRef = useRef(null);
@@ -86,7 +86,7 @@ export default function RecentlyRead({ lang, intl, maxItems = 12 }) {
     <section className="mt-8">
       <div className="flex justify-between items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg">
-          <BookCheck className="w-6 h-6 md:w-7 md:h-7 mr-2" />
+          <BookCheckIcon size={28} className="mr-2" />
           {intl.libraries.recentlyRead}
         </h2>
         <div className="flex gap-4">
@@ -94,13 +94,19 @@ export default function RecentlyRead({ lang, intl, maxItems = 12 }) {
             onClick={() => scrollCards("left")}
             className="cursor-pointer"
           >
-            <ChevronLeft className="w-7 h-7 hover:scale-110 transition-all duration-150" />
+            <ChevronLeftIcon
+              size={28}
+              className="hover:scale-110 transition-all duration-150"
+            />
           </button>
           <button
             onClick={() => scrollCards("right")}
             className="cursor-pointer"
           >
-            <ChevronRight className="w-7 h-7 hover:scale-110 transition-all duration-150" />
+            <ChevronRightIcon
+              size={28}
+              className="hover:scale-110 transition-all duration-150"
+            />
           </button>
         </div>
       </div>

@@ -3,11 +3,11 @@
 import Link from "next/link";
 import {
   HomeIcon as House,
-  LibraryBig,
-  ChevronDown,
-  ChevronUp,
-  Heart,
-  UserRound,
+  LibraryBigIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  HeartIcon,
+  UserRoundIcon,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { usePathname, useParams } from "next/navigation";
@@ -50,7 +50,7 @@ export default function MainNav({ intl }) {
     },
     {
       label: intl.sidebar.library,
-      icon: LibraryBig,
+      icon: LibraryBigIcon,
       isDropdown: true,
       isActive: isLibraryActive,
       subItems: [
@@ -69,13 +69,13 @@ export default function MainNav({ intl }) {
     {
       label: intl.sidebar.favorites,
       href: `/${currentLang}/favorites`,
-      icon: Heart,
+      icon: HeartIcon,
       isActive: pathname.startsWith(`/${currentLang}/favorites`),
     },
     {
       label: intl.sidebar.profile,
       href: `/${currentLang}/profile`,
-      icon: UserRound,
+      icon: UserRoundIcon,
       isActive: pathname.startsWith(`/${currentLang}/profile`),
     },
   ];
@@ -96,13 +96,13 @@ export default function MainNav({ intl }) {
                 )}
               >
                 <span className="flex items-center">
-                  <link.icon className="w-5 h-5 mr-2" />
+                  <link.icon size={20} className="mr-2" />
                   {link.label}
                 </span>
                 {openLibraryMenu ? (
-                  <ChevronUp className="w-5 h-5 ml-2" />
+                  <ChevronUpIcon size={20} className="ml-2" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 ml-2" />
+                  <ChevronDownIcon size={20} className="ml-2" />
                 )}
               </button>
 
@@ -139,7 +139,7 @@ export default function MainNav({ intl }) {
                 : "border-pearl md:border-blackamber hover:text-pearl hover:border-lilah"
             )}
           >
-            <link.icon className="w-5 h-5 mr-2" />
+            <link.icon size={20} className="mr-2" />
             {link.label}
           </Link>
         );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, HeartOff } from "lucide-react";
+import { HeartIcon, HeartOffIcon } from "lucide-react";
 import clsx from "clsx";
 
 export default function ReadButtonsSeries({
@@ -53,11 +53,7 @@ export default function ReadButtonsSeries({
         )}
         title={isFavorite ? "Eliminar de favoritos" : "Marcar como favorito"}
       >
-        {isFavorite ? (
-          <HeartOff className="w-5 h-5" />
-        ) : (
-          <Heart className="w-5 h-5" />
-        )}
+        {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
       </button>
     </div>
   );

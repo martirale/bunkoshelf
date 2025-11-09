@@ -2,7 +2,7 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import { verifySession } from "@/lib/auth/verifySession";
 import SidebarMisc from "@/components/ui/SidebarMisc";
 import ProfileNav from "@/components/profile/ProfileNav";
-import { UserRound } from "lucide-react";
+import { UserRoundIcon } from "lucide-react";
 
 export default async function ProfileLayout({ children, params }) {
   const { lang = "es" } = await params;
@@ -15,12 +15,12 @@ export default async function ProfileLayout({ children, params }) {
       <SidebarMisc>
         {!user || !user.name ? (
           <h2 className="flex items-center text-onix">
-            <UserRound className="w-7 h-7 mr-2" />
+            <UserRoundIcon size={28} className="mr-2" />
             {intl.profile.title}
           </h2>
         ) : (
           <h2 className="flex items-center text-onix">
-            <UserRound className="w-7 h-7 mr-2" />
+            <UserRoundIcon size={28} className="mr-2" />
             {intl.profile.greeting} {user.name}
           </h2>
         )}

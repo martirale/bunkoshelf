@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Plus, Minus } from "lucide-react";
+import { PlusIcon, MinusIcon } from "lucide-react";
 
 export default function ReadingChallenge({ intl, lang }) {
   const [goal, setGoal] = useState(null);
@@ -123,7 +123,7 @@ export default function ReadingChallenge({ intl, lang }) {
             onClick={handleDecrement}
             className="rounded-full border border-neutral-800 p-2 hover:border-lilah cursor-pointer transition-all duration-300"
           >
-            <Minus className="w-4 h-4" />
+            <MinusIcon size={16} />
           </button>
 
           <span className="font-boldonse text-[42px] md:text-3xl mx-4 2xl:hidden leading-none">
@@ -134,7 +134,7 @@ export default function ReadingChallenge({ intl, lang }) {
             onClick={handleIncrement}
             className="rounded-full border border-neutral-800 p-2 hover:border-lilah cursor-pointer transition-all duration-300"
           >
-            <Plus className="w-4 h-4" />
+            <PlusIcon size={16} />
           </button>
         </div>
       </div>

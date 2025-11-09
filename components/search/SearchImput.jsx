@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { openSearchModal } from "@/hooks/useSearchModal";
-import { Search } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 
 export default function SearchInput({ intl }) {
   const [shortcut, setShortcut] = useState("Ctrl+K");
@@ -22,7 +22,7 @@ export default function SearchInput({ intl }) {
       onClick={openSearchModal}
     >
       <div className="p-1 ml-3">
-        <Search className="w-5 h-5" />
+        <SearchIcon size={20} />
       </div>
 
       <input

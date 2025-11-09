@@ -5,8 +5,8 @@ import MainNav from "./MainNav";
 import ChallengeProg from "./ChallengeProg";
 import FooterNav from "./FooterNav";
 import { verifySession } from "@/lib/auth/verifySession";
-import SearchInput from "../search/SearchImput";
-import SearchModal from "../search/SearchModal";
+import SearchInput from "@/components/search/SearchImput";
+import SearchModal from "@/components/search/SearchModal";
 import { getChallengeData } from "@/lib/utils";
 
 export default async function Sidebar({ lang }) {

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import clsx from "clsx";
-import { BookCheck, Ghost, Check, Heart, HeartOff } from "lucide-react";
+import {
+  BookCheckIcon,
+  HatGlassesIcon,
+  CheckIcon,
+  HeartIcon,
+  HeartOffIcon,
+} from "lucide-react";
 import MangaReader from "@/components/reader/MangaReader";
 
 export default function ReadButtonsVolume({
@@ -210,7 +216,7 @@ export default function ReadButtonsVolume({
           onClick={openNormalReader}
           className="flex items-center font-bold px-5 py-2 2xl:px-6 2xl:py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
         >
-          <BookCheck className="w-5 h-5 mr-2" />
+          <BookCheckIcon size={20} className="mr-2" />
           {intl.manga.read}
         </button>
 
@@ -219,7 +225,7 @@ export default function ReadButtonsVolume({
           title="Leer de incógnito"
           className="p-3 2xl:p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
         >
-          <Ghost className="w-5 h-5" />
+          <HatGlassesIcon size={20} />
         </button>
 
         <button
@@ -236,7 +242,7 @@ export default function ReadButtonsVolume({
             }
           )}
         >
-          <Check className="w-5 h-5" />
+          <CheckIcon size={20} />
         </button>
 
         <button
@@ -253,11 +259,7 @@ export default function ReadButtonsVolume({
             }
           )}
         >
-          {isFavorite ? (
-            <HeartOff className="w-5 h-5" />
-          ) : (
-            <Heart className="w-5 h-5" />
-          )}
+          {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
         </button>
       </div>
 

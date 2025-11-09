@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Pagination({
@@ -26,7 +26,7 @@ export default function Pagination({
         onClick={() => goToPage(currentPage - 1)}
         className="p-3 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300 disabled:hidden"
       >
-        <ChevronLeft className="w-5 h-5" />
+        <ChevronLeftIcon size={20} />
       </button>
       <span className="px-2">
         {intl.reader.page} {currentPage} / {totalPages}
@@ -36,7 +36,7 @@ export default function Pagination({
         onClick={() => goToPage(currentPage + 1)}
         className="p-3 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300 disabled:hidden"
       >
-        <ChevronRight className="w-5 h-5" />
+        <ChevronRightIcon size={20} />
       </button>
     </div>
   );

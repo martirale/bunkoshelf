@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { ArrowUpIcon, ArrowDownIcon, MinusIcon } from "lucide-react";
 import { toZonedTime } from "date-fns-tz";
 
 export default function TileMonthTrend({ title, bgColor, textColor }) {
@@ -58,7 +58,7 @@ export default function TileMonthTrend({ title, bgColor, textColor }) {
       : "text-gray-400";
 
   const IconComponent =
-    trend === "up" ? ArrowUp : trend === "down" ? ArrowDown : Minus;
+    trend === "up" ? ArrowUpIcon : trend === "down" ? ArrowDownIcon : MinusIcon;
 
   return (
     <div
@@ -69,7 +69,7 @@ export default function TileMonthTrend({ title, bgColor, textColor }) {
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
         <span>{percentageChange}%</span>
-        <IconComponent className={`w-6 h-6 ml-2 ${color}`} />
+        <IconComponent size={24} className={`ml-2 ${color}`} />
       </div>
     </div>
   );

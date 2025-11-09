@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash } from "lucide-react";
+import { TrashIcon } from "lucide-react";
 
 export default function ClearLogsButton({ onClear }) {
   async function handleClick() {
@@ -25,7 +25,7 @@ export default function ClearLogsButton({ onClear }) {
       onClick={handleClick}
       className="p-2 rounded-md border border-neutral-800 bg-blackamber hover:border-red-700 hover:bg-red-800 cursor-pointer transition-all duration-300"
     >
-      <Trash className="w-4 h-4" />
+      <TrashIcon size={16} />
     </button>
   );
 }

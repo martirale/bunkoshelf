@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Languages, LogOut, BookOpen, Settings2 } from "lucide-react";
+import {
+  LanguagesIcon,
+  LogOutIcon,
+  BookOpenIcon,
+  Settings2Icon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
@@ -74,14 +79,14 @@ export default function FooterNav({ lang, intl, user }) {
   const buttons = [
     {
       type: "link",
-      icon: BookOpen,
+      icon: BookOpenIcon,
       href: "https://bunko.amlab.site/referencia/app",
       target: "_blank",
       title: intl.tooltip.userGuide,
     },
     {
       type: "button",
-      icon: Languages,
+      icon: LanguagesIcon,
       title: intl.tooltip.switchLang,
       onClick: toggleLang,
     },
@@ -89,7 +94,7 @@ export default function FooterNav({ lang, intl, user }) {
       ? [
           {
             type: "link",
-            icon: Settings2,
+            icon: Settings2Icon,
             href: `/${lang}/settings`,
             target: "_self",
             title: intl.tooltip.settings,
@@ -100,7 +105,7 @@ export default function FooterNav({ lang, intl, user }) {
       ? [
           {
             type: "button",
-            icon: LogOut,
+            icon: LogOutIcon,
             title: intl.tooltip.logout,
             onClick: handleLogout,
           },
@@ -139,7 +144,7 @@ export default function FooterNav({ lang, intl, user }) {
                 {...props}
                 className="border border-stone-300 md:border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
               >
-                <Icon className="w-5 h-5" />
+                <Icon size={20} />
               </button>
             ) : (
               <Link
@@ -150,7 +155,7 @@ export default function FooterNav({ lang, intl, user }) {
                 title={props.title}
                 className="border border-stone-300 md:border-neutral-800 rounded-lg p-2 hover:text-pearl transition-all duration-300 hover:border-lilah"
               >
-                <Icon className="w-5 h-5" />
+                <Icon size={20} />
               </Link>
             )
           )}
