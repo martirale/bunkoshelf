@@ -22,6 +22,7 @@
     "allVolumes": "Volumes (All)",
     "wantToRead": "Want to Read",
     "showMore": "Show More",
-    "showLess": "Show Less"
+    "showLess": "Show Less",
+    "gtin": "ISBN"
   }
 }

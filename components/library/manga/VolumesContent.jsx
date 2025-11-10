@@ -167,6 +167,7 @@ export default function VolumesContent({
                 {renderMetaField(meta.editor, "editor")}
                 {renderMetaField(meta.translator, "translator")}
                 {renderMetaField(meta.publisher, "publisher")}
+                {renderMetaField(meta.gtin, "gtin")}
               </>
             );
           })()}
