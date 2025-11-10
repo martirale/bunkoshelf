@@ -80,7 +80,7 @@ export async function POST(req) {
       } catch (err) {
         console.error("Failed to delete temp folder:", tempDir, err);
       }
-    }, 60 * 60 * 1000); // 1 hora
+    }, 72 * 60 * 60 * 1000); // 72 horas
 
     const imagePaths = [];
 
