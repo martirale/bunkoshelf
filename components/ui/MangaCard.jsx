@@ -12,6 +12,7 @@ export default function MangaCard({
   isSeries,
   isOneshot,
   onGoing,
+  onPause,
   volumeCount,
   cover,
   intl,
@@ -53,6 +54,11 @@ export default function MangaCard({
         {onGoing && (
           <span className="absolute top-2 right-2 z-10 bg-cyan-500 text-white text-xs uppercase py-0.5 px-1 rounded">
             {t.manga.onGoing}
+          </span>
+        )}
+        {onPause && (
+          <span className="absolute top-2 right-2 z-10 bg-yellow-500 text-onix text-xs uppercase py-0.5 px-1 rounded">
+            {t.manga.hiatus}
           </span>
         )}
         <Image

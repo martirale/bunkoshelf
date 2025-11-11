@@ -91,6 +91,8 @@ export default async function SeriesIndexFav({ lang, intl }) {
               href={href}
               isSeries={isSeries}
               isOneshot={isOneshot}
+              onGoing={entry.status === "ONGOING"}
+              onPause={entry.status === "HIATUS"}
               volumeCount={isSeries ? entry.volumes.length : null}
               cover={coverImage}
               intl={intl}
