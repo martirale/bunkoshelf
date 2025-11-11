@@ -43,6 +43,7 @@ export default function ReadButtonsSeries({
 
   return (
     <div className="flex flex-row mt-4 gap-2">
+      <StatusSelect lang={lang} intl={intl} seriesId={seriesId} />
       <button
         onClick={toggleFavorite}
         disabled={isLoading}
@@ -56,7 +57,6 @@ export default function ReadButtonsSeries({
       >
         {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
       </button>
-      <StatusSelect lang={lang} intl={intl} seriesId={seriesId} />
     </div>
   );
 }
