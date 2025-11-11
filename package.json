@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "0.6.1",
+    "@paralleldrive/cuid2": "3.0.4",
     "@prisma/client": "6.7.0",
     "adm-zip": "0.5.16",
     "bcryptjs": "3.0.2",

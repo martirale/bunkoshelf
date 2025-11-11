@@ -9,14 +9,14 @@ datasource db {
 
 // Users
 model User {
-  id               Int      @id @default(autoincrement())
-  createdAt        DateTime @default(now())
-  username         String   @unique
-  password         String
-  isAdmin          Boolean  @default(false)
-  name             String?
-  lastname         String?
-  birthYear        Int?
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  username  String   @unique
+  password  String
+  isAdmin   Boolean  @default(false)
+  name      String?
+  lastname  String?
+  birthYear Int?
 
   seriesProgress   UserToSeries[]
   volumeProgress   UserToVolume[]
@@ -26,13 +26,13 @@ model User {
 }
 
 model ReadingChallenge {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 
-  year      Int
-  goal      Int
-  notified  Boolean  @default(false)
+  year     Int
+  goal     Int
+  notified Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -41,56 +41,56 @@ model ReadingChallenge {
 }
 
 model PushSubscription {
-  id         Int      @id @default(autoincrement())
-  endpoint   String   @unique
-  keys       Json
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     Int
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  keys      Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
 
   @@index([userId])
 }
 
 // Library Status
 model UserToSeries {
-  id         Int         @id @default(autoincrement())
+  id         String      @id @default(cuid())
   user       User        @relation(fields: [userId], references: [id])
-  userId     Int
+  userId     String
   series     MangaSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  seriesId   Int
+  seriesId   String
   isFavorite Boolean     @default(false)
 
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, seriesId])
 }
 
 model UserToVolume {
-  id         Int          @id @default(autoincrement())
-  user       User         @relation(fields: [userId], references: [id])
-  userId     Int
-  volume     MangaVolume  @relation(fields: [volumeId], references: [id], onDelete: Cascade)
-  volumeId   Int
+  id       String      @id @default(cuid())
+  user     User        @relation(fields: [userId], references: [id])
+  userId   String
+  volume   MangaVolume @relation(fields: [volumeId], references: [id], onDelete: Cascade)
+  volumeId String
 
-  isRead     Boolean      @default(false)
-  isFavorite Boolean      @default(false)
+  isRead     Boolean @default(false)
+  isFavorite Boolean @default(false)
 
   lastPage   Int?
   totalPages Int?
   lastReadAt DateTime?
   firstRead  String?
 
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, volumeId])
 }
 
 model DailyReadingLog {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 
   date      String
   createdAt DateTime @default(now())
@@ -100,148 +100,148 @@ model DailyReadingLog {
 
 // Manga Library
 model MangaSeries {
-  id            Int             @id @default(autoincrement())
-  slug          String          @unique
-  title         String
-  path          String
-  isOneshot     Boolean         @default(false)
-  mtime         DateTime        @default(now())
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  path      String
+  isOneshot Boolean  @default(false)
+  mtime     DateTime @default(now())
 
-  volumes       MangaVolume[]
+  volumes MangaVolume[]
 
-  metadataObj   SeriesMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
-  metadataId    String?         @unique
+  metadataObj SeriesMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
+  metadataId  String?         @unique
 
-  genres        SeriesToGenre[]
+  genres SeriesToGenre[]
 
   usersProgress UserToSeries[]
 
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model MangaVolume {
-  id            Int             @id @default(autoincrement())
-  slug          String          @unique
-  title         String
-  filename      String
-  fullPath      String
-  size          Int             @default(0)
-  mtime         DateTime        @default(now())
-  coverImage    String?
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  title      String
+  filename   String
+  fullPath   String
+  size       Int      @default(0)
+  mtime      DateTime @default(now())
+  coverImage String?
 
-  series        MangaSeries     @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  seriesId      Int
+  series   MangaSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  seriesId String
 
-  metadataObj   VolumeMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
-  metadataId    String?         @unique
+  metadataObj VolumeMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
+  metadataId  String?         @unique
 
-  genres        VolumeToGenre[]
-  tags          VolumeToTag[]
+  genres VolumeToGenre[]
+  tags   VolumeToTag[]
 
   usersProgress UserToVolume[]
 
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Manga Metadata
 model VolumeMetadata {
-  id            String     @id @default(cuid())
-  filePath      String     @unique
+  id       String @id @default(cuid())
+  filePath String @unique
 
-  series        String?
-  title         String?
-  number        Float?
-  count         Int?
+  series String?
+  title  String?
+  number Float?
+  count  Int?
 
-  publisher     String?
-  languageISO   String?
-  ageRating     String?
+  publisher   String?
+  languageISO String?
+  ageRating   String?
 
-  writer        String?
-  penciller     String?
-  inker         String?
-  colorist      String?
-  letterer      String?
-  coverArtist   String?
-  editor        String?
-  translator    String?
+  writer      String?
+  penciller   String?
+  inker       String?
+  colorist    String?
+  letterer    String?
+  coverArtist String?
+  editor      String?
+  translator  String?
 
-  summary       String?
-  web           String?
+  summary String?
+  web     String?
 
-  year          Int?
-  month         Int?
-  day           Int?
+  year  Int?
+  month Int?
+  day   Int?
 
-  gtin          String?
-  mangaStyle    String?
+  gtin       String?
+  mangaStyle String?
 
   mangaVolume MangaVolume? @relation
 
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model SeriesMetadata {
-  id            String      @id @default(cuid())
-  folderPath    String      @unique
+  id         String @id @default(cuid())
+  folderPath String @unique
 
-  series        String?
-  summary       String?
-  publisher     String?
-  genre         String?
-  languageISO   String?
-  writer        String?
-  artist        String?
+  series      String?
+  summary     String?
+  publisher   String?
+  genre       String?
+  languageISO String?
+  writer      String?
+  artist      String?
 
-  mangaSeries MangaSeries?  @relation
+  mangaSeries MangaSeries? @relation
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Genres and Tags
 model Genre {
-  id       Int             @id @default(autoincrement())
-  name     String          @unique
-  volumes  VolumeToGenre[]
-  series   SeriesToGenre[]
+  id      String          @id @default(cuid())
+  name    String          @unique
+  volumes VolumeToGenre[]
+  series  SeriesToGenre[]
 }
 
 model Tag {
-  id       Int             @id @default(autoincrement())
-  name     String          @unique
-  volumes  VolumeToTag[]
+  id      String        @id @default(cuid())
+  name    String        @unique
+  volumes VolumeToTag[]
 }
 
 model VolumeToGenre {
-  id        Int          @id @default(autoincrement())
-  volume    MangaVolume  @relation(fields: [volumeId], references: [id], onDelete: Cascade)
-  volumeId  Int
-  genre     Genre        @relation(fields: [genreId], references: [id])
-  genreId   Int
+  id       String      @id @default(cuid())
+  volume   MangaVolume @relation(fields: [volumeId], references: [id], onDelete: Cascade)
+  volumeId String
+  genre    Genre       @relation(fields: [genreId], references: [id])
+  genreId  String
 
   @@unique([volumeId, genreId])
 }
 
 model VolumeToTag {
-  id        Int          @id @default(autoincrement())
-  volume    MangaVolume  @relation(fields: [volumeId], references: [id], onDelete: Cascade)
-  volumeId  Int
-  tag       Tag          @relation(fields: [tagId], references: [id])
-  tagId     Int
+  id       String      @id @default(cuid())
+  volume   MangaVolume @relation(fields: [volumeId], references: [id], onDelete: Cascade)
+  volumeId String
+  tag      Tag         @relation(fields: [tagId], references: [id])
+  tagId    String
 
   @@unique([volumeId, tagId])
 }
 
 model SeriesToGenre {
-  id        Int          @id @default(autoincrement())
-  series    MangaSeries  @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  seriesId  Int
-  genre     Genre        @relation(fields: [genreId], references: [id])
-  genreId   Int
+  id       String      @id @default(cuid())
+  series   MangaSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  seriesId String
+  genre    Genre       @relation(fields: [genreId], references: [id])
+  genreId  String
 
   @@unique([seriesId, genreId])
 }
