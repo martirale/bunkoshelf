@@ -45,6 +45,14 @@ export default function StatusSelect({ lang, intl, seriesId, initStatus }) {
   );
   const CurrentIcon = currentOption?.icon || CircleFadingArrowUpIcon;
 
+  const COLOR_MAP = {
+    ONGOING: "text-cyan-500",
+    FINISHED: "text-green-600",
+    HIATUS: "text-yellow-500",
+    CANCELLED: "text-red-500",
+  };
+  const iconColorClass = COLOR_MAP[currentStatus] || "text-sand";
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (selectRef.current && !selectRef.current.contains(event.target)) {
@@ -85,7 +93,10 @@ export default function StatusSelect({ lang, intl, seriesId, initStatus }) {
         )}
         title={currentOption?.label || "Seleccionar estado"}
       >
-        <CurrentIcon size={20} />
+        <CurrentIcon
+          size={20}
+          className={clsx(iconColorClass, "transition-colors")}
+        />
       </button>
 
       {isOpen && (
