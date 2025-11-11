@@ -145,6 +145,7 @@ export default async function SeriesIndex({
               href={href}
               isSeries={isSeries}
               isOneshot={isOneshot}
+              onGoing={entry.status === "ONGOING"}
               volumeCount={isSeries ? entry.volumes.length : null}
               cover={coverImage}
               intl={intl}

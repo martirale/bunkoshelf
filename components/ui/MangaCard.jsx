@@ -11,12 +11,14 @@ export default function MangaCard({
   href,
   isSeries,
   isOneshot,
+  onGoing,
   volumeCount,
   cover,
   intl,
   isDragging,
   className,
 }) {
+  const t = intl;
   const [progress, setProgress] = useState(null);
 
   useEffect(() => {
@@ -46,6 +48,11 @@ export default function MangaCard({
         {isOneshot && (
           <span className="absolute top-2 right-2 z-10 bg-lilah text-xs uppercase py-0.5 px-1 rounded">
             Oneshot
+          </span>
+        )}
+        {onGoing && (
+          <span className="absolute top-2 right-2 z-10 bg-cyan-500 text-white text-xs uppercase py-0.5 px-1 rounded">
+            {t.manga.onGoing}
           </span>
         )}
         <Image
