@@ -46,21 +46,6 @@ export default function MangaCard({
       )}
     >
       <div className="relative aspect-[7/10.5] w-full flex-shrink-0">
-        {isOneshot && (
-          <span className="absolute top-2 right-2 z-10 bg-lilah text-xs uppercase py-0.5 px-1 rounded">
-            Oneshot
-          </span>
-        )}
-        {onGoing && (
-          <span className="absolute top-2 right-2 z-10 bg-cyan-500 text-white text-xs uppercase py-0.5 px-1 rounded">
-            {t.manga.onGoing}
-          </span>
-        )}
-        {onPause && (
-          <span className="absolute top-2 right-2 z-10 bg-yellow-500 text-onix text-xs uppercase py-0.5 px-1 rounded">
-            {t.manga.hiatus}
-          </span>
-        )}
         <Image
           src={cover || "/placeholder.svg?=v1"}
           alt={`Cover for ${title}`}
@@ -88,11 +73,30 @@ export default function MangaCard({
           {title}
         </h3>
 
-        {isSeries && volumeCount != null && (
-          <p className="mt-2 text-xs uppercase text-neutral-500">
-            {volumeCount} {intl.manga.volumes}
-          </p>
-        )}
+        <div className="relative flex items-end justify-between gap-1">
+          {isSeries && volumeCount != null && (
+            <>
+              <p className="mt-2 text-xs uppercase text-neutral-500">
+                {volumeCount} {intl.manga.volumes}
+              </p>
+              {onGoing && (
+                <span className="bg-cyan-500 text-white text-xs uppercase py-0.5 px-1 rounded">
+                  {t.manga.onGoing}
+                </span>
+              )}
+              {onPause && (
+                <span className="bg-yellow-500 text-onix text-xs uppercase py-0.5 px-1 rounded">
+                  {t.manga.hiatus}
+                </span>
+              )}
+            </>
+          )}
+          {isOneshot && (
+            <span className="bg-lilah text-xs uppercase py-0.5 px-1 rounded">
+              Oneshot
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );
