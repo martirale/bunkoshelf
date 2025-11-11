@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { HeartIcon, HeartOffIcon } from "lucide-react";
 import clsx from "clsx";
+import StatusSelect from "./StatusSelect";
 
 export default function ReadButtonsSeries({
   lang,
@@ -55,6 +56,7 @@ export default function ReadButtonsSeries({
       >
         {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
       </button>
+      <StatusSelect lang={lang} intl={intl} seriesId={seriesId} />
     </div>
   );
 }

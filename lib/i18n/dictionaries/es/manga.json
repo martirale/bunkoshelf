@@ -23,6 +23,10 @@
     "wantToRead": "Por leer",
     "showMore": "Mostrar más",
     "showLess": "Mostrar menos",
-    "gtin": "ISBN"
+    "gtin": "ISBN",
+    "onGoing": "En curso",
+    "finished": "Finalizado",
+    "hiatus": "En pausa",
+    "cancelled": "Cancelado"
   }
 }
