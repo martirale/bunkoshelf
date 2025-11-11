@@ -106,14 +106,13 @@ model MangaSeries {
   path      String
   isOneshot Boolean  @default(false)
   mtime     DateTime @default(now())
-
-  volumes MangaVolume[]
+  status    String   @default("ONGOING")
 
   metadataObj SeriesMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
   metadataId  String?         @unique
 
-  genres SeriesToGenre[]
-
+  volumes       MangaVolume[]
+  genres        SeriesToGenre[]
   usersProgress UserToSeries[]
 
   createdAt DateTime @default(now())

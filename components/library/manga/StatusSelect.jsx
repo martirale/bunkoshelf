@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 
-export default function StatusSelect({ lang, intl, seriesId, initStatus }) {
+export default function StatusSelect({ lang, intl, seriesId }) {
   const t = intl;
 
   const STATUS_OPTIONS = [
@@ -35,7 +35,7 @@ export default function StatusSelect({ lang, intl, seriesId, initStatus }) {
     },
   ];
 
-  const [currentStatus, setCurrentStatus] = useState(initStatus);
+  const [currentStatus, setCurrentStatus] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const selectRef = useRef(null);
@@ -52,6 +52,33 @@ export default function StatusSelect({ lang, intl, seriesId, initStatus }) {
     CANCELLED: "text-red-500",
   };
   const iconColorClass = COLOR_MAP[currentStatus] || "text-sand";
+
+  useEffect(() => {
+    let mounted = true;
+
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(
+          `/api/library/manga/series/status?seriesId=${encodeURIComponent(
+            String(seriesId)
+          )}`
+        );
+        if (res.ok) {
+          const status = await res.text();
+          if (mounted) setCurrentStatus(status || null);
+        }
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+
+    if (seriesId) load();
+
+    return () => {
+      mounted = false;
+    };
+  }, [seriesId]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -71,14 +98,23 @@ export default function StatusSelect({ lang, intl, seriesId, initStatus }) {
 
   const handleStatusChange = async (newStatus) => {
     setIsLoading(true);
-    setIsOpen(false);
-
     try {
-      setCurrentStatus(newStatus);
-    } catch (err) {
-      console.error("Request error:", err);
+      const res = await fetch("/api/library/manga/series/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seriesId: String(seriesId), status: newStatus }),
+      });
+
+      if (res.ok) {
+        const updated = await res.text();
+        setCurrentStatus(updated || newStatus);
+      } else {
+        const errText = await res.text().catch(() => null);
+        console.error("Failed to update status", res.status, errText);
+      }
     } finally {
       setIsLoading(false);
+      setIsOpen(false);
     }
   };
 
