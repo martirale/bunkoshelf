@@ -11,6 +11,8 @@
     "start:prod": "prisma migrate deploy && next start"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.930.0",
+    "@aws-sdk/s3-request-presigner": "3.930.0",
     "@formatjs/intl-localematcher": "0.6.1",
     "@paralleldrive/cuid2": "3.0.4",
     "@prisma/client": "6.7.0",
