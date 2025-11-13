@@ -11,7 +11,6 @@ import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getBuildInfo } from "@/lib/utils";
 import Link from "next/link";
-import AdminStatsPanel from "@/components/stats/AdminPanel";
 import ClearLogsButton from "@/components/settings/ClearLogsButton";
 import UsersTable from "@/components/settings/UsersTable";
 import AddUserButton from "@/components/settings/AddUserButton";
@@ -60,13 +59,9 @@ export default async function SettingsPage({ params }) {
       </h2>
 
       <div className="flex flex-col 2xl:flex-row gap-4">
+        {/* About Bunko */}
         <div className="2xl:flex-1/2">
-          <div className="mb-4">
-            <AdminStatsPanel intl={intl} />
-          </div>
-
-          {/* About Bunko */}
-          <div className="bg-blackamber p-4 rounded-lg h-[196px] 2xl:h-[256px] flex flex-col justify-between">
+          <div className="bg-blackamber p-4 rounded-lg h-64 2xl:h-96 flex flex-col justify-between">
             <div>
               <h3 className="text-base mb-2">{intl.settings.infoServerTt}</h3>
               <p>{intl.settings.infoServerDesc}</p>
