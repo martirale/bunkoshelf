@@ -6,6 +6,7 @@ import {
   ScanSearchIcon,
   DatabaseBackupIcon,
   Loader2Icon,
+  ServerIcon,
 } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import useScanPolling from "@/hooks/useScanPolling";
@@ -94,6 +95,11 @@ export default function LibSettingsButtons({ lang, intl }) {
       onClick: handleDownload,
       disabled: loading,
     },
+    // {
+    //   key: "provider",
+    //   label: "Almacenamiento",
+    //   icon: ServerIcon,
+    // },
   ];
 
   function ActionButton({ action }) {
