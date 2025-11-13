@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import crypto from "crypto";
 import { verifySession } from "@/lib/auth/verifySession";
 import { log } from "@/lib/logger";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -12,6 +14,10 @@ export const maxDuration = 300;
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
 const TEMP_PATH = path.resolve(process.cwd(), "../temp");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
+
+function generateChecksum() {
+  return crypto.randomBytes(8).toString("hex");
+}
 
 export async function POST(request) {
   const session = await verifySession();
@@ -53,6 +59,9 @@ export async function POST(request) {
 
     if (chunkIndex === totalChunks - 1) {
       const libraryType = type === "manga" ? "manga" : "books";
+      const fileBuffer = await fs.readFile(tempFilePath);
+      const checksum = generateChecksum();
+      const txtFileName = `${path.parse(fileName).name}.txt`;
 
       if (LIB_PROVIDER === "cloud") {
         const suffix = isOneshot ? " [oneshot]" : "";
@@ -60,8 +69,10 @@ export async function POST(request) {
         const r2Key = `library/${libraryType}/${directoryName}${
           isNew ? suffix : ""
         }/${fileName}`;
+        const txtKey = `library/${libraryType}/${directoryName}${
+          isNew ? suffix : ""
+        }/${txtFileName}`;
 
-        const fileBuffer = await fs.readFile(tempFilePath);
         const command = new PutObjectCommand({
           Bucket: R2_BUCKET,
           Key: r2Key,
@@ -69,6 +80,22 @@ export async function POST(request) {
         });
 
         await r2Client.send(command);
+
+        const txtCommand = new PutObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: txtKey,
+          Body: checksum,
+          ContentType: "text/plain",
+        });
+
+        await r2Client.send(txtCommand);
+
+        await prisma.fileChecksum.upsert({
+          where: { filePath: `/${txtKey}` },
+          update: { checksum },
+          create: { filePath: `/${txtKey}`, checksum },
+        });
+
         await fs.unlink(tempFilePath);
 
         if (fileIndex === totalFiles - 1) {
@@ -102,7 +129,17 @@ export async function POST(request) {
         }
 
         const finalPath = path.join(targetDirectory, fileName);
+        const txtPath = path.join(targetDirectory, txtFileName);
+
         await fs.copyFile(tempFilePath, finalPath);
+        await fs.writeFile(txtPath, checksum, "utf8");
+
+        await prisma.fileChecksum.upsert({
+          where: { filePath: txtPath },
+          update: { checksum },
+          create: { filePath: txtPath, checksum },
+        });
+
         await fs.unlink(tempFilePath);
 
         if (fileIndex === totalFiles - 1) {
