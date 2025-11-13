@@ -4,7 +4,7 @@ import path from "path";
 import crypto from "crypto";
 import { verifySession } from "@/lib/auth/verifySession";
 import { log } from "@/lib/logger";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import prisma from "@/lib/prisma";
 
@@ -17,6 +17,15 @@ const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
 function generateChecksum() {
   return crypto.randomBytes(8).toString("hex");
+}
+
+async function fileExistsInR2(key) {
+  try {
+    await r2Client.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(request) {
@@ -73,6 +82,8 @@ export async function POST(request) {
           isNew ? suffix : ""
         }/${txtFileName}`;
 
+        const fileExists = await fileExistsInR2(r2Key);
+
         const command = new PutObjectCommand({
           Bucket: R2_BUCKET,
           Key: r2Key,
@@ -90,11 +101,11 @@ export async function POST(request) {
 
         await r2Client.send(txtCommand);
 
-        await prisma.fileChecksum.upsert({
-          where: { filePath: `/${txtKey}` },
-          update: { checksum },
-          create: { filePath: `/${txtKey}`, checksum },
-        });
+        if (!fileExists) {
+          await prisma.fileChecksum.create({
+            data: { filePath: `/${txtKey}`, checksum },
+          });
+        }
 
         await fs.unlink(tempFilePath);
 
@@ -131,14 +142,20 @@ export async function POST(request) {
         const finalPath = path.join(targetDirectory, fileName);
         const txtPath = path.join(targetDirectory, txtFileName);
 
+        let fileExists = false;
+        try {
+          await fs.access(finalPath);
+          fileExists = true;
+        } catch {}
+
         await fs.copyFile(tempFilePath, finalPath);
         await fs.writeFile(txtPath, checksum, "utf8");
 
-        await prisma.fileChecksum.upsert({
-          where: { filePath: txtPath },
-          update: { checksum },
-          create: { filePath: txtPath, checksum },
-        });
+        if (!fileExists) {
+          await prisma.fileChecksum.create({
+            data: { filePath: txtPath, checksum },
+          });
+        }
 
         await fs.unlink(tempFilePath);
 
