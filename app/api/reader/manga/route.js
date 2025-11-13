@@ -4,11 +4,14 @@ import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import prisma from "@/lib/prisma";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const validImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
-
-// Objeto global en memoria para almacenar directorios temporales por volumen
 const activeVolumes = new Map();
+
+const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
 export async function POST(req) {
   const { slug } = await req.json();
@@ -25,26 +28,28 @@ export async function POST(req) {
     return NextResponse.json({ error: "Volume not found" }, { status: 404 });
   }
 
-  const zipPath = volume.fullPath;
-
   try {
-    // Verificar si ya tenemos un directorio temporal activo para el volumen
     if (activeVolumes.has(slug)) {
       const tempDir = await activeVolumes.get(slug);
 
-      // Validar si el directorio aún existe en disco
       try {
         await fs.access(tempDir);
         const imagePaths = await getImagePathsFromDir(tempDir);
         return NextResponse.json({ images: imagePaths });
       } catch (err) {
-        // El directorio ya no existe, lo eliminamos del mapa
         activeVolumes.delete(slug);
       }
     }
 
-    // Si no existe, proceder a crear un nuevo directorio temporal
-    const zip = new AdmZip(zipPath);
+    let zipBuffer;
+
+    if (LIB_PROVIDER === "cloud") {
+      zipBuffer = await downloadFromR2(volume.fullPath);
+    } else {
+      zipBuffer = await fs.readFile(volume.fullPath);
+    }
+
+    const zip = new AdmZip(zipBuffer);
     const zipEntries = zip.getEntries();
 
     const entries = zipEntries
@@ -69,18 +74,16 @@ export async function POST(req) {
 
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "bunko-reader-"));
 
-    // Agregar el nuevo directorio a la memoria global
     activeVolumes.set(slug, tempDir);
 
     setTimeout(async () => {
       try {
         await fs.rm(tempDir, { recursive: true, force: true });
-        activeVolumes.delete(slug); // Limpiar el mapa después de la eliminación
-        console.log("Temp folder deleted:", tempDir);
+        activeVolumes.delete(slug);
       } catch (err) {
         console.error("Failed to delete temp folder:", tempDir, err);
       }
-    }, 72 * 60 * 60 * 1000); // 72 horas
+    }, 72 * 60 * 60 * 1000);
 
     const imagePaths = [];
 
@@ -109,7 +112,26 @@ export async function POST(req) {
   }
 }
 
-// Función para obtener las imágenes desde un directorio temporal existente
+async function downloadFromR2(fullPath) {
+  const key = fullPath.replace(/^\//, "");
+
+  const command = new GetObjectCommand({
+    Bucket: R2_BUCKET,
+    Key: key,
+  });
+
+  const signedUrl = await getSignedUrl(r2Client, command, { expiresIn: 3600 });
+
+  const response = await fetch(signedUrl);
+
+  if (!response.ok) {
+    throw new Error(`Failed to download from R2: ${response.statusText}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
 async function getImagePathsFromDir(tempDir) {
   const files = await fs.readdir(tempDir);
   return files
