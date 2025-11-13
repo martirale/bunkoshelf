@@ -6,7 +6,6 @@ import { verifySession } from "@/lib/auth/verifySession";
 import { log } from "@/lib/logger";
 import { PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
-import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -82,8 +81,6 @@ export async function POST(request) {
           isNew ? suffix : ""
         }/${txtFileName}`;
 
-        const fileExists = await fileExistsInR2(r2Key);
-
         const command = new PutObjectCommand({
           Bucket: R2_BUCKET,
           Key: r2Key,
@@ -100,12 +97,6 @@ export async function POST(request) {
         });
 
         await r2Client.send(txtCommand);
-
-        if (!fileExists) {
-          await prisma.fileChecksum.create({
-            data: { filePath: `/${txtKey}`, checksum },
-          });
-        }
 
         await fs.unlink(tempFilePath);
 
@@ -142,20 +133,8 @@ export async function POST(request) {
         const finalPath = path.join(targetDirectory, fileName);
         const txtPath = path.join(targetDirectory, txtFileName);
 
-        let fileExists = false;
-        try {
-          await fs.access(finalPath);
-          fileExists = true;
-        } catch {}
-
         await fs.copyFile(tempFilePath, finalPath);
         await fs.writeFile(txtPath, checksum, "utf8");
-
-        if (!fileExists) {
-          await prisma.fileChecksum.create({
-            data: { filePath: txtPath, checksum },
-          });
-        }
 
         await fs.unlink(tempFilePath);
 
