@@ -6,6 +6,7 @@ import fs from "fs/promises";
 import path from "path";
 import prisma from "@/lib/prisma";
 import { ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 export const runtime = "nodejs";
@@ -87,14 +88,24 @@ async function checksumVerification() {
               Key: correspondingTxt.key,
             });
 
-            const txtResponse = await r2Client.send(getCommand);
-            const txtContent = await txtResponse.Body.transformToString();
+            const presignedUrl = await getSignedUrl(r2Client, getCommand, {
+              expiresIn: 300,
+            });
+
+            const txtResponse = await fetch(presignedUrl);
+            if (!txtResponse.ok) {
+              needsIndexing = true;
+              break;
+            }
+
+            const txtContent = await txtResponse.text();
+            const checksumFromFile = txtContent.trim();
 
             const dbRecord = await prisma.fileChecksum.findUnique({
               where: { filePath: correspondingTxt.path },
             });
 
-            if (!dbRecord || dbRecord.checksum !== txtContent.trim()) {
+            if (!dbRecord || dbRecord.checksum !== checksumFromFile) {
               needsIndexing = true;
               break;
             }
@@ -147,12 +158,13 @@ async function checksumVerification() {
 
           const txtPath = path.join(entryPath, correspondingTxt);
           const txtContent = await fs.readFile(txtPath, "utf-8");
+          const checksumFromFile = txtContent.trim();
 
           const dbRecord = await prisma.fileChecksum.findUnique({
             where: { filePath: txtPath },
           });
 
-          if (!dbRecord || dbRecord.checksum !== txtContent.trim()) {
+          if (!dbRecord || dbRecord.checksum !== checksumFromFile) {
             needsIndexing = true;
             break;
           }
