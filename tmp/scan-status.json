@@ -1,0 +1,14 @@
+{
+  "startedAt": "2025-11-13T22:09:53.539Z",
+  "status": "done",
+  "currentTask": null,
+  "steps": {
+    "index": "done",
+    "covers": "done",
+    "metadata": "done",
+    "extractCover": "done",
+    "extractMeta": "done"
+  },
+  "error": null,
+  "finishedAt": "2025-11-13T22:10:00.343Z"
+}
