@@ -2,25 +2,42 @@ import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
 export async function POST(req) {
+  let response;
+  let error;
   try {
     const user = await verifySession();
     if (!user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      response = new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
       });
+      return response;
     }
 
     const body = await req.json();
-    const { volumeId, read, totalPages, lastReadAt, firstRead } = body;
+    const volumeId =
+      typeof body.volumeId === "string"
+        ? body.volumeId
+        : body.volumeId == null
+        ? ""
+        : String(body.volumeId);
+    const read = body.read === true || body.read === "true";
+    const totalPages =
+      body.totalPages !== undefined && body.totalPages !== null
+        ? Number(body.totalPages)
+        : undefined;
+    const lastReadAt = body.lastReadAt;
+    const firstRead = body.firstRead;
 
     if (
-      typeof volumeId !== "number" ||
+      typeof volumeId !== "string" ||
+      !volumeId ||
       typeof read !== "boolean" ||
-      (read && typeof totalPages !== "number")
+      (read && !Number.isInteger(totalPages))
     ) {
-      return new Response(JSON.stringify({ error: "Invalid payload" }), {
+      response = new Response(JSON.stringify({ error: "Invalid payload" }), {
         status: 400,
       });
+      return response;
     }
 
     const existing = await prisma.userToVolume.findUnique({
@@ -42,7 +59,6 @@ export async function POST(req) {
       lastReadAt: read ? new Date(lastReadAt || Date.now()) : null,
     };
 
-    // Solo setear firstRead si está marcando como leído y no hay un valor previo
     if (read && !existing?.firstRead && typeof firstRead === "string") {
       updatePayload.firstRead = firstRead;
     }
@@ -63,13 +79,16 @@ export async function POST(req) {
       },
     });
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-    });
-  } catch (error) {
-    console.error("Error updating read state:", error);
-    return new Response(JSON.stringify({ error: "Server error" }), {
-      status: 500,
-    });
+    response = new Response(JSON.stringify({ success: true }), { status: 200 });
+    return response;
+  } catch (e) {
+    error = e;
+  } finally {
+    if (error) {
+      console.error("Error updating read state:", error);
+      return new Response(JSON.stringify({ error: "Server error" }), {
+        status: 500,
+      });
+    }
   }
 }

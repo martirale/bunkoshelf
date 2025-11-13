@@ -2,21 +2,35 @@ import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
 export async function POST(req) {
+  let response;
+  let error;
   try {
     const user = await verifySession();
     if (!user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      response = new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
       });
+      return response;
     }
 
     const body = await req.json();
-    const { seriesId, favorite } = body;
+    const seriesId =
+      typeof body.seriesId === "string"
+        ? body.seriesId
+        : body.seriesId == null
+        ? ""
+        : String(body.seriesId);
+    const favorite = body.favorite === true || body.favorite === "true";
 
-    if (typeof seriesId !== "number" || typeof favorite !== "boolean") {
-      return new Response(JSON.stringify({ error: "Invalid payload" }), {
+    if (
+      typeof seriesId !== "string" ||
+      !seriesId ||
+      typeof favorite !== "boolean"
+    ) {
+      response = new Response(JSON.stringify({ error: "Invalid payload" }), {
         status: 400,
       });
+      return response;
     }
 
     await prisma.userToSeries.upsert({
@@ -36,11 +50,16 @@ export async function POST(req) {
       },
     });
 
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
-  } catch (error) {
-    console.error("Error updating favorite:", error);
-    return new Response(JSON.stringify({ error: "Server error" }), {
-      status: 500,
-    });
+    response = new Response(JSON.stringify({ success: true }), { status: 200 });
+    return response;
+  } catch (e) {
+    error = e;
+  } finally {
+    if (error) {
+      console.error("Error updating favorite (series):", error);
+      return new Response(JSON.stringify({ error: "Server error" }), {
+        status: 500,
+      });
+    }
   }
 }
