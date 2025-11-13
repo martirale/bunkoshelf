@@ -7,13 +7,14 @@ import {
   DatabaseBackupIcon,
   Loader2Icon,
   ServerIcon,
+  CloudCheckIcon,
 } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import useScanPolling from "@/hooks/useScanPolling";
 import Modal from "@/components/ui/Modal";
 import UploadMangaForm from "./UploadMangaForm";
 
-export default function LibSettingsButtons({ lang, intl }) {
+export default function LibSettingsButtons({ lang, intl, libProvider }) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const { addToast, updateToast } = useToast();
   const { startPolling, loading } = useScanPolling({
@@ -72,6 +73,12 @@ export default function LibSettingsButtons({ lang, intl }) {
     }
   };
 
+  const providerLabel =
+    libProvider === "cloud"
+      ? intl.settings.storageCloud
+      : intl.settings.storageLocal;
+  const ProviderIcon = libProvider === "cloud" ? CloudCheckIcon : ServerIcon;
+
   const ACTIONS = [
     {
       key: "upload",
@@ -95,11 +102,11 @@ export default function LibSettingsButtons({ lang, intl }) {
       onClick: handleDownload,
       disabled: loading,
     },
-    // {
-    //   key: "provider",
-    //   label: "Almacenamiento",
-    //   icon: ServerIcon,
-    // },
+    {
+      key: "provider",
+      label: providerLabel,
+      icon: ProviderIcon,
+    },
   ];
 
   function ActionButton({ action }) {

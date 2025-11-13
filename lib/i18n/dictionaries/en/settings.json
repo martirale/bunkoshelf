@@ -43,6 +43,8 @@
     "uploadLibraryNewBook": "New book",
     "uploadLibraryNewFolder": "Name of the new directory",
     "uploadLibraryUploading": "Uploading...",
-    "uploadLibraryBtn": "Upload Files"
+    "uploadLibraryBtn": "Upload Files",
+    "storageLocal": "Local Library",
+    "storageCloud": "Remote Library"
   }
 }

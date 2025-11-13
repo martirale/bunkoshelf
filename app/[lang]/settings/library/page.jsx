@@ -6,6 +6,7 @@ import AdminStatsPanel from "@/components/stats/AdminPanel";
 export default async function SettingsLibraryPage({ params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
+  const libProvider = process.env.LIB_PROVIDER;
 
   return (
     <>
@@ -18,7 +19,7 @@ export default async function SettingsLibraryPage({ params }) {
         <AdminStatsPanel intl={intl} />
       </div>
 
-      <LibSettingsButtons lang={lang} intl={intl} />
+      <LibSettingsButtons lang={lang} intl={intl} libProvider={libProvider} />
     </>
   );
 }
