@@ -3,8 +3,12 @@ import fs from "fs";
 import AdmZip from "adm-zip";
 import xml2js from "xml2js";
 import prisma from "@/lib/prisma";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const parser = new xml2js.Parser();
+const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
 async function parseXmlContent(xml) {
   let error = null;
@@ -23,7 +27,50 @@ async function parseXmlContent(xml) {
   }
 }
 
-async function extractMetaCbz(filePath) {
+async function extractMetaCbzFromR2(fullPath) {
+  let error = null;
+
+  try {
+    const key = fullPath.replace(/^\//, "");
+
+    const command = new GetObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+    });
+
+    const signedUrl = await getSignedUrl(r2Client, command, {
+      expiresIn: 3600,
+    });
+    const response = await fetch(signedUrl);
+
+    if (!response.ok) {
+      console.warn(`No se pudo descargar desde R2: ${fullPath}`);
+      return null;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const zip = new AdmZip(buffer);
+    const comicInfoEntry = zip.getEntry("ComicInfo.xml");
+
+    if (!comicInfoEntry) {
+      console.warn(`ComicInfo.xml no encontrado en: ${fullPath}`);
+      return null;
+    }
+
+    const xmlContent = comicInfoEntry.getData().toString("utf8");
+    return await parseXmlContent(xmlContent);
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error(`Error extrayendo metadatos desde R2: ${fullPath}`, error);
+      return null;
+    }
+  }
+}
+
+async function extractMetaCbzLocal(filePath) {
   let error = null;
   let zip = null;
 
@@ -92,7 +139,14 @@ export async function POST() {
 
     for (const volume of volumes) {
       try {
-        const meta = await extractMetaCbz(volume.fullPath);
+        let meta;
+
+        if (LIB_PROVIDER === "cloud") {
+          meta = await extractMetaCbzFromR2(volume.fullPath);
+        } else {
+          meta = await extractMetaCbzLocal(volume.fullPath);
+        }
+
         if (!meta) {
           console.log(`Saltando volumen sin metadatos: ${volume.fullPath}`);
           continue;
