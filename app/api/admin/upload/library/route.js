@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import { verifySession } from "@/lib/auth/verifySession";
+import { ListObjectsV2Command } from "@aws-sdk/client-s3";
+import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
+const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
 export async function GET(request) {
   const session = await verifySession();
@@ -21,12 +24,33 @@ export async function GET(request) {
 
     if (action === "list") {
       const libraryType = type === "manga" ? "manga" : "books";
-      const targetPath = path.join(LIBRARY_PATH, libraryType);
 
-      const entries = await fs.readdir(targetPath, { withFileTypes: true });
-      const directories = entries
-        .filter((entry) => entry.isDirectory())
-        .map((entry) => entry.name);
+      let directories = [];
+
+      if (LIB_PROVIDER === "cloud") {
+        const prefix = `library/${libraryType}/`;
+
+        const command = new ListObjectsV2Command({
+          Bucket: R2_BUCKET,
+          Prefix: prefix,
+          Delimiter: "/",
+        });
+
+        const response = await r2Client.send(command);
+
+        if (response.CommonPrefixes) {
+          directories = response.CommonPrefixes.map((item) => {
+            const fullPath = item.Prefix;
+            return fullPath.replace(prefix, "").replace(/\/$/, "");
+          });
+        }
+      } else {
+        const targetPath = path.join(LIBRARY_PATH, libraryType);
+        const entries = await fs.readdir(targetPath, { withFileTypes: true });
+        directories = entries
+          .filter((entry) => entry.isDirectory())
+          .map((entry) => entry.name);
+      }
 
       return NextResponse.json({ directories });
     }

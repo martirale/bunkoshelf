@@ -3,12 +3,15 @@ import fs from "fs/promises";
 import path from "path";
 import { verifySession } from "@/lib/auth/verifySession";
 import { log } from "@/lib/logger";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
 const TEMP_PATH = path.resolve(process.cwd(), "../temp");
+const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
 export async function POST(request) {
   const session = await verifySession();
@@ -50,37 +53,73 @@ export async function POST(request) {
 
     if (chunkIndex === totalChunks - 1) {
       const libraryType = type === "manga" ? "manga" : "books";
-      const basePath = path.join(LIBRARY_PATH, libraryType);
 
-      let targetDirectory;
-      if (isNew && fileIndex === 0) {
+      if (LIB_PROVIDER === "cloud") {
         const suffix = isOneshot ? " [oneshot]" : "";
-        targetDirectory = path.join(basePath, `${newDirectoryName}${suffix}`);
-        await fs.mkdir(targetDirectory, { recursive: true });
-      } else if (isNew) {
-        const suffix = isOneshot ? " [oneshot]" : "";
-        targetDirectory = path.join(basePath, `${newDirectoryName}${suffix}`);
-      } else {
-        targetDirectory = path.join(basePath, existingDirectory);
-      }
+        const directoryName = isNew ? newDirectoryName : existingDirectory;
+        const r2Key = `library/${libraryType}/${directoryName}${
+          isNew ? suffix : ""
+        }/${fileName}`;
 
-      const finalPath = path.join(targetDirectory, fileName);
-      await fs.copyFile(tempFilePath, finalPath);
-      await fs.unlink(tempFilePath);
-
-      if (fileIndex === totalFiles - 1) {
-        log({
-          event: "Files uploaded to library",
-          category: "LIBRARY",
-          meta: {
-            userId: session.id,
-            username: session.username,
-            isAdmin: session.isAdmin,
-            type: libraryType,
-            directory: path.basename(targetDirectory),
-            filesCount: totalFiles,
-          },
+        const fileBuffer = await fs.readFile(tempFilePath);
+        const command = new PutObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: r2Key,
+          Body: fileBuffer,
         });
+
+        await r2Client.send(command);
+        await fs.unlink(tempFilePath);
+
+        if (fileIndex === totalFiles - 1) {
+          log({
+            event: "Files uploaded to library",
+            category: "LIBRARY",
+            meta: {
+              userId: session.id,
+              username: session.username,
+              isAdmin: session.isAdmin,
+              type: libraryType,
+              directory: directoryName,
+              filesCount: totalFiles,
+              provider: "cloud",
+            },
+          });
+        }
+      } else {
+        const basePath = path.join(LIBRARY_PATH, libraryType);
+
+        let targetDirectory;
+        if (isNew && fileIndex === 0) {
+          const suffix = isOneshot ? " [oneshot]" : "";
+          targetDirectory = path.join(basePath, `${newDirectoryName}${suffix}`);
+          await fs.mkdir(targetDirectory, { recursive: true });
+        } else if (isNew) {
+          const suffix = isOneshot ? " [oneshot]" : "";
+          targetDirectory = path.join(basePath, `${newDirectoryName}${suffix}`);
+        } else {
+          targetDirectory = path.join(basePath, existingDirectory);
+        }
+
+        const finalPath = path.join(targetDirectory, fileName);
+        await fs.copyFile(tempFilePath, finalPath);
+        await fs.unlink(tempFilePath);
+
+        if (fileIndex === totalFiles - 1) {
+          log({
+            event: "Files uploaded to library",
+            category: "LIBRARY",
+            meta: {
+              userId: session.id,
+              username: session.username,
+              isAdmin: session.isAdmin,
+              type: libraryType,
+              directory: path.basename(targetDirectory),
+              filesCount: totalFiles,
+              provider: "local",
+            },
+          });
+        }
       }
     }
 
