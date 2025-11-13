@@ -11,9 +11,15 @@ import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const COVERS_DIR = path.resolve(process.cwd(), "public/covers");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
+const CHECKSUM_STATUS_PATH = path.join(
+  process.cwd(),
+  "tmp",
+  "checksum-status.json"
+);
 
 async function extractCoverImageLocal(cbzPath, outputDir) {
   return new Promise((resolve, reject) => {
+    let _err;
     try {
       const zip = new AdmZip(cbzPath);
       const zipEntries = zip.getEntries();
@@ -39,10 +45,14 @@ async function extractCoverImageLocal(cbzPath, outputDir) {
         }
       }
 
-      reject(new Error("No valid cover image found in the CBZ file."));
+      _err = new Error("No valid cover image found in the CBZ file.");
     } catch (err) {
-      console.error(`Error extracting from ${cbzPath}:`, err);
-      reject(err);
+      _err = err;
+    } finally {
+      if (_err) {
+        console.error(`Error extracting from ${cbzPath}:`, _err);
+        reject(_err);
+      }
     }
   });
 }
@@ -91,6 +101,7 @@ async function extractCoverImageFromR2(fullPath, outputDir) {
 }
 
 async function cleanUnusedCoverDirs(validSlugs) {
+  let _err;
   try {
     const existingDirs = await fsp.readdir(COVERS_DIR, { withFileTypes: true });
 
@@ -102,9 +113,10 @@ async function cleanUnusedCoverDirs(validSlugs) {
       }
     }
   } catch (err) {
-    // Si el directorio no existe, no hay problema.
-    if (err.code !== "ENOENT") {
-      console.error("Error al limpiar directorios de portadas:", err);
+    _err = err;
+  } finally {
+    if (_err && _err.code !== "ENOENT") {
+      console.error("Error al limpiar directorios de portadas:", _err);
     }
   }
 }
@@ -112,8 +124,21 @@ async function cleanUnusedCoverDirs(validSlugs) {
 export async function POST() {
   let updated = 0;
   let errors = 0;
+  let _err;
 
   try {
+    const checksumData = await fsp.readFile(CHECKSUM_STATUS_PATH, "utf-8");
+    const { pathsToIndex } = JSON.parse(checksumData);
+
+    if (!pathsToIndex || pathsToIndex.length === 0) {
+      return NextResponse.json({
+        ok: true,
+        message: "No hay paths para extraer portadas",
+        volumesUpdated: 0,
+        errors: 0,
+      });
+    }
+
     const volumes = await prisma.mangaVolume.findMany({
       select: {
         id: true,
@@ -122,10 +147,20 @@ export async function POST() {
       },
     });
 
-    const validSlugs = volumes.map((v) => v.slug);
+    const volumesToProcess = volumes.filter((volume) => {
+      if (LIB_PROVIDER === "cloud") {
+        const volumeDir = path.dirname(volume.fullPath);
+        return pathsToIndex.includes(volumeDir);
+      } else {
+        const volumeDir = path.dirname(volume.fullPath);
+        return pathsToIndex.includes(volumeDir);
+      }
+    });
+
+    const validSlugs = volumesToProcess.map((v) => v.slug);
     await cleanUnusedCoverDirs(validSlugs);
 
-    for (const volume of volumes) {
+    for (const volume of volumesToProcess) {
       const coverOutputDir = path.join(COVERS_DIR, volume.slug);
 
       try {
@@ -173,10 +208,14 @@ export async function POST() {
       errors,
     });
   } catch (err) {
-    console.error("Error durante la extracción de portadas:", err);
-    return NextResponse.json(
-      { ok: false, error: err.message },
-      { status: 500 }
-    );
+    _err = err;
+  } finally {
+    if (_err) {
+      console.error("Error durante la extracción de portadas:", _err);
+      return NextResponse.json(
+        { ok: false, error: _err.message },
+        { status: 500 }
+      );
+    }
   }
 }

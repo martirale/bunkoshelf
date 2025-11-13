@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import crypto from "crypto";
 import prisma from "@/lib/prisma";
-import { ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library/manga");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 const SUPPORTED_EXTENSIONS = [".cbz", ".zip"];
+const CHECKSUM_STATUS_PATH = path.join(
+  process.cwd(),
+  "tmp",
+  "checksum-status.json"
+);
 
 function toSlug(str) {
   return str
@@ -18,11 +24,27 @@ function toSlug(str) {
     .replace(/^-+|-+$/g, "");
 }
 
+function generateChecksum() {
+  return crypto.randomBytes(8).toString("hex");
+}
+
 export async function POST() {
   let _err;
   try {
     let seriesCount = 0;
     let volumeCount = 0;
+
+    const checksumData = await fs.readFile(CHECKSUM_STATUS_PATH, "utf-8");
+    const { pathsToIndex } = JSON.parse(checksumData);
+
+    if (!pathsToIndex || pathsToIndex.length === 0) {
+      return NextResponse.json({
+        ok: true,
+        message: "No hay paths para indexar",
+        seriesCount: 0,
+        volumeCount: 0,
+      });
+    }
 
     if (LIB_PROVIDER === "cloud") {
       const prefix = "library/manga/";
@@ -42,6 +64,10 @@ export async function POST() {
           if (parts.length < 2) continue;
 
           const seriesName = parts[0];
+          const itemDirectory = `/${path.dirname(item.Key)}`;
+
+          if (!pathsToIndex.includes(itemDirectory)) continue;
+
           const fileName = parts[parts.length - 1];
           const ext = path.extname(fileName).toLowerCase();
 
@@ -59,8 +85,6 @@ export async function POST() {
           });
         }
       }
-
-      const volumeSlugsInCloud = new Set();
 
       for (const [seriesName, volumes] of seriesMap) {
         const isOneshot = seriesName.toLowerCase().includes("[oneshot]");
@@ -113,64 +137,58 @@ export async function POST() {
           });
 
           volumeCount++;
-          volumeSlugsInCloud.add(volSlug);
-        }
 
-        const dbVolumes = await prisma.mangaVolume.findMany({
-          where: { seriesId: mangaSeries.id },
-          select: { id: true, slug: true },
-        });
+          const txtFileName = `${path.parse(vol.fileName).name}.txt`;
+          const txtKey = `${prefix}${seriesName}/${txtFileName}`;
+          const txtPath = `/${txtKey}`;
 
-        for (const vol of dbVolumes) {
-          if (!volumeSlugsInCloud.has(vol.slug)) {
-            await prisma.mangaVolume.delete({ where: { id: vol.id } });
-          }
-        }
-      }
+          const checksum = generateChecksum();
 
-      const cloudSeriesSlugs = new Set([...seriesMap.keys()].map(toSlug));
-      const existingSeries = await prisma.mangaSeries.findMany({
-        select: { id: true, slug: true },
-      });
+          const txtCommand = new PutObjectCommand({
+            Bucket: R2_BUCKET,
+            Key: txtKey,
+            Body: checksum,
+            ContentType: "text/plain",
+          });
 
-      for (const series of existingSeries) {
-        if (!cloudSeriesSlugs.has(series.slug)) {
-          await prisma.mangaSeries.delete({ where: { id: series.id } });
+          await r2Client.send(txtCommand);
+
+          await prisma.fileChecksum.upsert({
+            where: { filePath: txtPath },
+            update: { checksum },
+            create: { filePath: txtPath, checksum },
+          });
         }
       }
     } else {
-      const dirContents = await fs.readdir(LIBRARY_PATH, {
-        withFileTypes: true,
-      });
+      for (const targetPath of pathsToIndex) {
+        const stat = await fs.stat(targetPath);
+        if (!stat.isDirectory()) continue;
 
-      for (const entry of dirContents) {
-        if (!entry.isDirectory()) continue;
-
-        const entryPath = path.join(LIBRARY_PATH, entry.name);
-        const files = await fs.readdir(entryPath);
+        const files = await fs.readdir(targetPath);
         const volumeFiles = files.filter((f) =>
           SUPPORTED_EXTENSIONS.includes(path.extname(f).toLowerCase())
         );
 
         if (volumeFiles.length === 0) continue;
 
-        const isOneshot = entry.name.toLowerCase().includes("[oneshot]");
-        const cleanTitle = entry.name.replace("[oneshot]", "").trim();
+        const dirName = path.basename(targetPath);
+        const isOneshot = dirName.toLowerCase().includes("[oneshot]");
+        const cleanTitle = dirName.replace("[oneshot]", "").trim();
         const slug = toSlug(cleanTitle);
-        const stat = await fs.stat(entryPath);
 
         const mangaSeries = await prisma.mangaSeries.upsert({
           where: { slug },
           update: {
             title: cleanTitle,
-            path: entryPath,
+            path: targetPath,
             isOneshot,
             mtime: stat.mtime,
           },
           create: {
             title: cleanTitle,
             slug,
-            path: entryPath,
+            path: targetPath,
             isOneshot,
             mtime: stat.mtime,
           },
@@ -178,10 +196,8 @@ export async function POST() {
 
         seriesCount++;
 
-        const volumeSlugsInDisk = new Set();
-
         for (const volFile of volumeFiles) {
-          const volPath = path.join(entryPath, volFile);
+          const volPath = path.join(targetPath, volFile);
           const volSlug = toSlug(path.basename(volFile, path.extname(volFile)));
           const volStat = await fs.stat(volPath);
 
@@ -207,46 +223,18 @@ export async function POST() {
           });
 
           volumeCount++;
-          volumeSlugsInDisk.add(volFile);
-        }
 
-        const dbVolumes = await prisma.mangaVolume.findMany({
-          where: { seriesId: mangaSeries.id },
-          select: { id: true, filename: true },
-        });
+          const txtFileName = `${path.parse(volFile).name}.txt`;
+          const txtPath = path.join(targetPath, txtFileName);
+          const checksum = generateChecksum();
 
-        for (const vol of dbVolumes) {
-          if (!volumeSlugsInDisk.has(vol.filename)) {
-            await prisma.mangaVolume.delete({ where: { id: vol.id } });
-          }
-        }
-      }
+          await fs.writeFile(txtPath, checksum, "utf8");
 
-      const currentPaths = new Set(
-        dirContents
-          .filter((e) => e.isDirectory())
-          .map((e) => path.join(LIBRARY_PATH, e.name))
-      );
-
-      const existingSeries = await prisma.mangaSeries.findMany({
-        select: { id: true, path: true },
-      });
-
-      for (const series of existingSeries) {
-        if (!currentPaths.has(series.path)) {
-          await prisma.mangaSeries.delete({ where: { id: series.id } });
-        }
-      }
-
-      const existingVolumes = await prisma.mangaVolume.findMany({
-        select: { id: true, fullPath: true },
-      });
-
-      for (const volume of existingVolumes) {
-        try {
-          await fs.access(volume.fullPath);
-        } catch {
-          await prisma.mangaVolume.delete({ where: { id: volume.id } });
+          await prisma.fileChecksum.upsert({
+            where: { filePath: txtPath },
+            update: { checksum },
+            create: { filePath: txtPath, checksum },
+          });
         }
       }
     }

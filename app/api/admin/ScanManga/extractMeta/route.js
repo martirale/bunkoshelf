@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
+import fsp from "fs/promises";
+import path from "path";
 import AdmZip from "adm-zip";
 import xml2js from "xml2js";
 import prisma from "@/lib/prisma";
@@ -9,6 +11,11 @@ import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const parser = new xml2js.Parser();
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
+const CHECKSUM_STATUS_PATH = path.join(
+  process.cwd(),
+  "tmp",
+  "checksum-status.json"
+);
 
 async function parseXmlContent(xml) {
   let error = null;
@@ -133,11 +140,25 @@ export async function POST() {
   let error = null;
 
   try {
+    const checksumData = await fsp.readFile(CHECKSUM_STATUS_PATH, "utf-8");
+    const { pathsToIndex } = JSON.parse(checksumData);
+
+    if (!pathsToIndex || pathsToIndex.length === 0) {
+      return NextResponse.json({
+        message: "No hay paths para extraer metadatos",
+      });
+    }
+
     const volumes = await prisma.mangaVolume.findMany({
       select: { id: true, fullPath: true },
     });
 
-    for (const volume of volumes) {
+    const volumesToProcess = volumes.filter((volume) => {
+      const volumeDir = path.dirname(volume.fullPath);
+      return pathsToIndex.includes(volumeDir);
+    });
+
+    for (const volume of volumesToProcess) {
       try {
         let meta;
 
