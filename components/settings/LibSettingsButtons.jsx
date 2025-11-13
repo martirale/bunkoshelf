@@ -71,38 +71,53 @@ export default function LibSettingsButtons({ lang, intl }) {
     }
   };
 
+  const ACTIONS = [
+    {
+      key: "upload",
+      label: intl.settings.uploadLibrary,
+      icon: FolderUpIcon,
+      onClick: handleUploadMangas,
+      disabled: loading,
+    },
+    {
+      key: "scan",
+      label: loading ? intl.settings.scanning : intl.settings.scanLibrary,
+      icon: loading ? Loader2Icon : ScanSearchIcon,
+      onClick: handleFullScan,
+      disabled: loading,
+      spinning: loading,
+    },
+    {
+      key: "backup",
+      label: intl.settings.backupdb,
+      icon: DatabaseBackupIcon,
+      onClick: handleDownload,
+      disabled: loading,
+    },
+  ];
+
+  function ActionButton({ action }) {
+    const Icon = action.icon;
+    return (
+      <button
+        onClick={action.onClick}
+        disabled={action.disabled}
+        className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
+      >
+        <Icon
+          size={36}
+          className={`mb-4 ${action.spinning ? "animate-spin" : ""}`}
+        />
+        {action.label}
+      </button>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <button
-        onClick={handleUploadMangas}
-        disabled={loading}
-        className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
-      >
-        <FolderUpIcon size={36} className="mb-4" />
-        {intl.settings.uploadLibrary}
-      </button>
-
-      <button
-        onClick={handleFullScan}
-        disabled={loading}
-        className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
-      >
-        {loading ? (
-          <Loader2Icon size={36} className="mb-4 animate-spin" />
-        ) : (
-          <ScanSearchIcon size={36} className="mb-4" />
-        )}
-        {loading ? intl.settings.scanning : intl.settings.scanLibrary}
-      </button>
-
-      <button
-        onClick={handleDownload}
-        disabled={loading}
-        className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
-      >
-        <DatabaseBackupIcon size={36} className="mb-4" />
-        {intl.settings.backupdb}
-      </button>
+      {ACTIONS.map((a) => (
+        <ActionButton key={a.key} action={a} />
+      ))}
 
       <Modal isOpen={uploadOpen} onClose={() => setUploadOpen(false)}>
         <UploadMangaForm intl={intl} />
