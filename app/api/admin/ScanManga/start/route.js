@@ -190,6 +190,15 @@ async function checksumVerification() {
   return pathsToIndex.length;
 }
 
+async function runBackgroundJob() {
+  try {
+    await checksumVerification();
+    await mainJob();
+  } catch (error) {
+    console.error("Error en el trabajo en segundo plano:", error);
+  }
+}
+
 export async function POST() {
   const session = await verifySession();
   if (!session) {
@@ -198,10 +207,9 @@ export async function POST() {
 
   let _err;
   try {
-    setTimeout(async () => {
-      await checksumVerification();
-      await mainJob();
-    }, 0);
+    runBackgroundJob().catch((error) => {
+      console.error("Error no capturado en background job:", error);
+    });
 
     log({
       event: "Library scan started",
