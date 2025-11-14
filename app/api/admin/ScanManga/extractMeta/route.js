@@ -136,14 +136,27 @@ function transformMeta(meta) {
   };
 }
 
-export async function POST() {
+export async function POST(request) {
   let error = null;
 
   try {
-    const checksumData = await fsp.readFile(CHECKSUM_STATUS_PATH, "utf-8");
-    const { filesToIndex } = JSON.parse(checksumData);
+    const body = await request.json().catch(() => ({}));
+    const forceAll = body?.forceAll === true;
 
-    if (!filesToIndex || filesToIndex.length === 0) {
+    let filesToIndex = [];
+
+    if (forceAll) {
+      const volumes = await prisma.mangaVolume.findMany({
+        select: { fullPath: true },
+      });
+      filesToIndex = volumes.map((v) => v.fullPath);
+    } else {
+      const checksumData = await fsp.readFile(CHECKSUM_STATUS_PATH, "utf-8");
+      const parsed = JSON.parse(checksumData);
+      filesToIndex = parsed.filesToIndex || [];
+    }
+
+    if (filesToIndex.length === 0) {
       return NextResponse.json({
         message: "No hay archivos para extraer metadatos",
       });

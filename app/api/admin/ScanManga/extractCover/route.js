@@ -100,37 +100,29 @@ async function extractCoverImageFromR2(fullPath, outputDir) {
   throw new Error("No valid cover image found in the CBZ file.");
 }
 
-async function cleanUnusedCoverDirs(validSlugs) {
-  let _err;
-  try {
-    const existingDirs = await fsp.readdir(COVERS_DIR, { withFileTypes: true });
-
-    for (const dirent of existingDirs) {
-      if (dirent.isDirectory() && !validSlugs.includes(dirent.name)) {
-        const dirPath = path.join(COVERS_DIR, dirent.name);
-        await fsp.rm(dirPath, { recursive: true, force: true });
-        console.log(`Directorio de portada eliminado: ${dirent.name}`);
-      }
-    }
-  } catch (err) {
-    _err = err;
-  } finally {
-    if (_err && _err.code !== "ENOENT") {
-      console.error("Error al limpiar directorios de portadas:", _err);
-    }
-  }
-}
-
-export async function POST() {
+export async function POST(request) {
   let updated = 0;
   let errors = 0;
   let _err;
 
   try {
-    const checksumData = await fsp.readFile(CHECKSUM_STATUS_PATH, "utf-8");
-    const { filesToIndex } = JSON.parse(checksumData);
+    const body = await request.json().catch(() => ({}));
+    const forceAll = body?.forceAll === true;
 
-    if (!filesToIndex || filesToIndex.length === 0) {
+    let filesToIndex = [];
+
+    if (forceAll) {
+      const volumes = await prisma.mangaVolume.findMany({
+        select: { fullPath: true },
+      });
+      filesToIndex = volumes.map((v) => v.fullPath);
+    } else {
+      const checksumData = await fsp.readFile(CHECKSUM_STATUS_PATH, "utf-8");
+      const parsed = JSON.parse(checksumData);
+      filesToIndex = parsed.filesToIndex || [];
+    }
+
+    if (filesToIndex.length === 0) {
       return NextResponse.json({
         ok: true,
         message: "No hay archivos para extraer portadas",
@@ -150,9 +142,6 @@ export async function POST() {
     const volumesToProcess = volumes.filter((volume) =>
       filesToIndex.includes(volume.fullPath)
     );
-
-    const validSlugs = volumesToProcess.map((v) => v.slug);
-    await cleanUnusedCoverDirs(validSlugs);
 
     for (const volume of volumesToProcess) {
       const coverOutputDir = path.join(COVERS_DIR, volume.slug);

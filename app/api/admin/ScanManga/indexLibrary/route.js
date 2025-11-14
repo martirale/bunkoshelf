@@ -28,16 +28,29 @@ function generateChecksum() {
   return crypto.randomBytes(8).toString("hex");
 }
 
-export async function POST() {
+export async function POST(request) {
   let _err;
   try {
+    const body = await request.json().catch(() => ({}));
+    const forceAll = body?.forceAll === true;
+
     let seriesCount = 0;
     let volumeCount = 0;
 
-    const checksumData = await fs.readFile(CHECKSUM_STATUS_PATH, "utf-8");
-    const { filesToIndex } = JSON.parse(checksumData);
+    let filesToIndex = [];
 
-    if (!filesToIndex || filesToIndex.length === 0) {
+    if (forceAll) {
+      const volumes = await prisma.mangaVolume.findMany({
+        select: { fullPath: true },
+      });
+      filesToIndex = volumes.map((v) => v.fullPath);
+    } else {
+      const checksumData = await fs.readFile(CHECKSUM_STATUS_PATH, "utf-8");
+      const parsed = JSON.parse(checksumData);
+      filesToIndex = parsed.filesToIndex || [];
+    }
+
+    if (filesToIndex.length === 0) {
       return NextResponse.json({
         ok: true,
         message: "No hay archivos para indexar",
