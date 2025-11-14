@@ -30,6 +30,8 @@ async function checksumVerification() {
 
     const response = await r2Client.send(command);
     const directoriesWithFiles = new Map();
+    const existingCbzPaths = new Set();
+    const existingTxtPaths = new Set();
 
     if (response.Contents) {
       for (const item of response.Contents) {
@@ -51,12 +53,14 @@ async function checksumVerification() {
 
         if (SUPPORTED_EXTENSIONS.includes(ext)) {
           directoriesWithFiles.get(directoryPath).cbzFiles.push(fileName);
+          existingCbzPaths.add(`/${item.Key}`);
         } else if (fileName.endsWith(".txt")) {
           directoriesWithFiles.get(directoryPath).txtFiles.push({
             key: item.Key,
             path: `/${item.Key}`,
             name: fileName,
           });
+          existingTxtPaths.add(`/${item.Key}`);
         }
       }
 
@@ -117,10 +121,42 @@ async function checksumVerification() {
         }
       }
     }
+
+    const allDbVolumes = await prisma.mangaVolume.findMany({
+      select: { fullPath: true },
+    });
+
+    for (const volume of allDbVolumes) {
+      if (!existingCbzPaths.has(volume.fullPath)) {
+        await prisma.mangaVolume.deleteMany({
+          where: { fullPath: volume.fullPath },
+        });
+
+        const txtPath = volume.fullPath.replace(/\.(cbz|zip)$/i, ".txt");
+        await prisma.fileChecksum.deleteMany({
+          where: { filePath: txtPath },
+        });
+      }
+    }
+
+    const allDbChecksums = await prisma.fileChecksum.findMany({
+      select: { filePath: true },
+    });
+
+    for (const record of allDbChecksums) {
+      if (!existingTxtPaths.has(record.filePath)) {
+        await prisma.fileChecksum.delete({
+          where: { filePath: record.filePath },
+        });
+      }
+    }
   } else {
     const dirContents = await fs.readdir(LIBRARY_PATH, {
       withFileTypes: true,
     });
+
+    const existingCbzPaths = new Set();
+    const existingTxtPaths = new Set();
 
     for (const entry of dirContents) {
       if (!entry.isDirectory()) continue;
@@ -135,6 +171,14 @@ async function checksumVerification() {
       if (cbzFiles.length === 0) continue;
 
       const txtFiles = files.filter((f) => f.endsWith(".txt"));
+
+      for (const cbzFile of cbzFiles) {
+        existingCbzPaths.add(path.join(entryPath, cbzFile));
+      }
+
+      for (const txtFile of txtFiles) {
+        existingTxtPaths.add(path.join(entryPath, txtFile));
+      }
 
       let needsIndexing = false;
 
@@ -173,6 +217,35 @@ async function checksumVerification() {
 
       if (needsIndexing && !pathsToIndex.includes(entryPath)) {
         pathsToIndex.push(entryPath);
+      }
+    }
+
+    const allDbVolumes = await prisma.mangaVolume.findMany({
+      select: { fullPath: true },
+    });
+
+    for (const volume of allDbVolumes) {
+      if (!existingCbzPaths.has(volume.fullPath)) {
+        await prisma.mangaVolume.deleteMany({
+          where: { fullPath: volume.fullPath },
+        });
+
+        const txtPath = volume.fullPath.replace(/\.(cbz|zip)$/i, ".txt");
+        await prisma.fileChecksum.deleteMany({
+          where: { filePath: txtPath },
+        });
+      }
+    }
+
+    const allDbChecksums = await prisma.fileChecksum.findMany({
+      select: { filePath: true },
+    });
+
+    for (const record of allDbChecksums) {
+      if (!existingTxtPaths.has(record.filePath)) {
+        await prisma.fileChecksum.delete({
+          where: { filePath: record.filePath },
+        });
       }
     }
   }
