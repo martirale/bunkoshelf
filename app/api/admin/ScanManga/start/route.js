@@ -264,12 +264,8 @@ async function checksumVerification() {
 }
 
 async function runBackgroundJob() {
-  try {
-    await checksumVerification();
-    await mainJob();
-  } catch (error) {
-    console.error("Error en el trabajo en segundo plano:", error);
-  }
+  await checksumVerification();
+  await mainJob();
 }
 
 export async function POST() {
@@ -280,12 +276,10 @@ export async function POST() {
 
   let _err;
   try {
-    runBackgroundJob().catch((error) => {
-      console.error("Error no capturado en background job:", error);
-    });
+    await runBackgroundJob();
 
     log({
-      event: "Library scan started",
+      event: "Library scan completed",
       category: "LIBRARY",
       meta: {
         username: session.username,
@@ -294,16 +288,16 @@ export async function POST() {
     });
 
     return NextResponse.json(
-      { ok: true, message: "Escaneo iniciado en segundo plano" },
-      { status: 202 }
+      { ok: true, message: "Escaneo completado exitosamente" },
+      { status: 200 }
     );
   } catch (error) {
     _err = error;
   } finally {
     if (_err) {
-      console.error("Error al iniciar el escaneo:", _err);
+      console.error("Error al ejecutar el escaneo:", _err);
       return NextResponse.json(
-        { ok: false, error: "Error al iniciar el escaneo" },
+        { ok: false, error: "Error al ejecutar el escaneo" },
         { status: 500 }
       );
     }
