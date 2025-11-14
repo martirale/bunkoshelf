@@ -123,8 +123,10 @@ async function checksumVerification() {
     }
 
     const allDbVolumes = await prisma.mangaVolume.findMany({
-      select: { fullPath: true },
+      select: { fullPath: true, seriesId: true },
     });
+
+    const deletedSeriesIds = new Set();
 
     for (const volume of allDbVolumes) {
       if (!existingCbzPaths.has(volume.fullPath)) {
@@ -132,9 +134,25 @@ async function checksumVerification() {
           where: { fullPath: volume.fullPath },
         });
 
+        if (volume.seriesId) {
+          deletedSeriesIds.add(volume.seriesId);
+        }
+
         const txtPath = volume.fullPath.replace(/\.(cbz|zip)$/i, ".txt");
         await prisma.fileChecksum.deleteMany({
           where: { filePath: txtPath },
+        });
+      }
+    }
+
+    for (const seriesId of deletedSeriesIds) {
+      const remainingVolumes = await prisma.mangaVolume.count({
+        where: { seriesId },
+      });
+
+      if (remainingVolumes === 0) {
+        await prisma.mangaSeries.delete({
+          where: { id: seriesId },
         });
       }
     }
@@ -221,8 +239,10 @@ async function checksumVerification() {
     }
 
     const allDbVolumes = await prisma.mangaVolume.findMany({
-      select: { fullPath: true },
+      select: { fullPath: true, seriesId: true },
     });
+
+    const deletedSeriesIds = new Set();
 
     for (const volume of allDbVolumes) {
       if (!existingCbzPaths.has(volume.fullPath)) {
@@ -230,9 +250,25 @@ async function checksumVerification() {
           where: { fullPath: volume.fullPath },
         });
 
+        if (volume.seriesId) {
+          deletedSeriesIds.add(volume.seriesId);
+        }
+
         const txtPath = volume.fullPath.replace(/\.(cbz|zip)$/i, ".txt");
         await prisma.fileChecksum.deleteMany({
           where: { filePath: txtPath },
+        });
+      }
+    }
+
+    for (const seriesId of deletedSeriesIds) {
+      const remainingVolumes = await prisma.mangaVolume.count({
+        where: { seriesId },
+      });
+
+      if (remainingVolumes === 0) {
+        await prisma.mangaSeries.delete({
+          where: { id: seriesId },
         });
       }
     }
