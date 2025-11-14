@@ -226,7 +226,7 @@ export default function UploadMangaForm({ intl }) {
         />
 
         {uploadProgress && (
-          <p className="text-sm text-pearl">{uploadProgress}</p>
+          <p className="text-sm text-onix">{uploadProgress}</p>
         )}
 
         <button
