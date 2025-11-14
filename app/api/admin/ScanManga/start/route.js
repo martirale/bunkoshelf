@@ -288,7 +288,6 @@ export async function POST() {
       event: "Library scan started",
       category: "LIBRARY",
       meta: {
-        userId: session.id,
         username: session.username,
         isAdmin: session.isAdmin,
       },
