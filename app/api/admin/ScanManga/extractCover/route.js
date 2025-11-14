@@ -128,12 +128,12 @@ export async function POST() {
 
   try {
     const checksumData = await fsp.readFile(CHECKSUM_STATUS_PATH, "utf-8");
-    const { pathsToIndex } = JSON.parse(checksumData);
+    const { filesToIndex } = JSON.parse(checksumData);
 
-    if (!pathsToIndex || pathsToIndex.length === 0) {
+    if (!filesToIndex || filesToIndex.length === 0) {
       return NextResponse.json({
         ok: true,
-        message: "No hay paths para extraer portadas",
+        message: "No hay archivos para extraer portadas",
         volumesUpdated: 0,
         errors: 0,
       });
@@ -147,15 +147,9 @@ export async function POST() {
       },
     });
 
-    const volumesToProcess = volumes.filter((volume) => {
-      if (LIB_PROVIDER === "cloud") {
-        const volumeDir = path.dirname(volume.fullPath);
-        return pathsToIndex.includes(volumeDir);
-      } else {
-        const volumeDir = path.dirname(volume.fullPath);
-        return pathsToIndex.includes(volumeDir);
-      }
-    });
+    const volumesToProcess = volumes.filter((volume) =>
+      filesToIndex.includes(volume.fullPath)
+    );
 
     const validSlugs = volumesToProcess.map((v) => v.slug);
     await cleanUnusedCoverDirs(validSlugs);

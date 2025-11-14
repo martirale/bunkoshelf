@@ -17,7 +17,7 @@ const STATUS_PATH = path.join(process.cwd(), "tmp", "checksum-status.json");
 const SUPPORTED_EXTENSIONS = [".cbz", ".zip"];
 
 async function checksumVerification() {
-  const pathsToIndex = [];
+  const filesToIndex = [];
 
   await fs.mkdir(path.dirname(STATUS_PATH), { recursive: true });
 
@@ -52,7 +52,10 @@ async function checksumVerification() {
         }
 
         if (SUPPORTED_EXTENSIONS.includes(ext)) {
-          directoriesWithFiles.get(directoryPath).cbzFiles.push(fileName);
+          directoriesWithFiles.get(directoryPath).cbzFiles.push({
+            name: fileName,
+            fullPath: `/${item.Key}`,
+          });
           existingCbzPaths.add(`/${item.Key}`);
         } else if (fileName.endsWith(".txt")) {
           directoriesWithFiles.get(directoryPath).txtFiles.push({
@@ -67,10 +70,10 @@ async function checksumVerification() {
       for (const [directoryPath, info] of directoriesWithFiles) {
         if (info.cbzFiles.length === 0) continue;
 
-        let needsIndexing = false;
-
         if (info.txtFiles.length === 0) {
-          needsIndexing = true;
+          for (const cbzFile of info.cbzFiles) {
+            filesToIndex.push(cbzFile.fullPath);
+          }
         } else {
           const txtMap = new Map();
           for (const txtFile of info.txtFiles) {
@@ -79,12 +82,12 @@ async function checksumVerification() {
           }
 
           for (const cbzFile of info.cbzFiles) {
-            const baseName = path.parse(cbzFile).name;
+            const baseName = path.parse(cbzFile.name).name;
             const correspondingTxt = txtMap.get(baseName);
 
             if (!correspondingTxt) {
-              needsIndexing = true;
-              break;
+              filesToIndex.push(cbzFile.fullPath);
+              continue;
             }
 
             const getCommand = new GetObjectCommand({
@@ -98,8 +101,8 @@ async function checksumVerification() {
 
             const txtResponse = await fetch(presignedUrl);
             if (!txtResponse.ok) {
-              needsIndexing = true;
-              break;
+              filesToIndex.push(cbzFile.fullPath);
+              continue;
             }
 
             const txtContent = await txtResponse.text();
@@ -110,14 +113,9 @@ async function checksumVerification() {
             });
 
             if (!dbRecord || dbRecord.checksum !== checksumFromFile) {
-              needsIndexing = true;
-              break;
+              filesToIndex.push(cbzFile.fullPath);
             }
           }
-        }
-
-        if (needsIndexing && !pathsToIndex.includes(directoryPath)) {
-          pathsToIndex.push(directoryPath);
         }
       }
     }
@@ -198,10 +196,10 @@ async function checksumVerification() {
         existingTxtPaths.add(path.join(entryPath, txtFile));
       }
 
-      let needsIndexing = false;
-
       if (txtFiles.length === 0) {
-        needsIndexing = true;
+        for (const cbzFile of cbzFiles) {
+          filesToIndex.push(path.join(entryPath, cbzFile));
+        }
       } else {
         const txtMap = new Map();
         for (const txtFile of txtFiles) {
@@ -210,12 +208,13 @@ async function checksumVerification() {
         }
 
         for (const cbzFile of cbzFiles) {
+          const cbzPath = path.join(entryPath, cbzFile);
           const baseName = path.parse(cbzFile).name;
           const correspondingTxt = txtMap.get(baseName);
 
           if (!correspondingTxt) {
-            needsIndexing = true;
-            break;
+            filesToIndex.push(cbzPath);
+            continue;
           }
 
           const txtPath = path.join(entryPath, correspondingTxt);
@@ -227,14 +226,9 @@ async function checksumVerification() {
           });
 
           if (!dbRecord || dbRecord.checksum !== checksumFromFile) {
-            needsIndexing = true;
-            break;
+            filesToIndex.push(cbzPath);
           }
         }
-      }
-
-      if (needsIndexing && !pathsToIndex.includes(entryPath)) {
-        pathsToIndex.push(entryPath);
       }
     }
 
@@ -289,19 +283,29 @@ async function checksumVerification() {
   await fs.writeFile(
     STATUS_PATH,
     JSON.stringify(
-      { pathsToIndex, timestamp: new Date().toISOString() },
+      { filesToIndex, timestamp: new Date().toISOString() },
       null,
       2
     ),
     "utf-8"
   );
 
-  return pathsToIndex.length;
+  return filesToIndex.length;
 }
 
 async function runBackgroundJob() {
   await checksumVerification();
   await mainJob();
+
+  await fs.writeFile(
+    STATUS_PATH,
+    JSON.stringify(
+      { filesToIndex: [], timestamp: new Date().toISOString() },
+      null,
+      2
+    ),
+    "utf-8"
+  );
 }
 
 export async function POST() {

@@ -35,12 +35,12 @@ export async function POST() {
     let volumeCount = 0;
 
     const checksumData = await fs.readFile(CHECKSUM_STATUS_PATH, "utf-8");
-    const { pathsToIndex } = JSON.parse(checksumData);
+    const { filesToIndex } = JSON.parse(checksumData);
 
-    if (!pathsToIndex || pathsToIndex.length === 0) {
+    if (!filesToIndex || filesToIndex.length === 0) {
       return NextResponse.json({
         ok: true,
-        message: "No hay paths para indexar",
+        message: "No hay archivos para indexar",
         seriesCount: 0,
         volumeCount: 0,
       });
@@ -48,42 +48,28 @@ export async function POST() {
 
     if (LIB_PROVIDER === "cloud") {
       const prefix = "library/manga/";
-      const command = new ListObjectsV2Command({
-        Bucket: R2_BUCKET,
-        Prefix: prefix,
-      });
-
-      const response = await r2Client.send(command);
       const seriesMap = new Map();
 
-      if (response.Contents) {
-        for (const item of response.Contents) {
-          const relativePath = item.Key.replace(prefix, "");
-          const parts = relativePath.split("/");
+      for (const fullPath of filesToIndex) {
+        const relativePath = fullPath.replace(/^\//, "").replace(prefix, "");
+        const parts = relativePath.split("/");
 
-          if (parts.length < 2) continue;
+        if (parts.length < 2) continue;
 
-          const seriesName = parts[0];
-          const itemDirectory = `/${path.dirname(item.Key)}`;
+        const seriesName = parts[0];
+        const fileName = parts[parts.length - 1];
+        const ext = path.extname(fileName).toLowerCase();
 
-          if (!pathsToIndex.includes(itemDirectory)) continue;
+        if (!SUPPORTED_EXTENSIONS.includes(ext)) continue;
 
-          const fileName = parts[parts.length - 1];
-          const ext = path.extname(fileName).toLowerCase();
-
-          if (!SUPPORTED_EXTENSIONS.includes(ext)) continue;
-
-          if (!seriesMap.has(seriesName)) {
-            seriesMap.set(seriesName, []);
-          }
-
-          seriesMap.get(seriesName).push({
-            fileName,
-            fullPath: `/${item.Key}`,
-            size: item.Size,
-            mtime: item.LastModified,
-          });
+        if (!seriesMap.has(seriesName)) {
+          seriesMap.set(seriesName, []);
         }
+
+        seriesMap.get(seriesName).push({
+          fileName,
+          fullPath,
+        });
       }
 
       for (const [seriesName, volumes] of seriesMap) {
@@ -121,8 +107,7 @@ export async function POST() {
               title: path.basename(vol.fileName, path.extname(vol.fileName)),
               filename: vol.fileName,
               fullPath: vol.fullPath,
-              size: vol.size,
-              mtime: vol.mtime,
+              mtime: new Date(),
               seriesId: mangaSeries.id,
             },
             create: {
@@ -130,8 +115,7 @@ export async function POST() {
               slug: volSlug,
               filename: vol.fileName,
               fullPath: vol.fullPath,
-              size: vol.size,
-              mtime: vol.mtime,
+              mtime: new Date(),
               seriesId: mangaSeries.id,
             },
           });
@@ -161,18 +145,28 @@ export async function POST() {
         }
       }
     } else {
-      for (const targetPath of pathsToIndex) {
-        const stat = await fs.stat(targetPath);
-        if (!stat.isDirectory()) continue;
+      const seriesMap = new Map();
 
-        const files = await fs.readdir(targetPath);
-        const volumeFiles = files.filter((f) =>
-          SUPPORTED_EXTENSIONS.includes(path.extname(f).toLowerCase())
-        );
+      for (const fullPath of filesToIndex) {
+        const dirPath = path.dirname(fullPath);
+        const fileName = path.basename(fullPath);
+        const dirName = path.basename(dirPath);
 
-        if (volumeFiles.length === 0) continue;
+        if (!seriesMap.has(dirPath)) {
+          seriesMap.set(dirPath, {
+            dirName,
+            volumes: [],
+          });
+        }
 
-        const dirName = path.basename(targetPath);
+        seriesMap.get(dirPath).volumes.push({
+          fileName,
+          fullPath,
+        });
+      }
+
+      for (const [dirPath, { dirName, volumes }] of seriesMap) {
+        const stat = await fs.stat(dirPath);
         const isOneshot = dirName.toLowerCase().includes("[oneshot]");
         const cleanTitle = dirName.replace("[oneshot]", "").trim();
         const slug = toSlug(cleanTitle);
@@ -181,14 +175,14 @@ export async function POST() {
           where: { slug },
           update: {
             title: cleanTitle,
-            path: targetPath,
+            path: dirPath,
             isOneshot,
             mtime: stat.mtime,
           },
           create: {
             title: cleanTitle,
             slug,
-            path: targetPath,
+            path: dirPath,
             isOneshot,
             mtime: stat.mtime,
           },
@@ -196,26 +190,27 @@ export async function POST() {
 
         seriesCount++;
 
-        for (const volFile of volumeFiles) {
-          const volPath = path.join(targetPath, volFile);
-          const volSlug = toSlug(path.basename(volFile, path.extname(volFile)));
-          const volStat = await fs.stat(volPath);
+        for (const vol of volumes) {
+          const volSlug = toSlug(
+            path.basename(vol.fileName, path.extname(vol.fileName))
+          );
+          const volStat = await fs.stat(vol.fullPath);
 
           await prisma.mangaVolume.upsert({
             where: { slug: volSlug },
             update: {
-              title: path.basename(volFile, path.extname(volFile)),
-              filename: volFile,
-              fullPath: volPath,
+              title: path.basename(vol.fileName, path.extname(vol.fileName)),
+              filename: vol.fileName,
+              fullPath: vol.fullPath,
               size: volStat.size,
               mtime: volStat.mtime,
               seriesId: mangaSeries.id,
             },
             create: {
-              title: path.basename(volFile, path.extname(volFile)),
+              title: path.basename(vol.fileName, path.extname(vol.fileName)),
               slug: volSlug,
-              filename: volFile,
-              fullPath: volPath,
+              filename: vol.fileName,
+              fullPath: vol.fullPath,
               size: volStat.size,
               mtime: volStat.mtime,
               seriesId: mangaSeries.id,
@@ -224,8 +219,8 @@ export async function POST() {
 
           volumeCount++;
 
-          const txtFileName = `${path.parse(volFile).name}.txt`;
-          const txtPath = path.join(targetPath, txtFileName);
+          const txtFileName = `${path.parse(vol.fileName).name}.txt`;
+          const txtPath = path.join(dirPath, txtFileName);
           const checksum = generateChecksum();
 
           await fs.writeFile(txtPath, checksum, "utf8");

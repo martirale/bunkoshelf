@@ -141,11 +141,11 @@ export async function POST() {
 
   try {
     const checksumData = await fsp.readFile(CHECKSUM_STATUS_PATH, "utf-8");
-    const { pathsToIndex } = JSON.parse(checksumData);
+    const { filesToIndex } = JSON.parse(checksumData);
 
-    if (!pathsToIndex || pathsToIndex.length === 0) {
+    if (!filesToIndex || filesToIndex.length === 0) {
       return NextResponse.json({
-        message: "No hay paths para extraer metadatos",
+        message: "No hay archivos para extraer metadatos",
       });
     }
 
@@ -153,10 +153,9 @@ export async function POST() {
       select: { id: true, fullPath: true },
     });
 
-    const volumesToProcess = volumes.filter((volume) => {
-      const volumeDir = path.dirname(volume.fullPath);
-      return pathsToIndex.includes(volumeDir);
-    });
+    const volumesToProcess = volumes.filter((volume) =>
+      filesToIndex.includes(volume.fullPath)
+    );
 
     for (const volume of volumesToProcess) {
       try {
