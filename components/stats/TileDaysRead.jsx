@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 
 export default function TileDaysRead({ title, bgColor, textColor }) {
-  const [display, setDisplay] = useState("—");
+  const [daysReadCount, setDaysReadCount] = useState(null);
+  const [daysInMonth, setDaysInMonth] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -29,11 +30,13 @@ export default function TileDaysRead({ title, bgColor, textColor }) {
           }
         });
 
-        const daysInMonth = new Date(thisYear, thisMonth, 0).getDate();
-        setDisplay(`${uniqueDays.size} / ${daysInMonth}`);
+        const dim = new Date(thisYear, thisMonth, 0).getDate();
+        setDaysReadCount(uniqueDays.size);
+        setDaysInMonth(dim);
       } catch (error) {
         console.error("Error fetching days read:", error);
-        setDisplay("—");
+        setDaysReadCount(null);
+        setDaysInMonth(null);
       }
     }
 
@@ -48,7 +51,13 @@ export default function TileDaysRead({ title, bgColor, textColor }) {
       <div
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
-        {display}
+        {daysReadCount == null ? (
+          "—"
+        ) : (
+          <p className="m-0">
+            {daysReadCount}/<span className="text-sm">{daysInMonth}</span>
+          </p>
+        )}
       </div>
     </div>
   );

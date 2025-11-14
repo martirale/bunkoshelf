@@ -31,7 +31,9 @@ export default function TileAllRead({ title, bgColor, textColor }) {
       <div
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
-        {count ?? "—"} / {totalVolumes}
+        <p>
+          {count ?? "—"}/<span className="text-sm">{totalVolumes}</span>
+        </p>
       </div>
     </div>
   );
