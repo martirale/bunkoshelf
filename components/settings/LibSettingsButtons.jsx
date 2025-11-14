@@ -57,7 +57,7 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
         id: "reindex-task",
         title: "Reindexando",
         description: "Reindexando biblioteca...",
-        variant: "info",
+        variant: "default",
       });
 
       const res = await fetch("/api/admin/ScanManga/indexLibrary", {
@@ -97,7 +97,7 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
         id: "covers-task",
         title: "Regenerando portadas",
         description: "Extrayendo portadas de todos los volúmenes...",
-        variant: "info",
+        variant: "default",
       });
 
       const res = await fetch("/api/admin/ScanManga/extractCover", {
@@ -137,7 +137,7 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
         id: "metadata-task",
         title: "Reprocesando metadatos",
         description: "Extrayendo metadatos de todos los volúmenes...",
-        variant: "info",
+        variant: "default",
       });
 
       const res = await fetch("/api/admin/ScanManga/extractMeta", {
