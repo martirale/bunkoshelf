@@ -225,19 +225,25 @@ export default function UploadMangaForm({ intl }) {
           intl={intl}
         />
 
-        {uploadProgress && (
-          <p className="text-sm text-onix">{uploadProgress}</p>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 items-center justify-between gap-5">
+          <div>
+            {uploadProgress && (
+              <p className="text-sm text-onix">{uploadProgress}</p>
+            )}
+          </div>
 
-        <button
-          type="submit"
-          disabled={isLoading || files.length === 0}
-          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading
-            ? intl.settings.uploadLibraryUploading
-            : intl.settings.uploadLibraryBtn}
-        </button>
+          <div className="text-right">
+            <button
+              type="submit"
+              disabled={isLoading || files.length === 0}
+              className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading
+                ? intl.settings.uploadLibraryUploading
+                : intl.settings.uploadLibraryBtn}
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );
