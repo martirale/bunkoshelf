@@ -68,8 +68,8 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
                   body: JSON.stringify({
                     subscriptions,
                     payload: {
-                      title: intl.push.ttLibraryUpd,
-                      body: intl.push.bodyLibraryUpd,
+                      title: intl.push.ttLibraryUpdate,
+                      body: intl.push.bodyLibraryUpdate,
                       url: `/${lang}/manga`,
                     },
                   }),

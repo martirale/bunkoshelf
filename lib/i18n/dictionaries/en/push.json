@@ -2,8 +2,8 @@
   "push": {
     "ttSubscription": "Notification",
     "bodySubscription": "Notifications activated",
-    "ttLibraryUpd": "Updated library",
-    "bodyLibraryUpd": "New mangas available",
+    "ttLibraryUpdate": "Updated library",
+    "bodyLibraryUpdate": "There are new things in the library",
     "ttReadStreak": "Reading streak",
     "bodyReadStreak": "Don't lose your streak, you still have time",
     "ttFirstRead": "Volume completed!",
