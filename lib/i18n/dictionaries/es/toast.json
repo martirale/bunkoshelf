@@ -10,12 +10,29 @@
     "errorDel": "Error al eliminar usuario"
   },
   "toastScan": {
-    "successTt": "Escaneo finalizado",
-    "successDesc": "Escaneo terminado con éxito",
     "progressTt": "Progreso del escaneo",
     "noTask": "Sin tarea activa",
+    "reindexTt": "Reindexando biblioteca",
+    "reindexDesc": "La biblioteca se está reindexando",
+    "regeneratingCoversTt": "Regenerando portadas",
+    "regeneratingCoversDesc": "Extrayendo portadas de todos los tomos...",
+    "reprocessingMetaTt": "Procesando metadatos",
+    "reprocessingMetaDesc": "Extrayendo metadatos de todos los tomos...",
+    "successTt": "Escaneo finalizado",
+    "successDesc": "Escaneo terminado con éxito",
+    "successReindexTt": "Reindexación completada",
+    "successReindexDesc": {
+      "prefix": "series y",
+      "suffix": "tomos procesados"
+    },
+    "successRegeneratingCoversTt": "Portadas regeneradas",
+    "successRegeneratingCoversDesc": "portadas extraídas",
+    "successReprocessingMetaTt": "Metadatos procesados",
     "errorTt": "Error",
-    "errorDesc": "No se pudo completar el escaneo"
+    "errorDesc": "No se pudo completar el escaneo",
+    "errorReindexDesc": "No se pudo reindexar la biblioteca",
+    "errorRegeneratingCoversDesc": "No se pudieron extraer las portadas",
+    "errorReprocessingMetaDesc": "No se pudieron procesar los metadatos"
   },
   "toastVersion": {
     "title": "Nueva Versión",

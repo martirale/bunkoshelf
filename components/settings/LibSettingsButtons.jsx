@@ -41,8 +41,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
     } finally {
       if (_err) {
         addToast({
-          title: intl.toastSettings.scanErrorTt,
-          description: intl.toastSettings.scanError,
+          title: intl.toastScan.errorTt,
+          description: intl.toastScan.errorDesc,
           variant: "error",
         });
       }
@@ -55,8 +55,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       setLoadingAction("reindex");
       addToast({
         id: "reindex-task",
-        title: "Reindexando",
-        description: "Reindexando biblioteca...",
+        title: intl.toastScan.reindexTt,
+        description: intl.toastScan.reindexDesc,
         variant: "default",
       });
 
@@ -71,8 +71,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       if (!res.ok) throw new Error(data.error || "Error al reindexar");
 
       updateToast("reindex-task", {
-        title: "Reindexación completa",
-        description: `${data.seriesCount} series y ${data.volumeCount} volúmenes procesados`,
+        title: intl.toastScan.successReindexTt,
+        description: `${data.seriesCount} ${intl.toastScan.successReindexDesc.prefix} ${data.volumeCount} ${intl.toastScan.successReindexDesc.suffix}`,
         variant: "success",
       });
     } catch (e) {
@@ -81,8 +81,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       setLoadingAction(null);
       if (_err) {
         updateToast("reindex-task", {
-          title: "Error",
-          description: "No se pudo reindexar la biblioteca",
+          title: intl.toastScan.errorTt,
+          description: intl.toastScan.errorReindexDesc,
           variant: "error",
         });
       }
@@ -95,8 +95,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       setLoadingAction("covers");
       addToast({
         id: "covers-task",
-        title: "Regenerando portadas",
-        description: "Extrayendo portadas de todos los volúmenes...",
+        title: intl.toastScan.regeneratingCoversTt,
+        description: intl.toastScan.regeneratingCoversDesc,
         variant: "default",
       });
 
@@ -111,8 +111,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       if (!res.ok) throw new Error(data.error || "Error al regenerar portadas");
 
       updateToast("covers-task", {
-        title: "Portadas regeneradas",
-        description: `${data.volumesUpdated} portadas actualizadas`,
+        title: intl.toastScan.successRegeneratingCoversTt,
+        description: `${data.volumesUpdated} ${intl.toastScan.successRegeneratingCoversDesc}`,
         variant: "success",
       });
     } catch (e) {
@@ -121,8 +121,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       setLoadingAction(null);
       if (_err) {
         updateToast("covers-task", {
-          title: "Error",
-          description: "No se pudieron regenerar las portadas",
+          title: intl.toastScan.errorTt,
+          description: intl.toastScan.errorRegeneratingCoversDesc,
           variant: "error",
         });
       }
@@ -135,8 +135,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       setLoadingAction("metadata");
       addToast({
         id: "metadata-task",
-        title: "Reprocesando metadatos",
-        description: "Extrayendo metadatos de todos los volúmenes...",
+        title: intl.toastScan.reprocessingMetaTt,
+        description: intl.toastScan.reprocessingMetaDesc,
         variant: "default",
       });
 
@@ -152,7 +152,7 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
         throw new Error(data.error || "Error al reprocesar metadatos");
 
       updateToast("metadata-task", {
-        title: "Metadatos reprocesados",
+        title: intl.toastScan.successReprocessingMetaTt,
         description: data.message,
         variant: "success",
       });
@@ -162,8 +162,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       setLoadingAction(null);
       if (_err) {
         updateToast("metadata-task", {
-          title: "Error",
-          description: "No se pudieron reprocesar los metadatos",
+          title: intl.toastScan.errorTt,
+          description: intl.toastScan.errorReprocessingMetaDesc,
           variant: "error",
         });
       }
@@ -235,8 +235,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       key: "reindex",
       label:
         loadingAction === "reindex"
-          ? intl.settings.reindexing || "Reindexando..."
-          : intl.settings.reindex || "Reindexar biblioteca",
+          ? intl.settings.reindexing
+          : intl.settings.reindex,
       icon: loadingAction === "reindex" ? Loader2Icon : FolderSyncIcon,
       onClick: handleReindex,
       disabled: isLoading,
@@ -246,8 +246,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       key: "covers",
       label:
         loadingAction === "covers"
-          ? intl.settings.regenerandoCovers || "Regenerando..."
-          : intl.settings.regenerateCovers || "Regenerar portadas",
+          ? intl.settings.regeneratingCovers
+          : intl.settings.regenerateCovers,
       icon: loadingAction === "covers" ? Loader2Icon : ImageIcon,
       onClick: handleRegenerateCovers,
       disabled: isLoading,
@@ -257,8 +257,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       key: "metadata",
       label:
         loadingAction === "metadata"
-          ? intl.settings.reprocessingMeta || "Reprocesando..."
-          : intl.settings.reprocessMetadata || "Reprocesar metadatos",
+          ? intl.settings.reprocessingMeta
+          : intl.settings.reprocessMetadata,
       icon: loadingAction === "metadata" ? Loader2Icon : FileTextIcon,
       onClick: handleReprocessMetadata,
       disabled: isLoading,

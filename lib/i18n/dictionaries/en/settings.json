@@ -45,6 +45,12 @@
     "uploadLibraryUploading": "Uploading...",
     "uploadLibraryBtn": "Upload Files",
     "storageLocal": "Local Library",
-    "storageCloud": "Remote Library"
+    "storageCloud": "Remote Library",
+    "reindexing": "Reindexing...",
+    "reindex": "Reindex Library",
+    "regeneratingCovers": "Regenerating...",
+    "regenerateCovers": "Regenerate Covers",
+    "reprocessingMeta": "Processing...",
+    "reprocessMetadata": "Process Metadata"
   }
 }

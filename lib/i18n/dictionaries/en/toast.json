@@ -10,12 +10,29 @@
     "errorDel": "Error deleting user"
   },
   "toastScan": {
-    "successTt": "Scanning Completed",
-    "successDesc": "Scanning completed successfully",
     "progressTt": "Scan Progress",
     "noTask": "No active task",
+    "reindexTt": "Reindexing Library",
+    "reindexDesc": "The library is being reindexed",
+    "regeneratingCoversTt": "Regenerating Covers",
+    "regeneratingCoversDesc": "Extracting covers from all volumes...",
+    "reprocessingMetaTt": "Processing Metadata",
+    "reprocessingMetaDesc": "Extracting metadata from all volumes...",
+    "successTt": "Scanning Completed",
+    "successDesc": "Scanning completed successfully",
+    "successReindexTt": "Reindexing Completed",
+    "successReindexDesc": {
+      "prefix": "series and",
+      "suffix": "volumes processed"
+    },
+    "successRegeneratingCoversTt": "Covers Regenerated",
+    "successRegeneratingCoversDesc": "covers extracted",
+    "successReprocessingMetaTt": "Metadata Processed",
     "errorTt": "Error",
-    "errorDesc": "The scan could not be completed"
+    "errorDesc": "Could not complete scanning",
+    "errorReindexDesc": "Could not reindex the library",
+    "errorRegeneratingCoversDesc": "Could not extract covers",
+    "errorReprocessingMetaDesc": "Could not process metadata"
   },
   "toastVersion": {
     "title": "New Version",

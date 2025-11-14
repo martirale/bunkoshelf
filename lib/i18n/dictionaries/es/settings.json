@@ -45,6 +45,12 @@
     "uploadLibraryUploading": "Subiendo...",
     "uploadLibraryBtn": "Subir Archivos",
     "storageLocal": "Biblioteca local",
-    "storageCloud": "Biblioteca remota"
+    "storageCloud": "Biblioteca remota",
+    "reindexing": "Reindexando...",
+    "reindex": "Reindexar biblioteca",
+    "regeneratingCovers": "Regenerando...",
+    "regenerateCovers": "Regenerar portadas",
+    "reprocessingMeta": "Procesando...",
+    "reprocessMetadata": "Procesar metadatos"
   }
 }
