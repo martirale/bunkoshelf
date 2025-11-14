@@ -44,7 +44,7 @@
     "uploadLibraryNewFolder": "Nombre del nuevo directorio",
     "uploadLibraryUploading": "Subiendo...",
     "uploadLibraryBtn": "Subir Archivos",
-    "storageLocal": "Biblioteca Local",
-    "storageCloud": "Biblioteca Remota"
+    "storageLocal": "Biblioteca local",
+    "storageCloud": "Biblioteca remota"
   }
 }
