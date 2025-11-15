@@ -49,7 +49,7 @@ export default function DeleteMangaItem({ intl, type = "volume", slug }) {
     <button
       className={clsx(
         "text-danger-alt text-xs uppercase cursor-pointer",
-        "flex flex-row items-center gap-1 mt-5"
+        "flex flex-row items-center gap-1"
       )}
       onClick={handleDelete}
     >

@@ -4,6 +4,7 @@ import ReadButtonsVolume from "./ReadButtonsVolume";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 import DeleteMangaItem from "./DeleteMangaItem";
+import Separator from "@/components/ui/Separator";
 
 export default function VolumesContent({
   volumeData,
@@ -124,7 +125,7 @@ export default function VolumesContent({
             </>
           )}
 
-          <div className="border-t border-neutral-700 my-6"></div>
+          <Separator />
 
           {(() => {
             const normalize = (field) => {
@@ -220,6 +221,7 @@ export default function VolumesContent({
             </div>
           )}
 
+          <Separator />
           <DeleteMangaItem intl={intl} slug={volume.slug} />
         </div>
       </section>

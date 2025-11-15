@@ -2,6 +2,7 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import { FolderCogIcon } from "lucide-react";
 import LibSettingsButtons from "@/components/settings/LibSettingsButtons";
 import AdminStatsPanel from "@/components/stats/AdminPanel";
+import Separator from "@/components/ui/Separator";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function SettingsLibraryPage({ params }) {
         <AdminStatsPanel intl={intl} />
       </div>
 
+      <Separator />
       <LibSettingsButtons lang={lang} intl={intl} libProvider={libProvider} />
     </>
   );

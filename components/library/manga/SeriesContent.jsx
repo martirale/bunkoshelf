@@ -5,6 +5,7 @@ import ReadButtonsSeries from "./ReadButtonsSeries";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 import DeleteMangaItem from "./DeleteMangaItem";
+import Separator from "@/components/ui/Separator";
 
 export default function SeriesContent({
   serieData,
@@ -97,7 +98,7 @@ export default function SeriesContent({
             </>
           )}
 
-          <div className="border-t border-neutral-700 my-6"></div>
+          <Separator />
 
           {/* Author Info */}
           {(() => {
@@ -192,15 +193,12 @@ export default function SeriesContent({
               </div>
             </div>
           )}
-
-          <DeleteMangaItem intl={intl} type="series" slug={serieData.slug} />
         </div>
       </section>
 
       {/* SERIES VOLUMES */}
       <section>
-        <div className="border-t border-neutral-700 my-6"></div>
-
+        <Separator />
         <h2>{intl.manga.seriesVolumes}</h2>
 
         <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
@@ -224,6 +222,9 @@ export default function SeriesContent({
             </div>
           )}
         </div>
+
+        <Separator />
+        <DeleteMangaItem intl={intl} type="series" slug={serieData.slug} />
       </section>
     </div>
   );

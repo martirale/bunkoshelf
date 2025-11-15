@@ -43,7 +43,7 @@ export default async function VolumesIndexFav({ lang, intl }) {
 
   if (entries.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 gap-4">
+      <div className="flex flex-col items-center justify-center h-80 gap-4">
         <GhostIcon size={64} />
         <h2>{intl.misc.noVolumesFav}</h2>
       </div>
