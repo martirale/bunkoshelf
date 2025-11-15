@@ -67,6 +67,15 @@ export async function DELETE(request, { params }) {
       await prisma.fileChecksum.deleteMany({ where: { filePath: txtPath } });
     }
 
+    if (volume.seriesId) {
+      const remaining = await prisma.mangaVolume.count({
+        where: { seriesId: volume.seriesId },
+      });
+      if (remaining === 0) {
+        await prisma.mangaSeries.delete({ where: { id: volume.seriesId } });
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     _err = error;
