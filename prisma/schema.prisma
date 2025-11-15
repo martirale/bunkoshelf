@@ -108,9 +108,6 @@ model MangaSeries {
   mtime     DateTime @default(now())
   status    String   @default("ONGOING")
 
-  metadataObj SeriesMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
-  metadataId  String?         @unique
-
   volumes       MangaVolume[]
   genres        SeriesToGenre[]
   usersProgress UserToSeries[]
@@ -186,24 +183,6 @@ model VolumeMetadata {
   mangaStyle String?
 
   mangaVolume MangaVolume? @relation
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model SeriesMetadata {
-  id         String @id @default(cuid())
-  folderPath String @unique
-
-  series      String?
-  summary     String?
-  publisher   String?
-  genre       String?
-  languageISO String?
-  writer      String?
-  artist      String?
-
-  mangaSeries MangaSeries? @relation
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
