@@ -58,7 +58,7 @@ export default function VolumesContent({
             </div>
           )}
 
-          <DeleteMangaItem slug={volume.slug} />
+          <DeleteMangaItem intl={intl} slug={volume.slug} />
         </div>
 
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">

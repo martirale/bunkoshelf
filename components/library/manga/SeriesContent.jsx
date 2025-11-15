@@ -47,7 +47,7 @@ export default function SeriesContent({
               />
             </div>
           )}
-          <DeleteMangaItem type="series" slug={serieData.slug} />
+          <DeleteMangaItem intl={intl} type="series" slug={serieData.slug} />
         </div>
 
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">

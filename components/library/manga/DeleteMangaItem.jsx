@@ -4,14 +4,16 @@ import React from "react";
 import clsx from "clsx";
 import { TrashIcon } from "lucide-react";
 
-export default function DeleteMangaItem({ type = "volume", slug }) {
+export default function DeleteMangaItem({ intl, type = "volume", slug }) {
+  const t = intl;
+
   async function handleDelete() {
     let err = null;
     try {
       const confirmed = confirm(
         type === "volume"
-          ? "¿Seguro que deseas eliminar este tomo?"
-          : "¿Seguro que deseas eliminar esta serie?"
+          ? t.libraries.deleteSure.volume
+          : t.libraries.deleteSure.series
       );
       if (!confirmed) return;
 
@@ -52,7 +54,9 @@ export default function DeleteMangaItem({ type = "volume", slug }) {
       onClick={handleDelete}
     >
       <TrashIcon size={10} />
-      {type === "volume" ? "Delete Volume" : "Delete Series"}
+      {type === "volume"
+        ? t.libraries.deleteItem.volume
+        : t.libraries.deleteItem.series}
     </button>
   );
 }

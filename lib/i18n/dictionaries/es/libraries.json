@@ -11,6 +11,14 @@
     "recentlyUpdated": "Series actualizadas",
     "recentlyRead": "Leídos recientemente",
     "overview": "En general",
-    "toRead": "Por leer"
+    "toRead": "Por leer",
+    "deleteItem": {
+      "series": "Eliminar serie",
+      "volume": "Eliminar tomo"
+    },
+    "deleteSure": {
+      "series": "¿Estás seguro de que deseas eliminar esta serie de tu biblioteca?",
+      "volume": "¿Estás seguro de que deseas eliminar este tomo de tu biblioteca?"
+    }
   }
 }
