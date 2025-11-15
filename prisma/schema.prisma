@@ -109,7 +109,6 @@ model MangaSeries {
   status    String   @default("ONGOING")
 
   volumes       MangaVolume[]
-  genres        SeriesToGenre[]
   usersProgress UserToSeries[]
 
   createdAt DateTime @default(now())
@@ -129,7 +128,7 @@ model MangaVolume {
   series   MangaSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
   seriesId String
 
-  metadataObj VolumeMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
+  metadataObj VolumeMetadata? @relation(fields: [metadataId], references: [id], onDelete: Cascade)
   metadataId  String?         @unique
 
   genres VolumeToGenre[]
@@ -193,7 +192,6 @@ model Genre {
   id      String          @id @default(cuid())
   name    String          @unique
   volumes VolumeToGenre[]
-  series  SeriesToGenre[]
 }
 
 model Tag {
@@ -220,14 +218,4 @@ model VolumeToTag {
   tagId    String
 
   @@unique([volumeId, tagId])
-}
-
-model SeriesToGenre {
-  id       String      @id @default(cuid())
-  series   MangaSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  seriesId String
-  genre    Genre       @relation(fields: [genreId], references: [id])
-  genreId  String
-
-  @@unique([seriesId, genreId])
 }
