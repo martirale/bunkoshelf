@@ -12,7 +12,7 @@ export async function DELETE(request, { params }) {
   let _err;
   try {
     const slug =
-      (params && params.id) ||
+      (params && params.slug) ||
       (() => {
         const parts = request.nextUrl.pathname.split("/").filter(Boolean);
         return parts[parts.length - 1];
@@ -31,6 +31,12 @@ export async function DELETE(request, { params }) {
       );
 
     await prisma.mangaVolume.delete({ where: { id: volume.id } });
+
+    if (volume.metadataId) {
+      await prisma.volumeMetadata.deleteMany({
+        where: { id: volume.metadataId },
+      });
+    }
 
     const fullPath = volume.fullPath;
     const ext = path.extname(fullPath).toLowerCase();
