@@ -3,6 +3,7 @@ import Link from "next/link";
 import ReadButtonsVolume from "./ReadButtonsVolume";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
+import DeleteItem from "./DeleteItem";
 
 export default function VolumesContent({
   volumeData,
@@ -56,6 +57,8 @@ export default function VolumesContent({
               />
             </div>
           )}
+
+          <DeleteItem slug={volume.slug} />
         </div>
 
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
