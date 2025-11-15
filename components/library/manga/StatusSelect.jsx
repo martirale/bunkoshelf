@@ -124,14 +124,18 @@ export default function StatusSelect({ intl, seriesId }) {
         onClick={() => setIsOpen(!isOpen)}
         disabled={isLoading}
         className={clsx(
-          "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
+          "group p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
           "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"
         )}
         title={currentOption?.label || "Seleccionar estado"}
       >
         <CurrentIcon
           size={20}
-          className={clsx(iconColorClass, "transition-colors")}
+          className={clsx(
+            iconColorClass,
+            "transition-colors",
+            currentStatus === "FINISHED" && "group-hover:text-onix"
+          )}
         />
       </button>
 
