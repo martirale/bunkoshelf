@@ -1,7 +1,7 @@
 {
   "profile": {
     "title": "Perfil",
-    "overview": "Descripción general",
+    "overview": "General",
     "name": "Nombre",
     "lastname": "Apellido",
     "password": "Nueva contraseña",

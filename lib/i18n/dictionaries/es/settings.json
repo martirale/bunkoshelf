@@ -1,13 +1,13 @@
 {
   "settings": {
     "title": "Ajustes",
-    "overview": "Descripción general",
+    "overview": "General",
     "totalVolumes": "Volúmenes totales",
     "totalSeries": "Series totales",
     "totalAddedMonth": "Añadidos este mes",
     "totalUsers": "Usuarios totales",
     "infoServerTt": "Información del servidor",
-    "infoServerDesc": "Detalles básicos de tu instancia de Bunko Shelf",
+    "infoServerDesc": "Detalles básicos de Bunko Shelf",
     "semVer": "Versión semántica",
     "buildDate": "Fecha de compilación",
     "users": "Usuarios",

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BoltIcon,
+  LayoutPanelTopIcon,
   LibraryBigIcon,
   BookCopyIcon,
   BookmarkIcon,
@@ -43,7 +43,7 @@ export default function MangaNav({ lang, intl }) {
     {
       label: intl.libraries.overview,
       href: `/${lang}/manga`,
-      icon: BoltIcon,
+      icon: LayoutPanelTopIcon,
       isActive: pathname === `/${lang}/manga`,
     },
     {

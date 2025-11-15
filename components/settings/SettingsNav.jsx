@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BoltIcon, UsersRoundIcon, FolderCogIcon } from "lucide-react";
+import {
+  LayoutPanelTopIcon,
+  UsersRoundIcon,
+  FolderCogIcon,
+} from "lucide-react";
 import clsx from "clsx";
 
 export default function SettingsNav({ intl }) {
@@ -28,17 +32,17 @@ export default function SettingsNav({ intl }) {
     {
       label: intl.settings.overview,
       href: `/${currentLang}/settings#overview`,
-      icon: BoltIcon,
+      icon: LayoutPanelTopIcon,
       isActive:
         pathname === `/${currentLang}/settings` &&
         (hash === "#overview" || hash === ""),
     },
-    {
-      label: intl.settings.users,
-      href: `/${currentLang}/settings#users`,
-      icon: UsersRoundIcon,
-      isActive: pathname === `/${currentLang}/settings` && hash === "#users",
-    },
+    // {
+    //   label: intl.settings.users,
+    //   href: `/${currentLang}/settings#users`,
+    //   icon: UsersRoundIcon,
+    //   isActive: pathname === `/${currentLang}/settings` && hash === "#users",
+    // },
     {
       label: intl.settings.library,
       href: `/${currentLang}/settings/library`,

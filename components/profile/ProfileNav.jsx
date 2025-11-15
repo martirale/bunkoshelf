@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BoltIcon, UserRoundPenIcon } from "lucide-react";
+import { LayoutPanelTopIcon, UserRoundPenIcon } from "lucide-react";
 import { usePathname, useParams } from "next/navigation";
 import clsx from "clsx";
 
@@ -14,7 +14,7 @@ export default function ProfileNav({ intl }) {
     {
       label: intl.profile.overview,
       href: `/${currentLang}/profile`,
-      icon: BoltIcon,
+      icon: LayoutPanelTopIcon,
       isActive: pathname === `/${currentLang}/profile`,
     },
     {
