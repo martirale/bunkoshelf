@@ -4,6 +4,7 @@ import MangaCard from "@/components/ui/MangaCard";
 import ReadButtonsSeries from "./ReadButtonsSeries";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
+import DeleteItem from "./DeleteItem";
 
 export default function SeriesContent({
   serieData,
@@ -46,6 +47,7 @@ export default function SeriesContent({
               />
             </div>
           )}
+          <DeleteItem type="series" slug={serieData.slug} />
         </div>
 
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
