@@ -4,7 +4,7 @@ import React from "react";
 import clsx from "clsx";
 import { TrashIcon } from "lucide-react";
 
-export default function DeleteItem({ type = "volume", slug }) {
+export default function DeleteMangaItem({ type = "volume", slug }) {
   async function handleDelete() {
     let err = null;
     try {
@@ -33,7 +33,9 @@ export default function DeleteItem({ type = "volume", slug }) {
         const parts = path.split("/").filter(Boolean);
         const lang = parts[0] || "en";
         const target =
-          type === "volume" ? `/${lang}/manga` : `/${lang}/manga/series`;
+          type === "volume"
+            ? `/${lang}/manga/volumes`
+            : `/${lang}/manga/series`;
         window.location.href = target;
       }
     } finally {
