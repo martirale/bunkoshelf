@@ -9,18 +9,18 @@ import clsx from "clsx";
 
 export default function ToastItem({ title, description, variant = "default" }) {
   const variants = {
-    success: "bg-[#052514]",
-    warning: "bg-[#62420e]",
-    danger: "bg-[#610726]",
-    error: "bg-[#610726]",
-    default: "bg-[#292929]",
+    success: "bg-success",
+    warning: "bg-warning",
+    danger: "bg-danger",
+    error: "bg-danger",
+    default: "bg-default",
   };
 
   const icons = {
-    success: <CheckCircleIcon size={20} className="text-[#17c964]" />,
-    warning: <ShieldAlertIcon size={20} className="text-[#f5a524]" />,
-    danger: <TriangleAlertIcon size={20} className="text-[#f54180]" />,
-    error: <XCircleIcon size={20} className="text-[#f54180]" />,
+    success: <CheckCircleIcon size={20} className="text-success-alt" />,
+    warning: <ShieldAlertIcon size={20} className="text-warning-alt" />,
+    danger: <TriangleAlertIcon size={20} className="text-danger-alt" />,
+    error: <XCircleIcon size={20} className="text-danger-alt" />,
     default: <InfoIcon size={20} className="text-pearl" />,
   };
 

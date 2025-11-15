@@ -34,6 +34,15 @@
   /* Books Library */
   --color-ash: #738298; /* Ash (Main) */
   --color-denim: #3d4e72; /* Denim (Second) */
+
+  /* Toasts-alerts */
+  --color-success: #052514;
+  --color-warning: #62420e;
+  --color-danger: #61071b;
+  --color-default: #292929;
+  --color-success-alt: #17c964;
+  --color-warning-alt: #f5a524;
+  --color-danger-alt: #f54159;
 }
 
 /* Basic body styles */

@@ -23,7 +23,7 @@ export default function ClearLogsButton({ onClear }) {
   return (
     <button
       onClick={handleClick}
-      className="p-2 rounded-md border border-neutral-800 bg-blackamber hover:border-red-700 hover:bg-red-800 cursor-pointer transition-all duration-300"
+      className="p-2 rounded-md border border-neutral-800 bg-blackamber hover:border-danger-alt hover:bg-danger cursor-pointer transition-all duration-300"
     >
       <TrashIcon size={16} />
     </button>
