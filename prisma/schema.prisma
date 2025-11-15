@@ -106,7 +106,7 @@ model MangaSeries {
   path      String
   isOneshot Boolean  @default(false)
   mtime     DateTime @default(now())
-  status    String   @default("ONGOING")
+  status    String   @default("FINISHED")
 
   volumes       MangaVolume[]
   usersProgress UserToSeries[]

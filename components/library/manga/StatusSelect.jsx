@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 
-export default function StatusSelect({ lang, intl, seriesId }) {
+export default function StatusSelect({ intl, seriesId }) {
   const t = intl;
 
   const STATUS_OPTIONS = [
@@ -47,7 +47,7 @@ export default function StatusSelect({ lang, intl, seriesId }) {
 
   const COLOR_MAP = {
     ONGOING: "text-cyan-500",
-    FINISHED: "text-green-600",
+    FINISHED: "text-pearl",
     HIATUS: "text-yellow-500",
     CANCELLED: "text-red-500",
   };
