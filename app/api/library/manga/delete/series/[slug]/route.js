@@ -28,7 +28,20 @@ export async function DELETE(request, { params }) {
         { status: 404 }
       );
 
+    const volumes = await prisma.mangaVolume.findMany({
+      where: { seriesId: series.id },
+      select: { metadataId: true },
+    });
+
+    const metadataIds = volumes.map((v) => v.metadataId).filter(Boolean);
+
     await prisma.mangaSeries.delete({ where: { id: series.id } });
+
+    if (metadataIds.length > 0) {
+      await prisma.volumeMetadata.deleteMany({
+        where: { id: { in: metadataIds } },
+      });
+    }
 
     const seriesPath = series.path;
 
