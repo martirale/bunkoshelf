@@ -126,14 +126,14 @@ export default function FooterNav({ lang, intl, user }) {
         </div>
       )} */}
 
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-end">
         <Link
           href={versionUrl}
           target="_blank"
           rel="noopener"
           className="text-sm px-4 py-1 border border-stone-300 md:border-neutral-800 rounded-full hover:text-pearl transition-all duration-300 hover:border-lilah"
         >
-          v{version}
+          {version}
         </Link>
 
         <div className="flex items-center gap-2">
