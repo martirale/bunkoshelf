@@ -22,11 +22,8 @@ export async function GET() {
         },
       });
 
-      console.log(`
-🛠️ Usuario admin creado automáticamente:
-   ➤ username: bunko
-   ➤ password: admin123
-`);
+      const message = "✅ Usuario admin creado: bunko / admin123";
+      console.error(message);
 
       return Response.json({
         created: true,
@@ -34,12 +31,15 @@ export async function GET() {
       });
     }
 
+    const message = "ℹ️ Usuario admin ya existe";
+    console.error(message);
+
     return Response.json({
       created: false,
       message: "El usuario admin ya existe.",
     });
   } catch (error) {
-    console.error("Error al crear el usuario admin:", error);
+    console.error("❌ Error al crear el usuario admin:", error);
     return new Response("Error interno al inicializar admin", { status: 500 });
   }
 }

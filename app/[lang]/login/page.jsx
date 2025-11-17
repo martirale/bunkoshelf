@@ -1,13 +1,12 @@
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import LoginForm from "./LoginForm";
 import MainLogo from "@/components/ui/MainLogo";
+import { GET as initAdmin } from "@/app/api/initAdmin/route";
 
 export default async function LoginPage({ params }) {
   const { lang = "es" } = await params;
 
-  await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/initAdmin`, {
-    cache: "no-store",
-  });
+  await initAdmin();
 
   const intl = await getDictionary(lang);
 
