@@ -10,13 +10,15 @@ import {
 import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
-import AlertBox from "../ui/AlertBox";
-import { getBuildInfo } from "@/lib/utils";
+import AlertBox from "@/components/ui/AlertBox";
+import pkg from "../../package.json";
 
 export default function FooterNav({ lang, intl, user }) {
-  const { version, versionUrl, changelogUrl } = getBuildInfo();
-  // const [remoteVersion, setRemoteVersion] = useState(null);
-  // const [updateAvailable, setUpdateAvailable] = useState(false);
+  const localVersion = pkg.version;
+  const [remoteVersion, setRemoteVersion] = useState(null);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [remoteChangelog, setRemoteChangelog] = useState(null);
+  const [remoteVersionUrl, setRemoteVersionUrl] = useState(null);
 
   const params = useParams();
   const router = useRouter();
@@ -26,7 +28,6 @@ export default function FooterNav({ lang, intl, user }) {
   const toggleLang = () => {
     const newLang = currentLang === "es" ? "en" : "es";
     const pathWithoutLang = pathname.replace(`/${currentLang}`, "");
-
     document.cookie = `lang=${newLang}; path=/`;
     router.push(`/${newLang}${pathWithoutLang}`);
   };
@@ -42,45 +43,59 @@ export default function FooterNav({ lang, intl, user }) {
 
   const isLoggedIn = SessionStatus();
 
-  // useEffect(() => {
-  //   function isRemoteVersionNewer(local, remote) {
-  //     const localParts = local.split(".").map(Number);
-  //     const remoteParts = remote.split(".").map(Number);
+  useEffect(() => {
+    function isRemoteVersionNewer(local, remote) {
+      if (!local || !remote) return false;
+      const localParts = String(local)
+        .split(".")
+        .map((p) => Number(p) || 0);
+      const remoteParts = String(remote)
+        .split(".")
+        .map((p) => Number(p) || 0);
+      const len = Math.max(localParts.length, remoteParts.length);
+      for (let i = 0; i < len; i++) {
+        const r = remoteParts[i] ?? 0;
+        const l = localParts[i] ?? 0;
+        if (r > l) return true;
+        if (r < l) return false;
+      }
+      return false;
+    }
 
-  //     for (let i = 0; i < 3; i++) {
-  //       if ((remoteParts[i] ?? 0) > (localParts[i] ?? 0)) return true;
-  //       if ((remoteParts[i] ?? 0) < (localParts[i] ?? 0)) return false;
-  //     }
+    async function checkVersion() {
+      try {
+        const res = await fetch("/api/version", { cache: "no-cache" });
+        const data = await res.json();
+        const remote = data.version ?? data.latest ?? null;
+        const changelog =
+          data.changelogUrl ?? data.changelog_url ?? data.url ?? null;
+        const versionUrl = data.versionUrl ?? data.version_url ?? null;
 
-  //     return false;
-  //   }
+        if (remote) {
+          setRemoteVersion(remote);
+          if (changelog) setRemoteChangelog(changelog);
+          if (versionUrl) setRemoteVersionUrl(versionUrl);
+          if (isRemoteVersionNewer(localVersion, remote)) {
+            setUpdateAvailable(true);
+          } else {
+            setUpdateAvailable(false);
+          }
+        }
+      } catch (err) {
+        console.warn("No se pudo verificar la versión más reciente");
+      }
+    }
 
-  //   async function checkVersion() {
-  //     try {
-  //       const res = await fetch("https://bunko.amlab.site/version.json", {
-  //         cache: "no-cache",
-  //       });
-  //       const data = await res.json();
-
-  //       if (data.latest && isRemoteVersionNewer(version, data.latest)) {
-  //         setRemoteVersion(data.latest);
-  //         setUpdateAvailable(true);
-  //       }
-  //     } catch (err) {
-  //       console.warn("No se pudo verificar la versión más reciente");
-  //     }
-  //   }
-
-  //   checkVersion();
-  //   const interval = setInterval(checkVersion, 24 * 60 * 60 * 1000);
-  //   return () => clearInterval(interval);
-  // }, []);
+    checkVersion();
+    const interval = setInterval(checkVersion, 24 * 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const buttons = [
     {
       type: "link",
       icon: BookOpenIcon,
-      href: "https://bunko.amlab.site/referencia/app",
+      href: "https://bunko.am25.app/guides",
       target: "_blank",
       title: intl.tooltip.userGuide,
     },
@@ -115,25 +130,29 @@ export default function FooterNav({ lang, intl, user }) {
 
   return (
     <>
-      {/* {updateAvailable && (
+      {updateAvailable && (
         <div className="text-sand mb-4">
-          <Link href={changelogUrl} target="_blank" rel="noopener">
+          <Link
+            href={remoteChangelog || remoteVersionUrl || "#"}
+            target="_blank"
+            rel="noopener"
+          >
             <AlertBox
               title={`${intl.toastVersion.title} (${remoteVersion})`}
               description={intl.toastVersion.description}
             />
           </Link>
         </div>
-      )} */}
+      )}
 
       <div className="flex justify-between items-end">
         <Link
-          href={versionUrl}
+          href={`https://hub.docker.com/r/itsmrtr/bunkoshelf/tags?page=1&name=${localVersion}`}
           target="_blank"
           rel="noopener"
           className="text-sm px-4 py-1 border border-stone-300 md:border-neutral-800 rounded-full hover:text-pearl transition-all duration-300 hover:border-lilah"
         >
-          {version}
+          {localVersion}
         </Link>
 
         <div className="flex items-center gap-2">
