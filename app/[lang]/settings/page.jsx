@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth/verifySession";
-import { getBuildInfo } from "@/lib/utils";
+import pkg from "../../../package.json";
 import Link from "next/link";
 import ClearLogsButton from "@/components/settings/ClearLogsButton";
 import UsersTable from "@/components/settings/UsersTable";
@@ -30,9 +30,9 @@ async function fetchLogs() {
 export default async function SettingsPage({ params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
+  const localVersion = pkg.version;
 
   const currentUser = await verifySession();
-  const { version, versionUrl, buildDate } = getBuildInfo();
   const logs = await fetchLogs();
 
   const users = await prisma.user.findMany({
@@ -73,22 +73,22 @@ export default async function SettingsPage({ params }) {
                 <div className="flex items-center">
                   <GitCommitHorizontalIcon size={20} className="mr-2" />
                   <Link
-                    href={versionUrl}
+                    href={`https://hub.docker.com/r/itsmrtr/bunkoshelf/tags?page=1&name=${localVersion}`}
                     target="_blank"
                     className="hover:underline"
                   >
-                    v{version}
+                    v{localVersion}
                   </Link>
                 </div>
               </div>
 
-              <div>
+              {/* <div>
                 <p className="font-bold">{intl.settings.buildDate}</p>
                 <div className="flex items-center">
                   <CalendarIcon size={20} className="mr-2" />
                   <span>{buildDate}</span>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
