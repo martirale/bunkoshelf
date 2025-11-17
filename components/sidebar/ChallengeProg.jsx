@@ -4,8 +4,8 @@ export default function ChallengeProg({ lang, intl, data }) {
   if (!data) return null;
 
   return (
-    <Link href={`/${lang}/profile`} className="group">
-      <div className="w-full px-1 md:px-0 mb-4 md:mb-8">
+    <div className="w-full px-1 md:px-0 mb-4 md:mb-8">
+      <Link href={`/${lang}/profile`} className="group">
         <div className="space-y-1">
           <div className="text-neutral-400 md:text-neutral-500 flex justify-between text-sm uppercase">
             <span>{intl.profile.ttChallenge}</span>
@@ -19,7 +19,7 @@ export default function ChallengeProg({ lang, intl, data }) {
             ></div>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
