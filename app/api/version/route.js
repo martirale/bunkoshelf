@@ -1,6 +1,13 @@
+import { NextResponse } from "next/server";
+import { verifySession } from "@/lib/auth/verifySession";
+
 let cached = { timestamp: 0, data: null };
 
 export async function GET() {
+  const user = await verifySession();
+  if (!user)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const now = Date.now();
   const maxAge = 24 * 60 * 60 * 1000;
   if (cached.data && now - cached.timestamp < maxAge) {
@@ -16,7 +23,7 @@ export async function GET() {
   let err = null;
 
   try {
-    const res = await fetch("http://localhost:3001/api/version", {
+    const res = await fetch("https://bunko.am25.app/api/version", {
       cache: "no-cache",
     });
     if (!res.ok) throw new Error("Remote fetch failed");
