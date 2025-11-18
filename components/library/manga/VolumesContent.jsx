@@ -12,6 +12,7 @@ export default function VolumesContent({
   intl,
   isFavorite,
   isRead,
+  user,
 }) {
   if (!volumeData) {
     return (
@@ -221,8 +222,12 @@ export default function VolumesContent({
             </div>
           )}
 
-          <Separator />
-          <DeleteMangaItem intl={intl} slug={volume.slug} />
+          {user.isAdmin && (
+            <>
+              <Separator />
+              <DeleteMangaItem intl={intl} slug={volume.slug} />
+            </>
+          )}
         </div>
       </section>
     </div>

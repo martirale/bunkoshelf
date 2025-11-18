@@ -144,6 +144,7 @@ export default async function SeriesMangaPage({ params }) {
         intl={intl}
         isFavorite={isFavorite}
         aggregatedMeta={aggregatedMeta}
+        user={user}
       />
     );
   } catch (error) {

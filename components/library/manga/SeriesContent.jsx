@@ -13,6 +13,7 @@ export default function SeriesContent({
   intl,
   isFavorite,
   aggregatedMeta,
+  user,
 }) {
   const coverImage =
     serieData.volumes?.[serieData.volumes.length - 1]?.coverImage ?? null;
@@ -223,8 +224,12 @@ export default function SeriesContent({
           )}
         </div>
 
-        <Separator />
-        <DeleteMangaItem intl={intl} type="series" slug={serieData.slug} />
+        {user.isAdmin && (
+          <>
+            <Separator />
+            <DeleteMangaItem intl={intl} type="series" slug={serieData.slug} />
+          </>
+        )}
       </section>
     </div>
   );

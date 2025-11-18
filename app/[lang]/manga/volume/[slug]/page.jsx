@@ -102,6 +102,7 @@ export default async function VolumeMangaPage({ params }) {
         intl={intl}
         isFavorite={isFavorite}
         isRead={isRead}
+        user={user}
       />
     );
   } catch (error) {
