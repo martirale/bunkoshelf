@@ -4,7 +4,7 @@ import { BookOpenIcon } from "lucide-react";
 export default function SecondNav({ intl, className }) {
   const links = [
     {
-      href: "https://bunko.amlab.site/referencia/app",
+      href: "https://bunko.am25.app/guides",
       icon: BookOpenIcon,
       label: intl.noauth.guide,
       external: true,
