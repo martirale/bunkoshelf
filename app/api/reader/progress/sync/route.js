@@ -3,21 +3,20 @@ import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
 export async function POST(req) {
-  const user = await verifySession();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const body = await req.json();
-  const { volumeSlug, lastPage, totalPages, lastReadAt, date, firstRead } =
-    body;
-
-  if (!volumeSlug || lastPage == null || totalPages == null || !lastReadAt) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  }
-
   try {
+    const user = await verifySession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { volumeSlug, lastPage, totalPages, lastReadAt, date, firstRead } =
+      body;
+
+    if (!volumeSlug || lastPage == null || totalPages == null || !lastReadAt) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+
     const volume = await prisma.mangaVolume.findUnique({
       where: { slug: volumeSlug },
       select: { id: true },

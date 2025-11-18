@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
-import { verifySession } from "@/lib/auth/verifySession";
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 
@@ -11,13 +11,16 @@ const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
 export async function GET(request) {
-  const session = await verifySession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   let _err;
   try {
+    const user = await verifySession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!user.isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
     const action = searchParams.get("action");

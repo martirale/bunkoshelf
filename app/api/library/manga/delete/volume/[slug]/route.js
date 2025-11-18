@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
@@ -11,6 +12,11 @@ const SUPPORTED_EXTENSIONS = [".cbz", ".zip"];
 export async function DELETE(request, { params }) {
   let _err;
   try {
+    const user = await verifySession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const slug =
       (params && params.slug) ||
       (() => {

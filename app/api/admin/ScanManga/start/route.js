@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { mainJob } from "@/lib/jobs/scanManga/mainJob";
 import { verifySession } from "@/lib/auth/verifySession";
+import { mainJob } from "@/lib/jobs/scanManga/mainJob";
 import { log } from "@/lib/logger";
 import fs from "fs/promises";
 import path from "path";
@@ -309,21 +309,24 @@ async function runBackgroundJob() {
 }
 
 export async function POST() {
-  const session = await verifySession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   let _err;
   try {
+    const user = await verifySession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!user.isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     await runBackgroundJob();
 
     log({
       event: "Library scan completed",
       category: "LIBRARY",
       meta: {
-        username: session.username,
-        isAdmin: session.isAdmin,
+        username: user?.username ?? null,
+        isAdmin: user?.isAdmin ?? false,
       },
     });
 

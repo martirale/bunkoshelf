@@ -7,24 +7,24 @@ import { log } from "@/lib/logger";
 export const runtime = "nodejs";
 
 export async function POST(req) {
-  const session = await verifySession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const start = Date.now();
-  const { name, lastname, password } = await req.json();
-
-  const data = {
-    name,
-    lastname,
-  };
-
-  if (password && password.length > 0) {
-    data.password = await hash(password, 10);
-  }
-
   try {
+    const session = await verifySession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const start = Date.now();
+    const { name, lastname, password } = await req.json();
+
+    const data = {
+      name,
+      lastname,
+    };
+
+    if (password && password.length > 0) {
+      data.password = await hash(password, 10);
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: session.id },
       select: { username: true },

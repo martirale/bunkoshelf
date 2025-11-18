@@ -4,8 +4,9 @@ import prisma from "@/lib/prisma";
 
 export async function GET(req) {
   const user = await verifySession();
-  if (!user)
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { searchParams } = new URL(req.url);
   const year = Number(searchParams.get("year"));

@@ -1,8 +1,14 @@
 import MiniSearch from "minisearch";
 import { NextResponse } from "next/server";
+import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
 export async function GET(req) {
+  const user = await verifySession();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("q")?.trim();
 

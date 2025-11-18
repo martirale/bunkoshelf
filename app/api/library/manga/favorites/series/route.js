@@ -1,16 +1,13 @@
+import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
 export async function POST(req) {
-  let response;
   let error;
   try {
     const user = await verifySession();
     if (!user) {
-      response = new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-      });
-      return response;
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
@@ -20,17 +17,14 @@ export async function POST(req) {
         : body.seriesId == null
         ? ""
         : String(body.seriesId);
-    const favorite = body.favorite === true || body.favorite === "true";
+    const favorite = body.favorite === true || String(body.favorite) === "true";
 
     if (
       typeof seriesId !== "string" ||
       !seriesId ||
       typeof favorite !== "boolean"
     ) {
-      response = new Response(JSON.stringify({ error: "Invalid payload" }), {
-        status: 400,
-      });
-      return response;
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
     await prisma.userToSeries.upsert({
@@ -50,16 +44,13 @@ export async function POST(req) {
       },
     });
 
-    response = new Response(JSON.stringify({ success: true }), { status: 200 });
-    return response;
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (e) {
     error = e;
   } finally {
     if (error) {
       console.error("Error updating favorite (series):", error);
-      return new Response(JSON.stringify({ error: "Server error" }), {
-        status: 500,
-      });
+      return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
   }
 }

@@ -1,15 +1,22 @@
+import { NextResponse } from "next/server";
+import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
 
 export async function GET(req) {
-  const { searchParams } = new URL(req.url);
-  const rawPath = searchParams.get("path");
-
-  if (!rawPath) {
-    return new Response("Missing path", { status: 400 });
-  }
-
   try {
+    const user = await verifySession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const rawPath = searchParams.get("path");
+
+    if (!rawPath) {
+      return new Response("Missing path", { status: 400 });
+    }
+
     const filePath = decodeURIComponent(rawPath);
     const ext = path.extname(filePath).toLowerCase();
 

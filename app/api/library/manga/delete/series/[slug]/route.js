@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import { ListObjectsV2Command, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 import prisma from "@/lib/prisma";
@@ -9,6 +10,11 @@ const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 export async function DELETE(request, { params }) {
   let _err;
   try {
+    const user = await verifySession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const slug =
       (params && params.slug) ||
       (() => {

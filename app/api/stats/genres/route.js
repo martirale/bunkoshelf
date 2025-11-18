@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth/verifySession";
+import prisma from "@/lib/prisma";
 
 export async function GET() {
-  const user = await verifySession();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const user = await verifySession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const ignoreList = [
       "shonen",
       "shojo",

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
@@ -31,6 +32,14 @@ function generateChecksum() {
 export async function POST(request) {
   let _err;
   try {
+    const user = await verifySession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!user.isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const forceAll = body?.forceAll === true;
 

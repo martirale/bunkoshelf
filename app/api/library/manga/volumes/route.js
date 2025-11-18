@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth/verifySession";
+import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 
 export async function GET() {

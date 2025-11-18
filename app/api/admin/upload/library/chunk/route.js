@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
+import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
-import { verifySession } from "@/lib/auth/verifySession";
 import { log } from "@/lib/logger";
 import { PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
@@ -28,13 +28,16 @@ async function fileExistsInR2(key) {
 }
 
 export async function POST(request) {
-  const session = await verifySession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   let _err;
   try {
+    const user = await verifySession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!user.isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     await fs.mkdir(TEMP_PATH, { recursive: true });
 
     const formData = await request.formData();

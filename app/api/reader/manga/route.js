@@ -1,5 +1,6 @@
-import AdmZip from "adm-zip";
 import { NextResponse } from "next/server";
+import { verifySession } from "@/lib/auth/verifySession";
+import AdmZip from "adm-zip";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
@@ -14,21 +15,26 @@ const activeVolumes = new Map();
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
 export async function POST(req) {
-  const { slug } = await req.json();
-
-  if (!slug) {
-    return NextResponse.json({ error: "Missing slug" }, { status: 400 });
-  }
-
-  const volume = await prisma.mangaVolume.findUnique({
-    where: { slug },
-  });
-
-  if (!volume) {
-    return NextResponse.json({ error: "Volume not found" }, { status: 404 });
-  }
-
   try {
+    const user = await verifySession();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { slug } = await req.json();
+
+    if (!slug) {
+      return NextResponse.json({ error: "Missing slug" }, { status: 400 });
+    }
+
+    const volume = await prisma.mangaVolume.findUnique({
+      where: { slug },
+    });
+
+    if (!volume) {
+      return NextResponse.json({ error: "Volume not found" }, { status: 404 });
+    }
+
     if (activeVolumes.has(slug)) {
       const tempDir = await activeVolumes.get(slug);
 
