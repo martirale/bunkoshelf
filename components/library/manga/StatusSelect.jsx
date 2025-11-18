@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import clsx from "clsx";
 import {
   CircleFadingArrowUpIcon,
   CircleCheckBig,
   CirclePauseIcon,
   CircleXIcon,
 } from "lucide-react";
-import clsx from "clsx";
 
 export default function StatusSelect({ intl, seriesId }) {
   const t = intl;
@@ -57,19 +57,12 @@ export default function StatusSelect({ intl, seriesId }) {
     let mounted = true;
 
     const load = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(
-          `/api/library/manga/series/status?seriesId=${encodeURIComponent(
-            String(seriesId)
-          )}`
-        );
-        if (res.ok) {
-          const status = await res.text();
-          if (mounted) setCurrentStatus(status || null);
-        }
-      } finally {
-        if (mounted) setIsLoading(false);
+      const res = await fetch(
+        `/api/library/manga/series/status?seriesId=${seriesId}`
+      );
+      if (res.ok && mounted) {
+        const data = await res.json();
+        setCurrentStatus(data.status || "FINISHED");
       }
     };
 
@@ -102,19 +95,15 @@ export default function StatusSelect({ intl, seriesId }) {
       const res = await fetch("/api/library/manga/series/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ seriesId: String(seriesId), status: newStatus }),
+        body: JSON.stringify({ seriesId, status: newStatus }),
       });
-
       if (res.ok) {
-        const updated = await res.text();
-        setCurrentStatus(updated || newStatus);
-      } else {
-        const errText = await res.text().catch(() => null);
-        console.error("Failed to update status", res.status, errText);
+        const updatedStatus = await res.json();
+        setCurrentStatus(updatedStatus.status);
+        setIsOpen(false);
       }
     } finally {
       setIsLoading(false);
-      setIsOpen(false);
     }
   };
 

@@ -69,7 +69,7 @@ export async function GET(request) {
       return NextResponse.json({ error: "no encontrado" }, { status: 404 });
     }
 
-    return NextResponse.json({ status: record.status }, { status: 200 });
+    return NextResponse.json({ status: record.status || "FINISHED" });
   } catch (err) {
     _err = err;
   } finally {
