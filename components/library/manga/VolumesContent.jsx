@@ -111,7 +111,11 @@ export default function VolumesContent({
           {/* Year */}
           <p className="mt-4 flex items-center gap-2">
             {meta.year && meta.year}{" "}
-            {meta.pageCount && `&bull; ${meta.pageCount} ${intl.manga.pages}`}
+            {meta.pageCount && (
+              <>
+                &bull; {meta.pageCount} {intl.manga.pages}
+              </>
+            )}
             {isOneshot && (
               <span className="text-xs uppercase bg-lilah border border-lilah rounded px-1.5">
                 Oneshot
