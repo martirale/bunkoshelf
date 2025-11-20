@@ -13,8 +13,9 @@ function aggregateMetadata(volumes) {
     letterer: new Set(),
     coverArtist: new Set(),
     editor: new Set(),
-    translator: new Set(),
     publisher: new Set(),
+    imprint: new Set(),
+    format: new Set(),
   };
 
   for (const vol of volumes) {
