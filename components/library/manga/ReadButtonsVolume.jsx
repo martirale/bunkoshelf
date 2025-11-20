@@ -27,7 +27,8 @@ export default function ReadButtonsVolume({
   const [isReaderOpen, setIsReaderOpen] = useState(false);
   const [isYoureiMode, setIsYoureiMode] = useState(false);
 
-  const readingDirection = mangaStyle === "YesAndLeftToRight" ? "ltr" : "rtl";
+  const readingDirection =
+    mangaStyle === "YesLTR" || mangaStyle === "No" ? "ltr" : "rtl";
 
   const openNormalReader = () => {
     setIsYoureiMode(false);
