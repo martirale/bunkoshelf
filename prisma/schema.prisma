@@ -153,14 +153,16 @@ model VolumeMetadata {
   id       String @id @default(cuid())
   filePath String @unique
 
-  series String?
   title  String?
+  series String?
   number Float?
   count  Int?
 
-  publisher   String?
-  languageISO String?
-  ageRating   String?
+  summary String?
+
+  year  Int?
+  month Int?
+  day   Int?
 
   writer      String?
   penciller   String?
@@ -169,17 +171,18 @@ model VolumeMetadata {
   letterer    String?
   coverArtist String?
   editor      String?
-  translator  String?
 
-  summary String?
-  web     String?
+  publisher   String?
+  imprint     String?
+  web         String?
+  pageCount   Int?
+  languageISO String?
+  format      String?
+  mangaStyle  String?
 
-  year  Int?
-  month Int?
-  day   Int?
-
-  gtin       String?
-  mangaStyle String?
+  ageRating       String?
+  communityRating Float?
+  gtin            String?
 
   mangaVolume MangaVolume? @relation
 
