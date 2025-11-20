@@ -142,8 +142,9 @@ export default function SeriesContent({
                 {renderMetaField(aggregatedMeta.letterer, "letterer")}
                 {renderMetaField(aggregatedMeta.coverArtist, "coverArtist")}
                 {renderMetaField(aggregatedMeta.editor, "editor")}
-                {renderMetaField(aggregatedMeta.translator, "translator")}
                 {renderMetaField(aggregatedMeta.publisher, "publisher")}
+                {renderMetaField(aggregatedMeta.imprint, "imprint")}
+                {renderMetaField(aggregatedMeta.format, "format")}
               </>
             );
           })()}
