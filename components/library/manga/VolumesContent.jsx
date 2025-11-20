@@ -40,7 +40,8 @@ export default function VolumesContent({
       : "border-neutral-700"
   }`;
 
-  const isWesternReading = meta.mangaStyle === "YesAndLeftToRight";
+  const isWesternReading =
+    meta.mangaStyle === "YesLTR" || meta.mangaStyle === "No";
 
   return (
     <div className="p-4">
