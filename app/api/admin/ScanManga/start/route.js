@@ -16,6 +16,46 @@ const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 const STATUS_PATH = path.join(process.cwd(), "tmp", "checksum-status.json");
 const SUPPORTED_EXTENSIONS = [".cbz", ".zip"];
 
+async function cleanOrphanedGenresAndTags() {
+  const orphanedGenres = await prisma.genre.findMany({
+    where: {
+      volumes: {
+        none: {},
+      },
+    },
+  });
+
+  if (orphanedGenres.length > 0) {
+    await prisma.genre.deleteMany({
+      where: {
+        id: {
+          in: orphanedGenres.map((g) => g.id),
+        },
+      },
+    });
+    console.log(`Eliminados ${orphanedGenres.length} géneros huérfanos`);
+  }
+
+  const orphanedTags = await prisma.tag.findMany({
+    where: {
+      volumes: {
+        none: {},
+      },
+    },
+  });
+
+  if (orphanedTags.length > 0) {
+    await prisma.tag.deleteMany({
+      where: {
+        id: {
+          in: orphanedTags.map((t) => t.id),
+        },
+      },
+    });
+    console.log(`Eliminadas ${orphanedTags.length} etiquetas huérfanas`);
+  }
+}
+
 async function checksumVerification() {
   const filesToIndex = [];
 
@@ -279,6 +319,8 @@ async function checksumVerification() {
       }
     }
   }
+
+  await cleanOrphanedGenresAndTags();
 
   await fs.writeFile(
     STATUS_PATH,
