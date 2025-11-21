@@ -3,6 +3,7 @@ import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
 export async function POST(req) {
+  let error = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -31,7 +32,6 @@ export async function POST(req) {
 
     const isNowRead = lastPage >= totalPages - 1;
 
-    // Verificamos si ya existía
     const existing = await prisma.userToVolume.findUnique({
       where: {
         userId_volumeId: {
@@ -45,7 +45,8 @@ export async function POST(req) {
       },
     });
 
-    // Condición para asignar firstRead
+    const wasRead = existing?.isRead || false;
+
     const shouldSetFirstRead =
       isNowRead && (!existing?.isRead || !existing?.firstRead) && !!firstRead;
 
@@ -61,7 +62,7 @@ export async function POST(req) {
         totalPages,
         lastReadAt,
         isRead: isNowRead,
-        ...(shouldSetFirstRead && { firstRead }), // solo si aplica
+        ...(shouldSetFirstRead && { firstRead }),
       },
       create: {
         userId,
@@ -70,9 +71,31 @@ export async function POST(req) {
         totalPages,
         lastReadAt,
         isRead: isNowRead,
-        ...(shouldSetFirstRead && { firstRead }), // solo si aplica
+        ...(shouldSetFirstRead && { firstRead }),
       },
     });
+
+    if (!wasRead && isNowRead) {
+      const currentYear = new Date().getFullYear();
+      await prisma.readingChallenge.upsert({
+        where: {
+          userId_year: {
+            userId: user.id,
+            year: currentYear,
+          },
+        },
+        update: {
+          completed: { increment: 1 },
+        },
+        create: {
+          userId: user.id,
+          year: currentYear,
+          goal: 0,
+          completed: 1,
+          notified: false,
+        },
+      });
+    }
 
     const existingLog = await prisma.dailyReadingLog.findUnique({
       where: {
@@ -94,7 +117,11 @@ export async function POST(req) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("Error updating reading progress:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    error = err;
+  } finally {
+    if (error) {
+      console.error("Error updating reading progress:", error);
+      return NextResponse.json({ error: "Server error" }, { status: 500 });
+    }
   }
 }

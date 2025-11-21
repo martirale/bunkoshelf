@@ -2,29 +2,20 @@ import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-export async function GET(req) {
+export async function POST(req) {
   const user = await verifySession();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { searchParams } = new URL(req.url);
-  const year = Number(searchParams.get("year"));
+  const { year } = await req.json();
 
-  if (!year) {
-    return NextResponse.json({ error: "Missing year" }, { status: 400 });
+  if (!year || typeof year !== "number") {
+    return NextResponse.json({ error: "Invalid year" }, { status: 400 });
   }
 
   let challenge = await prisma.readingChallenge.findFirst({
-    where: {
-      userId: user.id,
-      year,
-    },
-    select: {
-      goal: true,
-      completed: true,
-      notified: true,
-    },
+    where: { userId: user.id, year },
   });
 
   if (!challenge) {
@@ -33,9 +24,14 @@ export async function GET(req) {
         userId: user.id,
         year,
         goal: 0,
-        completed: 0,
+        completed: 1,
         notified: false,
       },
+    });
+  } else {
+    challenge = await prisma.readingChallenge.update({
+      where: { id: challenge.id },
+      data: { completed: { increment: 1 } },
     });
   }
 

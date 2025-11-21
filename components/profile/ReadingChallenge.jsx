@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { PlusIcon, MinusIcon } from "lucide-react";
 
 export default function ReadingChallenge({ intl, lang }) {
-  const [goal, setGoal] = useState(null);
-  const [progress, setProgress] = useState(null);
+  const [goal, setGoal] = useState(0);
+  const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
   const notifiedRef = useRef(false);
 
@@ -13,6 +13,7 @@ export default function ReadingChallenge({ intl, lang }) {
 
   useEffect(() => {
     const fetchData = async () => {
+      let error = null;
       try {
         const res = await fetch(
           `/api/profile/getChallenge?year=${currentYear}`
@@ -21,23 +22,15 @@ export default function ReadingChallenge({ intl, lang }) {
 
         if (res.ok) {
           const userGoal = data.challenge?.goal ?? 0;
+          const completed = data.challenge?.completed ?? 0;
           const notified = data.challenge?.notified ?? false;
+
           notifiedRef.current = notified;
-
           setGoal(userGoal);
-
-          const completedThisYear = data.userVolumes?.filter((vol) => {
-            if (!vol.lastReadAt) return false;
-            const lastReadDate = new Date(vol.lastReadAt);
-            return (
-              vol.isRead === true && lastReadDate.getFullYear() === currentYear
-            );
-          }).length;
-
-          setProgress(completedThisYear ?? 0);
+          setProgress(completed);
 
           if (
-            completedThisYear >= userGoal &&
+            completed >= userGoal &&
             userGoal > 0 &&
             !notified &&
             "serviceWorker" in navigator &&
@@ -67,7 +60,6 @@ export default function ReadingChallenge({ intl, lang }) {
                   }),
                 });
 
-                // Marcar como notificado en tu base de datos
                 await fetch("/api/profile/updateChallenge", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -83,9 +75,12 @@ export default function ReadingChallenge({ intl, lang }) {
         } else {
           console.error("Error fetching challenge:", data.error);
         }
-      } catch (error) {
-        console.error("Fetch failed:", error);
+      } catch (err) {
+        error = err;
       } finally {
+        if (error) {
+          console.error("Fetch failed:", error);
+        }
         setLoading(false);
       }
     };
@@ -95,14 +90,19 @@ export default function ReadingChallenge({ intl, lang }) {
 
   const updateGoal = async (newGoal) => {
     setGoal(newGoal);
+    let error = null;
     try {
       await fetch("/api/profile/updateChallenge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ year: currentYear, goal: newGoal }),
       });
-    } catch (error) {
-      console.error("Failed to update goal:", error);
+    } catch (err) {
+      error = err;
+    } finally {
+      if (error) {
+        console.error("Failed to update goal:", error);
+      }
     }
   };
 

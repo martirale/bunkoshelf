@@ -30,9 +30,10 @@ model ReadingChallenge {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
-  year     Int
-  goal     Int
-  notified Boolean @default(false)
+  year      Int
+  goal      Int
+  completed Int     @default(0)
+  notified  Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
