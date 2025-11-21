@@ -248,6 +248,10 @@ export async function POST(request) {
           });
         }
 
+        await prisma.volumeToGenre.deleteMany({
+          where: { volumeId: volume.id },
+        });
+
         if (meta.Genre && meta.Genre[0]) {
           const genreList = meta.Genre[0]
             .split(/[;,]/)
@@ -261,21 +265,18 @@ export async function POST(request) {
               create: { name: genreName },
             });
 
-            await prisma.volumeToGenre.upsert({
-              where: {
-                volumeId_genreId: {
-                  volumeId: volume.id,
-                  genreId: genre.id,
-                },
-              },
-              update: {},
-              create: {
+            await prisma.volumeToGenre.create({
+              data: {
                 volumeId: volume.id,
                 genreId: genre.id,
               },
             });
           }
         }
+
+        await prisma.volumeToTag.deleteMany({
+          where: { volumeId: volume.id },
+        });
 
         if (meta.Tags && meta.Tags[0]) {
           const tagList = meta.Tags[0]
@@ -290,15 +291,8 @@ export async function POST(request) {
               create: { name: tagName },
             });
 
-            await prisma.volumeToTag.upsert({
-              where: {
-                volumeId_tagId: {
-                  volumeId: volume.id,
-                  tagId: tag.id,
-                },
-              },
-              update: {},
-              create: {
+            await prisma.volumeToTag.create({
+              data: {
                 volumeId: volume.id,
                 tagId: tag.id,
               },
