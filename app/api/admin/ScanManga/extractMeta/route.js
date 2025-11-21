@@ -144,6 +144,46 @@ function transformMeta(meta) {
   };
 }
 
+async function cleanOrphanedGenresAndTags() {
+  const orphanedGenres = await prisma.genre.findMany({
+    where: {
+      volumes: {
+        none: {},
+      },
+    },
+  });
+
+  if (orphanedGenres.length > 0) {
+    await prisma.genre.deleteMany({
+      where: {
+        id: {
+          in: orphanedGenres.map((g) => g.id),
+        },
+      },
+    });
+    console.log(`Eliminados ${orphanedGenres.length} géneros huérfanos`);
+  }
+
+  const orphanedTags = await prisma.tag.findMany({
+    where: {
+      volumes: {
+        none: {},
+      },
+    },
+  });
+
+  if (orphanedTags.length > 0) {
+    await prisma.tag.deleteMany({
+      where: {
+        id: {
+          in: orphanedTags.map((t) => t.id),
+        },
+      },
+    });
+    console.log(`Eliminadas ${orphanedTags.length} etiquetas huérfanas`);
+  }
+}
+
 export async function POST(request) {
   let error = null;
   try {
@@ -308,6 +348,8 @@ export async function POST(request) {
         );
       }
     }
+
+    await cleanOrphanedGenresAndTags();
 
     return NextResponse.json({
       message: "Metadatos procesados correctamente.",
