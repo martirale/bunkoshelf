@@ -30,7 +30,8 @@ export default function SeriesContent({
       : "border-neutral-700"
   }`;
 
-  const isWesternReading = meta.mangaStyle === "YesAndLeftToRight";
+  const isWesternReading =
+    meta.mangaStyle === "YesLTR" || meta.mangaStyle === "No";
 
   return (
     <div className="p-4">
