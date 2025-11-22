@@ -23,6 +23,9 @@ importers:
       '@prisma/client':
         specifier: 6.7.0
         version: 6.7.0(prisma@6.7.0)
+      '@smithy/node-http-handler':
+        specifier: 4.4.5
+        version: 4.4.5
       adm-zip:
         specifier: 0.5.16
         version: 0.5.16
