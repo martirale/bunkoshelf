@@ -2,15 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import {
-  ImageIcon,
-  FileTextIcon,
-  FileSpreadsheetIcon,
-  MusicIcon,
-  VideoIcon,
-  FileIcon,
-  FileArchiveIcon,
-} from "lucide-react";
+import { BookOpenIcon, FileIcon } from "lucide-react";
 
 export default function DropzoneUpload({
   onDropAccepted,
@@ -54,25 +46,8 @@ export default function DropzoneUpload({
 
   function getFileIcon(file) {
     const ext = (file.name.split(".").pop() || "").toLowerCase();
-    if (
-      ["png", "jpg", "jpeg", "gif", "svg", "webp", "tif", "tiff"].includes(ext)
-    ) {
-      return <ImageIcon size={32} className="text-foreground" />;
-    }
-    if (ext === "pdf") {
-      return <FileTextIcon size={32} className="text-red-500" />;
-    }
-    if (["xls", "xlsx", "csv"].includes(ext)) {
-      return <FileSpreadsheetIcon size={32} className="text-green-600" />;
-    }
-    if (["mp3", "wav", "ogg", "m4a"].includes(ext)) {
-      return <MusicIcon size={32} className="text-amber-600" />;
-    }
-    if (["mp4", "mov", "avi", "mkv"].includes(ext)) {
-      return <VideoIcon size={32} className="text-purple-600" />;
-    }
-    if (["zip", "rar", "7z", "cbz", "cbr"].includes(ext)) {
-      return <FileArchiveIcon size={32} className="text-muted-foreground" />;
+    if (["cbz", "zip", "cbr", "rar"].includes(ext)) {
+      return <BookOpenIcon size={32} className="text-lilah" />;
     }
     return <FileIcon size={32} className="text-muted-foreground" />;
   }
