@@ -21,16 +21,19 @@ export default function DropzoneUpload({
   const [isDragActive, setIsDragActive] = useState(false);
   const [files, setFiles] = useState([]);
 
+  const maxFiles = multiple ? 5 : 1;
+
   const onDrop = useCallback(
     async (acceptedFiles) => {
       let _err;
       try {
-        setFiles(acceptedFiles);
+        const limited = acceptedFiles.slice(0, maxFiles);
+        setFiles(limited);
         if (onDropAccepted) {
           if (multiple) {
-            await onDropAccepted(acceptedFiles);
+            await onDropAccepted(limited);
           } else {
-            await onDropAccepted(acceptedFiles[0]);
+            await onDropAccepted(limited[0]);
           }
         }
       } catch (e) {
@@ -39,12 +42,13 @@ export default function DropzoneUpload({
         if (_err) throw _err;
       }
     },
-    [onDropAccepted, multiple]
+    [onDropAccepted, multiple, maxFiles]
   );
 
   const { getRootProps, getInputProps, isDragReject } = useDropzone({
     onDrop,
     multiple,
+    maxFiles,
     accept,
     onDragEnter: () => setIsDragActive(true),
     onDragLeave: () => setIsDragActive(false),
