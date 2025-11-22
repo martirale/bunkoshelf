@@ -19,6 +19,12 @@ export default function UploadMangaForm({ intl }) {
 
   const { addToast } = useToast();
 
+  const isOneshotMode =
+    (selectedDirectory === "new" && isOneshot) ||
+    (selectedDirectory !== "new" &&
+      selectedDirectory !== "" &&
+      selectedDirectory.includes("[oneshot]"));
+
   useEffect(() => {
     const fetchDirectories = async () => {
       let _err;
@@ -269,7 +275,7 @@ export default function UploadMangaForm({ intl }) {
 
         <DropzoneUpload
           onDropAccepted={handleFilesAccepted}
-          multiple={selectedDirectory === "new" ? !isOneshot : true}
+          multiple={!isOneshotMode}
           accept={{
             "application/pdf": [".pdf"],
             "application/zip": [".zip", ".cbz"],
