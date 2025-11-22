@@ -5,7 +5,7 @@ import { BookOpenIcon } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import DropzoneUpload from "@/components/DropzoneUpload";
 
-const CHUNK_SIZE = 50 * 1024 * 1024;
+const CHUNK_SIZE = 32 * 1024 * 1024;
 
 export default function UploadMangaForm({ intl }) {
   const [isManga, setIsManga] = useState(true);
