@@ -4,8 +4,8 @@
     "noSeriesFav": "There are no favorite series...",
     "noVolumesFav": "There is no favorite manga...",
     "dropzoneTt": "Drag and drop files here or click to select",
-    "dropzoneMulti": "You can upload multiple files (max. 5GB)",
-    "dropzoneSingle": "You can upload a single file (max. 5GB)",
+    "dropzoneMulti": "You can upload multiple files (max. 5)",
+    "dropzoneSingle": "You can upload a single file",
     "dropzoneActive": "Drop the files here..."
   }
 }
