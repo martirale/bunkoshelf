@@ -52,6 +52,20 @@ export default function UploadMangaForm({ intl }) {
     setFiles(acceptedFiles);
   };
 
+  const uploadFileDirectToR2 = async (file, presignedUrl) => {
+    const response = await fetch(presignedUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type || "application/octet-stream",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error uploading ${file.name} to R2`);
+    }
+  };
+
   const uploadFileInChunks = async (file, metadata, fileIndex, totalFiles) => {
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
@@ -109,8 +123,47 @@ export default function UploadMangaForm({ intl }) {
           selectedDirectory !== "new" ? selectedDirectory : null,
       };
 
+      const uploadedFiles = [];
+
       for (let i = 0; i < files.length; i++) {
-        await uploadFileInChunks(files[i], metadata, i, files.length);
+        const file = files[i];
+        setUploadProgress(
+          `${intl.settings.uploadLibraryUploading} ${i + 1}/${files.length}: ${
+            file.name
+          }`
+        );
+
+        const res = await fetch("/api/admin/upload/presigned", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileName: file.name, metadata }),
+        });
+
+        const data = await res.json();
+
+        if (data.useChunks) {
+          await uploadFileInChunks(file, metadata, i, files.length);
+        } else if (data.presignedUrl) {
+          await uploadFileDirectToR2(file, data.presignedUrl);
+          uploadedFiles.push({
+            key: data.key,
+            baseName: file.name.substring(0, file.name.lastIndexOf(".")),
+          });
+        } else {
+          throw new Error(`Error getting upload method for ${file.name}`);
+        }
+      }
+
+      if (uploadedFiles.length > 0) {
+        const confirmRes = await fetch("/api/admin/upload/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ files: uploadedFiles, metadata }),
+        });
+
+        if (!confirmRes.ok) {
+          throw new Error("Error confirming upload");
+        }
       }
 
       addToast({
