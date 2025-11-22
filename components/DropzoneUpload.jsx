@@ -30,11 +30,7 @@ export default function DropzoneUpload({
         const limited = acceptedFiles.slice(0, maxFiles);
         setFiles(limited);
         if (onDropAccepted) {
-          if (multiple) {
-            await onDropAccepted(limited);
-          } else {
-            await onDropAccepted(limited[0]);
-          }
+          await onDropAccepted(limited);
         }
       } catch (e) {
         _err = e;
@@ -42,7 +38,7 @@ export default function DropzoneUpload({
         if (_err) throw _err;
       }
     },
-    [onDropAccepted, multiple, maxFiles]
+    [onDropAccepted, maxFiles]
   );
 
   const { getRootProps, getInputProps, isDragReject } = useDropzone({
@@ -75,8 +71,8 @@ export default function DropzoneUpload({
     if (["mp4", "mov", "avi", "mkv"].includes(ext)) {
       return <VideoIcon size={32} className="text-purple-600" />;
     }
-    if (["zip", "rar", "7z"].includes(ext)) {
-      return <FileArchiveIcon size={32} className="text-foreground" />;
+    if (["zip", "rar", "7z", "cbz", "cbr"].includes(ext)) {
+      return <FileArchiveIcon size={32} className="text-muted-foreground" />;
     }
     return <FileIcon size={32} className="text-muted-foreground" />;
   }

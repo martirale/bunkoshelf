@@ -269,7 +269,7 @@ export default function UploadMangaForm({ intl }) {
 
         <DropzoneUpload
           onDropAccepted={handleFilesAccepted}
-          multiple={true}
+          multiple={selectedDirectory === "new" ? !isOneshot : true}
           accept={{
             "application/pdf": [".pdf"],
             "application/zip": [".zip", ".cbz"],
