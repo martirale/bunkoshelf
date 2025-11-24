@@ -3,8 +3,8 @@
 
 /* Global variables */
 :root {
-  --background: #0c0c0c; /* Onix */
-  --foreground: #f7f2ec; /* Pearl */
+  --background: #0c0c0c;
+  --foreground: #f7f2ec;
   --font-sans: var(--font-roboto-condensed), Arial, Helvetica, sans-serif;
   --font-display: var(--font-boldonse), Georgia, serif;
 }
@@ -18,15 +18,15 @@
   --font-roboto: var(--font-roboto-condensed);
   --font-boldonse: var(--font-boldonse);
 
-  /* Brand Colors */
-  --color-pearl: #f7f2ec; /* Pearl (Main) */
-  --color-sand: #e5e0dc; /* Sand (Second) */
-  --color-blackamber: #0c0c0c; /* Blackamber */
-  --color-onix: #151515; /* Onix */
-  --color-lilah: #8a6fdc; /* Lilah (Main) */
-  --color-darklilah: #6a55a9; /* Dark Royal (Second) */
-  --color-ash: #738298; /* Ash (Main) */
-  --color-denim: #3d4e72; /* Denim (Second) */
+  /* Bunko */
+  --color-pearl: #f7f2ec;
+  --color-sand: #e5e0dc;
+  --color-blackamber: #0c0c0c;
+  --color-onix: #151515;
+  --color-lilah: #8a6fdc;
+  --color-darklilah: #6a55a9;
+  --color-ash: #738298;
+  --color-denim: #3d4e72;
 
   /* Toasts-alerts */
   --color-success: #052514;
