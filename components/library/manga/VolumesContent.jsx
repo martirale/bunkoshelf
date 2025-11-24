@@ -30,14 +30,14 @@ export default function VolumesContent({
   const seriesSlug = volumeData.series?.slug;
 
   const ageMin = ageRatingMap(meta.ageRating);
-  const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-2 border ${
+  const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-2 ${
     ageMin >= 18
-      ? "border-red-500 text-red-500"
+      ? "bg-red-500"
       : ageMin >= 16
-      ? "border-[#f5a524] text-[#f5a524]"
+      ? "bg-[#f5a524] text-onix"
       : ageMin !== null
-      ? "border-neutral-700"
-      : "border-neutral-700"
+      ? "bg-neutral-700"
+      : "bg-neutral-700"
   }`;
 
   const isWesternReading =
@@ -100,11 +100,11 @@ export default function VolumesContent({
               </span>
             )}
             {meta.languageISO && (
-              <span className="text-sm uppercase border border-neutral-700 rounded-md px-3 py-1 mr-2">
+              <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1 mr-2">
                 {meta.languageISO}
               </span>
             )}
-            <span className="text-sm uppercase border border-neutral-700 rounded-md px-3 py-1">
+            <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1">
               {isWesternReading ? intl.manga.readingEn : intl.manga.readingJp}
             </span>
           </div>
@@ -197,7 +197,7 @@ export default function VolumesContent({
                       query: { genre: genre.name },
                     }}
                     scroll={false}
-                    className="text-xs uppercase border border-neutral-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
+                    className="text-xs uppercase bg-neutral-700 rounded-md px-2 py-1 hover:bg-lilah transition-all duration-300"
                   >
                     {genre.name}
                   </Link>
@@ -220,7 +220,7 @@ export default function VolumesContent({
                       query: { tag: tag.name },
                     }}
                     scroll={false}
-                    className="text-xs uppercase border border-neutral-700 rounded-md px-2 py-1 hover:border-lilah transition-all duration-300"
+                    className="text-xs uppercase bg-neutral-700 rounded-md px-2 py-1 hover:bg-lilah transition-all duration-300"
                   >
                     {tag.name}
                   </Link>

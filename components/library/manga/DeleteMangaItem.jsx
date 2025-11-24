@@ -48,15 +48,15 @@ export default function DeleteMangaItem({ intl, type = "volume", slug }) {
   return (
     <button
       className={clsx(
-        "text-danger-alt text-xs uppercase cursor-pointer",
+        "text-danger-alt text-xs uppercase cursor-pointer hover:underline",
         "flex flex-row items-center gap-1"
       )}
       onClick={handleDelete}
     >
+      <TrashIcon size={11} className="mb-0.5" />
       {type === "volume"
         ? t.libraries.deleteItem.volume
         : t.libraries.deleteItem.series}
-      <TrashIcon size={11} className="mb-0.5" />
     </button>
   );
 }
