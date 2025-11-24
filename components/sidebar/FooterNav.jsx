@@ -135,31 +135,24 @@ export default function FooterNav({ lang, intl, user, versionData }) {
     <>
       {updateAvailable && (
         <div className="text-sand mb-4">
-          <Link
-            href={remoteChangelog || remoteVersionUrl || "#"}
-            target="_blank"
-            rel="noopener"
-          >
+          <a href={remoteChangelog || "#"} target="_blank" rel="noopener">
             <AlertBox
-              title={`${intl.toastVersion.title} (v${remoteVersion})`}
+              title={`${intl.toastVersion.title} (${remoteVersion})`}
               description={intl.toastVersion.description}
             />
-          </Link>
+          </a>
         </div>
       )}
 
       <div className="flex justify-between items-end">
-        <Link
-          href={
-            versionData?.versionUrl ||
-            `https://hub.docker.com/r/itsmrtr/bunkoshelf/tags?page=1&name=${localVersion}`
-          }
+        <a
+          href={versionData?.versionUrl}
           target="_blank"
           rel="noopener"
           className="text-sm px-4 py-1 border border-stone-300 md:border-neutral-800 rounded-full hover:text-pearl transition-all duration-300 hover:border-lilah"
         >
-          v{localVersion}
-        </Link>
+          {localVersion}
+        </a>
 
         <div className="flex items-center gap-2">
           {buttons.map(({ type, icon: Icon, ...props }, i) =>
