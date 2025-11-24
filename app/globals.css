@@ -3,21 +3,18 @@
 
 /* Global variables */
 :root {
-  --background: #151515; /* Onix */
+  --background: #0c0c0c; /* Onix */
   --foreground: #f7f2ec; /* Pearl */
   --font-sans: var(--font-roboto-condensed), Arial, Helvetica, sans-serif;
   --font-display: var(--font-boldonse), Georgia, serif;
 }
 
-/* Defining the theme using Tailwind (dark mode only) */
 @theme inline {
-  /* Global variables */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 
-  /* Util aliases */
   --font-roboto: var(--font-roboto-condensed);
   --font-boldonse: var(--font-boldonse);
 
@@ -26,12 +23,8 @@
   --color-sand: #e5e0dc; /* Sand (Second) */
   --color-blackamber: #0c0c0c; /* Blackamber */
   --color-onix: #151515; /* Onix */
-
-  /* Manga Library */
   --color-lilah: #8a6fdc; /* Lilah (Main) */
   --color-darklilah: #6a55a9; /* Dark Royal (Second) */
-
-  /* Books Library */
   --color-ash: #738298; /* Ash (Main) */
   --color-denim: #3d4e72; /* Denim (Second) */
 
@@ -45,7 +38,6 @@
   --color-danger-alt: #f54159;
 }
 
-/* Basic body styles */
 .font-roboto {
   font-family: var(--font-roboto);
 }
@@ -92,27 +84,15 @@ h6 {
   animation: fade-in 0.3s ease-out;
 }
 
-/* Seigaiha background */
-/* .bg-seigaiha {
-  position: relative;
-  z-index: 0;
+/* Seigaiha Pattern Background (div apply) */
+.bg-seigaiha-pattern-k {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3E%3Cdefs%3E%3CradialGradient id='grad' cx='50%25' cy='50%25' r='50%25' fx='50%25' fy='50%25'%3E%3Cstop offset='9%25' stop-color='%23333' /%3E%3Cstop offset='10%25' stop-color='%23222' /%3E%3Cstop offset='19%25' stop-color='%23222' /%3E%3Cstop offset='20%25' stop-color='%23333' /%3E%3Cstop offset='29%25' stop-color='%23333' /%3E%3Cstop offset='30%25' stop-color='%23222' /%3E%3Cstop offset='39%25' stop-color='%23222' /%3E%3Cstop offset='40%25' stop-color='%23333' /%3E%3Cstop offset='49%25' stop-color='%23333' /%3E%3Cstop offset='50%25' stop-color='%23222' /%3E%3Cstop offset='59%25' stop-color='%23222' /%3E%3Cstop offset='60%25' stop-color='%23333' /%3E%3Cstop offset='69%25' stop-color='%23333' /%3E%3Cstop offset='70%25' stop-color='%23222' /%3E%3Cstop offset='79%25' stop-color='%23222' /%3E%3Cstop offset='80%25' stop-color='%23333' /%3E%3Cstop offset='89%25' stop-color='%23333' /%3E%3Cstop offset='90%25' stop-color='%23222' /%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle fill='url(%23grad)' cy='27' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='100' cy='27' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='50' cy='57' r='57' /%3E%3Ccircle fill='url(%23grad)' cy='87' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='100' cy='87' r='57' /%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 48px;
 }
 
-.bg-seigaiha::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3E%3Cdefs%3E%3CradialGradient id='grad' cx='50%25' cy='50%25' r='50%25' fx='50%25' fy='50%25'%3E%3Cstop offset='9%25' stop-color='%23333' /%3E%3Cstop offset='10%25' stop-color='%23222' /%3E%3Cstop offset='19%25' stop-color='%23222' /%3E%3Cstop offset='20%25' stop-color='%23333' /%3E%3Cstop offset='29%25' stop-color='%23333' /%3E%3Cstop offset='30%25' stop-color='%23222' /%3E%3Cstop offset='39%25' stop-color='%23222' /%3E%3Cstop offset='40%25' stop-color='%23333' /%3E%3Cstop offset='49%25' stop-color='%23333' /%3E%3Cstop offset='50%25' stop-color='%23222' /%3E%3Cstop offset='59%25' stop-color='%23222' /%3E%3Cstop offset='60%25' stop-color='%23333' /%3E%3Cstop offset='69%25' stop-color='%23333' /%3E%3Cstop offset='70%25' stop-color='%23222' /%3E%3Cstop offset='79%25' stop-color='%23222' /%3E%3Cstop offset='80%25' stop-color='%23333' /%3E%3Cstop offset='89%25' stop-color='%23333' /%3E%3Cstop offset='90%25' stop-color='%23222' /%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle fill='url(%23grad)' cy='27' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='100' cy='27' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='50' cy='57' r='57' /%3E%3Ccircle fill='url(%23grad)' cy='87' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='100' cy='87' r='57' /%3E%3C/svg%3E");
-  background-size: 48px;
-  background-repeat: repeat;
-  opacity: 0.3;
-  z-index: -1;
-  pointer-events: none;
-} */
-
-/* Nuevo fondo Seigaiha como div */
-.bg-seigaiha-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3E%3Cdefs%3E%3CradialGradient id='grad' cx='50%25' cy='50%25' r='50%25' fx='50%25' fy='50%25'%3E%3Cstop offset='9%25' stop-color='%23333' /%3E%3Cstop offset='10%25' stop-color='%23222' /%3E%3Cstop offset='19%25' stop-color='%23222' /%3E%3Cstop offset='20%25' stop-color='%23333' /%3E%3Cstop offset='29%25' stop-color='%23333' /%3E%3Cstop offset='30%25' stop-color='%23222' /%3E%3Cstop offset='39%25' stop-color='%23222' /%3E%3Cstop offset='40%25' stop-color='%23333' /%3E%3Cstop offset='49%25' stop-color='%23333' /%3E%3Cstop offset='50%25' stop-color='%23222' /%3E%3Cstop offset='59%25' stop-color='%23222' /%3E%3Cstop offset='60%25' stop-color='%23333' /%3E%3Cstop offset='69%25' stop-color='%23333' /%3E%3Cstop offset='70%25' stop-color='%23222' /%3E%3Cstop offset='79%25' stop-color='%23222' /%3E%3Cstop offset='80%25' stop-color='%23333' /%3E%3Cstop offset='89%25' stop-color='%23333' /%3E%3Cstop offset='90%25' stop-color='%23222' /%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle fill='url(%23grad)' cy='27' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='100' cy='27' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='50' cy='57' r='57' /%3E%3Ccircle fill='url(%23grad)' cy='87' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='100' cy='87' r='57' /%3E%3C/svg%3E");
+.bg-seigaiha-pattern-w {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3E%3Cdefs%3E%3CradialGradient id='grad' cx='50%25' cy='50%25' r='50%25' fx='50%25' fy='50%25'%3E%3Cstop offset='9%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='10%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='19%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='20%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='29%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='30%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='39%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='40%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='49%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='50%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='59%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='60%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='69%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='70%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='79%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='80%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='89%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='90%25' stop-color='%23e5e0dc' /%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle fill='url(%23grad)' cy='27' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='100' cy='27' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='50' cy='57' r='57' /%3E%3Ccircle fill='url(%23grad)' cy='87' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='100' cy='87' r='57' /%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 48px;
 }

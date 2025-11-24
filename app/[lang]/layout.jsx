@@ -27,7 +27,7 @@ export default async function RootLayout({ children, params }) {
       className={`${robotoCondensed.variable} ${boldonse.variable} antialiased`}
     >
       <body className="flex h-screen overflow-hidden text-lg relative">
-        <div className="fixed inset-0 -z-10 pointer-events-none bg-seigaiha-pattern opacity-30" />
+        <div className="fixed inset-0 -z-10 pointer-events-none bg-seigaiha-pattern-k opacity-50" />
 
         <MobNav lang={lang} />
         <Sidebar lang={lang} />
