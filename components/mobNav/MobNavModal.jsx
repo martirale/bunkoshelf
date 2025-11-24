@@ -16,6 +16,7 @@ export default function MobNavModal({
   onClose,
   user,
   challengeData,
+  versionData,
 }) {
   const modalRef = useRef(null);
 
@@ -82,7 +83,12 @@ export default function MobNavModal({
             <SearchInputMob intl={intl} />
           </div>
           <ChallengeProg lang={lang} intl={intl} data={challengeData} />
-          <FooterNav lang={lang} intl={intl} user={user} />
+          <FooterNav
+            lang={lang}
+            intl={intl}
+            user={user}
+            versionData={versionData}
+          />
         </div>
       </div>
     </div>

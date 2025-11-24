@@ -5,7 +5,13 @@ import { usePathname } from "next/navigation";
 import { MenuIcon } from "lucide-react";
 import MobNavModal from "./MobNavModal";
 
-export default function MobNavButton({ lang, intl, user, challengeData }) {
+export default function MobNavButton({
+  lang,
+  intl,
+  user,
+  challengeData,
+  versionData,
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -31,6 +37,7 @@ export default function MobNavButton({ lang, intl, user, challengeData }) {
         intl={intl}
         user={user}
         challengeData={challengeData}
+        versionData={versionData}
       />
     </>
   );
