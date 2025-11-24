@@ -16,9 +16,6 @@ RUN pnpm install --frozen-lockfile
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-ARG JWT_SECRET
-ENV JWT_SECRET=$JWT_SECRET
-
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 
@@ -33,8 +30,6 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
-ARG JWT_SECRET
-ENV JWT_SECRET=$JWT_SECRET
 ENV DATABASE_URL="file:/app/prisma/data/bunkoshelf.db"
 
 COPY --from=deps /app/node_modules ./node_modules

@@ -1,3 +1,5 @@
+"use server";
+
 import { login } from "@/app/actions/login";
 
 export async function POST(request) {
