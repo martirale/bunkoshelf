@@ -11,14 +11,13 @@ import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
 import AlertBox from "@/components/ui/AlertBox";
-import pkg from "../../package.json";
 
-export default function FooterNav({ lang, intl, user }) {
-  const localVersion = pkg.version;
+export default function FooterNav({ lang, intl, user, versionData }) {
   const [remoteVersion, setRemoteVersion] = useState(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [remoteChangelog, setRemoteChangelog] = useState(null);
   const [remoteVersionUrl, setRemoteVersionUrl] = useState(null);
+  const localVersion = versionData?.version;
 
   const params = useParams();
   const router = useRouter();
@@ -44,6 +43,8 @@ export default function FooterNav({ lang, intl, user }) {
   const isLoggedIn = SessionStatus();
 
   useEffect(() => {
+    if (!localVersion) return;
+
     function isRemoteVersionNewer(local, remote) {
       if (!local || !remote) return false;
       const localParts = String(local)
@@ -64,7 +65,9 @@ export default function FooterNav({ lang, intl, user }) {
 
     async function checkVersion() {
       try {
-        const res = await fetch("/api/version", { cache: "no-cache" });
+        const res = await fetch("/api/version", {
+          cache: "no-cache",
+        });
         const data = await res.json();
         const remote = data.version ?? data.latest ?? null;
         const changelog =
@@ -89,7 +92,7 @@ export default function FooterNav({ lang, intl, user }) {
     checkVersion();
     const interval = setInterval(checkVersion, 24 * 60 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [localVersion]);
 
   const buttons = [
     {
@@ -138,7 +141,7 @@ export default function FooterNav({ lang, intl, user }) {
             rel="noopener"
           >
             <AlertBox
-              title={`${intl.toastVersion.title} (${remoteVersion})`}
+              title={`${intl.toastVersion.title} (v${remoteVersion})`}
               description={intl.toastVersion.description}
             />
           </Link>
@@ -147,12 +150,15 @@ export default function FooterNav({ lang, intl, user }) {
 
       <div className="flex justify-between items-end">
         <Link
-          href={`https://hub.docker.com/r/itsmrtr/bunkoshelf/tags?page=1&name=${localVersion}`}
+          href={
+            versionData?.versionUrl ||
+            `https://hub.docker.com/r/itsmrtr/bunkoshelf/tags?page=1&name=${localVersion}`
+          }
           target="_blank"
           rel="noopener"
           className="text-sm px-4 py-1 border border-stone-300 md:border-neutral-800 rounded-full hover:text-pearl transition-all duration-300 hover:border-lilah"
         >
-          {localVersion}
+          v{localVersion}
         </Link>
 
         <div className="flex items-center gap-2">

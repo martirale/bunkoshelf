@@ -9,11 +9,11 @@ import {
 } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth/verifySession";
-import pkg from "../../../package.json";
 import Link from "next/link";
 import ClearLogsButton from "@/components/settings/ClearLogsButton";
 import UsersTable from "@/components/settings/UsersTable";
 import AddUserButton from "@/components/settings/AddUserButton";
+import { getVersionInfo } from "@/lib/versionInfo";
 
 async function fetchLogs() {
   const res = await fetch(
@@ -30,10 +30,10 @@ async function fetchLogs() {
 export default async function SettingsPage({ params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
-  const localVersion = pkg.version;
 
   const currentUser = await verifySession();
   const logs = await fetchLogs();
+  const versionData = await getVersionInfo();
 
   const users = await prisma.user.findMany({
     select: {
@@ -51,7 +51,6 @@ export default async function SettingsPage({ params }) {
 
   return (
     <>
-      {/* Overview */}
       <div id="overview" />
       <h2 className="flex items-center mb-4">
         <BoltIcon size={28} className="mr-2" />
@@ -59,7 +58,6 @@ export default async function SettingsPage({ params }) {
       </h2>
 
       <div className="flex flex-col 2xl:flex-row gap-4">
-        {/* About Bunko */}
         <div className="2xl:flex-1/2">
           <div className="bg-blackamber p-4 rounded-lg h-64 2xl:h-96 flex flex-col justify-between">
             <div>
@@ -72,28 +70,30 @@ export default async function SettingsPage({ params }) {
                 <p className="font-bold">{intl.settings.semVer}</p>
                 <div className="flex items-center">
                   <GitCommitHorizontalIcon size={20} className="mr-2" />
-                  <Link
-                    href={`https://hub.docker.com/r/itsmrtr/bunkoshelf/tags?page=1&name=${localVersion}`}
+                  <a
+                    href={versionData.versionUrl}
                     target="_blank"
                     className="hover:underline"
+                    rel="noopener noreferrer"
                   >
-                    v{localVersion}
-                  </Link>
+                    {versionData.version}
+                  </a>
                 </div>
               </div>
 
-              {/* <div>
-                <p className="font-bold">{intl.settings.buildDate}</p>
-                <div className="flex items-center">
-                  <CalendarIcon size={20} className="mr-2" />
-                  <span>{buildDate}</span>
+              {versionData.buildDate && (
+                <div>
+                  <p className="font-bold">{intl.settings.buildDate}</p>
+                  <div className="flex items-center">
+                    <CalendarIcon size={16} className="mr-2" />
+                    <span>{versionData.buildDate}</span>
+                  </div>
                 </div>
-              </div> */}
+              )}
             </div>
           </div>
         </div>
 
-        {/* Activity Log */}
         <div className="bg-blackamber rounded-lg p-4 2xl:flex-1/2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base">{intl.settings.ttActivity}</h2>
@@ -118,7 +118,6 @@ export default async function SettingsPage({ params }) {
         </div>
       </div>
 
-      {/* Users */}
       <div id="users" />
       <div className="flex items-center justify-between mt-8 mb-4">
         <h2 className="flex items-center">

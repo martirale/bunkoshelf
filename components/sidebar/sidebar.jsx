@@ -8,11 +8,13 @@ import { verifySession } from "@/lib/auth/verifySession";
 import SearchInput from "@/components/search/SearchImput";
 import SearchModal from "@/components/search/SearchModal";
 import { getChallengeData } from "@/lib/utils";
+import { getVersionInfo } from "@/lib/versionInfo";
 
 export default async function Sidebar({ lang }) {
   const intl = await getDictionary(lang);
   const user = await verifySession();
   const challengeData = await getChallengeData(user);
+  const versionData = await getVersionInfo();
 
   return (
     <>
@@ -35,7 +37,12 @@ export default async function Sidebar({ lang }) {
 
         <ChallengeProg lang={lang} intl={intl} data={challengeData} />
 
-        <FooterNav lang={lang} intl={intl} user={user} />
+        <FooterNav
+          lang={lang}
+          intl={intl}
+          user={user}
+          versionData={versionData}
+        />
       </aside>
 
       <SearchModal lang={lang} intl={intl} />
