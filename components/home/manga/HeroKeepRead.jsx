@@ -59,7 +59,7 @@ export default function HeroKeepRead({ lang, intl }) {
             {intl.libraries.keepReading}
             <ChevronRightIcon
               size={28}
-              className="ml-2 text-pearl group-hover:text-onix transition-all duration-300"
+              className="ml-1 text-onix md:text-pearl group-hover:text-onix transition-all duration-300"
             />
           </h2>
         </Link>
