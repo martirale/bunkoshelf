@@ -54,12 +54,12 @@ export default function HeroKeepRead({ lang, intl }) {
     <div className="flex-shrink-0 w-full md:w-1/1 2xl:w-3/5">
       <div className="flex justify-between items-center mb-4">
         <Link href={`/${lang}/manga`}>
-          <h2 className="text-onix flex items-center text-base md:text-lg group">
+          <h2 className="text-onix flex items-center text-base md:text-lg">
             <LibraryBigIcon size={28} className="mr-2" />
             {intl.libraries.keepReading}
             <ChevronRightIcon
               size={28}
-              className="ml-1 text-onix md:text-pearl group-hover:text-onix transition-all duration-300"
+              className="ml-1 text-onix hover:scale-110 transition-all duration-150"
             />
           </h2>
         </Link>
