@@ -21,10 +21,8 @@ export default function UsersTable({ users, intl, currentUserId }) {
   return (
     <>
       <div className="bg-blackamber p-4 rounded-lg relative">
-        {/* Scroll horizontal solo para columnas de datos */}
         <div className="overflow-x-auto">
           <div className="min-w-[800px] xl:min-w-full h-72 overflow-y-auto pr-24">
-            {/* Header sin columna de edición */}
             <div className="grid grid-cols-5 font-bold uppercase bg-onix sticky top-0 z-10 rounded-l-md">
               <div className="p-4 text-left">{intl.settings.username}</div>
               <div className="p-4 text-center">{intl.settings.type}</div>
@@ -33,7 +31,6 @@ export default function UsersTable({ users, intl, currentUserId }) {
               <div className="p-4 text-center">{intl.settings.age}</div>
             </div>
 
-            {/* Filas sin columna de edición */}
             {userList.map((user) => {
               const currentYear = new Date().getFullYear();
               const age = user.birthYear ? currentYear - user.birthYear : "—";
@@ -42,7 +39,11 @@ export default function UsersTable({ users, intl, currentUserId }) {
                 <div key={user.id} className="grid grid-cols-5">
                   <div className="p-4">{user.username}</div>
                   <div className="p-4 text-center">
-                    {user.isAdmin ? intl.settings.admin : intl.settings.user}
+                    <span className="bg-neutral-700 px-2 py-1 rounded-full text-sm uppercase">
+                      {user.isAdmin
+                        ? intl.profile.usrAdmin
+                        : intl.profile.usrNormal}
+                    </span>
                   </div>
                   <div className="p-4 text-center">{user.name || "—"}</div>
                   <div className="p-4 text-center">{user.lastname || "—"}</div>
@@ -53,14 +54,11 @@ export default function UsersTable({ users, intl, currentUserId }) {
           </div>
         </div>
 
-        {/* Columna fija de edición */}
         <div className="bg-blackamber absolute top-0 right-0 h-full w-24 pointer-events-none rounded-r-lg">
-          {/* Header sticky */}
           <div className="p-4 text-center uppercase font-bold bg-onix sticky mt-4 mr-4 -ml-4 z-20 pointer-events-auto rounded-r-md">
             {intl.settings.edit}
           </div>
 
-          {/* Iconos por usuario */}
           {userList.map((user) => (
             <div
               key={`edit-${user.id}`}
@@ -78,7 +76,6 @@ export default function UsersTable({ users, intl, currentUserId }) {
         </div>
       </div>
 
-      {/* Modal para editar */}
       <Modal isOpen={!!selectedUser} onClose={handleClose}>
         <EditUserForm
           user={selectedUser}

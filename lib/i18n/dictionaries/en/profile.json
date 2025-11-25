@@ -10,8 +10,8 @@
     "updateProfile": "Update Profile",
     "ttChallenge": "Reading Challenge",
     "completed": "Completed",
-    "usrAdmin": "Admin",
-    "usrNormal": "Basic",
+    "usrAdmin": "Owner",
+    "usrNormal": "Member",
     "age": "Years"
   }
 }

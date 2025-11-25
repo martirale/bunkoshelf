@@ -19,8 +19,6 @@
     "lastname": "Lastname",
     "age": "Age",
     "edit": "Edit",
-    "admin": "Admin",
-    "user": "Normal",
     "nameOpt": "Name (optional)",
     "lastnameOpt": "Lastname (optional)",
     "birthYearOpt": "Birth Year (optional)",
