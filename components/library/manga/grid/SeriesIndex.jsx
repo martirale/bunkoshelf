@@ -48,15 +48,18 @@ export default async function SeriesIndex({
 
   const volumeConditions = [...genreConditions, ...tagConditions];
 
-  const where = volumeConditions.length
-    ? {
-        volumes: {
-          some: {
-            AND: volumeConditions,
+  const where = {
+    isOneshot: false,
+    ...(volumeConditions.length
+      ? {
+          volumes: {
+            some: {
+              AND: volumeConditions,
+            },
           },
-        },
-      }
-    : {};
+        }
+      : {}),
+  };
 
   const series = await prisma.mangaSeries.findMany({
     where,
@@ -78,37 +81,33 @@ export default async function SeriesIndex({
     },
   });
 
-  const entries = series
-    .filter(
-      (entry) => (entry.volumes && entry.volumes.length > 1) || entry.metadata
-    )
-    .map((entry) => {
-      const sortedVolumes = sortByPaddedTitle(entry.volumes);
+  const entries = series.map((entry) => {
+    const sortedVolumes = sortByPaddedTitle(entry.volumes);
 
-      return {
-        ...entry,
-        coverImage:
-          sortedVolumes.length > 0
-            ? `/api/library/manga/cover${sortedVolumes[
-                sortedVolumes.length - 1
-              ].coverImage
-                ?.replace(/\\/g, "/")
-                .replace(/^\/?covers/, "")}` ?? null
+    return {
+      ...entry,
+      coverImage:
+        sortedVolumes.length > 0
+          ? `/api/library/manga/cover${sortedVolumes[
+              sortedVolumes.length - 1
+            ].coverImage
+              ?.replace(/\\/g, "/")
+              .replace(/^\/?covers/, "")}` ?? null
+          : null,
+      volumes:
+        sortedVolumes.map((vol) => ({
+          ...vol,
+          coverImage: vol.coverImage
+            ? `/api/library/manga/cover${vol.coverImage
+                .replace(/\\/g, "/")
+                .replace(/^\/?covers/, "")}`
             : null,
-        volumes:
-          sortedVolumes.map((vol) => ({
-            ...vol,
-            coverImage: vol.coverImage
-              ? `/api/library/manga/cover${vol.coverImage
-                  .replace(/\\/g, "/")
-                  .replace(/^\/?covers/, "")}`
-              : null,
-            meta: vol.metadataObj || null,
-            genres: vol.genres.map((g) => g.genre.name),
-            tags: vol.tags.map((t) => t.tag.name),
-          })) ?? [],
-      };
-    });
+          meta: vol.metadataObj || null,
+          genres: vol.genres.map((g) => g.genre.name),
+          tags: vol.tags.map((t) => t.tag.name),
+        })) ?? [],
+    };
+  });
 
   const total = entries.length;
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -128,14 +127,7 @@ export default async function SeriesIndex({
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
         {paginatedEntries.map((entry) => {
-          const isSeries =
-            (entry.volumes && entry.volumes.length > 1) || entry.metadata;
-          const isOneshot = !isSeries;
-
-          const href = isOneshot
-            ? `/${lang}/manga/volume/${entry.volumeSlug}`
-            : `/${lang}/manga/${entry.slug}`;
-
+          const href = `/${lang}/manga/${entry.slug}`;
           const coverImage = entry.coverImage;
 
           return (
@@ -143,11 +135,11 @@ export default async function SeriesIndex({
               key={entry.title}
               title={entry.volumes?.[0]?.meta?.series ?? entry.title}
               href={href}
-              isSeries={isSeries}
-              isOneshot={isOneshot}
+              isSeries={true}
+              isOneshot={false}
               onGoing={entry.status === "ONGOING"}
               onPause={entry.status === "HIATUS"}
-              volumeCount={isSeries ? entry.volumes.length : null}
+              volumeCount={entry.volumes.length}
               cover={coverImage}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
