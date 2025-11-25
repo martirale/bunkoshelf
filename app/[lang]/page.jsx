@@ -16,6 +16,7 @@ export default async function HomePage({ params }) {
     <>
       <div className="relative">
         <div className="fixed inset-0 -z-10 bg-seigaiha-pattern-w" />
+        <div className="fixed inset-0 -z-20 bg-pearl" />
         <div
           className={clsx(
             "bg-pearl flex flex-col p-4 mb-24 gap-4",
