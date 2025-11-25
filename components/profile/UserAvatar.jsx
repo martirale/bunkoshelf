@@ -32,7 +32,7 @@ export default async function UserAvatar({ intl }) {
     <div className="flex flex-col items-center gap-4 text-center my-8 2xl:mb-12">
       <div
         className={clsx(
-          "rounded-full bg-lilah text-sand flex items-center justify-center font-bold",
+          "rounded-full bg-lilah text-pearl flex items-center justify-center font-bold",
           "text-5xl w-40 h-40",
           "md:w-48 md:h-48 md:text-7xl"
         )}
@@ -48,10 +48,8 @@ export default async function UserAvatar({ intl }) {
         <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
           <span
             className={clsx(
-              "inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase border",
-              user.isAdmin
-                ? "bg-pearl text-onix border-pearl"
-                : "border-neutral-700"
+              "inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase",
+              user.isAdmin ? "bg-pearl text-onix" : "bg-neutral-700"
             )}
           >
             {user.isAdmin
@@ -60,7 +58,7 @@ export default async function UserAvatar({ intl }) {
           </span>
 
           {age !== null && (
-            <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase border border-neutral-700">
+            <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase bg-neutral-700">
               {age} {intl.profile.age}
             </span>
           )}
