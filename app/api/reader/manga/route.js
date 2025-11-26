@@ -11,8 +11,8 @@ import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const validImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
 const activeVolumes = new Map();
-
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
+const TEMP_DIR_LIFETIME = 14 * 24 * 60 * 60 * 1000;
 
 export async function POST(req) {
   try {
@@ -89,7 +89,7 @@ export async function POST(req) {
       } catch (err) {
         console.error("Failed to delete temp folder:", tempDir, err);
       }
-    }, 72 * 60 * 60 * 1000);
+    }, TEMP_DIR_LIFETIME);
 
     const imagePaths = [];
 
