@@ -98,7 +98,7 @@ export default function FooterNav({ lang, intl, user, versionData }) {
     {
       type: "link",
       icon: BookOpenIcon,
-      href: "https://bunko.am25.app/guides",
+      href: "https://bunko.am25.app/guides/manga",
       target: "_blank",
       title: intl.tooltip.userGuide,
     },
