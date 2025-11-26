@@ -1,5 +1,6 @@
-import NewVols from "@/components/library/manga/row/NewVols";
 import NextVol from "@/components/library/manga/row/NextVol";
+import NewVols from "@/components/library/manga/row/NewVols";
+import DemographicsTiles from "@/components/library/manga/Demographics";
 import RecentlyRead from "@/components/library/manga/row/RecentlyRead";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 
@@ -9,13 +10,12 @@ export default async function MangaPage({ params }) {
 
   return (
     <div className="p-4">
-      {/* Next Reading */}
       <NextVol lang={lang} intl={intl} />
 
-      {/* Recently Added */}
+      <DemographicsTiles intl={intl} lang={lang} />
+
       <NewVols lang={lang} intl={intl} />
 
-      {/* Recently Read */}
       <RecentlyRead lang={lang} intl={intl} />
     </div>
   );
