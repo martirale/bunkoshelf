@@ -20,10 +20,10 @@ export async function GET() {
       "webcomic",
       "doujinshi",
       "color",
-      "one-shot",
+      "oneshot",
     ];
+    const ignoreSet = new Set(ignoreList.map((s) => s.toLowerCase()));
 
-    // 1. Obtener IDs de los volúmenes leídos por el usuario
     const readVolumes = await prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -40,7 +40,6 @@ export async function GET() {
       return NextResponse.json({ topGenres: [] });
     }
 
-    // 2. Obtener géneros y etiquetas de esos volúmenes
     const [genres, tags] = await Promise.all([
       prisma.volumeToGenre.findMany({
         where: {
@@ -56,35 +55,45 @@ export async function GET() {
       }),
     ]);
 
-    // 3. Contar géneros
-    const countMap = new Map();
+    const volumeNames = new Map();
+    const displayMap = new Map();
 
     for (const entry of genres) {
-      const name = entry.genre.name;
-      countMap.set(name, (countMap.get(name) || 0) + 1);
+      const id = entry.volumeId;
+      const name = String(entry.genre.name || "").trim();
+      const key = name.toLowerCase();
+      if (!displayMap.has(key)) displayMap.set(key, name);
+      if (!volumeNames.has(id)) volumeNames.set(id, new Set());
+      volumeNames.get(id).add(key);
     }
 
-    // 4. Contar etiquetas útiles (omitiendo las de la lista ignorada)
     for (const entry of tags) {
-      const name = entry.tag.name;
-      if (!ignoreList.includes(name)) {
-        countMap.set(name, (countMap.get(name) || 0) + 1);
+      const id = entry.volumeId;
+      const name = String(entry.tag.name || "").trim();
+      const key = name.toLowerCase();
+      if (ignoreSet.has(key)) continue;
+      if (!displayMap.has(key)) displayMap.set(key, name);
+      if (!volumeNames.has(id)) volumeNames.set(id, new Set());
+      volumeNames.get(id).add(key);
+    }
+
+    const countMap = new Map();
+
+    for (const names of volumeNames.values()) {
+      for (const key of names) {
+        countMap.set(key, (countMap.get(key) || 0) + 1);
       }
     }
 
-    // 5. Ordenar y tomar el top 10
     const sorted = Array.from(countMap.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
-      .map(([genre, count]) => ({
-        genre,
+      .map(([key, count]) => ({
+        genre: displayMap.get(key) || key,
         user: count,
       }));
 
-    // 6. Mezclar aleatoriamente el arreglo (Fisher-Yates)
-    const shuffled = sorted.sort(() => Math.random() - 0.5);
-
-    return NextResponse.json({ topGenres: shuffled });
+    return NextResponse.json({ topGenres: sorted });
   } catch (error) {
     console.error("Error fetching top genres:", error);
     return NextResponse.json(
