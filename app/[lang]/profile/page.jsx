@@ -6,6 +6,7 @@ import MonthlyReads from "@/components/stats/MonthlyReads";
 import TopGenres from "@/components/stats/TopGenres";
 import ReadingHeatmap from "@/components/stats/ReadingHeatmap";
 import { verifySession } from "@/lib/auth/verifySession";
+import Challenges from "@/components/challenges/Challenges";
 
 export default async function ProfilePage({ params }) {
   const { lang = "es" } = await params;
@@ -32,6 +33,10 @@ export default async function ProfilePage({ params }) {
             mdCols="md:grid-cols-3"
           />
         </div>
+      </div>
+
+      <div className="mt-4">
+        <Challenges intl={intl} />
       </div>
 
       <ReadingHeatmap userId={user.id} intl={intl} />

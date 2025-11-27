@@ -8,10 +8,15 @@
     "save": "Guardar cambios",
     "greeting": "Hola,",
     "updateProfile": "Actualizar perfil",
-    "ttChallenge": "Reto de lectura",
+    "ttChallenge": "Objetivo del reto",
     "completed": "Completados",
     "usrAdmin": "Propietario",
     "usrNormal": "Miembro",
-    "age": "Años"
+    "age": "Años",
+    "challenges": {
+      "title": "Retos de lectura",
+      "challenge": "Reto",
+      "of": "de"
+    }
   }
 }

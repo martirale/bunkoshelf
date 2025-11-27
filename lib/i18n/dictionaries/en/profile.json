@@ -8,10 +8,15 @@
     "save": "Save Changes",
     "greeting": "Hi,",
     "updateProfile": "Update Profile",
-    "ttChallenge": "Reading Challenge",
+    "ttChallenge": "Challenge Goal",
     "completed": "Completed",
     "usrAdmin": "Owner",
     "usrNormal": "Member",
-    "age": "Years"
+    "age": "Years",
+    "challenges": {
+      "title": "Reading Challenges",
+      "challenge": "Challenge",
+      "of": "of"
+    }
   }
 }

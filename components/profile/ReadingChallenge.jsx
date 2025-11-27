@@ -142,7 +142,7 @@ export default function ReadingChallenge({ intl, lang }) {
       <span className="font-boldonse text-5xl hidden 2xl:block">{goal}</span>
 
       <div className="mt-8 md:mt-4 space-y-1">
-        <div className="text-neutral-500 flex justify-between text-sm uppercase">
+        <div className="flex justify-between text-sm uppercase">
           <span>
             {intl.profile.completed}: {progress}
           </span>
