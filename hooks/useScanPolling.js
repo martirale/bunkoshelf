@@ -20,13 +20,15 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
     setScanStatus(null);
     let startError = null;
     try {
-      const res = await fetch("/api/admin/ScanManga/start", { method: "POST" });
+      const res = await fetch("/api/admin/scan-manga/start", {
+        method: "POST",
+      });
       if (!res.ok) throw new Error("Error al iniciar el escaneo");
 
       pollingRef.current = setInterval(async () => {
         let err = null;
         try {
-          const res = await fetch("/api/admin/ScanManga/status");
+          const res = await fetch("/api/admin/scan-manga/status");
           if (!res.ok) throw new Error("Error al obtener status del escaneo");
           const data = await res.json();
           setScanStatus(data);
