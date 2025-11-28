@@ -3,6 +3,7 @@ import { verifySession } from "@/lib/auth/verifySession";
 import path from "path";
 import prisma from "@/lib/prisma";
 import { extractImagesCbz } from "@/lib/reader/manga/cbz";
+import { extractImagesCbr } from "@/lib/reader/manga/cbr";
 
 const activeVolumes = new Map();
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
@@ -12,6 +13,10 @@ function getExtractorForFile(filePath) {
 
   if (ext === ".cbz" || ext === ".zip") {
     return extractImagesCbz;
+  }
+
+  if (ext === ".cbr" || ext === ".rar") {
+    return extractImagesCbr;
   }
 
   return null;
