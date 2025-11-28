@@ -57,7 +57,7 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
             setLoading(false);
 
             try {
-              const subsRes = await fetch("/api/admin/push/getSubs");
+              const subsRes = await fetch("/api/admin/push/get-subs");
               if (!subsRes.ok)
                 throw new Error("Error al obtener suscripciones");
               const { subscriptions } = await subsRes.json();
