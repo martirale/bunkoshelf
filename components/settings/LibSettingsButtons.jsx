@@ -60,7 +60,7 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
         variant: "default",
       });
 
-      const res = await fetch("/api/admin/ScanManga/indexLibrary", {
+      const res = await fetch("/api/admin/scan-manga/index-library", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ forceAll: true }),
@@ -100,7 +100,7 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
         variant: "default",
       });
 
-      const res = await fetch("/api/admin/ScanManga/extractCover", {
+      const res = await fetch("/api/admin/scan-manga/extract-cover", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ forceAll: true }),
@@ -140,7 +140,7 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
         variant: "default",
       });
 
-      const res = await fetch("/api/admin/ScanManga/extractMeta", {
+      const res = await fetch("/api/admin/scan-manga/extract-meta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ forceAll: true }),
