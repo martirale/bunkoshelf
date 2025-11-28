@@ -103,7 +103,7 @@ export async function POST(req) {
 
       await fs.writeFile(imagePath, fileData);
       imagePaths.push(
-        `/api/reader/tempImage?path=${encodeURIComponent(imagePath)}`
+        `/api/reader/temp-image?path=${encodeURIComponent(imagePath)}`
       );
       imageCounter++;
     }
@@ -146,7 +146,7 @@ async function getImagePathsFromDir(tempDir) {
     )
     .map(
       (file) =>
-        `/api/reader/tempImage?path=${encodeURIComponent(
+        `/api/reader/temp-image?path=${encodeURIComponent(
           path.join(tempDir, file)
         )}`
     );
