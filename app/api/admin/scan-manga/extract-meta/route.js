@@ -1,148 +1,16 @@
 import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
-import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
-import AdmZip from "adm-zip";
-import xml2js from "xml2js";
 import prisma from "@/lib/prisma";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import r2Client, { R2_BUCKET } from "@/lib/r2";
+import { extractMetadataCbz } from "@/lib/scanner/meta/extract-cbz";
 
-const parser = new xml2js.Parser();
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 const CHECKSUM_STATUS_PATH = path.join(
   process.cwd(),
   "tmp",
   "checksum-status.json"
 );
-
-async function parseXmlContent(xml) {
-  let error = null;
-  let result = null;
-
-  try {
-    result = await parser.parseStringPromise(xml);
-    return result && result.ComicInfo ? result.ComicInfo : null;
-  } catch (err) {
-    error = err;
-  } finally {
-    if (error) {
-      console.error("Error al parsear XML:", error);
-      return null;
-    }
-  }
-}
-
-async function extractMetaCbzFromR2(fullPath) {
-  let error = null;
-
-  try {
-    const key = fullPath.replace(/^\//, "");
-
-    const command = new GetObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: key,
-    });
-
-    const signedUrl = await getSignedUrl(r2Client, command, {
-      expiresIn: 3600,
-    });
-    const response = await fetch(signedUrl);
-
-    if (!response.ok) {
-      console.warn(`No se pudo descargar desde R2: ${fullPath}`);
-      return null;
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const zip = new AdmZip(buffer);
-    const comicInfoEntry = zip.getEntry("ComicInfo.xml");
-
-    if (!comicInfoEntry) {
-      console.warn(`ComicInfo.xml no encontrado en: ${fullPath}`);
-      return null;
-    }
-
-    const xmlContent = comicInfoEntry.getData().toString("utf8");
-    return await parseXmlContent(xmlContent);
-  } catch (err) {
-    error = err;
-  } finally {
-    if (error) {
-      console.error(`Error extrayendo metadatos desde R2: ${fullPath}`, error);
-      return null;
-    }
-  }
-}
-
-async function extractMetaCbzLocal(filePath) {
-  let error = null;
-  let zip = null;
-
-  try {
-    if (!fs.existsSync(filePath)) {
-      console.warn(`Archivo no encontrado: ${filePath}`);
-      return null;
-    }
-
-    zip = new AdmZip(filePath);
-    const comicInfoEntry = zip.getEntry("ComicInfo.xml");
-
-    if (!comicInfoEntry) {
-      console.warn(`ComicInfo.xml no encontrado en: ${filePath}`);
-      return null;
-    }
-
-    const xmlContent = comicInfoEntry.getData().toString("utf8");
-    return await parseXmlContent(xmlContent);
-  } catch (err) {
-    error = err;
-  } finally {
-    if (error) {
-      console.error(`Error extrayendo metadatos en: ${filePath}`, error);
-      return null;
-    }
-  }
-}
-
-function transformMeta(meta) {
-  const getFirst = (field) => (meta[field] && meta[field][0]) || null;
-
-  return {
-    series: getFirst("Series"),
-    title: getFirst("Title"),
-    number: getFirst("Number") ? parseFloat(getFirst("Number")) : null,
-    count: getFirst("Count") ? parseInt(getFirst("Count"), 10) : null,
-    publisher: getFirst("Publisher"),
-    imprint: getFirst("Imprint"),
-    languageISO: getFirst("LanguageISO"),
-    format: getFirst("Format"),
-    ageRating: getFirst("AgeRating"),
-    communityRating: getFirst("CommunityRating")
-      ? parseFloat(getFirst("CommunityRating"))
-      : null,
-    writer: getFirst("Writer"),
-    penciller: getFirst("Penciller"),
-    inker: getFirst("Inker"),
-    colorist: getFirst("Colorist"),
-    letterer: getFirst("Letterer"),
-    coverArtist: getFirst("CoverArtist"),
-    editor: getFirst("Editor"),
-    summary: getFirst("Summary"),
-    web: getFirst("Web"),
-    pageCount: getFirst("PageCount")
-      ? parseInt(getFirst("PageCount"), 10)
-      : null,
-    year: getFirst("Year") ? parseInt(getFirst("Year"), 10) : null,
-    month: getFirst("Month") ? parseInt(getFirst("Month"), 10) : null,
-    day: getFirst("Day") ? parseInt(getFirst("Day"), 10) : null,
-    gtin: getFirst("GTIN"),
-    mangaStyle: getFirst("Manga"),
-  };
-}
 
 async function cleanOrphanedGenresAndTags() {
   const orphanedGenres = await prisma.genre.findMany({
@@ -182,6 +50,16 @@ async function cleanOrphanedGenresAndTags() {
     });
     console.log(`Eliminadas ${orphanedTags.length} etiquetas huérfanas`);
   }
+}
+
+function getExtractorForFile(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+
+  if (ext === ".cbz" || ext === ".zip") {
+    return extractMetadataCbz;
+  }
+
+  return null;
 }
 
 export async function POST(request) {
@@ -227,53 +105,26 @@ export async function POST(request) {
 
     for (const volume of volumesToProcess) {
       try {
-        let meta;
+        const extractor = getExtractorForFile(volume.fullPath);
 
-        if (LIB_PROVIDER === "cloud") {
-          meta = await extractMetaCbzFromR2(volume.fullPath);
-        } else {
-          meta = await extractMetaCbzLocal(volume.fullPath);
+        if (!extractor) {
+          console.log(`Formato no soportado: ${volume.fullPath}`);
+          continue;
         }
 
-        if (!meta) {
+        const result = await extractor(volume.fullPath, LIB_PROVIDER);
+
+        if (!result) {
           console.log(`Saltando volumen sin metadatos: ${volume.fullPath}`);
           continue;
         }
 
-        const transformed = transformMeta(meta);
-
-        const upsertData = {
-          series: transformed.series,
-          title: transformed.title,
-          number: transformed.number,
-          count: transformed.count,
-          publisher: transformed.publisher,
-          imprint: transformed.imprint,
-          languageISO: transformed.languageISO,
-          format: transformed.format,
-          ageRating: transformed.ageRating,
-          communityRating: transformed.communityRating,
-          writer: transformed.writer,
-          penciller: transformed.penciller,
-          inker: transformed.inker,
-          colorist: transformed.colorist,
-          letterer: transformed.letterer,
-          coverArtist: transformed.coverArtist,
-          editor: transformed.editor,
-          summary: transformed.summary,
-          web: transformed.web,
-          pageCount: transformed.pageCount,
-          year: transformed.year,
-          month: transformed.month,
-          day: transformed.day,
-          gtin: transformed.gtin,
-          mangaStyle: transformed.mangaStyle,
-        };
+        const { metadata, genres, tags } = result;
 
         const volumeMeta = await prisma.volumeMetadata.upsert({
           where: { filePath: volume.fullPath },
-          update: upsertData,
-          create: Object.assign({ filePath: volume.fullPath }, upsertData),
+          update: metadata,
+          create: Object.assign({ filePath: volume.fullPath }, metadata),
         });
 
         const currentVolume = await prisma.mangaVolume.findUnique({
@@ -292,52 +143,38 @@ export async function POST(request) {
           where: { volumeId: volume.id },
         });
 
-        if (meta.Genre && meta.Genre[0]) {
-          const genreList = meta.Genre[0]
-            .split(/[;,]/)
-            .map((g) => g.trim())
-            .filter(Boolean);
+        for (const genreName of genres) {
+          const genre = await prisma.genre.upsert({
+            where: { name: genreName },
+            update: {},
+            create: { name: genreName },
+          });
 
-          for (const genreName of genreList) {
-            const genre = await prisma.genre.upsert({
-              where: { name: genreName },
-              update: {},
-              create: { name: genreName },
-            });
-
-            await prisma.volumeToGenre.create({
-              data: {
-                volumeId: volume.id,
-                genreId: genre.id,
-              },
-            });
-          }
+          await prisma.volumeToGenre.create({
+            data: {
+              volumeId: volume.id,
+              genreId: genre.id,
+            },
+          });
         }
 
         await prisma.volumeToTag.deleteMany({
           where: { volumeId: volume.id },
         });
 
-        if (meta.Tags && meta.Tags[0]) {
-          const tagList = meta.Tags[0]
-            .split(/[;,]/)
-            .map((t) => t.trim())
-            .filter(Boolean);
+        for (const tagName of tags) {
+          const tag = await prisma.tag.upsert({
+            where: { name: tagName },
+            update: {},
+            create: { name: tagName },
+          });
 
-          for (const tagName of tagList) {
-            const tag = await prisma.tag.upsert({
-              where: { name: tagName },
-              update: {},
-              create: { name: tagName },
-            });
-
-            await prisma.volumeToTag.create({
-              data: {
-                volumeId: volume.id,
-                tagId: tag.id,
-              },
-            });
-          }
+          await prisma.volumeToTag.create({
+            data: {
+              volumeId: volume.id,
+              tagId: tag.id,
+            },
+          });
         }
 
         console.log(`Metadatos procesados: ${volume.fullPath}`);
