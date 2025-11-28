@@ -16,7 +16,7 @@ export default function ReadingChallenge({ intl, lang }) {
       let error = null;
       try {
         const res = await fetch(
-          `/api/profile/getChallenge?year=${currentYear}`
+          `/api/profile/get-challenge?year=${currentYear}`
         );
         const data = await res.json();
 
@@ -60,7 +60,7 @@ export default function ReadingChallenge({ intl, lang }) {
                   }),
                 });
 
-                await fetch("/api/profile/updateChallenge", {
+                await fetch("/api/profile/update-challenge", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ year: currentYear, notified: true }),
@@ -92,7 +92,7 @@ export default function ReadingChallenge({ intl, lang }) {
     setGoal(newGoal);
     let error = null;
     try {
-      await fetch("/api/profile/updateChallenge", {
+      await fetch("/api/profile/update-challenge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ year: currentYear, goal: newGoal }),
