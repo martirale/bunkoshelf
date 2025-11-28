@@ -30,12 +30,12 @@
     "minisearch": "1.1.0",
     "negotiator": "1.0.0",
     "next": "15.3.1",
+    "node-unrar-js": "2.0.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-dropzone": "14.3.8",
     "recharts": "2.15.3",
     "server-only": "0.0.1",
-    "unrar-js": "0.2.3",
     "xml2js": "0.6.2"
   },
   "devDependencies": {
