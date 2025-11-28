@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library/manga");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 const STATUS_PATH = path.join(process.cwd(), "tmp", "checksum-status.json");
-const SUPPORTED_EXTENSIONS = [".cbz", ".zip"];
+const SUPPORTED_EXTENSIONS = [".cbz", ".zip", ".cbr", ".rar"];
 
 async function cleanOrphanedGenresAndTags() {
   const orphanedGenres = await prisma.genre.findMany({
@@ -70,7 +70,7 @@ async function checksumVerification() {
 
     const response = await r2Client.send(command);
     const directoriesWithFiles = new Map();
-    const existingCbzPaths = new Set();
+    const existingVolumePaths = new Set();
     const existingTxtPaths = new Set();
 
     if (response.Contents) {
@@ -86,17 +86,17 @@ async function checksumVerification() {
 
         if (!directoriesWithFiles.has(directoryPath)) {
           directoriesWithFiles.set(directoryPath, {
-            cbzFiles: [],
+            volumeFiles: [],
             txtFiles: [],
           });
         }
 
         if (SUPPORTED_EXTENSIONS.includes(ext)) {
-          directoriesWithFiles.get(directoryPath).cbzFiles.push({
+          directoriesWithFiles.get(directoryPath).volumeFiles.push({
             name: fileName,
             fullPath: `/${item.Key}`,
           });
-          existingCbzPaths.add(`/${item.Key}`);
+          existingVolumePaths.add(`/${item.Key}`);
         } else if (fileName.endsWith(".txt")) {
           directoriesWithFiles.get(directoryPath).txtFiles.push({
             key: item.Key,
@@ -108,11 +108,11 @@ async function checksumVerification() {
       }
 
       for (const [directoryPath, info] of directoriesWithFiles) {
-        if (info.cbzFiles.length === 0) continue;
+        if (info.volumeFiles.length === 0) continue;
 
         if (info.txtFiles.length === 0) {
-          for (const cbzFile of info.cbzFiles) {
-            filesToIndex.push(cbzFile.fullPath);
+          for (const volumeFile of info.volumeFiles) {
+            filesToIndex.push(volumeFile.fullPath);
           }
         } else {
           const txtMap = new Map();
@@ -121,12 +121,12 @@ async function checksumVerification() {
             txtMap.set(baseName, txtFile);
           }
 
-          for (const cbzFile of info.cbzFiles) {
-            const baseName = path.parse(cbzFile.name).name;
+          for (const volumeFile of info.volumeFiles) {
+            const baseName = path.parse(volumeFile.name).name;
             const correspondingTxt = txtMap.get(baseName);
 
             if (!correspondingTxt) {
-              filesToIndex.push(cbzFile.fullPath);
+              filesToIndex.push(volumeFile.fullPath);
               continue;
             }
 
@@ -141,7 +141,7 @@ async function checksumVerification() {
 
             const txtResponse = await fetch(presignedUrl);
             if (!txtResponse.ok) {
-              filesToIndex.push(cbzFile.fullPath);
+              filesToIndex.push(volumeFile.fullPath);
               continue;
             }
 
@@ -153,7 +153,7 @@ async function checksumVerification() {
             });
 
             if (!dbRecord || dbRecord.checksum !== checksumFromFile) {
-              filesToIndex.push(cbzFile.fullPath);
+              filesToIndex.push(volumeFile.fullPath);
             }
           }
         }
@@ -167,7 +167,7 @@ async function checksumVerification() {
     const deletedSeriesIds = new Set();
 
     for (const volume of allDbVolumes) {
-      if (!existingCbzPaths.has(volume.fullPath)) {
+      if (!existingVolumePaths.has(volume.fullPath)) {
         await prisma.mangaVolume.deleteMany({
           where: { fullPath: volume.fullPath },
         });
@@ -176,7 +176,10 @@ async function checksumVerification() {
           deletedSeriesIds.add(volume.seriesId);
         }
 
-        const txtPath = volume.fullPath.replace(/\.(cbz|zip)$/i, ".txt");
+        const txtPath = volume.fullPath.replace(
+          /\.(cbz|zip|cbr|rar)$/i,
+          ".txt"
+        );
         await prisma.fileChecksum.deleteMany({
           where: { filePath: txtPath },
         });
@@ -211,7 +214,7 @@ async function checksumVerification() {
       withFileTypes: true,
     });
 
-    const existingCbzPaths = new Set();
+    const existingVolumePaths = new Set();
     const existingTxtPaths = new Set();
 
     for (const entry of dirContents) {
@@ -220,16 +223,16 @@ async function checksumVerification() {
       const entryPath = path.join(LIBRARY_PATH, entry.name);
       const files = await fs.readdir(entryPath);
 
-      const cbzFiles = files.filter((f) =>
+      const volumeFiles = files.filter((f) =>
         SUPPORTED_EXTENSIONS.includes(path.extname(f).toLowerCase())
       );
 
-      if (cbzFiles.length === 0) continue;
+      if (volumeFiles.length === 0) continue;
 
       const txtFiles = files.filter((f) => f.endsWith(".txt"));
 
-      for (const cbzFile of cbzFiles) {
-        existingCbzPaths.add(path.join(entryPath, cbzFile));
+      for (const volumeFile of volumeFiles) {
+        existingVolumePaths.add(path.join(entryPath, volumeFile));
       }
 
       for (const txtFile of txtFiles) {
@@ -237,8 +240,8 @@ async function checksumVerification() {
       }
 
       if (txtFiles.length === 0) {
-        for (const cbzFile of cbzFiles) {
-          filesToIndex.push(path.join(entryPath, cbzFile));
+        for (const volumeFile of volumeFiles) {
+          filesToIndex.push(path.join(entryPath, volumeFile));
         }
       } else {
         const txtMap = new Map();
@@ -247,13 +250,13 @@ async function checksumVerification() {
           txtMap.set(baseName, txtFile);
         }
 
-        for (const cbzFile of cbzFiles) {
-          const cbzPath = path.join(entryPath, cbzFile);
-          const baseName = path.parse(cbzFile).name;
+        for (const volumeFile of volumeFiles) {
+          const volumePath = path.join(entryPath, volumeFile);
+          const baseName = path.parse(volumeFile).name;
           const correspondingTxt = txtMap.get(baseName);
 
           if (!correspondingTxt) {
-            filesToIndex.push(cbzPath);
+            filesToIndex.push(volumePath);
             continue;
           }
 
@@ -266,7 +269,7 @@ async function checksumVerification() {
           });
 
           if (!dbRecord || dbRecord.checksum !== checksumFromFile) {
-            filesToIndex.push(cbzPath);
+            filesToIndex.push(volumePath);
           }
         }
       }
@@ -279,7 +282,7 @@ async function checksumVerification() {
     const deletedSeriesIds = new Set();
 
     for (const volume of allDbVolumes) {
-      if (!existingCbzPaths.has(volume.fullPath)) {
+      if (!existingVolumePaths.has(volume.fullPath)) {
         await prisma.mangaVolume.deleteMany({
           where: { fullPath: volume.fullPath },
         });
@@ -288,7 +291,10 @@ async function checksumVerification() {
           deletedSeriesIds.add(volume.seriesId);
         }
 
-        const txtPath = volume.fullPath.replace(/\.(cbz|zip)$/i, ".txt");
+        const txtPath = volume.fullPath.replace(
+          /\.(cbz|zip|cbr|rar)$/i,
+          ".txt"
+        );
         await prisma.fileChecksum.deleteMany({
           where: { filePath: txtPath },
         });

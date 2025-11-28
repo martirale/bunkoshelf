@@ -4,6 +4,7 @@ import fsp from "fs/promises";
 import path from "path";
 import prisma from "@/lib/prisma";
 import { extractMetadataCbz } from "@/lib/jobs/scan/manga/meta/cbz";
+import { extractMetadataCbr } from "@/lib/jobs/scan/manga/meta/cbr";
 
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 const CHECKSUM_STATUS_PATH = path.join(
@@ -57,6 +58,10 @@ function getExtractorForFile(filePath) {
 
   if (ext === ".cbz" || ext === ".zip") {
     return extractMetadataCbz;
+  }
+
+  if (ext === ".cbr" || ext === ".rar") {
+    return extractMetadataCbr;
   }
 
   return null;

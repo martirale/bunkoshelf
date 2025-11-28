@@ -9,7 +9,7 @@ import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library/manga");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
-const SUPPORTED_EXTENSIONS = [".cbz", ".zip"];
+const SUPPORTED_EXTENSIONS = [".cbz", ".zip", ".cbr", ".rar"];
 const CHECKSUM_STATUS_PATH = path.join(
   process.cwd(),
   "tmp",

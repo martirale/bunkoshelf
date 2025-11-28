@@ -4,6 +4,7 @@ import fsp from "fs/promises";
 import path from "path";
 import prisma from "@/lib/prisma";
 import { extractCoverCbz } from "@/lib/jobs/scan/manga/covers/cbz";
+import { extractCoverCbr } from "@/lib/jobs/scan/manga/covers/cbr";
 
 const COVERS_DIR = path.resolve(process.cwd(), "public/covers");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
@@ -18,6 +19,10 @@ function getExtractorForFile(filePath) {
 
   if (ext === ".cbz" || ext === ".zip") {
     return extractCoverCbz;
+  }
+
+  if (ext === ".cbr" || ext === ".rar") {
+    return extractCoverCbr;
   }
 
   return null;
