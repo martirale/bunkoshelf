@@ -3,7 +3,7 @@ import { verifySession } from "@/lib/auth/verifySession";
 import fsp from "fs/promises";
 import path from "path";
 import prisma from "@/lib/prisma";
-import { extractCoverCbz } from "@/lib/scanner/covers/extract-cbz";
+import { extractCoverCbz } from "@/lib/jobs/scan/manga/covers/cbz";
 
 const COVERS_DIR = path.resolve(process.cwd(), "public/covers");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";

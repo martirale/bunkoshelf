@@ -3,7 +3,7 @@ import { verifySession } from "@/lib/auth/verifySession";
 import fsp from "fs/promises";
 import path from "path";
 import prisma from "@/lib/prisma";
-import { extractMetadataCbz } from "@/lib/scanner/meta/extract-cbz";
+import { extractMetadataCbz } from "@/lib/jobs/scan/manga/meta/cbz";
 
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 const CHECKSUM_STATUS_PATH = path.join(

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
-import { mainJob } from "@/lib/jobs/scanManga/mainJob";
+import { mainJob } from "@/lib/jobs/scan/manga/mainJob";
 import { log } from "@/lib/logger";
 import fs from "fs/promises";
 import path from "path";
