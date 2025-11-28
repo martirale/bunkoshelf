@@ -7,7 +7,6 @@ import prisma from "@/lib/prisma";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
-const SUPPORTED_EXTENSIONS = [".cbz", ".zip"];
 
 export async function DELETE(request, { params }) {
   let _err;
@@ -17,8 +16,9 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const resolvedParams = await params;
     const slug =
-      (params && params.slug) ||
+      (resolvedParams && resolvedParams.slug) ||
       (() => {
         const parts = request.nextUrl.pathname.split("/").filter(Boolean);
         return parts[parts.length - 1];
@@ -45,7 +45,6 @@ export async function DELETE(request, { params }) {
     }
 
     const fullPath = volume.fullPath;
-    const ext = path.extname(fullPath).toLowerCase();
 
     if (LIB_PROVIDER === "cloud") {
       const fileKey = fullPath.replace(/^\/+/, "").replace(/\\/g, "/");

@@ -15,8 +15,9 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const resolvedParams = await params;
     const slug =
-      (params && params.slug) ||
+      (resolvedParams && resolvedParams.slug) ||
       (() => {
         const parts = request.nextUrl.pathname.split("/").filter(Boolean);
         return parts[parts.length - 1];
