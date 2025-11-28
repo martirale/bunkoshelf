@@ -22,7 +22,7 @@ export default function ProfileForm({ user, intl }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("/api/users/updateUser", {
+    const res = await fetch("/api/users/update-user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -41,7 +41,7 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
       isAdmin,
     };
 
-    const res = await fetch("/api/users/adminUpdateUser", {
+    const res = await fetch("/api/users/admin-update-user", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
     const confirm = window.confirm(intl.alerts.confirmDelete);
     if (!confirm) return;
 
-    const res = await fetch("/api/users/deleteUser", {
+    const res = await fetch("/api/users/delete-user", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
