@@ -57,7 +57,7 @@ export default async function VolumesIndexFav({ lang, intl }) {
         {intl.favorites.ttVolumes}
       </h2>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         {entries.map((entry) => {
           const href = `/${lang}/manga/volume/${entry.slug}`;
           const coverImage = entry.coverImage;
