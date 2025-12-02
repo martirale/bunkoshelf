@@ -14,7 +14,7 @@ export default function ReaderStatsPanel({
   mdCols,
 }) {
   return (
-    <section className={`grid grid-cols-2 ${mdCols} gap-4`}>
+    <section className={`grid grid-cols-2 ${mdCols} w-full gap-4`}>
       <TileStreak
         title={intl.stats.streak}
         lang={lang}

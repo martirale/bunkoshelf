@@ -18,7 +18,7 @@ export default async function Sidebar({ lang }) {
 
   return (
     <>
-      <aside className="hidden md:flex md:w-3/12 2xl:w-2/12 bg-blackamber flex-col justify-between p-4">
+      <aside className="hidden md:flex md:w-[35%] lg:w-[25%] xl:w-[21%] 2xl:w-[17%] bg-blackamber flex-col justify-between p-4">
         <h1 className="hidden">Bunko Shelf</h1>
 
         <SidebarLogo />

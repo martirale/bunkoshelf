@@ -28,7 +28,7 @@ export default async function ProfileLayout({ children, params }) {
         <ProfileNav intl={intl} />
       </SidebarMisc>
 
-      <div className="w-full md:w-8/12 2xl:w-9/12 p-4 overflow-y-auto">
+      <div className="w-full md:w-[60%] lg:w-[68%] xl:w-[73%] 2xl:w-[80%] p-4 overflow-y-auto">
         <div className="mb-24 md:mb-4">{children}</div>
       </div>
     </div>

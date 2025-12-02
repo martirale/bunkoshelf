@@ -32,7 +32,7 @@ export default async function RootLayout({ children, params }) {
         <MobNav lang={lang} />
         <Sidebar lang={lang} />
 
-        <main className="w-full md:w-9/12 2xl:w-10/12 flex flex-col overflow-y-auto">
+        <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
           <ToastProvider>{children}</ToastProvider>
         </main>
       </body>
