@@ -4,8 +4,8 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "Notificación";
   const options = {
     body: payload.body || "Tienes una notificación",
-    icon: "/pwa/bunkoshelf-icon-192.png",
-    badge: "/pwa/bunkoshelf-icon-192.png",
+    icon: "/icons/bunkoshelf-icon-maskable.png",
+    badge: "/icons/bunkoshelf-icon-maskable.png",
     data: {
       url: payload.url || "/",
     },
