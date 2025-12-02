@@ -72,7 +72,7 @@ export default async function SeriesIndexFav({ lang, intl }) {
         {intl.favorites.ttSeries}
       </h2>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         {entries.map((entry) => {
           const isSeries =
             (entry.volumes && entry.volumes.length > 1) || entry.metadata;
