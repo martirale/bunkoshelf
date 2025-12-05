@@ -26,6 +26,11 @@ export default async function RootLayout({ children, params }) {
       lang={lang || "es"}
       className={`${robotoCondensed.variable} ${boldonse.variable} antialiased`}
     >
+      <head>
+        <meta name="robots" content="noindex,nofollow" />
+        <meta name="googlebot" content="noindex,nofollow" />
+      </head>
+
       <body className="flex h-screen overflow-hidden text-lg relative">
         <div className="fixed inset-0 -z-10 pointer-events-none bg-seigaiha-pattern-k opacity-50" />
 
