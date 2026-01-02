@@ -2,7 +2,8 @@ import path from "path";
 import fs from "fs/promises";
 
 export async function GET(req, contextPromise) {
-  const { params } = await contextPromise;
+  const context = await contextPromise;
+  const params = await context.params;
   const segments = params?.slug;
 
   if (!segments || !Array.isArray(segments) || segments.length === 0) {
