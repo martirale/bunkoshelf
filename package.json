@@ -3,7 +3,7 @@
   "version": "1.12.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "pnpm run start:prod",
     "lint": "next lint",
@@ -15,14 +15,17 @@
     "@aws-sdk/s3-request-presigner": "3.930.0",
     "@formatjs/intl-localematcher": "0.6.1",
     "@paralleldrive/cuid2": "3.0.4",
-    "@prisma/client": "6.7.0",
+    "@prisma/adapter-better-sqlite3": "7.2.0",
+    "@prisma/client": "7.1.0",
     "@smithy/node-http-handler": "4.4.5",
     "adm-zip": "0.5.16",
     "bcryptjs": "3.0.2",
+    "better-sqlite3": "12.5.0",
     "clsx": "2.1.1",
     "crc": "4.3.2",
     "date-fns": "4.1.0",
     "date-fns-tz": "3.2.0",
+    "dotenv": "17.2.3",
     "http-proxy": "1.18.1",
     "jose": "6.0.11",
     "jsonwebtoken": "9.0.2",
@@ -41,7 +44,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.5",
-    "prisma": "6.7.0",
+    "prisma": "7.1.0",
     "tailwindcss": "4.1.5"
   },
   "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a"
