@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-export async function authMiddleware(request) {
+export async function authProxy(request) {
   const { pathname } = request.nextUrl;
   const langMatch = pathname.match(/^\/(es|en)/);
   const lang = langMatch?.[1] || "es";

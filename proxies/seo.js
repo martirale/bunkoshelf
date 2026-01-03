@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export function seoMiddleware(request) {
+export function seoProxy(request) {
   const res = NextResponse.next();
 
   res.headers.set("X-Robots-Tag", "noindex, nofollow");

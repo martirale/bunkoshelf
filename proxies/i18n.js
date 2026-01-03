@@ -39,7 +39,7 @@ function getLocale(request) {
   }
 }
 
-export function i18nMiddleware(request) {
+export function i18nProxy(request) {
   const pathname = request.nextUrl.pathname;
 
   const pathnameHasLocale = locales.some(
