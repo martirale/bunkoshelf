@@ -1,5 +1,5 @@
 # Etapa 1: dependencias
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat
@@ -12,7 +12,7 @@ RUN pnpm install --frozen-lockfile
 
 
 # Etapa 2: build de la app Next.js
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 RUN corepack enable
@@ -25,12 +25,12 @@ RUN pnpm run build
 
 
 # Etapa 3: runtime final
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV DATABASE_URL="file:/app/prisma/data/bunkoshelf.db"
+ENV DATABASE_URL=file:/app/prisma/data/bunkoshelf.db
 
 RUN corepack enable
 
