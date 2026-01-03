@@ -18,7 +18,7 @@ Package manager: pnpm
 
 ## Backend
 
-- Prisma v6
+- Prisma v7
 - SQLite
 
 ## Conventions
