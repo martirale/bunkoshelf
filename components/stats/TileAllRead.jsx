@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getReaderStats } from "@/actions/stats";
 
 export default function TileAllRead({ title, bgColor, textColor }) {
   const [count, setCount] = useState(null);
@@ -9,8 +10,7 @@ export default function TileAllRead({ title, bgColor, textColor }) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/api/stats/reader", { cache: "no-store" });
-        const data = await res.json();
+        const data = await getReaderStats();
 
         setCount(data?.allCompleted?.length ?? "—");
         setTotalVolumes(data?.totalVolumes ?? "—");

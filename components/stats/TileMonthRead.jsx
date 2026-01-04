@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toZonedTime } from "date-fns-tz";
+import { getReaderStats } from "@/actions/stats";
 
 export default function TileMonthRead({ title, bgColor, textColor }) {
   const [count, setCount] = useState("—");
@@ -9,8 +10,7 @@ export default function TileMonthRead({ title, bgColor, textColor }) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/api/stats/reader", { cache: "no-store" });
-        const data = await res.json();
+        const data = await getReaderStats();
         const monthlyReads = data?.monthlyReads || [];
 
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;

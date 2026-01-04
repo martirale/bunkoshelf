@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getReaderStats } from "@/actions/stats";
 
 export default function TileStreak({ title, intl, bgColor, textColor }) {
   const [streak, setStreak] = useState("—");
@@ -8,8 +9,7 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/api/stats/reader", { cache: "no-store" });
-        const data = await res.json();
+        const data = await getReaderStats();
         const dailyReading = data?.dailyReading || [];
 
         const readDaySet = new Set(dailyReading.map(({ date }) => date));

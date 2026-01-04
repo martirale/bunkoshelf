@@ -3,6 +3,43 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
+export async function getChallenge({ year }) {
+  const user = await verifySession();
+  if (!user) {
+    return { error: "Unauthorized", status: 401 };
+  }
+
+  if (!year) {
+    return { error: "Missing year", status: 400 };
+  }
+
+  let challenge = await prisma.readingChallenge.findFirst({
+    where: {
+      userId: user.id,
+      year,
+    },
+    select: {
+      goal: true,
+      completed: true,
+      notified: true,
+    },
+  });
+
+  if (!challenge) {
+    challenge = await prisma.readingChallenge.create({
+      data: {
+        userId: user.id,
+        year,
+        goal: 0,
+        completed: 0,
+        notified: false,
+      },
+    });
+  }
+
+  return { challenge };
+}
+
 export async function updateChallenge({ year, goal, notified }) {
   let error = null;
   try {

@@ -1,11 +1,118 @@
-import { NextResponse } from "next/server";
+"use server";
+
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-export async function GET() {
+export async function getGenresStats() {
+  let error;
+  try {
+    const user = await verifySession();
+    if (!user) {
+      return { error: "Unauthorized", status: 401 };
+    }
+
+    const ignoreList = [
+      "shonen",
+      "shojo",
+      "seinen",
+      "josei",
+      "kodomo",
+      "manhwa",
+      "manhua",
+      "webcomic",
+      "doujinshi",
+      "color",
+      "oneshot",
+    ];
+    const ignoreSet = new Set(ignoreList.map((s) => s.toLowerCase()));
+
+    const readVolumes = await prisma.userToVolume.findMany({
+      where: {
+        userId: user.id,
+        isRead: true,
+      },
+      select: {
+        volumeId: true,
+      },
+    });
+
+    const readVolumeIds = readVolumes.map((v) => v.volumeId);
+
+    if (readVolumeIds.length === 0) {
+      return { topGenres: [] };
+    }
+
+    const [genres, tags] = await Promise.all([
+      prisma.volumeToGenre.findMany({
+        where: {
+          volumeId: { in: readVolumeIds },
+        },
+        include: { genre: true },
+      }),
+      prisma.volumeToTag.findMany({
+        where: {
+          volumeId: { in: readVolumeIds },
+        },
+        include: { tag: true },
+      }),
+    ]);
+
+    const volumeNames = new Map();
+    const displayMap = new Map();
+
+    for (const entry of genres) {
+      const id = entry.volumeId;
+      const name = String(entry.genre.name || "").trim();
+      const key = name.toLowerCase();
+      if (!displayMap.has(key)) displayMap.set(key, name);
+      if (!volumeNames.has(id)) volumeNames.set(id, new Set());
+      volumeNames.get(id).add(key);
+    }
+
+    for (const entry of tags) {
+      const id = entry.volumeId;
+      const name = String(entry.tag.name || "").trim();
+      const key = name.toLowerCase();
+      if (ignoreSet.has(key)) continue;
+      if (!displayMap.has(key)) displayMap.set(key, name);
+      if (!volumeNames.has(id)) volumeNames.set(id, new Set());
+      volumeNames.get(id).add(key);
+    }
+
+    const countMap = new Map();
+
+    for (const names of volumeNames.values()) {
+      for (const key of names) {
+        countMap.set(key, (countMap.get(key) || 0) + 1);
+      }
+    }
+
+    const sorted = Array.from(countMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([key, count]) => ({
+        genre: displayMap.get(key) || key,
+        user: count,
+      }));
+
+    return { topGenres: sorted };
+  } catch (e) {
+    error = e;
+  } finally {
+    if (error) {
+      console.error("Error fetching top genres:", error);
+      return {
+        error: "Internal Server Error",
+        status: 500,
+      };
+    }
+  }
+}
+
+export async function getReaderStats() {
   const user = await verifySession();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return { error: "Unauthorized", status: 401 };
   }
 
   const [
@@ -19,7 +126,6 @@ export async function GET() {
     userProgressVolumes,
     allFirstReadDates,
   ] = await Promise.all([
-    // volumesRead
     prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -28,7 +134,6 @@ export async function GET() {
       select: { id: true, volumeId: true, lastReadAt: true },
     }),
 
-    // readEntries
     prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -37,7 +142,6 @@ export async function GET() {
       select: { lastReadAt: true },
     }),
 
-    // allCompleted
     prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -46,7 +150,6 @@ export async function GET() {
       select: { id: true, volumeId: true },
     }),
 
-    // allReadDates
     prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -58,7 +161,6 @@ export async function GET() {
       select: { lastReadAt: true },
     }),
 
-    // dailyReading
     prisma.dailyReadingLog.findMany({
       where: {
         userId: user.id,
@@ -71,15 +173,12 @@ export async function GET() {
       },
     }),
 
-    // totalVolumes
     prisma.mangaVolume.count(),
 
-    // totalSeries
     prisma.mangaSeries.count({
       where: { isOneshot: false },
     }),
 
-    // userProgressVolumes
     prisma.mangaVolume.findMany({
       where: {
         usersProgress: {
@@ -100,7 +199,6 @@ export async function GET() {
       },
     }),
 
-    // allFirstReadDates
     prisma.userToVolume.findMany({
       where: {
         userId: user.id,
@@ -138,7 +236,7 @@ export async function GET() {
     }))
     .filter((_, index) => index <= now.getMonth());
 
-  return NextResponse.json({
+  return {
     volumesRead,
     readEntries,
     allCompleted,
@@ -152,5 +250,5 @@ export async function GET() {
       totalUnread,
     },
     monthlyReads,
-  });
+  };
 }

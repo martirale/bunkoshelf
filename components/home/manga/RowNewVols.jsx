@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import MangaCard from "@/components/ui/MangaCard";
 import { BookPlusIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { getMangaVolumes } from "@/actions/library";
 
 export default function RowNewVols({ lang, intl, maxItems = 8 }) {
   const scrollRef = useRef(null);
@@ -14,8 +15,10 @@ export default function RowNewVols({ lang, intl, maxItems = 8 }) {
 
   useEffect(() => {
     async function fetchVolumes() {
-      const res = await fetch("/api/library/manga/volumes");
-      const { data } = await res.json();
+      const result = await getMangaVolumes();
+      if (!result.success) return;
+
+      const data = result.data;
 
       const sorted = data
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))

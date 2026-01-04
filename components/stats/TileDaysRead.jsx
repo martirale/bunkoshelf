@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getReaderStats } from "@/actions/stats";
 
 export default function TileDaysRead({ title, bgColor, textColor }) {
   const [daysReadCount, setDaysReadCount] = useState(null);
@@ -9,8 +10,7 @@ export default function TileDaysRead({ title, bgColor, textColor }) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/api/stats/reader", { cache: "no-store" });
-        const data = await res.json();
+        const data = await getReaderStats();
         const dailyReading = data?.dailyReading || [];
 
         const now = new Date();

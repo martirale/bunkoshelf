@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { getGenresStats } from "@/actions/stats";
 
 export default function TopGenres({ intl, bgColor, textColor }) {
   const [data, setData] = useState([]);
@@ -17,10 +18,9 @@ export default function TopGenres({ intl, bgColor, textColor }) {
   useEffect(() => {
     async function fetchGenres() {
       try {
-        const res = await fetch("/api/stats/genres");
-        const json = await res.json();
-        if (json.topGenres) {
-          setData(json.topGenres);
+        const result = await getGenresStats();
+        if (result.topGenres) {
+          setData(result.topGenres);
         }
       } catch (error) {
         console.error("Error fetching top genres:", error);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUpIcon, ArrowDownIcon, MinusIcon } from "lucide-react";
 import { toZonedTime } from "date-fns-tz";
+import { getReaderStats } from "@/actions/stats";
 
 export default function TileMonthTrend({ title, bgColor, textColor }) {
   const [percentageChange, setPercentageChange] = useState("—");
@@ -11,8 +12,7 @@ export default function TileMonthTrend({ title, bgColor, textColor }) {
   useEffect(() => {
     async function fetchTrend() {
       try {
-        const res = await fetch("/api/stats/reader", { cache: "no-store" });
-        const data = await res.json();
+        const data = await getReaderStats();
         const monthlyReads = data?.monthlyReads || [];
 
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;

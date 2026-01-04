@@ -1,22 +1,19 @@
+"use server";
+
 import MiniSearch from "minisearch";
-import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-export async function GET(req) {
+export async function searchManga({ query }) {
   const user = await verifySession();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return { error: "Unauthorized", status: 401 };
   }
 
-  const { searchParams } = new URL(req.url);
-  const query = searchParams.get("q")?.trim();
-
-  if (!query) {
-    return NextResponse.json([], { status: 200 });
+  if (!query?.trim()) {
+    return { success: true, data: [] };
   }
 
-  // Cargar todos los volúmenes para obtener escritores, metadata, géneros y etiquetas
   const volumes = await prisma.mangaVolume.findMany({
     include: {
       series: true,
@@ -34,7 +31,6 @@ export async function GET(req) {
     },
   });
 
-  // Crear mapas para writer y nombre completo (series) por seriesId
   const writerBySeriesId = new Map();
   const seriesNameById = new Map();
 
@@ -50,10 +46,8 @@ export async function GET(req) {
     }
   }
 
-  // Buscar series
   const seriesList = await prisma.mangaSeries.findMany();
 
-  // Crear documentos de series, incluyendo writer y nombre completo de serie
   const seriesDocs = seriesList.map((s) => ({
     id: `series-${s.id}`,
     title: s.title,
@@ -91,9 +85,7 @@ export async function GET(req) {
     };
   });
 
-  // Crear documentos de volúmenes para búsqueda y resultados
   const volumeDocs = volumes.map((vol) => {
-    // Extraer géneros y etiquetas como arrays de strings
     const genreNames = Array.isArray(vol.genres)
       ? vol.genres
           .map((g) => (g.genre?.name ? g.genre.name.trim() : null))
@@ -152,11 +144,11 @@ export async function GET(req) {
     const getPriority = (item) => {
       if (item.type === "volume" && item.isOneshot) return 0;
       if (item.type === "series") return 1;
-      return 2; // Volumen normal
+      return 2;
     };
 
     return getPriority(a) - getPriority(b);
   });
 
-  return NextResponse.json(allResults);
+  return { success: true, data: allResults };
 }

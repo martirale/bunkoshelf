@@ -11,6 +11,7 @@ import {
   startOfWeek,
   eachDayOfInterval,
 } from "date-fns";
+import { getReaderStats } from "@/actions/stats";
 
 const DAYS_TO_DISPLAY = 365;
 
@@ -20,8 +21,7 @@ export default function ReadingHeatmap({ intl }) {
 
   useEffect(() => {
     async function loadData() {
-      const res = await fetch("/api/stats/reader", { cache: "no-store" });
-      const json = await res.json();
+      const json = await getReaderStats();
       const dailyReading = json?.dailyReading || [];
 
       const today = startOfToday();

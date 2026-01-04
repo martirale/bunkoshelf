@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Minimize2Icon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import Loader from "@/components/ui/Loader";
+import { getMangaImages, getReadingProgress } from "@/actions/reader";
 
 export default function MangaReader({
   isOpen,
@@ -28,29 +29,16 @@ export default function MangaReader({
 
       setLoading(true);
       try {
-        const res = await fetch("/api/reader/manga", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ slug }),
-        });
+        const data = await getMangaImages({ slug });
 
-        const data = await res.json();
-
-        if (res.ok && data.images?.length) {
+        if (data.images?.length) {
           setImages(data.images);
 
           if (!isYoureiMode) {
-            const progressRes = await fetch("/api/reader/progress/get", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ slug }),
-            });
-
-            const progress = await progressRes.json();
+            const progress = await getReadingProgress({ slug });
             let startIndex = 0;
 
             if (
-              progressRes.ok &&
               typeof progress.lastPage === "number" &&
               progress.lastPage >= 0 &&
               progress.lastPage < data.images.length

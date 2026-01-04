@@ -7,6 +7,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react";
+import { getMangaVolumes } from "@/actions/library";
 
 export default function NextVol({ lang, intl, maxItems = 12 }) {
   const scrollRef = useRef(null);
@@ -18,8 +19,10 @@ export default function NextVol({ lang, intl, maxItems = 12 }) {
 
   useEffect(() => {
     async function fetchNextVolumes() {
-      const res = await fetch("/api/library/manga/volumes");
-      const { data } = await res.json();
+      const result = await getMangaVolumes();
+      if (!result.success) return;
+
+      const data = result.data;
 
       const seriesMap = new Map();
 

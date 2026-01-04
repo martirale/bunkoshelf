@@ -1,21 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { checkSession } from "@/actions/session";
 
 export default function SessionStatus() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const checkSession = async () => {
+    const check = async () => {
       try {
-        const res = await fetch("/api/session");
-        setIsLoggedIn(res.ok);
+        const result = await checkSession();
+        setIsLoggedIn(result.loggedIn === true);
       } catch {
         setIsLoggedIn(false);
       }
     };
 
-    checkSession();
+    check();
   }, []);
 
   return isLoggedIn;

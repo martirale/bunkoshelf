@@ -7,14 +7,17 @@ import { LibraryBigIcon, ChevronRightIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import ReloadButton from "@/components/ui/ReloadButton";
 import PushButton from "@/components/ui/PushButton";
+import { getMangaVolumes } from "@/actions/library";
 
 export default function HeroKeepRead({ lang, intl }) {
   const [entry, setEntry] = useState(null);
 
   useEffect(() => {
     async function fetchProgress() {
-      const res = await fetch("/api/library/manga/volumes");
-      const { data } = await res.json();
+      const result = await getMangaVolumes();
+      if (!result.success) return;
+
+      const data = result.data;
 
       const filtered = data
         .map((vol) => {

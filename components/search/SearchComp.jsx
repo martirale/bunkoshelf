@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { searchManga } from "@/actions/search";
 import {
   ChevronLeftIcon,
   UserRoundPenIcon,
@@ -61,20 +62,20 @@ export default function SearchComp({ lang, intl }) {
     const controller = new AbortController();
     setLoading(true);
 
-    fetch(`/api/search?q=${encodeURIComponent(query)}`, {
-      signal: controller.signal,
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setResults(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (err.name !== "AbortError") {
-          console.error(err);
-          setLoading(false);
+    const performSearch = async () => {
+      try {
+        const result = await searchManga({ query });
+        if (result.data) {
+          setResults(result.data);
         }
-      });
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setLoading(false);
+      }
+    };
+
+    performSearch();
 
     return () => controller.abort();
   }, [query]);

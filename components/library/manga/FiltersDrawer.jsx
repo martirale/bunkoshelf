@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRightIcon } from "lucide-react";
 import Accordion from "@/components/ui/Accordion";
 import clsx from "clsx";
+import { getLibraryFilters } from "@/actions/library";
 
 export default function FiltersDrawer({ intl }) {
   const router = useRouter();
@@ -27,9 +28,8 @@ export default function FiltersDrawer({ intl }) {
   useEffect(() => {
     async function fetchFilters() {
       try {
-        const res = await fetch("/api/library/filters/manga");
-        if (!res.ok) throw new Error("Error fetching filters");
-        const data = await res.json();
+        const data = await getLibraryFilters();
+        if (data.error) throw new Error("Error fetching filters");
         setGenres(data.genres);
         setTags(data.tags);
       } catch (e) {

@@ -10,14 +10,14 @@ import {
   Tooltip,
   LabelList,
 } from "recharts";
+import { getReaderStats } from "@/actions/stats";
 
 export default function MonthlyReads({ intl, bgColor, textColor }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     async function fetchMonthlyReads() {
-      const res = await fetch("/api/stats/reader");
-      const json = await res.json();
+      const json = await getReaderStats();
       if (json.monthlyReads) {
         const localized = json.monthlyReads.map((entry) => ({
           name: intl.months[entry.month],

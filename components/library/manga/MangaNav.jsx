@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
+import { getReaderStats } from "@/actions/stats";
 
 export default function MangaNav({ lang, intl }) {
   const pathname = usePathname();
@@ -22,10 +23,7 @@ export default function MangaNav({ lang, intl }) {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch("/api/stats/reader");
-        if (!res.ok) return;
-
-        const data = await res.json();
+        const data = await getReaderStats();
         setStats({
           totalVolumes: data.totalVolumes,
           totalSeries: data.totalSeries,

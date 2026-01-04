@@ -9,6 +9,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react";
+import { getMangaVolumes } from "@/actions/library";
 
 export default function HeroKeepRead({ lang, intl }) {
   const scrollRef = useRef(null);
@@ -21,8 +22,10 @@ export default function HeroKeepRead({ lang, intl }) {
 
   useEffect(() => {
     async function fetchReadingProgress() {
-      const res = await fetch("/api/library/manga/volumes");
-      const { data } = await res.json();
+      const result = await getMangaVolumes();
+      if (!result.success) return;
+
+      const data = result.data;
 
       const filtered = data
         .map((vol) => {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { PlusIcon, MinusIcon } from "lucide-react";
-import { updateChallenge } from "@/actions/challenge";
+import { updateChallenge, getChallenge } from "@/actions/challenge";
 
 export default function ReadingChallenge({ intl, lang }) {
   const [goal, setGoal] = useState(0);
@@ -16,12 +16,9 @@ export default function ReadingChallenge({ intl, lang }) {
     const fetchData = async () => {
       let error = null;
       try {
-        const res = await fetch(
-          `/api/profile/get-challenge?year=${currentYear}`
-        );
-        const data = await res.json();
+        const data = await getChallenge({ year: currentYear });
 
-        if (res.ok) {
+        if (data.challenge) {
           const userGoal = data.challenge?.goal ?? 0;
           const completed = data.challenge?.completed ?? 0;
           const notified = data.challenge?.notified ?? false;
