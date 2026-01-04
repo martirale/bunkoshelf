@@ -1,15 +1,16 @@
 "use client";
 
 import { TrashIcon } from "lucide-react";
+import { clearLogs } from "@/actions/admin-logs";
 
 export default function ClearLogsButton({ onClear }) {
   async function handleClick() {
     const confirmed = confirm("¿Seguro que deseas limpiar el log?");
     if (!confirmed) return;
 
-    const res = await fetch("/api/admin/logs/clear", { method: "POST" });
+    const result = await clearLogs();
 
-    if (res.ok) {
+    if (result.success) {
       if (onClear) {
         onClear();
       } else {

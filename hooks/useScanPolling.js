@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { startScan, getScanStatus } from "@/actions/admin-scan";
+import { getPushSubscriptions } from "@/actions/admin-push";
 
 export default function useScanPolling({ lang, intl, addToast, updateToast }) {
   const pollingRef = useRef(null);
@@ -20,17 +22,15 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
     setScanStatus(null);
     let startError = null;
     try {
-      const res = await fetch("/api/admin/scan-manga/start", {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Error al iniciar el escaneo");
+      const result = await startScan();
+      if (result.error) throw new Error(result.error);
 
       pollingRef.current = setInterval(async () => {
         let err = null;
         try {
-          const res = await fetch("/api/admin/scan-manga/status");
-          if (!res.ok) throw new Error("Error al obtener status del escaneo");
-          const data = await res.json();
+          const data = await getScanStatus();
+          if (data.error) throw new Error(data.error);
+
           setScanStatus(data);
 
           const taskText = data.currentTask || intl.toastScan.noTask;
@@ -59,10 +59,7 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
             setLoading(false);
 
             try {
-              const subsRes = await fetch("/api/admin/push/get-subs");
-              if (!subsRes.ok)
-                throw new Error("Error al obtener suscripciones");
-              const { subscriptions } = await subsRes.json();
+              const { subscriptions } = await getPushSubscriptions();
               if (subscriptions?.length) {
                 await fetch("https://push.amlab.site/send-many", {
                   method: "POST",

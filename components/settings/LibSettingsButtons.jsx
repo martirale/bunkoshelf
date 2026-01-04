@@ -16,6 +16,7 @@ import { useToast } from "@/components/ToastProvider";
 import useScanPolling from "@/hooks/useScanPolling";
 import Modal from "@/components/ui/Modal";
 import UploadMangaForm from "./UploadMangaForm";
+import { reindexLibrary, regenerateCovers, reprocessMetadata } from "@/actions/admin-scan";
 
 export default function LibSettingsButtons({ lang, intl, libProvider }) {
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -60,15 +61,9 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
         variant: "default",
       });
 
-      const res = await fetch("/api/admin/scan-manga/index-library", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ forceAll: true }),
-      });
+      const data = await reindexLibrary({ forceAll: true });
 
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Error al reindexar");
+      if (data.error) throw new Error(data.error);
 
       updateToast("reindex-task", {
         title: intl.toastScan.successReindexTt,
@@ -100,15 +95,9 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
         variant: "default",
       });
 
-      const res = await fetch("/api/admin/scan-manga/extract-cover", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ forceAll: true }),
-      });
+      const data = await regenerateCovers({ forceAll: true });
 
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Error al regenerar portadas");
+      if (data.error) throw new Error(data.error);
 
       updateToast("covers-task", {
         title: intl.toastScan.successRegeneratingCoversTt,
@@ -140,16 +129,10 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
         variant: "default",
       });
 
-      const res = await fetch("/api/admin/scan-manga/extract-meta", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ forceAll: true }),
-      });
+      const data = await reprocessMetadata({ forceAll: true });
 
-      const data = await res.json();
-
-      if (!res.ok)
-        throw new Error(data.error || "Error al reprocesar metadatos");
+      if (data.error)
+        throw new Error(data.error);
 
       updateToast("metadata-task", {
         title: intl.toastScan.successReprocessingMetaTt,
