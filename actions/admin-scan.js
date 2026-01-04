@@ -10,9 +10,12 @@ export async function startScan() {
 
   let error = null;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/admin/scan-manga/start`, {
-      method: "POST",
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/start`,
+      {
+        method: "POST",
+      }
+    );
 
     if (!res.ok) {
       return { error: "Error al iniciar el escaneo", status: res.status };
@@ -37,10 +40,15 @@ export async function getScanStatus() {
 
   let error = null;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/admin/scan-manga/status`);
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/status`
+    );
 
     if (!res.ok) {
-      return { error: "Error al obtener status del escaneo", status: res.status };
+      return {
+        error: "Error al obtener status del escaneo",
+        status: res.status,
+      };
     }
 
     const data = await res.json();
@@ -63,11 +71,14 @@ export async function reindexLibrary({ forceAll = true }) {
 
   let error = null;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/admin/scan-manga/index-library`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ forceAll }),
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/index-library`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ forceAll }),
+      }
+    );
 
     const data = await res.json();
 
@@ -94,16 +105,22 @@ export async function regenerateCovers({ forceAll = true }) {
 
   let error = null;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/admin/scan-manga/extract-cover`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ forceAll }),
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/extract-cover`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ forceAll }),
+      }
+    );
 
     const data = await res.json();
 
     if (!res.ok) {
-      return { error: data.error || "Error al regenerar portadas", status: res.status };
+      return {
+        error: data.error || "Error al regenerar portadas",
+        status: res.status,
+      };
     }
 
     return { success: true, ...data };
@@ -125,16 +142,22 @@ export async function reprocessMetadata({ forceAll = true }) {
 
   let error = null;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/admin/scan-manga/extract-meta`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ forceAll }),
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/extract-meta`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ forceAll }),
+      }
+    );
 
     const data = await res.json();
 
     if (!res.ok) {
-      return { error: data.error || "Error al reprocesar metadatos", status: res.status };
+      return {
+        error: data.error || "Error al reprocesar metadatos",
+        status: res.status,
+      };
     }
 
     return { success: true, ...data };
