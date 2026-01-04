@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
 import { volumeProgress } from "@/lib/reader/volumeProgress";
+import { seriesProgress } from "@/lib/reader/seriesProgress";
 
 export default function MangaCard({
   title,
@@ -18,6 +19,7 @@ export default function MangaCard({
   intl,
   isDragging,
   className,
+  seriesSlug,
 }) {
   const t = intl;
   const [progress, setProgress] = useState(null);
@@ -28,14 +30,25 @@ export default function MangaCard({
     const slug = href.split("/").pop();
 
     const fetchProgress = async () => {
-      const data = await volumeProgress(slug);
-      setProgress(data);
+      if (isSeries && seriesSlug) {
+        const data = await seriesProgress(seriesSlug);
+        setProgress(data);
+      } else {
+        const data = await volumeProgress(slug);
+        setProgress(data);
+      }
     };
 
     fetchProgress();
-  }, [href]);
+  }, [href, isSeries, seriesSlug]);
 
-  const ratio = progress ? (progress.lastPage + 1) / progress.totalPages : 0;
+  const ratio = isSeries
+    ? (progress?.readVolumes && progress?.totalVolumes
+        ? progress.readVolumes / progress.totalVolumes
+        : 0)
+    : (progress?.lastPage != null && progress?.totalPages
+        ? (progress.lastPage + 1) / progress.totalPages
+        : 0);
 
   return (
     <Link

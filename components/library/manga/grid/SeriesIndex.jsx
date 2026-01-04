@@ -140,6 +140,7 @@ export default async function SeriesIndex({
               onGoing={entry.status === "ONGOING"}
               onPause={entry.status === "HIATUS"}
               volumeCount={entry.volumes.length}
+              seriesSlug={entry.slug}
               cover={coverImage}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
