@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
+import { updateUser } from "@/actions/users";
 
 export default function ProfileForm({ user, intl }) {
   const router = useRouter();
@@ -22,15 +23,9 @@ export default function ProfileForm({ user, intl }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("/api/users/update-user", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
+    const result = await updateUser(formData);
 
-    if (res.ok) {
+    if (result.success) {
       setFormData((prevData) => ({ ...prevData, password: "" }));
       addToast({
         title: intl.toastUsers.successTt,

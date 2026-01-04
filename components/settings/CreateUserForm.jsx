@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { UserRoundPlusIcon } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
+import { createUser } from "@/actions/users";
 
 export default function CreateUserForm({ intl }) {
   const [username, setUsername] = useState("");
@@ -27,17 +28,9 @@ export default function CreateUserForm({ intl }) {
       isAdmin,
     };
 
-    const res = await fetch("/api/users/create-user", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userData),
-    });
+    const result = await createUser(userData);
 
-    const data = await res.json();
-
-    if (res.ok) {
+    if (result.success) {
       addToast({
         title: intl.toastUsers.successTt,
         description: intl.toastUsers.successCreate,

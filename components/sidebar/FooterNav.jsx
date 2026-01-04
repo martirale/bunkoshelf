@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
 import AlertBox from "@/components/ui/AlertBox";
+import { logout } from "@/actions/logout";
 
 export default function FooterNav({ lang, intl, user, versionData }) {
   const [remoteVersion, setRemoteVersion] = useState(null);
@@ -33,7 +34,7 @@ export default function FooterNav({ lang, intl, user, versionData }) {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout");
+      await logout();
       window.location.href = `/${currentLang}/`;
     } catch (err) {
       console.error("Logout failed", err);

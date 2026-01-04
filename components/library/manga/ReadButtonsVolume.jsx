@@ -10,6 +10,9 @@ import {
   HeartOffIcon,
 } from "lucide-react";
 import MangaReader from "@/components/reader/MangaReader";
+import { toggleVolumeFavorite } from "@/actions/favorites";
+import { updateReadState } from "@/actions/read";
+import { syncReadingProgress } from "@/actions/progress";
 
 export default function ReadButtonsVolume({
   lang,
@@ -61,20 +64,15 @@ export default function ReadButtonsVolume({
       const now = new Date();
       const localDate = getLocalDateString();
 
-      const res = await fetch("/api/library/manga/read", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          volumeId,
-          read: !isRead,
-          totalPages,
-          lastReadAt: !isRead ? now.toISOString() : null,
-          firstRead: !isRead ? localDate : null,
-        }),
+      const result = await updateReadState({
+        volumeId,
+        read: !isRead,
+        totalPages,
+        lastReadAt: !isRead ? now.toISOString() : null,
+        firstRead: !isRead ? localDate : null,
       });
 
-      const result = await res.json();
-      if (res.ok && result.success) {
+      if (result.success) {
         setIsRead((prev) => !prev);
       } else {
         console.error("Failed to toggle read state:", result.error);
@@ -94,17 +92,12 @@ export default function ReadButtonsVolume({
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/library/manga/favorites/volumes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          volumeId,
-          favorite: !isFavorite,
-        }),
+      const result = await toggleVolumeFavorite({
+        volumeId,
+        favorite: !isFavorite,
       });
 
-      const result = await res.json();
-      if (res.ok && result.success) {
+      if (result.success) {
         setIsFavorite((prev) => !prev);
       } else {
         console.error("Failed to toggle favorite:", result.error);
@@ -154,13 +147,8 @@ export default function ReadButtonsVolume({
           ...(isFinished && { firstRead: today }),
         };
 
-        const res = await fetch("/api/reader/progress/sync", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
+        const data = await syncReadingProgress(body);
 
-        const data = await res.json();
         if (!data.success) {
           console.error("Sync failed:", data.error);
         }

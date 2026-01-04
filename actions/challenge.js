@@ -1,23 +1,22 @@
-import { NextResponse } from "next/server";
+"use server";
+
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-export async function POST(req) {
+export async function updateChallenge({ year, goal, notified }) {
   let error = null;
   try {
     const user = await verifySession();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return { error: "Unauthorized", status: 401 };
     }
 
-    const { year, goal, notified } = await req.json();
-
     if (!year || typeof year !== "number") {
-      return NextResponse.json({ error: "Invalid year" }, { status: 400 });
+      return { error: "Invalid year", status: 400 };
     }
 
     if (goal !== undefined && (typeof goal !== "number" || goal < 1)) {
-      return NextResponse.json({ error: "Invalid goal" }, { status: 400 });
+      return { error: "Invalid goal", status: 400 };
     }
 
     let challenge = await prisma.readingChallenge.findFirst({
@@ -51,10 +50,7 @@ export async function POST(req) {
       });
     } else {
       if (goal === undefined) {
-        return NextResponse.json(
-          { error: "Goal is required for new challenge" },
-          { status: 400 }
-        );
+        return { error: "Goal is required for new challenge", status: 400 };
       }
 
       challenge = await prisma.readingChallenge.create({
@@ -68,16 +64,13 @@ export async function POST(req) {
       });
     }
 
-    return NextResponse.json({ challenge });
+    return { challenge };
   } catch (err) {
     error = err;
   } finally {
     if (error) {
       console.error("Error updating challenge:", error);
-      return NextResponse.json(
-        { error: "Internal server error" },
-        { status: 500 }
-      );
+      return { error: "Internal server error", status: 500 };
     }
   }
 }

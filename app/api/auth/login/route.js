@@ -1,6 +1,6 @@
 "use server";
 
-import { login } from "@/app/actions/login";
+import { login } from "@/actions/login";
 
 export async function POST(request) {
   const { username, password, lang } = await request.json();

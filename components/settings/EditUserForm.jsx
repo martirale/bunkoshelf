@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { UserRoundPenIcon } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
+import { adminUpdateUser, deleteUser } from "@/actions/users";
 
 export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
   const [username, setUsername] = useState("");
@@ -41,23 +42,15 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
       isAdmin,
     };
 
-    const res = await fetch("/api/users/admin-update-user", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userData),
-    });
+    const result = await adminUpdateUser(userData);
 
-    const data = await res.json();
-
-    if (res.ok) {
+    if (result.success) {
       addToast({
         title: intl.toastUsers.successTt,
         description: intl.toastUsers.successUpdate,
         variant: "success",
       });
-      onSuccess(data.user);
+      onSuccess(result.user);
       setTimeout(() => {
         window.location.reload();
       }, 2000);
@@ -74,17 +67,9 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
     const confirm = window.confirm(intl.alerts.confirmDelete);
     if (!confirm) return;
 
-    const res = await fetch("/api/users/delete-user", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: user.id }),
-    });
+    const result = await deleteUser({ id: user.id });
 
-    const data = await res.json();
-
-    if (res.ok) {
+    if (result.success) {
       addToast({
         title: intl.toastUsers.errorTt,
         description: intl.toastUsers.successDel,

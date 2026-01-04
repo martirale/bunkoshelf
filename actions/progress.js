@@ -1,21 +1,25 @@
-import { NextResponse } from "next/server";
+"use server";
+
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-export async function POST(req) {
+export async function syncReadingProgress({
+  volumeSlug,
+  lastPage,
+  totalPages,
+  lastReadAt,
+  date,
+  firstRead,
+}) {
   let error = null;
   try {
     const user = await verifySession();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return { error: "Unauthorized", status: 401 };
     }
 
-    const body = await req.json();
-    const { volumeSlug, lastPage, totalPages, lastReadAt, date, firstRead } =
-      body;
-
     if (!volumeSlug || lastPage == null || totalPages == null || !lastReadAt) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+      return { error: "Missing fields", status: 400 };
     }
 
     const volume = await prisma.mangaVolume.findUnique({
@@ -24,7 +28,7 @@ export async function POST(req) {
     });
 
     if (!volume) {
-      return NextResponse.json({ error: "Volume not found" }, { status: 404 });
+      return { error: "Volume not found", status: 404 };
     }
 
     const userId = user.id;
@@ -115,13 +119,13 @@ export async function POST(req) {
       });
     }
 
-    return NextResponse.json({ success: true });
+    return { success: true };
   } catch (err) {
     error = err;
   } finally {
     if (error) {
       console.error("Error updating reading progress:", error);
-      return NextResponse.json({ error: "Server error" }, { status: 500 });
+      return { error: "Server error", status: 500 };
     }
   }
 }

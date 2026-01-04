@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { PlusIcon, MinusIcon } from "lucide-react";
+import { updateChallenge } from "@/actions/challenge";
 
 export default function ReadingChallenge({ intl, lang }) {
   const [goal, setGoal] = useState(0);
@@ -60,11 +61,7 @@ export default function ReadingChallenge({ intl, lang }) {
                   }),
                 });
 
-                await fetch("/api/profile/update-challenge", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ year: currentYear, notified: true }),
-                });
+                await updateChallenge({ year: currentYear, notified: true });
 
                 notifiedRef.current = true;
               }
@@ -92,11 +89,7 @@ export default function ReadingChallenge({ intl, lang }) {
     setGoal(newGoal);
     let error = null;
     try {
-      await fetch("/api/profile/update-challenge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ year: currentYear, goal: newGoal }),
-      });
+      await updateChallenge({ year: currentYear, goal: newGoal });
     } catch (err) {
       error = err;
     } finally {

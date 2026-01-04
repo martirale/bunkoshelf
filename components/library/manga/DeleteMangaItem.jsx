@@ -3,6 +3,7 @@
 import React from "react";
 import clsx from "clsx";
 import { TrashIcon } from "lucide-react";
+import { deleteSeries, deleteVolume } from "@/actions/delete";
 
 export default function DeleteMangaItem({ intl, type = "volume", slug }) {
   const t = intl;
@@ -17,19 +18,14 @@ export default function DeleteMangaItem({ intl, type = "volume", slug }) {
       );
       if (!confirmed) return;
 
-      const endpoint =
+      const result =
         type === "volume"
-          ? `/api/library/manga/delete/volume/${slug}`
-          : `/api/library/manga/delete/series/${slug}`;
-      const res = await fetch(endpoint, { method: "DELETE" }).catch((e) => {
-        err = e;
-        return null;
-      });
-      if (res && !res.ok) {
-        const text = await res.text().catch(() => res.statusText);
-        err = new Error(text || res.statusText);
-      }
-      if (!err) {
+          ? await deleteVolume({ slug })
+          : await deleteSeries({ slug });
+
+      if (result.error || !result.ok) {
+        err = new Error(result.error || "Delete failed");
+      } else {
         const path =
           typeof window !== "undefined" ? window.location.pathname : "/";
         const parts = path.split("/").filter(Boolean);
@@ -40,6 +36,8 @@ export default function DeleteMangaItem({ intl, type = "volume", slug }) {
             : `/${lang}/manga/series`;
         window.location.href = target;
       }
+    } catch (e) {
+      err = e;
     } finally {
       if (err) console.error(err);
     }

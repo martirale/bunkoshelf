@@ -4,6 +4,7 @@ import { useState } from "react";
 import { HeartIcon, HeartOffIcon } from "lucide-react";
 import clsx from "clsx";
 import StatusSelect from "./StatusSelect";
+import { toggleSeriesFavorite } from "@/actions/favorites";
 
 export default function ReadButtonsSeries({
   lang,
@@ -18,18 +19,12 @@ export default function ReadButtonsSeries({
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/library/manga/favorites/series", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          seriesId,
-          favorite: !isFavorite,
-        }),
+      const result = await toggleSeriesFavorite({
+        seriesId,
+        favorite: !isFavorite,
       });
 
-      const result = await res.json();
-
-      if (res.ok && result.success) {
+      if (result.success) {
         setIsFavorite((prev) => !prev);
       } else {
         console.error("Failed to toggle favorite:", result.error);

@@ -8,6 +8,7 @@ import {
   CirclePauseIcon,
   CircleXIcon,
 } from "lucide-react";
+import { getSeriesStatus, updateSeriesStatus } from "@/actions/series-status";
 
 export default function StatusSelect({ intl, seriesId }) {
   const t = intl;
@@ -57,11 +58,8 @@ export default function StatusSelect({ intl, seriesId }) {
     let mounted = true;
 
     const load = async () => {
-      const res = await fetch(
-        `/api/library/manga/series/status?seriesId=${seriesId}`
-      );
-      if (res.ok && mounted) {
-        const data = await res.json();
+      const data = await getSeriesStatus({ seriesId });
+      if (!data.error && mounted) {
         setCurrentStatus(data.status || "FINISHED");
       }
     };
@@ -92,14 +90,9 @@ export default function StatusSelect({ intl, seriesId }) {
   const handleStatusChange = async (newStatus) => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/library/manga/series/status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ seriesId, status: newStatus }),
-      });
-      if (res.ok) {
-        const updatedStatus = await res.json();
-        setCurrentStatus(updatedStatus.status);
+      const result = await updateSeriesStatus({ seriesId, status: newStatus });
+      if (!result.error) {
+        setCurrentStatus(result.status);
         setIsOpen(false);
       }
     } finally {
