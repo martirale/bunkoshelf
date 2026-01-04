@@ -29,3 +29,4 @@ Package manager: pnpm
 - Never use npx
 - Prefer pnpm dlx for one-off tools
 - Avoid client components unless strictly needed
+- Speak to me and always answer me in Spanish
