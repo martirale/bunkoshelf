@@ -1,6 +1,7 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
+import { cookies } from "next/headers";
 
 export async function startScan() {
   const user = await verifySession();
@@ -10,10 +11,19 @@ export async function startScan() {
 
   let error = null;
   try {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join("; ");
+
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/start`,
       {
         method: "POST",
+        headers: {
+          Cookie: cookieHeader,
+        },
       }
     );
 
@@ -40,8 +50,19 @@ export async function getScanStatus() {
 
   let error = null;
   try {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join("; ");
+
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/status`
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/status`,
+      {
+        headers: {
+          Cookie: cookieHeader,
+        },
+      }
     );
 
     if (!res.ok) {
@@ -71,11 +92,20 @@ export async function reindexLibrary({ forceAll = true }) {
 
   let error = null;
   try {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join("; ");
+
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/index-library`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieHeader,
+        },
         body: JSON.stringify({ forceAll }),
       }
     );
@@ -105,11 +135,20 @@ export async function regenerateCovers({ forceAll = true }) {
 
   let error = null;
   try {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join("; ");
+
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/extract-cover`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieHeader,
+        },
         body: JSON.stringify({ forceAll }),
       }
     );
@@ -142,11 +181,20 @@ export async function reprocessMetadata({ forceAll = true }) {
 
   let error = null;
   try {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore
+      .getAll()
+      .map((cookie) => `${cookie.name}=${cookie.value}`)
+      .join("; ");
+
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/extract-meta`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieHeader,
+        },
         body: JSON.stringify({ forceAll }),
       }
     );
