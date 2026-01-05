@@ -14,25 +14,15 @@ import ClearLogsButton from "@/components/settings/ClearLogsButton";
 import UsersTable from "@/components/settings/UsersTable";
 import AddUserButton from "@/components/settings/AddUserButton";
 import { getVersionInfo } from "@/lib/versionInfo";
-
-async function fetchLogs() {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/logs/get`,
-    {
-      cache: "no-store",
-    }
-  );
-  if (!res.ok) return "No se pudieron cargar los logs.";
-  const text = await res.text();
-  return text;
-}
+import { getLogs } from "@/actions/admin-logs";
 
 export default async function SettingsPage({ params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
 
   const currentUser = await verifySession();
-  const logs = await fetchLogs();
+  const logsResult = await getLogs();
+  const logs = logsResult.logs || "No se pudieron cargar los logs.";
   const versionData = await getVersionInfo();
 
   const users = await prisma.user.findMany({

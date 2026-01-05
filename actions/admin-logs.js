@@ -4,6 +4,33 @@ import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
 
+export async function getLogs() {
+  const user = await verifySession();
+  if (!user || !user.isAdmin) {
+    return { error: "Unauthorized", status: 401 };
+  }
+
+  let error = null;
+  try {
+    const logPath = path.join(process.cwd(), "app.log");
+
+    try {
+      await fs.access(logPath);
+      const content = await fs.readFile(logPath, "utf-8");
+      return { logs: content };
+    } catch (accessErr) {
+      return { logs: "" };
+    }
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error("Error reading logs:", error);
+      return { error: "No se pudieron cargar los logs", status: 500 };
+    }
+  }
+}
+
 export async function clearLogs() {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
