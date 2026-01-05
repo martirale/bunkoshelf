@@ -12,6 +12,7 @@ import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
 import AlertBox from "@/components/ui/AlertBox";
 import { logout } from "@/actions/logout";
+import { getVersion } from "@/actions/version";
 
 export default function FooterNav({ lang, intl, user, versionData }) {
   const [remoteVersion, setRemoteVersion] = useState(null);
@@ -66,10 +67,7 @@ export default function FooterNav({ lang, intl, user, versionData }) {
 
     async function checkVersion() {
       try {
-        const res = await fetch("/api/version", {
-          cache: "no-cache",
-        });
-        const data = await res.json();
+        const data = await getVersion();
         const remote = data.version ?? data.latest ?? null;
         const changelog =
           data.changelogUrl ?? data.changelog_url ?? data.url ?? null;

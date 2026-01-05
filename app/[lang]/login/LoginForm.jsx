@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { login } from "@/actions/login";
 
 export default function LoginForm({ lang, intl }) {
   const [username, setUsername] = useState("");
@@ -10,31 +11,9 @@ export default function LoginForm({ lang, intl }) {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    const data = {
-      username,
-      password,
-      lang,
-    };
+    const result = await login({ username, password, lang });
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    let result = {};
-    try {
-      result = await res.json();
-    } catch {
-      setErrorMessage(intl.alerts.serverError);
-      setUsername("");
-      setPassword("");
-      return;
-    }
-
-    if (!res.ok) {
+    if (result.error) {
       setErrorMessage(intl.alerts.loginFail);
       setUsername("");
       setPassword("");

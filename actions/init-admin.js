@@ -1,7 +1,9 @@
+"use server";
+
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-export async function GET() {
+export async function initAdmin() {
   try {
     const adminExists = await prisma.user.findFirst({
       where: { isAdmin: true },
@@ -23,21 +25,21 @@ export async function GET() {
       const message = "✅ Usuario admin creado: bunko / admin123";
       console.error(message);
 
-      return Response.json({
+      return {
         created: true,
         message: "Usuario admin creado con éxito.",
-      });
+      };
     }
 
     const message = "ℹ️ Usuario admin ya existe";
     console.error(message);
 
-    return Response.json({
+    return {
       created: false,
       message: "El usuario admin ya existe.",
-    });
+    };
   } catch (error) {
     console.error("❌ Error al crear el usuario admin:", error);
-    return new Response("Error interno al inicializar admin", { status: 500 });
+    return { error: "Error interno al inicializar admin", status: 500 };
   }
 }
