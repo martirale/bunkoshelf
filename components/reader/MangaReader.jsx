@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Minimize2Icon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import {
+  Minimize2Icon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  HeartIcon,
+  HeartOffIcon,
+} from "lucide-react";
 import Loader from "@/components/ui/Loader";
 import { getMangaImages, getReadingProgress } from "@/actions/reader";
 
@@ -12,11 +18,16 @@ export default function MangaReader({
   intl,
   isYoureiMode,
   readingDirection = "rtl",
+  coverSrc,
+  mangaTitle,
+  isFavorite = false,
+  onToggleFavorite,
 }) {
   const modalRef = useRef(null);
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showFinishScreen, setShowFinishScreen] = useState(false);
 
   const storageKey = `reader-progress:${slug}`;
   const isRTL = readingDirection === "rtl";
@@ -28,6 +39,7 @@ export default function MangaReader({
       let error = null;
 
       setLoading(true);
+      setShowFinishScreen(false);
       try {
         const data = await getMangaImages({ slug });
 
@@ -74,24 +86,24 @@ export default function MangaReader({
           lastPage: currentIndex,
           totalPages: images.length,
           lastReadAt: new Date().toISOString(),
-        })
+        }),
       );
     }
   }, [currentIndex, images.length, isYoureiMode, storageKey]);
 
   const goPrev = () => {
-    if (isRTL) {
-      if (currentIndex > 0) setCurrentIndex((i) => i - 1);
-    } else {
-      if (currentIndex > 0) setCurrentIndex((i) => i - 1);
+    if (showFinishScreen) {
+      setShowFinishScreen(false);
+      return;
     }
+    if (currentIndex > 0) setCurrentIndex((i) => i - 1);
   };
 
   const goNext = () => {
-    if (isRTL) {
-      if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
+    if (currentIndex < images.length - 1) {
+      setCurrentIndex((i) => i + 1);
     } else {
-      if (currentIndex < images.length - 1) setCurrentIndex((i) => i + 1);
+      setShowFinishScreen(true);
     }
   };
 
@@ -123,7 +135,7 @@ export default function MangaReader({
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKey);
     };
-  }, [isOpen, onClose, currentIndex, images.length, isRTL]);
+  }, [isOpen, onClose, currentIndex, images.length, isRTL, showFinishScreen]);
 
   useEffect(() => {
     if (isOpen && modalRef.current) {
@@ -157,57 +169,104 @@ export default function MangaReader({
         />
       </button>
 
-      <div className="absolute inset-0 z-40 flex">
-        <div className="w-1/3 h-full" onTouchStart={isRTL ? goNext : goPrev} />
-        <div className="w-1/3 h-full" />
-        <div className="w-1/3 h-full" onTouchStart={isRTL ? goPrev : goNext} />
-      </div>
+      {showFinishScreen ? (
+        <div className="flex flex-col items-center justify-center flex-grow gap-6 px-8 text-center z-30">
+          {coverSrc && (
+            <img
+              src={coverSrc}
+              alt={mangaTitle}
+              className="max-h-64 w-auto rounded-lg"
+            />
+          )}
+          {mangaTitle && <h2 className="text-xl">{mangaTitle}</h2>}
+          <div className="flex flex-col md:flex-row gap-4 mt-2 w-full md:w-auto">
+            {onToggleFavorite && (
+              <button
+                onClick={onToggleFavorite}
+                title={
+                  isFavorite
+                    ? intl.reader.finishUnfavorite
+                    : intl.reader.finishFavorite
+                }
+                className="flex items-center justify-center gap-2 w-full md:w-auto px-5 py-2 rounded-lg border border-blackamber bg-blackamber text-sand hover:bg-pearl hover:text-onix hover:border-pearl transition-all duration-300 cursor-pointer font-bold uppercase"
+              >
+                {isFavorite ? (
+                  <HeartOffIcon size={20} />
+                ) : (
+                  <HeartIcon size={20} />
+                )}
+                {isFavorite
+                  ? intl.reader.finishUnfavorite
+                  : intl.reader.finishFavorite}
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              title={intl.reader.ttExit}
+              className="flex items-center justify-center gap-2 w-full md:w-auto px-5 py-2 rounded-lg border border-blackamber bg-blackamber text-sand hover:bg-pearl hover:text-onix hover:border-pearl transition-all duration-300 cursor-pointer font-bold uppercase"
+            >
+              <Minimize2Icon size={20} />
+              {intl.reader.ttExit}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="absolute inset-0 z-40 flex">
+            <div
+              className="w-1/3 h-full"
+              onTouchStart={isRTL ? goNext : goPrev}
+            />
+            <div className="w-1/3 h-full" />
+            <div
+              className="w-1/3 h-full"
+              onTouchStart={isRTL ? goPrev : goNext}
+            />
+          </div>
 
-      <div className="flex-grow flex items-center justify-center z-30 mt-8 md:mt-0">
-        {images.length > 0 ? (
-          <img
-            src={images[currentIndex]}
-            alt={`Página ${currentPage}`}
-            className="max-h-[93vh] w-auto px-0.5"
-          />
-        ) : (
-          <p>No se encontraron páginas.</p>
-        )}
-      </div>
+          <div className="flex-grow flex items-center justify-center z-30 mt-8 md:mt-0">
+            {images.length > 0 ? (
+              <img
+                src={images[currentIndex]}
+                alt={`Página ${currentPage}`}
+                className="max-h-[93vh] w-auto px-0.5"
+              />
+            ) : (
+              <p>No se encontraron páginas.</p>
+            )}
+          </div>
 
-      <div className="flex items-center justify-between w-full max-w-md z-50 mb-5 md:mb-2">
-        <button
-          onClick={isRTL ? goNext : goPrev}
-          disabled={
-            isRTL ? currentIndex >= images.length - 1 : currentIndex <= 0
-          }
-          className="p-2 disabled:opacity-30"
-          title={isRTL ? intl.reader.ttNext : intl.reader.ttPrev}
-        >
-          <ChevronLeftIcon
-            size={28}
-            className="hover:scale-125 transition-all duration-300 cursor-pointer"
-          />
-        </button>
+          <div className="flex items-center justify-between w-full max-w-md z-50 mb-5 md:mb-2">
+            <button
+              onClick={isRTL ? goNext : goPrev}
+              disabled={isRTL ? false : currentIndex <= 0}
+              className="p-2 disabled:opacity-30"
+              title={isRTL ? intl.reader.ttNext : intl.reader.ttPrev}
+            >
+              <ChevronLeftIcon
+                size={28}
+                className="hover:scale-125 transition-all duration-300 cursor-pointer"
+              />
+            </button>
 
-        <span>
-          {intl.reader.page} {currentPage} / {images.length}
-        </span>
+            <span>
+              {intl.reader.page} {currentPage} / {images.length}
+            </span>
 
-        <button
-          onClick={isRTL ? goPrev : goNext}
-          disabled={
-            isRTL ? currentIndex <= 0 : currentIndex >= images.length - 1
-          }
-          className="p-2 disabled:opacity-30"
-          title={isRTL ? intl.reader.ttPrev : intl.reader.ttNext}
-        >
-          <ChevronRightIcon
-            size={28}
-            className="hover:scale-125 transition-all duration-300 cursor-pointer"
-          />
-        </button>
-      </div>
+            <button
+              onClick={isRTL ? goPrev : goNext}
+              disabled={isRTL ? currentIndex <= 0 : false}
+              className="p-2 disabled:opacity-30"
+              title={isRTL ? intl.reader.ttPrev : intl.reader.ttNext}
+            >
+              <ChevronRightIcon
+                size={28}
+                className="hover:scale-125 transition-all duration-300 cursor-pointer"
+              />
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

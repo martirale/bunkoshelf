@@ -3,6 +3,8 @@
     "page": "Page",
     "ttNext": "Next Page",
     "ttPrev": "Previous Page",
-    "ttExit": "Exit Reader"
+    "ttExit": "Exit Reader",
+    "finishFavorite": "Add Favorite",
+    "finishUnfavorite": "Remove Favorite"
   }
 }

@@ -19,6 +19,7 @@ export default function ReadButtonsVolume({
   intl,
   volumeId,
   volumeTitle,
+  coverSrc,
   slug,
   initFavorite,
   initRead,
@@ -259,6 +260,10 @@ export default function ReadButtonsVolume({
         intl={intl}
         isYoureiMode={isYoureiMode}
         readingDirection={readingDirection}
+        coverSrc={coverSrc}
+        mangaTitle={volumeTitle}
+        isFavorite={isFavorite}
+        onToggleFavorite={toggleFavorite}
       />
     </>
   );

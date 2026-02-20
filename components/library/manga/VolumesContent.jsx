@@ -84,6 +84,7 @@ export default function VolumesContent({
             intl={intl}
             volumeId={volume.id}
             volumeTitle={meta.title}
+            coverSrc={volume.coverImage}
             initFavorite={isFavorite}
             initRead={isRead}
             slug={volume.slug}
