@@ -18,7 +18,7 @@ Package manager: pnpm
 
 ## Backend
 
-- Prisma v7
+- Prisma 7
 - SQLite
 
 ## Conventions
@@ -30,3 +30,5 @@ Package manager: pnpm
 - Prefer pnpm dlx for one-off tools
 - Avoid client components unless strictly needed
 - Speak to me and always answer me in Spanish
+- For Lucide icons, always use "Icon" in the icon name
+- Do not comment the code unless directly requested
