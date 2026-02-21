@@ -24,6 +24,7 @@ export default function MangaReader({
   onToggleFavorite,
 }) {
   const modalRef = useRef(null);
+  const wakeLockRef = useRef(null);
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -144,6 +145,31 @@ export default function MangaReader({
       }, 50);
       return () => clearTimeout(timeout);
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !("wakeLock" in navigator)) return;
+
+    const acquire = async () => {
+      try {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+      } catch {
+        // El dispositivo no soporta o denegó el wake lock
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") acquire();
+    };
+
+    acquire();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      wakeLockRef.current?.release();
+      wakeLockRef.current = null;
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
