@@ -1,10 +1,8 @@
 import React from "react";
-import { connection } from "next/server";
 import prisma from "@/lib/prisma";
 import { startOfMonth, endOfMonth } from "date-fns";
 
 async function getAdminStats() {
-  await connection();
   const now = new Date();
   const startMonth = startOfMonth(now);
   const endMonth = endOfMonth(now);

@@ -4,6 +4,8 @@ import LibSettingsButtons from "@/components/settings/LibSettingsButtons";
 import AdminStatsPanel from "@/components/stats/AdminPanel";
 import Separator from "@/components/ui/Separator";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsLibraryPage({ params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
