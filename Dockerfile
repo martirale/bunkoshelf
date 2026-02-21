@@ -11,7 +11,7 @@ COPY prisma ./prisma
 COPY prisma.config.ts ./
 RUN echo "DATABASE_URL=file:/app/prisma/data/bunkoshelf.db" > .env && \
     pnpm install --frozen-lockfile && \
-    cd node_modules/.pnpm/better-sqlite3@12.5.0/node_modules/better-sqlite3 && \
+    cd node_modules/.pnpm/better-sqlite3@12.6.2/node_modules/better-sqlite3 && \
     npm run build-release && \
     ls -la build/Release/
 

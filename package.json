@@ -1,6 +1,6 @@
 {
   "name": "bunkoshelf",
-  "version": "1.15.2",
+  "version": "1.15.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -20,7 +20,7 @@
     "@smithy/node-http-handler": "4.4.10",
     "adm-zip": "0.5.16",
     "bcryptjs": "3.0.2",
-    "better-sqlite3": "12.5.0",
+    "better-sqlite3": "12.6.2",
     "clsx": "2.1.1",
     "crc": "4.3.2",
     "date-fns": "4.1.0",
