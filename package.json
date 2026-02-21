@@ -11,13 +11,13 @@
     "start:prod": "prisma migrate deploy && next start"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.930.0",
-    "@aws-sdk/s3-request-presigner": "3.930.0",
+    "@aws-sdk/client-s3": "3.995.0",
+    "@aws-sdk/s3-request-presigner": "3.995.0",
     "@formatjs/intl-localematcher": "0.6.1",
     "@paralleldrive/cuid2": "3.0.4",
     "@prisma/adapter-better-sqlite3": "7.2.0",
     "@prisma/client": "7.1.0",
-    "@smithy/node-http-handler": "4.4.5",
+    "@smithy/node-http-handler": "4.4.10",
     "adm-zip": "0.5.16",
     "bcryptjs": "3.0.2",
     "better-sqlite3": "12.5.0",
