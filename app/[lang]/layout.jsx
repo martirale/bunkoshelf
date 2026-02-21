@@ -48,9 +48,11 @@ export default async function RootLayout({ children, params }) {
         </Suspense>
 
         <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
-          <ToastProvider>
-            <Suspense>{children}</Suspense>
-          </ToastProvider>
+          <Suspense>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </Suspense>
         </main>
       </body>
     </html>
