@@ -3,6 +3,7 @@ FROM node:24-alpine AS deps
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat python3 make g++
+RUN npm install -g npm@latest
 RUN corepack enable
 
 COPY package.json pnpm-lock.yaml .npmrc ./
@@ -40,6 +41,7 @@ ENV PORT=3000
 ENV DATABASE_URL=file:/app/prisma/data/bunkoshelf.db
 
 RUN apk add --no-cache libc6-compat
+RUN npm install -g npm@latest
 RUN corepack enable
 
 COPY --from=deps /app/node_modules ./node_modules
