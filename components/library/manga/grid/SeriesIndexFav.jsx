@@ -3,6 +3,7 @@ import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { GhostIcon, LibraryBigIcon } from "lucide-react";
 import { sortByPaddedTitle } from "@/lib/utils";
+import { getSeriesBulkProgress } from "@/lib/reader/readingProgress";
 
 export default async function SeriesIndexFav({ lang, intl }) {
   const user = await verifySession();
@@ -31,6 +32,15 @@ export default async function SeriesIndexFav({ lang, intl }) {
     },
   });
 
+  if (favorites.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-80 gap-4">
+        <GhostIcon size={64} />
+        <h2>{intl.misc.noSeriesFav}</h2>
+      </div>
+    );
+  }
+
   const entries = favorites.map(({ series }) => {
     const sortedVolumes = sortByPaddedTitle(series.volumes);
 
@@ -38,10 +48,11 @@ export default async function SeriesIndexFav({ lang, intl }) {
       ...series,
       coverImage:
         sortedVolumes.length > 0
-          ? sortedVolumes[sortedVolumes.length - 1].coverImage?.replace(
-              /\\/g,
-              "/"
-            ) ?? null
+          ? `/api/library/manga/cover${sortedVolumes[
+              sortedVolumes.length - 1
+            ].coverImage
+              ?.replace(/\\/g, "/")
+              .replace(/^\/?covers/, "")}` ?? null
           : null,
       volumes:
         sortedVolumes.map((vol) => ({
@@ -56,14 +67,10 @@ export default async function SeriesIndexFav({ lang, intl }) {
     };
   });
 
-  if (entries.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-80 gap-4">
-        <GhostIcon size={64} />
-        <h2>{intl.misc.noSeriesFav}</h2>
-      </div>
-    );
-  }
+  const readCountMap = await getSeriesBulkProgress(
+    user.id,
+    entries.map((e) => e.id)
+  );
 
   return (
     <>
@@ -74,15 +81,16 @@ export default async function SeriesIndexFav({ lang, intl }) {
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         {entries.map((entry) => {
-          const isSeries =
-            (entry.volumes && entry.volumes.length > 1) || entry.metadata;
-          const isOneshot = !isSeries;
+          const isSeries = !entry.isOneshot;
+          const totalVolumes = entry.volumes.length;
+          const readVolumes = readCountMap[entry.id] ?? 0;
+          const progressRatio = isSeries && totalVolumes > 0
+            ? readVolumes / totalVolumes
+            : 0;
 
-          const href = isOneshot
-            ? `/${lang}/manga/volume/${entry.volumeSlug}`
-            : `/${lang}/manga/${entry.slug}`;
-
-          const coverImage = entry.coverImage;
+          const href = isSeries
+            ? `/${lang}/manga/${entry.slug}`
+            : `/${lang}/manga/volume/${entry.volumes[0]?.slug}`;
 
           return (
             <MangaCard
@@ -90,11 +98,12 @@ export default async function SeriesIndexFav({ lang, intl }) {
               title={entry.volumes?.[0]?.meta?.series ?? entry.title}
               href={href}
               isSeries={isSeries}
-              isOneshot={isOneshot}
+              isOneshot={!isSeries}
               onGoing={entry.status === "ONGOING"}
               onPause={entry.status === "HIATUS"}
-              volumeCount={isSeries ? entry.volumes.length : null}
-              cover={coverImage}
+              volumeCount={isSeries ? totalVolumes : null}
+              cover={entry.coverImage}
+              progressRatio={progressRatio}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />

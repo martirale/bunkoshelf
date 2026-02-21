@@ -20,35 +20,34 @@ export default function MangaCard({
   isDragging,
   className,
   seriesSlug,
+  progressRatio,
 }) {
   const t = intl;
-  const [progress, setProgress] = useState(null);
+  const [clientRatio, setClientRatio] = useState(null);
 
   useEffect(() => {
-    if (!href) return;
+    if (progressRatio != null || !href) return;
 
     const slug = href.split("/").pop();
 
-    const fetchProgress = async () => {
+    const fetchRatio = async () => {
       if (isSeries && seriesSlug) {
         const data = await seriesProgress(seriesSlug);
-        setProgress(data);
+        if (data?.readVolumes && data?.totalVolumes) {
+          setClientRatio(data.readVolumes / data.totalVolumes);
+        }
       } else {
         const data = await volumeProgress(slug);
-        setProgress(data);
+        if (data?.lastPage != null && data?.totalPages) {
+          setClientRatio((data.lastPage + 1) / data.totalPages);
+        }
       }
     };
 
-    fetchProgress();
-  }, [href, isSeries, seriesSlug]);
+    fetchRatio();
+  }, [href, isSeries, seriesSlug, progressRatio]);
 
-  const ratio = isSeries
-    ? (progress?.readVolumes && progress?.totalVolumes
-        ? progress.readVolumes / progress.totalVolumes
-        : 0)
-    : (progress?.lastPage != null && progress?.totalPages
-        ? (progress.lastPage + 1) / progress.totalPages
-        : 0);
+  const ratio = progressRatio ?? clientRatio ?? 0;
 
   return (
     <Link
@@ -66,7 +65,7 @@ export default function MangaCard({
           className="object-cover z-0"
         />
 
-        {progress && ratio > 0 && (
+        {ratio > 0 && (
           <div className="absolute bottom-0 left-0 w-full h-1.5 bg-blackamber/50">
             <div
               className="h-full bg-lilah transition-all"

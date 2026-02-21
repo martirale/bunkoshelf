@@ -5,6 +5,8 @@ import { LibraryBigIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
+import { verifySession } from "@/lib/auth/verifySession";
+import { getSeriesBulkProgress } from "@/lib/reader/readingProgress";
 
 const PAGE_SIZE = 35;
 
@@ -61,25 +63,28 @@ export default async function SeriesIndex({
       : {}),
   };
 
-  const series = await prisma.mangaSeries.findMany({
-    where,
-    include: {
-      volumes: {
-        include: {
-          metadataObj: true,
-          genres: {
-            include: { genre: true },
-          },
-          tags: {
-            include: { tag: true },
+  const [user, series] = await Promise.all([
+    verifySession(),
+    prisma.mangaSeries.findMany({
+      where,
+      include: {
+        volumes: {
+          include: {
+            metadataObj: true,
+            genres: {
+              include: { genre: true },
+            },
+            tags: {
+              include: { tag: true },
+            },
           },
         },
       },
-    },
-    orderBy: {
-      title: "asc",
-    },
-  });
+      orderBy: {
+        title: "asc",
+      },
+    }),
+  ]);
 
   const entries = series.map((entry) => {
     const sortedVolumes = sortByPaddedTitle(entry.volumes);
@@ -114,6 +119,11 @@ export default async function SeriesIndex({
   const start = (page - 1) * PAGE_SIZE;
   const paginatedEntries = entries.slice(start, start + PAGE_SIZE);
 
+  const readCountMap = await getSeriesBulkProgress(
+    user?.id,
+    paginatedEntries.map((e) => e.id)
+  );
+
   return (
     <>
       <div className="flex items-center mb-4">
@@ -127,21 +137,22 @@ export default async function SeriesIndex({
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
         {paginatedEntries.map((entry) => {
-          const href = `/${lang}/manga/${entry.slug}`;
-          const coverImage = entry.coverImage;
+          const totalVolumes = entry.volumes.length;
+          const readVolumes = readCountMap[entry.id] ?? 0;
+          const progressRatio = totalVolumes > 0 ? readVolumes / totalVolumes : 0;
 
           return (
             <MangaCard
               key={entry.title}
               title={entry.volumes?.[0]?.meta?.series ?? entry.title}
-              href={href}
+              href={`/${lang}/manga/${entry.slug}`}
               isSeries={true}
               isOneshot={false}
               onGoing={entry.status === "ONGOING"}
               onPause={entry.status === "HIATUS"}
-              volumeCount={entry.volumes.length}
-              seriesSlug={entry.slug}
-              cover={coverImage}
+              volumeCount={totalVolumes}
+              cover={entry.coverImage}
+              progressRatio={progressRatio}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />
