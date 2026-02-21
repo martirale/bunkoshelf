@@ -1,9 +1,12 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { robotoCondensed, boldonse } from "../fonts";
 import "../globals.css";
 import Sidebar from "@/components/sidebar/sidebar";
 import MobNav from "@/components/mobNav/MobNav";
 import { ToastProvider } from "@/components/ToastProvider";
+
+const VALID_LOCALES = ["es", "en"];
 
 export const metadata = {
   title: "Bunko Shelf",
@@ -21,6 +24,8 @@ export async function generateStaticParams() {
 
 export default async function RootLayout({ children, params }) {
   const { lang } = await params;
+
+  if (!VALID_LOCALES.includes(lang)) notFound();
 
   return (
     <html
