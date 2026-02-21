@@ -173,7 +173,12 @@ export default function MangaReader({
   }, [isOpen]);
 
   if (!isOpen) return null;
-  if (loading) return <Loader />;
+  if (loading)
+    return (
+      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+        <Loader />
+      </div>
+    );
 
   const currentPage = currentIndex + 1;
 
