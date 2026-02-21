@@ -1,6 +1,6 @@
 {
   "name": "bunkoshelf",
-  "version": "1.15.0",
+  "version": "1.15.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -15,8 +15,8 @@
     "@aws-sdk/s3-request-presigner": "3.995.0",
     "@formatjs/intl-localematcher": "0.6.1",
     "@paralleldrive/cuid2": "3.0.4",
-    "@prisma/adapter-better-sqlite3": "7.2.0",
-    "@prisma/client": "7.1.0",
+    "@prisma/adapter-better-sqlite3": "7.4.1",
+    "@prisma/client": "7.4.1",
     "@smithy/node-http-handler": "4.4.10",
     "adm-zip": "0.5.16",
     "bcryptjs": "3.0.2",
@@ -28,12 +28,12 @@
     "dotenv": "17.2.3",
     "http-proxy": "1.18.1",
     "jose": "6.0.11",
-    "jsonwebtoken": "9.0.2",
+    "jsonwebtoken": "9.0.3",
     "lucide-react": "0.553.0",
     "minisearch": "1.1.0",
     "negotiator": "1.0.0",
     "next": "16.1.6",
-    "next-devtools-mcp": "0.3.7",
+    "next-devtools-mcp": "0.3.10",
     "node-unrar-js": "2.0.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -44,8 +44,13 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.5",
-    "prisma": "7.1.0",
+    "prisma": "7.4.1",
     "tailwindcss": "4.1.5"
   },
-  "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a"
+  "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a",
+  "pnpm": {
+    "overrides": {
+      "@modelcontextprotocol/sdk": "1.26.0"
+    }
+  }
 }
