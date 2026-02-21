@@ -29,6 +29,8 @@ export default function MangaReader({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showFinishScreen, setShowFinishScreen] = useState(false);
+  const [isEditingPage, setIsEditingPage] = useState(false);
+  const [pageInput, setPageInput] = useState("");
 
   const storageKey = `reader-progress:${slug}`;
   const isRTL = readingDirection === "rtl";
@@ -280,8 +282,51 @@ export default function MangaReader({
               />
             </button>
 
-            <span>
-              {intl.reader.page} {currentPage} / {images.length}
+            <span className="select-none">
+              {intl.reader.page}{" "}
+              {isEditingPage ? (
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={pageInput}
+                  autoFocus
+                  onChange={(e) =>
+                    setPageInput(e.target.value.replace(/\D/g, ""))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const n = parseInt(pageInput, 10);
+                      if (!isNaN(n) && n >= 1 && n <= images.length) {
+                        setCurrentIndex(n - 1);
+                      }
+                      setIsEditingPage(false);
+                    } else if (e.key === "Escape") {
+                      setIsEditingPage(false);
+                    }
+                    e.stopPropagation();
+                  }}
+                  onBlur={() => {
+                    const n = parseInt(pageInput, 10);
+                    if (!isNaN(n) && n >= 1 && n <= images.length) {
+                      setCurrentIndex(n - 1);
+                    }
+                    setIsEditingPage(false);
+                  }}
+                  className="w-10 text-center bg-white/10 rounded text-white outline-none"
+                />
+              ) : (
+                <span
+                  onClick={() => {
+                    setPageInput(String(currentPage));
+                    setIsEditingPage(true);
+                  }}
+                  className="cursor-pointer"
+                >
+                  {currentPage}
+                </span>
+              )}{" "}
+              / {images.length}
             </span>
 
             <button
