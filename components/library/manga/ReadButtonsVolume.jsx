@@ -154,6 +154,10 @@ export default function ReadButtonsVolume({
           console.error("Sync failed:", data.error);
         }
 
+        if (isFinished && data.success) {
+          setIsRead(true);
+        }
+
         if (
           isFinished &&
           data.success &&
