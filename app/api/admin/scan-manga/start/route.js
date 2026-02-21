@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 import { mainJob } from "@/lib/jobs/scan/manga/mainJob";
 import { log } from "@/lib/logger";
 import fs from "fs/promises";
