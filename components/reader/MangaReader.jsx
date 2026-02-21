@@ -208,7 +208,7 @@ export default function MangaReader({
             <img
               src={coverSrc}
               alt={mangaTitle}
-              className="max-h-64 w-auto rounded-lg"
+              className="max-h-64 md:max-h-81 2xl:max-h-96 w-auto rounded-lg"
             />
           )}
           {mangaTitle && <h2 className="text-xl">{mangaTitle}</h2>}
