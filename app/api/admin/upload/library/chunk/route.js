@@ -7,7 +7,6 @@ import { log } from "@/lib/logger";
 import { PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 
-export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library");

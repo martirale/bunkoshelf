@@ -5,8 +5,6 @@ import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { log } from "@/lib/logger";
 import crypto from "crypto";
 
-export const dynamic = "force-dynamic";
-
 function generateChecksum() {
   return crypto.randomBytes(8).toString("hex");
 }

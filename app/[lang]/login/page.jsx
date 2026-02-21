@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import LoginForm from "./LoginForm";
 import MainLogo from "@/components/ui/MainLogo";
@@ -6,6 +7,7 @@ import { initAdmin } from "@/actions/init-admin";
 export default async function LoginPage({ params }) {
   const { lang = "es" } = await params;
 
+  await connection();
   await initAdmin();
 
   const intl = await getDictionary(lang);

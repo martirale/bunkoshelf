@@ -5,8 +5,6 @@ import path from "path";
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 
-export const dynamic = "force-dynamic";
-
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 

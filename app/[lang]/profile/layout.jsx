@@ -1,29 +1,45 @@
+import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { verifySession } from "@/lib/auth/verifySession";
 import SidebarMisc from "@/components/ui/SidebarMisc";
 import ProfileNav from "@/components/profile/ProfileNav";
 import { UserRoundIcon } from "lucide-react";
 
+async function ProfileHeader({ intl }) {
+  const user = await verifySession();
+  if (!user || !user.name) {
+    return (
+      <h2 className="flex items-center text-onix">
+        <UserRoundIcon size={28} className="mr-2" />
+        {intl.profile.title}
+      </h2>
+    );
+  }
+  return (
+    <h2 className="flex items-center text-onix">
+      <UserRoundIcon size={28} className="mr-2" />
+      {intl.profile.greeting} {user.name}
+    </h2>
+  );
+}
+
 export default async function ProfileLayout({ children, params }) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
 
-  const user = await verifySession();
-
   return (
     <div className="flex flex-col md:flex-row md:h-screen overflow-hidden">
       <SidebarMisc>
-        {!user || !user.name ? (
-          <h2 className="flex items-center text-onix">
-            <UserRoundIcon size={28} className="mr-2" />
-            {intl.profile.title}
-          </h2>
-        ) : (
-          <h2 className="flex items-center text-onix">
-            <UserRoundIcon size={28} className="mr-2" />
-            {intl.profile.greeting} {user.name}
-          </h2>
-        )}
+        <Suspense
+          fallback={
+            <h2 className="flex items-center text-onix">
+              <UserRoundIcon size={28} className="mr-2" />
+              {intl.profile.title}
+            </h2>
+          }
+        >
+          <ProfileHeader intl={intl} />
+        </Suspense>
 
         <ProfileNav intl={intl} />
       </SidebarMisc>
