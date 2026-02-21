@@ -9,6 +9,7 @@ Package manager: pnpm
 ## Architecture
 
 - Uses React Server Components
+- Uses Cache Components
 - App Router only (no pages router)
 
 ## Styling
