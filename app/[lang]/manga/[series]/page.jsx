@@ -117,6 +117,7 @@ export default async function SeriesMangaPage({ params }) {
     const aggregatedMeta = aggregateMetadata(sortedVolumes);
 
     let isFavorite = false;
+    let averageRating = null;
 
     if (user) {
       const favEntry = await prisma.userToSeries.findUnique({
@@ -132,6 +133,30 @@ export default async function SeriesMangaPage({ params }) {
       });
 
       isFavorite = favEntry?.isFavorite ?? false;
+
+      const volumeIds = serie.volumes.map((v) => v.id);
+      const userVolumes = await prisma.userToVolume.findMany({
+        where: {
+          userId: user.id,
+          volumeId: { in: volumeIds },
+        },
+        select: { volumeId: true, personalRating: true },
+      });
+
+      const personalMap = new Map(
+        userVolumes
+          .filter((uv) => uv.personalRating !== null)
+          .map((uv) => [uv.volumeId, uv.personalRating]),
+      );
+
+      const ratings = serie.volumes
+        .map((v) => personalMap.get(v.id) ?? v.metadataObj?.communityRating)
+        .filter((r) => r !== null && r !== undefined);
+
+      if (ratings.length > 0) {
+        averageRating =
+          Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 2) / 2;
+      }
     }
 
     return (
@@ -141,6 +166,7 @@ export default async function SeriesMangaPage({ params }) {
         intl={intl}
         isFavorite={isFavorite}
         aggregatedMeta={aggregatedMeta}
+        averageRating={averageRating}
         user={user}
       />
     );

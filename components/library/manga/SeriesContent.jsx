@@ -7,6 +7,7 @@ import { ageRatingMap } from "@/lib/utils";
 import DeleteMangaItem from "./DeleteMangaItem";
 import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
+import SeriesRating from "./SeriesRating";
 
 export default function SeriesContent({
   serieData,
@@ -14,6 +15,7 @@ export default function SeriesContent({
   intl,
   isFavorite,
   aggregatedMeta,
+  averageRating,
   user,
 }) {
   const coverImage =
@@ -25,10 +27,10 @@ export default function SeriesContent({
     ageMin >= 18
       ? "bg-red-500"
       : ageMin >= 16
-      ? "bg-[#f5a524] text-onix"
-      : ageMin !== null
-      ? "bg-neutral-700"
-      : "bg-neutral-700"
+        ? "bg-[#f5a524] text-onix"
+        : ageMin !== null
+          ? "bg-neutral-700"
+          : "bg-neutral-700"
   }`;
 
   const isWesternReading =
@@ -66,8 +68,13 @@ export default function SeriesContent({
             initFavorite={isFavorite}
           />
 
-          {/* Meta Tags */}
+          {/* Rating */}
           <div className="mt-8">
+            <SeriesRating rating={averageRating} />
+          </div>
+
+          {/* Meta Tags */}
+          <div className="mt-2">
             {meta.ageRating && (
               <span className={badgeClass}>
                 {ageRatingMap(meta.ageRating) !== null
@@ -144,7 +151,11 @@ export default function SeriesContent({
             <Separator />
             <div className="flex flex-wrap items-center gap-4">
               <ScanSeriesButton seriesId={serieData.id} intl={intl} />
-              <DeleteMangaItem intl={intl} type="series" slug={serieData.slug} />
+              <DeleteMangaItem
+                intl={intl}
+                type="series"
+                slug={serieData.slug}
+              />
             </div>
           </>
         )}
