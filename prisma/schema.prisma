@@ -77,6 +77,8 @@ model UserToVolume {
   isRead     Boolean @default(false)
   isFavorite Boolean @default(false)
 
+  personalRating Float?
+
   lastPage   Int?
   totalPages Int?
   lastReadAt DateTime?

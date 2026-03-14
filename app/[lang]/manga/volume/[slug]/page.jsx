@@ -64,6 +64,7 @@ export default async function VolumeMangaPage({ params }) {
     let isFavorite = false;
     let isRead = false;
     let firstRead = null;
+    let personalRating = null;
 
     if (user) {
       const userVolume = await prisma.userToVolume.findUnique({
@@ -73,12 +74,18 @@ export default async function VolumeMangaPage({ params }) {
             volumeId: volumeEntry.id,
           },
         },
-        select: { isFavorite: true, isRead: true, firstRead: true },
+        select: {
+          isFavorite: true,
+          isRead: true,
+          firstRead: true,
+          personalRating: true,
+        },
       });
 
       isFavorite = userVolume?.isFavorite ?? false;
       isRead = userVolume?.isRead ?? false;
       firstRead = userVolume?.firstRead ?? null;
+      personalRating = userVolume?.personalRating ?? null;
     }
 
     let readingEntries = [];
@@ -103,6 +110,7 @@ export default async function VolumeMangaPage({ params }) {
           isFavorite={isFavorite}
           isRead={isRead}
           user={user}
+          personalRating={personalRating}
           readingEntries={readingEntries}
           firstRead={firstRead}
         />

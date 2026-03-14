@@ -9,6 +9,7 @@ import DeleteMangaItem from "./DeleteMangaItem";
 import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 import Tabs from "@/components/ui/Tabs";
+import VolumeRating from "./VolumeRating";
 
 export default function VolumesContent({
   volumeData,
@@ -17,6 +18,7 @@ export default function VolumesContent({
   isFavorite,
   isRead,
   user,
+  personalRating,
   readingEntries,
   firstRead,
 }) {
@@ -97,8 +99,17 @@ export default function VolumesContent({
             mangaStyle={meta.mangaStyle}
           />
 
-          {/* Meta Tags */}
+          {/* Rating */}
           <div className="mt-8">
+            <VolumeRating
+              volumeId={volume.id}
+              communityRating={meta.communityRating}
+              initialPersonalRating={personalRating}
+            />
+          </div>
+
+          {/* Meta Tags */}
+          <div className="mt-2">
             {meta.ageRating && (
               <span className={badgeClass}>
                 {ageRatingMap(meta.ageRating) !== null
@@ -138,7 +149,6 @@ export default function VolumesContent({
               <MangaSummary meta={meta} intl={intl} />
             </>
           )}
-
           <Tabs
             tabs={[
               {
@@ -147,11 +157,17 @@ export default function VolumesContent({
               },
               {
                 label: intl.manga.readingHistory,
-                content: <ReadingHistory volumeId={volume.id} intl={intl} initialEntries={readingEntries} firstRead={firstRead} />,
+                content: (
+                  <ReadingHistory
+                    volumeId={volume.id}
+                    intl={intl}
+                    initialEntries={readingEntries}
+                    firstRead={firstRead}
+                  />
+                ),
               },
             ]}
           />
-
           {user.isAdmin && (
             <>
               <Separator />
