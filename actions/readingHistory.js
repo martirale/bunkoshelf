@@ -3,6 +3,20 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
+export async function syncFirstRead(userId, volumeId) {
+  const oldest = await prisma.readingEntry.findFirst({
+    where: { userId, volumeId },
+    orderBy: { readAt: "asc" },
+    select: { readAt: true },
+  });
+
+  await prisma.userToVolume.upsert({
+    where: { userId_volumeId: { userId, volumeId } },
+    update: { firstRead: oldest?.readAt ?? null },
+    create: { userId, volumeId, firstRead: oldest?.readAt ?? null },
+  });
+}
+
 export async function getReadingHistory({ volumeId }) {
   const user = await verifySession();
   if (!user) {
@@ -45,6 +59,8 @@ export async function createReadingEntry({ volumeId, readAt }) {
       select: { id: true, readAt: true },
     });
 
+    await syncFirstRead(user.id, volumeId);
+
     return { success: true, entry };
   } catch (e) {
     error = e;
@@ -70,7 +86,7 @@ export async function updateReadingEntry({ entryId, readAt }) {
 
     const existing = await prisma.readingEntry.findUnique({
       where: { id: entryId },
-      select: { userId: true },
+      select: { userId: true, volumeId: true },
     });
 
     if (!existing || existing.userId !== user.id) {
@@ -82,6 +98,8 @@ export async function updateReadingEntry({ entryId, readAt }) {
       data: { readAt },
       select: { id: true, readAt: true },
     });
+
+    await syncFirstRead(user.id, existing.volumeId);
 
     return { success: true, entry };
   } catch (e) {
@@ -108,7 +126,7 @@ export async function deleteReadingEntry({ entryId }) {
 
     const existing = await prisma.readingEntry.findUnique({
       where: { id: entryId },
-      select: { userId: true },
+      select: { userId: true, volumeId: true },
     });
 
     if (!existing || existing.userId !== user.id) {
@@ -118,6 +136,8 @@ export async function deleteReadingEntry({ entryId }) {
     await prisma.readingEntry.delete({
       where: { id: entryId },
     });
+
+    await syncFirstRead(user.id, existing.volumeId);
 
     return { success: true };
   } catch (e) {

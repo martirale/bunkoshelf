@@ -2,6 +2,7 @@
 
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
+import { syncFirstRead } from "@/actions/readingHistory";
 
 export async function syncReadingProgress({
   volumeSlug,
@@ -9,7 +10,6 @@ export async function syncReadingProgress({
   totalPages,
   lastReadAt,
   date,
-  firstRead,
 }) {
   let error = null;
   try {
@@ -36,24 +36,6 @@ export async function syncReadingProgress({
 
     const isNowRead = lastPage >= totalPages - 1;
 
-    const existing = await prisma.userToVolume.findUnique({
-      where: {
-        userId_volumeId: {
-          userId,
-          volumeId,
-        },
-      },
-      select: {
-        isRead: true,
-        firstRead: true,
-      },
-    });
-
-    const wasRead = existing?.isRead || false;
-
-    const shouldSetFirstRead =
-      isNowRead && (!existing?.isRead || !existing?.firstRead) && !!firstRead;
-
     await prisma.userToVolume.upsert({
       where: {
         userId_volumeId: {
@@ -66,7 +48,6 @@ export async function syncReadingProgress({
         totalPages,
         lastReadAt,
         isRead: isNowRead,
-        ...(shouldSetFirstRead && { firstRead }),
       },
       create: {
         userId,
@@ -75,7 +56,6 @@ export async function syncReadingProgress({
         totalPages,
         lastReadAt,
         isRead: isNowRead,
-        ...(shouldSetFirstRead && { firstRead }),
       },
     });
 
@@ -87,6 +67,8 @@ export async function syncReadingProgress({
           readAt: date,
         },
       });
+
+      await syncFirstRead(userId, volumeId);
 
       const currentYear = new Date().getFullYear();
       await prisma.readingChallenge.upsert({

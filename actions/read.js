@@ -2,6 +2,7 @@
 
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
+import { syncFirstRead } from "@/actions/readingHistory";
 
 export async function updateReadState({
   volumeId,
@@ -38,32 +39,12 @@ export async function updateReadState({
       return { error: "Invalid payload", status: 400 };
     }
 
-    const existing = await prisma.userToVolume.findUnique({
-      where: {
-        userId_volumeId: {
-          userId: user.id,
-          volumeId: normalizedVolumeId,
-        },
-      },
-      select: {
-        firstRead: true,
-      },
-    });
-
     const updatePayload = {
       isRead: normalizedRead,
       lastPage: normalizedRead ? normalizedTotalPages - 1 : 0,
       totalPages: normalizedTotalPages,
       lastReadAt: normalizedRead ? new Date(lastReadAt || Date.now()) : null,
     };
-
-    if (
-      normalizedRead &&
-      !existing?.firstRead &&
-      typeof firstRead === "string"
-    ) {
-      updatePayload.firstRead = firstRead;
-    }
 
     await prisma.userToVolume.upsert({
       where: {
@@ -77,7 +58,6 @@ export async function updateReadState({
         userId: user.id,
         volumeId: normalizedVolumeId,
         ...updatePayload,
-        firstRead: normalizedRead ? firstRead ?? null : null,
       },
     });
 
@@ -89,6 +69,8 @@ export async function updateReadState({
           readAt: firstRead,
         },
       });
+
+      await syncFirstRead(user.id, normalizedVolumeId);
     }
 
     return { success: true, status: 200 };

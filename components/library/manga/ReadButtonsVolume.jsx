@@ -145,7 +145,6 @@ export default function ReadButtonsVolume({
           totalPages,
           lastReadAt,
           date: today,
-          ...(isFinished && { firstRead: today }),
         };
 
         const data = await syncReadingProgress(body);
