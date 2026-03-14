@@ -10,10 +10,20 @@ export async function syncFirstRead(userId, volumeId) {
     select: { readAt: true },
   });
 
+  const hasEntries = !!oldest;
+
   await prisma.userToVolume.upsert({
     where: { userId_volumeId: { userId, volumeId } },
-    update: { firstRead: oldest?.readAt ?? null },
-    create: { userId, volumeId, firstRead: oldest?.readAt ?? null },
+    update: {
+      firstRead: oldest?.readAt ?? null,
+      ...(hasEntries ? { isRead: true } : { isRead: false }),
+    },
+    create: {
+      userId,
+      volumeId,
+      firstRead: oldest?.readAt ?? null,
+      isRead: hasEntries,
+    },
   });
 }
 
