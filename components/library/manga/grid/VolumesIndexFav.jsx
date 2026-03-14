@@ -34,7 +34,7 @@ export default async function VolumesIndexFav({ lang, intl }) {
     ...vol,
     isOneshot: vol.series?.isOneshot === true,
     coverImage: vol.coverImage
-      ? `/api/library/manga/cover/${vol.slug}`
+      ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
       : null,
     meta: vol.metadataObj || null,
   }));

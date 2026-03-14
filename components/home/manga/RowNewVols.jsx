@@ -27,7 +27,7 @@ export default function RowNewVols({ lang, intl, maxItems = 8 }) {
           ...vol,
           isOneshot: vol.series?.isOneshot === true,
           coverImage: vol.coverImage
-            ? `/api/library/manga/cover/${vol.slug}`
+            ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
             : null,
           meta: vol.metadataObj || null,
         }));

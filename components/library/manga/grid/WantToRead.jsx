@@ -105,7 +105,7 @@ export default async function WantToRead({
     ...vol,
     isOneshot: vol.series?.isOneshot === true,
     coverImage: vol.coverImage
-      ? `/api/library/manga/cover/${vol.slug}`
+      ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
       : null,
     meta: vol.metadataObj || null,
     genres: vol.genres.map((g) => g.genre.name),

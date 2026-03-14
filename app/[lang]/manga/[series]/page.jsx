@@ -81,7 +81,7 @@ export default async function SeriesMangaPage({ params }) {
     const normalizedSerie = {
       ...serie,
       coverImage: serie.volumes?.[0]?.coverImage
-        ? `/api/library/manga/cover/${serie.volumes[0].slug}`
+        ? `/api/library/manga/cover/${serie.volumes[0].slug}/${serie.volumes[0].coverImage}`
         : null,
       volumes:
         serie.volumes?.map((vol) => {
@@ -106,7 +106,7 @@ export default async function SeriesMangaPage({ params }) {
           return {
             ...vol,
             coverImage: vol.coverImage
-              ? `/api/library/manga/cover/${vol.slug}`
+              ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
               : null,
             meta,
           };
