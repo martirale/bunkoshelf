@@ -5,6 +5,7 @@ import ReadButtonsSeries from "./ReadButtonsSeries";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 import DeleteMangaItem from "./DeleteMangaItem";
+import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 
 export default function SeriesContent({
@@ -229,7 +230,10 @@ export default function SeriesContent({
         {user.isAdmin && (
           <>
             <Separator />
-            <DeleteMangaItem intl={intl} type="series" slug={serieData.slug} />
+            <div className="flex flex-wrap items-center gap-4">
+              <ScanSeriesButton seriesId={serieData.id} intl={intl} />
+              <DeleteMangaItem intl={intl} type="series" slug={serieData.slug} />
+            </div>
           </>
         )}
       </section>

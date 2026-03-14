@@ -16,7 +16,11 @@ import { useToast } from "@/components/ToastProvider";
 import useScanPolling from "@/hooks/useScanPolling";
 import Modal from "@/components/ui/Modal";
 import UploadMangaForm from "./UploadMangaForm";
-import { reindexLibrary, regenerateCovers, reprocessMetadata } from "@/actions/admin-scan";
+import {
+  reindexLibrary,
+  regenerateCovers,
+  reprocessMetadata,
+} from "@/actions/admin-scan";
 
 export default function LibSettingsButtons({ lang, intl, libProvider }) {
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -131,8 +135,7 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
 
       const data = await reprocessMetadata({ forceAll: true });
 
-      if (data.error)
-        throw new Error(data.error);
+      if (data.error) throw new Error(data.error);
 
       updateToast("metadata-task", {
         title: intl.toastScan.successReprocessingMetaTt,
@@ -206,47 +209,47 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
       onClick: handleUploadMangas,
       disabled: isLoading,
     },
-    {
-      key: "scan",
-      label: loading ? intl.settings.scanning : intl.settings.scanLibrary,
-      icon: loading ? Loader2Icon : ScanSearchIcon,
-      onClick: handleFullScan,
-      disabled: isLoading,
-      spinning: loading,
-    },
-    {
-      key: "reindex",
-      label:
-        loadingAction === "reindex"
-          ? intl.settings.reindexing
-          : intl.settings.reindex,
-      icon: loadingAction === "reindex" ? Loader2Icon : FolderSyncIcon,
-      onClick: handleReindex,
-      disabled: isLoading,
-      spinning: loadingAction === "reindex",
-    },
-    {
-      key: "covers",
-      label:
-        loadingAction === "covers"
-          ? intl.settings.regeneratingCovers
-          : intl.settings.regenerateCovers,
-      icon: loadingAction === "covers" ? Loader2Icon : ImageIcon,
-      onClick: handleRegenerateCovers,
-      disabled: isLoading,
-      spinning: loadingAction === "covers",
-    },
-    {
-      key: "metadata",
-      label:
-        loadingAction === "metadata"
-          ? intl.settings.reprocessingMeta
-          : intl.settings.reprocessMetadata,
-      icon: loadingAction === "metadata" ? Loader2Icon : FileTextIcon,
-      onClick: handleReprocessMetadata,
-      disabled: isLoading,
-      spinning: loadingAction === "metadata",
-    },
+    // {
+    //   key: "scan",
+    //   label: loading ? intl.settings.scanning : intl.settings.scanLibrary,
+    //   icon: loading ? Loader2Icon : ScanSearchIcon,
+    //   onClick: handleFullScan,
+    //   disabled: isLoading,
+    //   spinning: loading,
+    // },
+    // {
+    //   key: "reindex",
+    //   label:
+    //     loadingAction === "reindex"
+    //       ? intl.settings.reindexing
+    //       : intl.settings.reindex,
+    //   icon: loadingAction === "reindex" ? Loader2Icon : FolderSyncIcon,
+    //   onClick: handleReindex,
+    //   disabled: isLoading,
+    //   spinning: loadingAction === "reindex",
+    // },
+    // {
+    //   key: "covers",
+    //   label:
+    //     loadingAction === "covers"
+    //       ? intl.settings.regeneratingCovers
+    //       : intl.settings.regenerateCovers,
+    //   icon: loadingAction === "covers" ? Loader2Icon : ImageIcon,
+    //   onClick: handleRegenerateCovers,
+    //   disabled: isLoading,
+    //   spinning: loadingAction === "covers",
+    // },
+    // {
+    //   key: "metadata",
+    //   label:
+    //     loadingAction === "metadata"
+    //       ? intl.settings.reprocessingMeta
+    //       : intl.settings.reprocessMetadata,
+    //   icon: loadingAction === "metadata" ? Loader2Icon : FileTextIcon,
+    //   onClick: handleReprocessMetadata,
+    //   disabled: isLoading,
+    //   spinning: loadingAction === "metadata",
+    // },
   ];
 
   function ActionButton({ action }) {

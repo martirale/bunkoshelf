@@ -29,6 +29,8 @@
     "onGoing": "En curso",
     "finished": "Finalizado",
     "hiatus": "En pausa",
-    "cancelled": "Cancelado"
+    "cancelled": "Cancelado",
+    "scanSeries": "Re-Escanear serie",
+    "scanning": "Escaneando..."
   }
 }
