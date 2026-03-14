@@ -20,6 +20,7 @@ export default function UploadMangaForm({ intl }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
+  const [progressPercent, setProgressPercent] = useState(0);
 
   const extractedDataRef = useRef(new Map());
   const { addToast } = useToast();
@@ -36,7 +37,7 @@ export default function UploadMangaForm({ intl }) {
       try {
         const type = isManga ? "manga" : "books";
         const res = await fetch(
-          `/api/admin/upload/library?type=${type}&action=list`
+          `/api/admin/upload/library?type=${type}&action=list`,
         );
         const data = await res.json();
 
@@ -62,16 +63,11 @@ export default function UploadMangaForm({ intl }) {
   const handleFilesAccepted = async (acceptedFiles) => {
     setFiles(acceptedFiles);
     setIsProcessing(true);
-    setUploadProgress("Procesando archivos...");
 
     const newExtractedData = new Map();
 
     for (let i = 0; i < acceptedFiles.length; i++) {
       const file = acceptedFiles[i];
-      setUploadProgress(
-        `Procesando ${i + 1}/${acceptedFiles.length}: ${file.name}`
-      );
-
       try {
         const result = await extractFromArchive(file);
 
@@ -82,7 +78,7 @@ export default function UploadMangaForm({ intl }) {
           if (result.coverBlob) {
             coverFilename = await generateCoverFilename(
               result.coverBlob,
-              result.coverExt
+              result.coverExt,
             );
             coverBlob = result.coverBlob;
           }
@@ -107,50 +103,76 @@ export default function UploadMangaForm({ intl }) {
 
     extractedDataRef.current = newExtractedData;
     setIsProcessing(false);
-    setUploadProgress("");
   };
 
-  const uploadFileDirectToR2 = async (file, presignedUrl) => {
-    const response = await fetch(presignedUrl, {
-      method: "PUT",
-      body: file,
-      headers: {
-        "Content-Type": file.type || "application/octet-stream",
-      },
-    });
+  const uploadWithProgress = (url, method, body, headers, onProgress) => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, url);
 
-    if (!response.ok) {
-      throw new Error(`Error uploading ${file.name} to R2`);
-    }
+      if (headers) {
+        Object.entries(headers).forEach(([key, value]) => {
+          xhr.setRequestHeader(key, value);
+        });
+      }
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          onProgress(event.loaded, event.total);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr);
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Upload failed"));
+      xhr.ontimeout = () => reject(new Error("Upload timed out"));
+      xhr.timeout = 300000;
+
+      xhr.send(body);
+    });
+  };
+
+  const uploadFileDirectToR2 = async (file, presignedUrl, onProgress) => {
+    await uploadWithProgress(
+      presignedUrl,
+      "PUT",
+      file,
+      { "Content-Type": file.type || "application/octet-stream" },
+      onProgress,
+    );
   };
 
   const uploadCoverToR2 = async (coverBlob, presignedUrl) => {
-    const response = await fetch(presignedUrl, {
-      method: "PUT",
-      body: coverBlob,
-      headers: {
-        "Content-Type": coverBlob.type || "application/octet-stream",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Error uploading cover to R2");
-    }
+    await uploadWithProgress(
+      presignedUrl,
+      "PUT",
+      coverBlob,
+      { "Content-Type": coverBlob.type || "application/octet-stream" },
+    );
   };
 
   const uploadFileInChunks = async (file, metadata, fileIndex, totalFiles) => {
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
     const extracted = extractedDataRef.current.get(file.name);
+    const totalSize = file.size;
+    let bytesUploaded = 0;
 
     for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
       const start = chunkIndex * CHUNK_SIZE;
       const end = Math.min(start + CHUNK_SIZE, file.size);
       const chunk = file.slice(start, end);
+      const chunkSize = end - start;
 
       setUploadProgress(
         `${intl.settings.uploadLibraryUploading} ${
           fileIndex + 1
-        }/${totalFiles}: ${file.name} (${chunkIndex + 1}/${totalChunks})`
+        }/${totalFiles}: ${file.name} (${chunkIndex + 1}/${totalChunks})`,
       );
 
       const formData = new FormData();
@@ -176,21 +198,31 @@ export default function UploadMangaForm({ intl }) {
         formData.append("volumeMetadata", JSON.stringify(volumeMetadata));
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 300000);
+      const chunkBase = bytesUploaded;
+      const xhr = await uploadWithProgress(
+        "/api/admin/upload/library/chunk",
+        "POST",
+        formData,
+        null,
+        (loaded, total) => {
+          const chunkProgress = Math.min(loaded / total, 1) * chunkSize;
+          const filePercent = (chunkBase + chunkProgress) / totalSize;
+          const overallPercent =
+            ((fileIndex + filePercent) / totalFiles) * 100;
+          setProgressPercent(Math.round(overallPercent));
+        },
+      );
 
-      const res = await fetch("/api/admin/upload/library/chunk", {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || `Error al subir chunk ${chunkIndex + 1}`);
+      if (xhr.status < 200 || xhr.status >= 300) {
+        let errorMsg = `Error al subir chunk ${chunkIndex + 1}`;
+        try {
+          const data = JSON.parse(xhr.responseText);
+          errorMsg = data.error || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
       }
+
+      bytesUploaded += chunkSize;
     }
   };
 
@@ -219,9 +251,8 @@ export default function UploadMangaForm({ intl }) {
         setUploadProgress(
           `${intl.settings.uploadLibraryUploading} ${i + 1}/${files.length}: ${
             file.name
-          }`
+          }`,
         );
-
         const res = await fetch("/api/admin/upload/presigned", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -237,7 +268,11 @@ export default function UploadMangaForm({ intl }) {
         if (data.useChunks) {
           await uploadFileInChunks(file, metadata, i, files.length);
         } else if (data.presignedUrl) {
-          await uploadFileDirectToR2(file, data.presignedUrl);
+          await uploadFileDirectToR2(file, data.presignedUrl, (loaded, total) => {
+            const filePercent = loaded / total;
+            const overallPercent = ((i + filePercent) / files.length) * 100;
+            setProgressPercent(Math.round(overallPercent));
+          });
 
           if (
             extracted?.coverBlob &&
@@ -246,7 +281,6 @@ export default function UploadMangaForm({ intl }) {
           ) {
             await uploadCoverToR2(extracted.coverBlob, data.coverPresignedUrl);
           }
-
           uploadedFiles.push({
             key: data.key,
             baseName: file.name.substring(0, file.name.lastIndexOf(".")),
@@ -296,6 +330,7 @@ export default function UploadMangaForm({ intl }) {
     } finally {
       setIsLoading(false);
       setUploadProgress("");
+      setProgressPercent(0);
       if (_err) {
         addToast({
           title: "Error",
@@ -392,9 +427,19 @@ export default function UploadMangaForm({ intl }) {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 items-center justify-between gap-5">
-          <div>
+          <div className="flex flex-col justify-center gap-1">
             {uploadProgress && (
-              <p className="text-sm text-onix">{uploadProgress}</p>
+              <>
+                <div className="w-full bg-neutral-500 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-lilah h-full rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <p className="text-xs text-onix/70">
+                  {uploadProgress} — {progressPercent}%
+                </p>
+              </>
             )}
           </div>
 
@@ -407,8 +452,8 @@ export default function UploadMangaForm({ intl }) {
               {isProcessing
                 ? "Procesando..."
                 : isLoading
-                ? intl.settings.uploadLibraryUploading
-                : intl.settings.uploadLibraryBtn}
+                  ? intl.settings.uploadLibraryUploading
+                  : intl.settings.uploadLibraryBtn}
             </button>
           </div>
         </div>
