@@ -2,7 +2,6 @@ import path from "path";
 import fs from "fs/promises";
 import prisma from "@/lib/prisma";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
@@ -42,11 +41,16 @@ export async function GET(req, contextPromise) {
         Key: coverKey,
       });
 
-      const signedUrl = await getSignedUrl(r2Client, command, {
-        expiresIn: 3600,
-      });
+      const response = await r2Client.send(command);
+      const bytes = await response.Body.transformToByteArray();
+      const contentType = getContentType(volume.coverImage);
 
-      return Response.redirect(signedUrl, 302);
+      return new Response(bytes, {
+        headers: {
+          "Content-Type": contentType,
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
     } else {
       const coverPath = path.join(volume.series.path, volume.coverImage);
 
