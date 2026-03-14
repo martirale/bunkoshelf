@@ -8,6 +8,7 @@ import crypto from "crypto";
 import { log } from "@/lib/logger";
 import { PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import { indexUploadedVolume } from "@/lib/uploadIndexer";
 
 export const maxDuration = 300;
 
@@ -17,15 +18,6 @@ const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
 function generateChecksum() {
   return crypto.randomBytes(8).toString("hex");
-}
-
-async function fileExistsInR2(key) {
-  try {
-    await r2Client.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key }));
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 export async function POST(request) {
@@ -65,6 +57,31 @@ export async function POST(request) {
 
     if (chunkIndex === 0) {
       await fs.writeFile(tempFilePath, uint8Array);
+
+      const cover = formData.get("cover");
+      const coverFilename = formData.get("coverFilename");
+      const volumeMetadata = formData.get("volumeMetadata");
+
+      if (cover && coverFilename) {
+        const coverBuffer = await cover.arrayBuffer();
+        await fs.writeFile(
+          path.join(TEMP_PATH, `${fileName}.cover.part`),
+          new Uint8Array(coverBuffer)
+        );
+        await fs.writeFile(
+          path.join(TEMP_PATH, `${fileName}.cover.name`),
+          coverFilename,
+          "utf8"
+        );
+      }
+
+      if (volumeMetadata) {
+        await fs.writeFile(
+          path.join(TEMP_PATH, `${fileName}.meta.json`),
+          volumeMetadata,
+          "utf8"
+        );
+      }
     } else {
       await fs.appendFile(tempFilePath, uint8Array);
     }
@@ -75,32 +92,79 @@ export async function POST(request) {
       const checksum = generateChecksum();
       const txtFileName = `${path.parse(fileName).name}.txt`;
 
+      let coverData = null;
+      let coverFilename = null;
+      const coverPartPath = path.join(TEMP_PATH, `${fileName}.cover.part`);
+      const coverNamePath = path.join(TEMP_PATH, `${fileName}.cover.name`);
+
+      try {
+        await fs.access(coverPartPath);
+        coverData = await fs.readFile(coverPartPath);
+        coverFilename = await fs.readFile(coverNamePath, "utf8");
+      } catch {
+        // no cover
+      }
+
+      let volumeMeta = null;
+      const metaJsonPath = path.join(TEMP_PATH, `${fileName}.meta.json`);
+      try {
+        const metaStr = await fs.readFile(metaJsonPath, "utf8");
+        volumeMeta = JSON.parse(metaStr);
+      } catch {
+        // no metadata
+      }
+
+      const suffix = isOneshot ? " [oneshot]" : "";
+      const directoryName = isNew ? newDirectoryName : existingDirectory;
+      const dirWithSuffix = `${directoryName}${isNew ? suffix : ""}`;
+
       if (LIB_PROVIDER === "cloud") {
-        const suffix = isOneshot ? " [oneshot]" : "";
-        const directoryName = isNew ? newDirectoryName : existingDirectory;
-        const r2Key = `library/${libraryType}/${directoryName}${
-          isNew ? suffix : ""
-        }/${fileName}`;
-        const txtKey = `library/${libraryType}/${directoryName}${
-          isNew ? suffix : ""
-        }/${txtFileName}`;
+        const r2Key = `library/${libraryType}/${dirWithSuffix}/${fileName}`;
+        const txtKey = `library/${libraryType}/${dirWithSuffix}/${txtFileName}`;
 
-        const command = new PutObjectCommand({
-          Bucket: R2_BUCKET,
-          Key: r2Key,
-          Body: fileBuffer,
-        });
+        await r2Client.send(
+          new PutObjectCommand({
+            Bucket: R2_BUCKET,
+            Key: r2Key,
+            Body: fileBuffer,
+          })
+        );
 
-        await r2Client.send(command);
+        await r2Client.send(
+          new PutObjectCommand({
+            Bucket: R2_BUCKET,
+            Key: txtKey,
+            Body: checksum,
+            ContentType: "text/plain",
+          })
+        );
 
-        const txtCommand = new PutObjectCommand({
-          Bucket: R2_BUCKET,
-          Key: txtKey,
-          Body: checksum,
-          ContentType: "text/plain",
-        });
+        if (coverData && coverFilename) {
+          const coverKey = `library/${libraryType}/${dirWithSuffix}/${coverFilename}`;
+          await r2Client.send(
+            new PutObjectCommand({
+              Bucket: R2_BUCKET,
+              Key: coverKey,
+              Body: coverData,
+            })
+          );
+        }
 
-        await r2Client.send(txtCommand);
+        if (libraryType === "manga") {
+          const seriesPath = `/library/${libraryType}/${dirWithSuffix}`;
+          await indexUploadedVolume({
+            fileName,
+            fullPath: `/${r2Key}`,
+            dirName: dirWithSuffix,
+            seriesPath,
+            isOneshot,
+            coverFilename: coverFilename || null,
+            metadata: volumeMeta?.metadata || null,
+            genres: volumeMeta?.genres || [],
+            tags: volumeMeta?.tags || [],
+            fileSize: fileBuffer.length,
+          });
+        }
 
         await fs.unlink(tempFilePath);
 
@@ -121,15 +185,13 @@ export async function POST(request) {
         }
       } else {
         const basePath = path.join(LIBRARY_PATH, libraryType);
-
         let targetDirectory;
-        if (isNew && fileIndex === 0) {
-          const suffix = isOneshot ? " [oneshot]" : "";
-          targetDirectory = path.join(basePath, `${newDirectoryName}${suffix}`);
-          await fs.mkdir(targetDirectory, { recursive: true });
-        } else if (isNew) {
-          const suffix = isOneshot ? " [oneshot]" : "";
-          targetDirectory = path.join(basePath, `${newDirectoryName}${suffix}`);
+
+        if (isNew) {
+          targetDirectory = path.join(basePath, dirWithSuffix);
+          if (fileIndex === 0) {
+            await fs.mkdir(targetDirectory, { recursive: true });
+          }
         } else {
           targetDirectory = path.join(basePath, existingDirectory);
         }
@@ -139,6 +201,28 @@ export async function POST(request) {
 
         await fs.copyFile(tempFilePath, finalPath);
         await fs.writeFile(txtPath, checksum, "utf8");
+
+        if (coverData && coverFilename) {
+          await fs.writeFile(
+            path.join(targetDirectory, coverFilename),
+            coverData
+          );
+        }
+
+        if (libraryType === "manga") {
+          await indexUploadedVolume({
+            fileName,
+            fullPath: finalPath,
+            dirName: path.basename(targetDirectory),
+            seriesPath: targetDirectory,
+            isOneshot,
+            coverFilename: coverFilename || null,
+            metadata: volumeMeta?.metadata || null,
+            genres: volumeMeta?.genres || [],
+            tags: volumeMeta?.tags || [],
+            fileSize: fileBuffer.length,
+          });
+        }
 
         await fs.unlink(tempFilePath);
 
@@ -158,6 +242,16 @@ export async function POST(request) {
           });
         }
       }
+
+      try {
+        await fs.unlink(coverPartPath);
+      } catch {}
+      try {
+        await fs.unlink(coverNamePath);
+      } catch {}
+      try {
+        await fs.unlink(metaJsonPath);
+      } catch {}
     }
 
     return NextResponse.json({

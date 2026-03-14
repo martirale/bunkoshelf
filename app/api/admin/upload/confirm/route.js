@@ -6,6 +6,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { log } from "@/lib/logger";
 import crypto from "crypto";
+import { indexUploadedVolume } from "@/lib/uploadIndexer";
 
 function generateChecksum() {
   return crypto.randomBytes(8).toString("hex");
@@ -23,10 +24,13 @@ export async function POST(request) {
     }
 
     const { files, metadata } = await request.json();
-    const { type, isNew, newDirectoryName, existingDirectory } = metadata;
+    const { type, isNew, newDirectoryName, isOneshot, existingDirectory } =
+      metadata;
 
     const libraryType = type === "manga" ? "manga" : "books";
+    const suffix = isOneshot ? " [oneshot]" : "";
     const directoryName = isNew ? newDirectoryName : existingDirectory;
+    const dirWithSuffix = `${directoryName}${isNew ? suffix : ""}`;
 
     for (const file of files) {
       const checksum = generateChecksum();
@@ -36,14 +40,30 @@ export async function POST(request) {
         file.key.lastIndexOf("/")
       )}/${txtFileName}`;
 
-      const txtCommand = new PutObjectCommand({
-        Bucket: R2_BUCKET,
-        Key: txtKey,
-        Body: checksum,
-        ContentType: "text/plain",
-      });
+      await r2Client.send(
+        new PutObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: txtKey,
+          Body: checksum,
+          ContentType: "text/plain",
+        })
+      );
 
-      await r2Client.send(txtCommand);
+      if (libraryType === "manga" && file.volumeMetadata) {
+        const seriesPath = `/library/${libraryType}/${dirWithSuffix}`;
+        await indexUploadedVolume({
+          fileName: file.fileName,
+          fullPath: `/${file.key}`,
+          dirName: dirWithSuffix,
+          seriesPath,
+          isOneshot,
+          coverFilename: file.coverFilename || null,
+          metadata: file.volumeMetadata?.metadata || null,
+          genres: file.volumeMetadata?.genres || [],
+          tags: file.volumeMetadata?.tags || [],
+          fileSize: file.fileSize || 0,
+        });
+      }
     }
 
     log({

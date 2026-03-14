@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BookOpenIcon } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import DropzoneUpload from "@/components/DropzoneUpload";
+import { extractFromArchive } from "@/lib/client/archiveExtractor";
+import { parseComicInfo } from "@/lib/client/comicInfoParser";
+import { generateCoverFilename } from "@/lib/client/coverHasher";
 
 const CHUNK_SIZE = 32 * 1024 * 1024;
 
@@ -15,8 +18,10 @@ export default function UploadMangaForm({ intl }) {
   const [isOneshot, setIsOneshot] = useState(false);
   const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
 
+  const extractedDataRef = useRef(new Map());
   const { addToast } = useToast();
 
   const isOneshotMode =
@@ -56,6 +61,53 @@ export default function UploadMangaForm({ intl }) {
 
   const handleFilesAccepted = async (acceptedFiles) => {
     setFiles(acceptedFiles);
+    setIsProcessing(true);
+    setUploadProgress("Procesando archivos...");
+
+    const newExtractedData = new Map();
+
+    for (let i = 0; i < acceptedFiles.length; i++) {
+      const file = acceptedFiles[i];
+      setUploadProgress(
+        `Procesando ${i + 1}/${acceptedFiles.length}: ${file.name}`
+      );
+
+      try {
+        const result = await extractFromArchive(file);
+
+        if (result) {
+          let coverFilename = null;
+          let coverBlob = null;
+
+          if (result.coverBlob) {
+            coverFilename = await generateCoverFilename(
+              result.coverBlob,
+              result.coverExt
+            );
+            coverBlob = result.coverBlob;
+          }
+
+          let parsedMeta = null;
+          if (result.comicInfoXml) {
+            parsedMeta = parseComicInfo(result.comicInfoXml);
+          }
+
+          newExtractedData.set(file.name, {
+            coverBlob,
+            coverFilename,
+            metadata: parsedMeta?.metadata || null,
+            genres: parsedMeta?.genres || [],
+            tags: parsedMeta?.tags || [],
+          });
+        }
+      } catch (e) {
+        console.error(`Error procesando ${file.name}:`, e);
+      }
+    }
+
+    extractedDataRef.current = newExtractedData;
+    setIsProcessing(false);
+    setUploadProgress("");
   };
 
   const uploadFileDirectToR2 = async (file, presignedUrl) => {
@@ -72,8 +124,23 @@ export default function UploadMangaForm({ intl }) {
     }
   };
 
+  const uploadCoverToR2 = async (coverBlob, presignedUrl) => {
+    const response = await fetch(presignedUrl, {
+      method: "PUT",
+      body: coverBlob,
+      headers: {
+        "Content-Type": coverBlob.type || "application/octet-stream",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error uploading cover to R2");
+    }
+  };
+
   const uploadFileInChunks = async (file, metadata, fileIndex, totalFiles) => {
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const extracted = extractedDataRef.current.get(file.name);
 
     for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
       const start = chunkIndex * CHUNK_SIZE;
@@ -94,6 +161,20 @@ export default function UploadMangaForm({ intl }) {
       formData.append("totalChunks", totalChunks.toString());
       formData.append("fileIndex", fileIndex.toString());
       formData.append("totalFiles", totalFiles.toString());
+
+      if (chunkIndex === 0 && extracted) {
+        if (extracted.coverBlob && extracted.coverFilename) {
+          formData.append("cover", extracted.coverBlob);
+          formData.append("coverFilename", extracted.coverFilename);
+        }
+
+        const volumeMetadata = {
+          metadata: extracted.metadata,
+          genres: extracted.genres,
+          tags: extracted.tags,
+        };
+        formData.append("volumeMetadata", JSON.stringify(volumeMetadata));
+      }
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 300000);
@@ -133,6 +214,8 @@ export default function UploadMangaForm({ intl }) {
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        const extracted = extractedDataRef.current.get(file.name);
+
         setUploadProgress(
           `${intl.settings.uploadLibraryUploading} ${i + 1}/${files.length}: ${
             file.name
@@ -142,7 +225,11 @@ export default function UploadMangaForm({ intl }) {
         const res = await fetch("/api/admin/upload/presigned", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fileName: file.name, metadata }),
+          body: JSON.stringify({
+            fileName: file.name,
+            metadata,
+            coverFilename: extracted?.coverFilename || null,
+          }),
         });
 
         const data = await res.json();
@@ -151,9 +238,28 @@ export default function UploadMangaForm({ intl }) {
           await uploadFileInChunks(file, metadata, i, files.length);
         } else if (data.presignedUrl) {
           await uploadFileDirectToR2(file, data.presignedUrl);
+
+          if (
+            extracted?.coverBlob &&
+            extracted?.coverFilename &&
+            data.coverPresignedUrl
+          ) {
+            await uploadCoverToR2(extracted.coverBlob, data.coverPresignedUrl);
+          }
+
           uploadedFiles.push({
             key: data.key,
             baseName: file.name.substring(0, file.name.lastIndexOf(".")),
+            fileName: file.name,
+            coverFilename: extracted?.coverFilename || null,
+            volumeMetadata: extracted
+              ? {
+                  metadata: extracted.metadata,
+                  genres: extracted.genres,
+                  tags: extracted.tags,
+                }
+              : null,
+            fileSize: file.size,
           });
         } else {
           throw new Error(`Error getting upload method for ${file.name}`);
@@ -181,6 +287,7 @@ export default function UploadMangaForm({ intl }) {
       setNewDirectoryName("");
       setIsOneshot(false);
       setFiles([]);
+      extractedDataRef.current = new Map();
       setTimeout(() => {
         window.location.reload();
       }, 2000);
@@ -294,10 +401,12 @@ export default function UploadMangaForm({ intl }) {
           <div className="text-right">
             <button
               type="submit"
-              disabled={isLoading || files.length === 0}
+              disabled={isLoading || isProcessing || files.length === 0}
               className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading
+              {isProcessing
+                ? "Procesando..."
+                : isLoading
                 ? intl.settings.uploadLibraryUploading
                 : intl.settings.uploadLibraryBtn}
             </button>

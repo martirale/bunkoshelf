@@ -23,16 +23,15 @@ export async function POST(request) {
       return NextResponse.json({ useChunks: true });
     }
 
-    const { fileName, metadata } = await request.json();
+    const { fileName, metadata, coverFilename } = await request.json();
     const { type, isNew, newDirectoryName, isOneshot, existingDirectory } =
       metadata;
 
     const libraryType = type === "manga" ? "manga" : "books";
     const suffix = isOneshot ? " [oneshot]" : "";
     const directoryName = isNew ? newDirectoryName : existingDirectory;
-    const r2Key = `library/${libraryType}/${directoryName}${
-      isNew ? suffix : ""
-    }/${fileName}`;
+    const dirWithSuffix = `${directoryName}${isNew ? suffix : ""}`;
+    const r2Key = `library/${libraryType}/${dirWithSuffix}/${fileName}`;
 
     const command = new PutObjectCommand({
       Bucket: R2_BUCKET,
@@ -43,7 +42,26 @@ export async function POST(request) {
       expiresIn: 3600,
     });
 
-    return NextResponse.json({ presignedUrl, key: r2Key });
+    let coverPresignedUrl = null;
+    let coverKey = null;
+
+    if (coverFilename) {
+      coverKey = `library/${libraryType}/${dirWithSuffix}/${coverFilename}`;
+      const coverCommand = new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: coverKey,
+      });
+      coverPresignedUrl = await getSignedUrl(r2Client, coverCommand, {
+        expiresIn: 3600,
+      });
+    }
+
+    return NextResponse.json({
+      presignedUrl,
+      coverPresignedUrl,
+      key: r2Key,
+      coverKey,
+    });
   } catch (e) {
     _err = e;
   } finally {

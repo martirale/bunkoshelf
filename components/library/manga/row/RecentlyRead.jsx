@@ -28,9 +28,7 @@ export default function RecentlyRead({ lang, intl, maxItems = 12 }) {
             ...vol,
             isOneshot: vol.series?.isOneshot === true,
             coverImage: vol.coverImage
-              ? `/api/library/manga/cover${vol.coverImage
-                  .replace(/\\/g, "/")
-                  .replace(/^\/?covers/, "")}`
+              ? `/api/library/manga/cover/${vol.slug}`
               : null,
             meta: vol.metadataObj || null,
             isRead: progress?.isRead ?? false,

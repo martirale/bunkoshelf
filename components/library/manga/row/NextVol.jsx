@@ -36,9 +36,7 @@ export default function NextVol({ lang, intl, maxItems = 12 }) {
 
       function prepVolume(vol) {
         vol.coverImage = vol.coverImage
-          ? `/api/library/manga/cover${vol.coverImage
-              .replace(/\\/g, "/")
-              .replace(/^\/?covers/, "")}`
+          ? `/api/library/manga/cover/${vol.slug}`
           : null;
         vol.meta = vol.metadataObj || null;
         vol.isOneshot = vol.series?.isOneshot === true;

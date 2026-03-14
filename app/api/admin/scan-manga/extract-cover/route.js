@@ -5,9 +5,11 @@ import path from "path";
 import prisma from "@/lib/prisma";
 import { extractCoverCbz } from "@/lib/jobs/scan/manga/covers/cbz";
 import { extractCoverCbr } from "@/lib/jobs/scan/manga/covers/cbr";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import r2Client, { R2_BUCKET } from "@/lib/r2";
 
-const COVERS_DIR = path.resolve(process.cwd(), "public/covers");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
+const TEMP_PATH = path.resolve(process.cwd(), "../temp");
 const CHECKSUM_STATUS_PATH = path.join(
   process.cwd(),
   "tmp",
@@ -72,6 +74,9 @@ export async function POST(request) {
         id: true,
         slug: true,
         fullPath: true,
+        series: {
+          select: { path: true },
+        },
       },
     });
 
@@ -79,15 +84,10 @@ export async function POST(request) {
       filesToIndex.includes(volume.fullPath)
     );
 
+    await fsp.mkdir(TEMP_PATH, { recursive: true });
+
     for (const volume of volumesToProcess) {
-      const coverOutputDir = path.join(COVERS_DIR, volume.slug);
-
       try {
-        const files = await fsp.readdir(coverOutputDir).catch(() => []);
-        await Promise.all(
-          files.map((file) => fsp.unlink(path.join(coverOutputDir, file)))
-        );
-
         const extractor = getExtractorForFile(volume.fullPath);
 
         if (!extractor) {
@@ -95,22 +95,49 @@ export async function POST(request) {
           continue;
         }
 
-        const coverPath = await extractor(
+        let outputDir;
+
+        if (LIB_PROVIDER === "cloud") {
+          outputDir = path.join(TEMP_PATH, `cover-${volume.slug}`);
+          await fsp.mkdir(outputDir, { recursive: true });
+        } else {
+          outputDir = volume.series.path;
+        }
+
+        const coverFilename = await extractor(
           volume.fullPath,
-          coverOutputDir,
+          outputDir,
           LIB_PROVIDER
         );
 
-        if (!coverPath) {
+        if (!coverFilename) {
           console.warn(`No se pudo extraer portada de: ${volume.fullPath}`);
           errors++;
           continue;
         }
 
+        if (LIB_PROVIDER === "cloud") {
+          const seriesPath = volume.series.path.replace(/^\//, "");
+          const coverKey = `${seriesPath}/${coverFilename}`;
+          const coverData = await fsp.readFile(
+            path.join(outputDir, coverFilename)
+          );
+
+          await r2Client.send(
+            new PutObjectCommand({
+              Bucket: R2_BUCKET,
+              Key: coverKey,
+              Body: coverData,
+            })
+          );
+
+          await fsp.rm(outputDir, { recursive: true, force: true });
+        }
+
         await prisma.mangaVolume.update({
           where: { id: volume.id },
           data: {
-            coverImage: coverPath,
+            coverImage: coverFilename,
           },
         });
 

@@ -93,19 +93,13 @@ export default async function SeriesIndex({
       ...entry,
       coverImage:
         sortedVolumes.length > 0
-          ? `/api/library/manga/cover${sortedVolumes[
-              sortedVolumes.length - 1
-            ].coverImage
-              ?.replace(/\\/g, "/")
-              .replace(/^\/?covers/, "")}` ?? null
+          ? `/api/library/manga/cover/${sortedVolumes[sortedVolumes.length - 1].slug}`
           : null,
       volumes:
         sortedVolumes.map((vol) => ({
           ...vol,
           coverImage: vol.coverImage
-            ? `/api/library/manga/cover${vol.coverImage
-                .replace(/\\/g, "/")
-                .replace(/^\/?covers/, "")}`
+            ? `/api/library/manga/cover/${vol.slug}`
             : null,
           meta: vol.metadataObj || null,
           genres: vol.genres.map((g) => g.genre.name),

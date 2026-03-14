@@ -56,9 +56,7 @@ export default async function VolumeMangaPage({ params }) {
     const normalizedVolume = {
       ...volumeEntry,
       coverImage: volumeEntry.coverImage
-        ? `/api/library/manga/cover${volumeEntry.coverImage
-            .replace(/\\/g, "/")
-            .replace(/^\/?covers/, "")}`
+        ? `/api/library/manga/cover/${volumeEntry.slug}`
         : null,
       meta,
     };

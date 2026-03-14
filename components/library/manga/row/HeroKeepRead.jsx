@@ -35,9 +35,7 @@ export default function HeroKeepRead({ lang, intl }) {
             ...vol,
             isOneshot: vol.series?.isOneshot === true,
             coverImage: vol.coverImage
-              ? `/api/library/manga/cover${vol.coverImage
-                  .replace(/\\/g, "/")
-                  .replace(/^\/?covers/, "")}`
+              ? `/api/library/manga/cover/${vol.slug}`
               : null,
             meta: vol.metadataObj || null,
             lastPage: progress?.lastPage ?? 0,
