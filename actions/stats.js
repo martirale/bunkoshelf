@@ -125,6 +125,7 @@ export async function getReaderStats() {
     totalSeries,
     userProgressVolumes,
     allFirstReadDates,
+    currentChallenge,
   ] = await Promise.all([
     prisma.userToVolume.findMany({
       where: {
@@ -208,6 +209,16 @@ export async function getReaderStats() {
         firstRead: true,
       },
     }),
+
+    prisma.readingChallenge.findFirst({
+      where: {
+        userId: user.id,
+        year: new Date().getFullYear(),
+      },
+      select: {
+        goal: true,
+      },
+    }),
   ]);
 
   const totalTracked = userProgressVolumes.length;
@@ -236,6 +247,27 @@ export async function getReaderStats() {
     }))
     .filter((_, index) => index <= now.getMonth());
 
+  const goal = currentChallenge?.goal || 0;
+  let monthlyGoal = null;
+
+  if (goal > 0) {
+    const currentMonth = now.getMonth() + 1;
+    const basePerMonth = Math.floor(goal / 12);
+    const remainder = goal % 12;
+    const extraStart = 12 - remainder + 1;
+
+    let cumulativeExpected = 0;
+    for (let m = 1; m <= currentMonth; m++) {
+      cumulativeExpected += basePerMonth + (m >= extraStart ? 1 : 0);
+    }
+
+    const previousMonthsRead = monthlyReads
+      .filter((entry) => entry.month < currentMonth)
+      .reduce((sum, entry) => sum + entry.count, 0);
+
+    monthlyGoal = Math.max(0, cumulativeExpected - previousMonthsRead);
+  }
+
   return {
     volumesRead,
     readEntries,
@@ -250,5 +282,6 @@ export async function getReaderStats() {
       totalUnread,
     },
     monthlyReads,
+    monthlyGoal,
   };
 }

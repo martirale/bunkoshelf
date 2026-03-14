@@ -6,6 +6,7 @@ import { getReaderStats } from "@/actions/stats";
 
 export default function TileMonthRead({ title, bgColor, textColor }) {
   const [count, setCount] = useState("—");
+  const [goal, setGoal] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -22,6 +23,9 @@ export default function TileMonthRead({ title, bgColor, textColor }) {
         );
 
         setCount(currentMonthEntry?.count ?? 0);
+        if (data?.monthlyGoal !== null && data?.monthlyGoal !== undefined) {
+          setGoal(data.monthlyGoal);
+        }
       } catch (error) {
         console.error("Error fetching monthly reads:", error);
       }
@@ -38,7 +42,12 @@ export default function TileMonthRead({ title, bgColor, textColor }) {
       <div
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
-        {count}
+        <p>
+          {count}
+          {goal !== null && (
+            <>/<span className="text-sm">{goal}</span></>
+          )}
+        </p>
       </div>
     </div>
   );
