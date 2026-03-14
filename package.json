@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.5",
+    "baseline-browser-mapping": "2.10.7",
     "prisma": "7.4.1",
     "tailwindcss": "4.1.5"
   },
