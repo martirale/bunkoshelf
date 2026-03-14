@@ -42,6 +42,7 @@
     "deleteEntry": "Delete",
     "date": "Date",
     "save": "Save",
-    "noEntries": "No readings recorded"
+    "noEntries": "No readings recorded",
+    "migrateEntry": "Recover reading"
   }
 }

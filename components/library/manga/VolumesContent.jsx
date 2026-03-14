@@ -18,6 +18,7 @@ export default function VolumesContent({
   isRead,
   user,
   readingEntries,
+  firstRead,
 }) {
   if (!volumeData) {
     return (
@@ -146,7 +147,7 @@ export default function VolumesContent({
               },
               {
                 label: intl.manga.readingHistory,
-                content: <ReadingHistory volumeId={volume.id} intl={intl} initialEntries={readingEntries} />,
+                content: <ReadingHistory volumeId={volume.id} intl={intl} initialEntries={readingEntries} firstRead={firstRead} />,
               },
             ]}
           />

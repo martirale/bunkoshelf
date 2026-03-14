@@ -62,35 +62,23 @@ export default async function VolumeMangaPage({ params }) {
     };
 
     let isFavorite = false;
-
-    if (user) {
-      const favEntry = await prisma.userToVolume.findUnique({
-        where: {
-          userId_volumeId: {
-            userId: user.id,
-            volumeId: volumeEntry.id,
-          },
-        },
-        select: { isFavorite: true },
-      });
-
-      isFavorite = favEntry?.isFavorite ?? false;
-    }
-
     let isRead = false;
+    let firstRead = null;
 
     if (user) {
-      const readEntry = await prisma.userToVolume.findUnique({
+      const userVolume = await prisma.userToVolume.findUnique({
         where: {
           userId_volumeId: {
             userId: user.id,
             volumeId: volumeEntry.id,
           },
         },
-        select: { isRead: true },
+        select: { isFavorite: true, isRead: true, firstRead: true },
       });
 
-      isRead = readEntry?.isRead ?? false;
+      isFavorite = userVolume?.isFavorite ?? false;
+      isRead = userVolume?.isRead ?? false;
+      firstRead = userVolume?.firstRead ?? null;
     }
 
     let readingEntries = [];
@@ -116,6 +104,7 @@ export default async function VolumeMangaPage({ params }) {
           isRead={isRead}
           user={user}
           readingEntries={readingEntries}
+          firstRead={firstRead}
         />
       </>
     );

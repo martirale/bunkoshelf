@@ -1,14 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpenCheckIcon, RepeatIcon, PlusIcon } from "lucide-react";
-import { getReadingHistory } from "@/actions/readingHistory";
+import {
+  BookOpenCheckIcon,
+  RepeatIcon,
+  PlusIcon,
+  ArchiveRestoreIcon,
+} from "lucide-react";
+import {
+  getReadingHistory,
+  createReadingEntry,
+} from "@/actions/readingHistory";
 import ReadingEntryForm from "./ReadingEntryForm";
 
-export default function ReadingHistory({ volumeId, intl, initialEntries }) {
+export default function ReadingHistory({
+  volumeId,
+  intl,
+  initialEntries,
+  firstRead,
+}) {
   const [entries, setEntries] = useState(initialEntries || []);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
+  const [isMigrating, setIsMigrating] = useState(false);
+
+  const canMigrate = firstRead && entries.length === 0;
 
   const isReread = (index) => index < entries.length - 1;
   const isLast = (index) => index === entries.length - 1;
@@ -28,9 +44,18 @@ export default function ReadingHistory({ volumeId, intl, initialEntries }) {
     setModalOpen(true);
   };
 
+  const handleMigrate = async () => {
+    setIsMigrating(true);
+    const result = await createReadingEntry({ volumeId, readAt: firstRead });
+    if (result.success) {
+      await refreshEntries();
+    }
+    setIsMigrating(false);
+  };
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3 mb-4">
         <button
           onClick={openAdd}
           className="flex items-center gap-1 text-sm uppercase text-lilah hover:text-sand transition-colors duration-300 cursor-pointer"
@@ -38,6 +63,17 @@ export default function ReadingHistory({ volumeId, intl, initialEntries }) {
           <PlusIcon size={18} />
           {intl.manga.addEntry}
         </button>
+
+        {canMigrate && (
+          <button
+            onClick={handleMigrate}
+            disabled={isMigrating}
+            className="flex items-center gap-1 text-sm uppercase text-lilah hover:text-sand transition-colors duration-300 cursor-pointer disabled:opacity-50"
+          >
+            <ArchiveRestoreIcon size={16} />
+            {intl.manga.migrateEntry}
+          </button>
+        )}
       </div>
 
       {entries.length === 0 ? (

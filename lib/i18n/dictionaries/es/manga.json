@@ -42,6 +42,7 @@
     "deleteEntry": "Eliminar",
     "date": "Fecha",
     "save": "Guardar",
-    "noEntries": "Sin lecturas registradas"
+    "noEntries": "Sin lecturas registradas",
+    "migrateEntry": "Recuperar lectura"
   }
 }
