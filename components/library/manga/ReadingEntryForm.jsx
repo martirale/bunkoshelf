@@ -15,7 +15,6 @@ export default function ReadingEntryForm({
   volumeId,
   entry,
   intl,
-  onSaved,
 }) {
   const [readAt, setReadAt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -41,8 +40,7 @@ export default function ReadingEntryForm({
     setIsLoading(false);
 
     if (result.success) {
-      onSaved();
-      onClose();
+      window.location.reload();
     }
   };
 
@@ -52,11 +50,9 @@ export default function ReadingEntryForm({
 
     setIsLoading(true);
     const result = await deleteReadingEntry({ entryId: entry.id });
-    setIsLoading(false);
 
     if (result.success) {
-      onSaved();
-      onClose();
+      window.location.reload();
     }
   };
 

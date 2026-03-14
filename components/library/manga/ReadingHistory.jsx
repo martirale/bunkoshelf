@@ -7,10 +7,7 @@ import {
   PlusIcon,
   ArchiveRestoreIcon,
 } from "lucide-react";
-import {
-  getReadingHistory,
-  createReadingEntry,
-} from "@/actions/readingHistory";
+import { createReadingEntry } from "@/actions/readingHistory";
 import ReadingEntryForm from "./ReadingEntryForm";
 
 export default function ReadingHistory({
@@ -29,11 +26,6 @@ export default function ReadingHistory({
   const isReread = (index) => index < entries.length - 1;
   const isLast = (index) => index === entries.length - 1;
 
-  const refreshEntries = async () => {
-    const { entries: fresh } = await getReadingHistory({ volumeId });
-    if (fresh) setEntries(fresh);
-  };
-
   const openAdd = () => {
     setEditingEntry(null);
     setModalOpen(true);
@@ -48,7 +40,7 @@ export default function ReadingHistory({
     setIsMigrating(true);
     const result = await createReadingEntry({ volumeId, readAt: firstRead });
     if (result.success) {
-      await refreshEntries();
+      window.location.reload();
     }
     setIsMigrating(false);
   };
@@ -124,7 +116,6 @@ export default function ReadingHistory({
         volumeId={volumeId}
         entry={editingEntry}
         intl={intl}
-        onSaved={refreshEntries}
       />
     </div>
   );

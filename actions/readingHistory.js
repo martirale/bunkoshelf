@@ -12,17 +12,44 @@ export async function syncFirstRead(userId, volumeId) {
 
   const hasEntries = !!oldest;
 
+  let progressUpdate = {};
+
+  if (hasEntries) {
+    const existing = await prisma.userToVolume.findUnique({
+      where: { userId_volumeId: { userId, volumeId } },
+      select: { totalPages: true },
+    });
+
+    let totalPages = existing?.totalPages;
+
+    if (!totalPages) {
+      const volume = await prisma.mangaVolume.findUnique({
+        where: { id: volumeId },
+        select: { metadataObj: { select: { pageCount: true } } },
+      });
+      totalPages = volume?.metadataObj?.pageCount;
+    }
+
+    if (totalPages) {
+      progressUpdate = { lastPage: totalPages - 1, totalPages };
+    }
+  } else {
+    progressUpdate = { lastPage: 0 };
+  }
+
   await prisma.userToVolume.upsert({
     where: { userId_volumeId: { userId, volumeId } },
     update: {
       firstRead: oldest?.readAt ?? null,
-      ...(hasEntries ? { isRead: true } : { isRead: false }),
+      isRead: hasEntries,
+      ...progressUpdate,
     },
     create: {
       userId,
       volumeId,
       firstRead: oldest?.readAt ?? null,
       isRead: hasEntries,
+      ...progressUpdate,
     },
   });
 }
