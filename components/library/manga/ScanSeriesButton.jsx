@@ -3,20 +3,24 @@
 import { useState } from "react";
 import clsx from "clsx";
 import { ScanSearchIcon, Loader2Icon } from "lucide-react";
-import { scanSeries } from "@/actions/scan-series";
+import { scanSeries, scanVolume } from "@/actions/scan-series";
 import { useToast } from "@/components/ToastProvider";
 
-export default function ScanSeriesButton({ seriesId, intl }) {
+export default function ScanSeriesButton({ seriesId, volumeId, intl }) {
   const t = intl;
 
   const [isScanning, setIsScanning] = useState(false);
   const { addToast } = useToast();
 
+  const isVolume = !!volumeId;
+
   const handleScan = async () => {
     setIsScanning(true);
 
     try {
-      const result = await scanSeries(seriesId);
+      const result = isVolume
+        ? await scanVolume(volumeId)
+        : await scanSeries(seriesId);
 
       if (result.error) {
         addToast({
@@ -39,7 +43,9 @@ export default function ScanSeriesButton({ seriesId, intl }) {
     } catch {
       addToast({
         title: "Error",
-        description: "Error al escanear la serie",
+        description: isVolume
+          ? "Error al escanear el volumen"
+          : "Error al escanear la serie",
         variant: "error",
       });
     } finally {
@@ -62,7 +68,11 @@ export default function ScanSeriesButton({ seriesId, intl }) {
       ) : (
         <ScanSearchIcon size={12} />
       )}
-      {isScanning ? t.manga.scanning : t.manga.scanSeries}
+      {isScanning
+        ? t.manga.scanning
+        : isVolume
+          ? t.manga.scanVolume
+          : t.manga.scanSeries}
     </button>
   );
 }

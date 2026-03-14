@@ -4,6 +4,7 @@ import ReadButtonsVolume from "./ReadButtonsVolume";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 import DeleteMangaItem from "./DeleteMangaItem";
+import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 
 export default function VolumesContent({
@@ -233,7 +234,10 @@ export default function VolumesContent({
           {user.isAdmin && (
             <>
               <Separator />
-              <DeleteMangaItem intl={intl} slug={volume.slug} />
+              <div className="flex flex-wrap items-center gap-4">
+                <ScanSeriesButton volumeId={volume.id} intl={intl} />
+                <DeleteMangaItem intl={intl} slug={volume.slug} />
+              </div>
             </>
           )}
         </div>

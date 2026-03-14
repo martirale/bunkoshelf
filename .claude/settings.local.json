@@ -5,7 +5,10 @@
       "Bash(test -f .npmrc)",
       "Bash(cat:*)",
       "Bash(git show:*)",
-      "Bash(grep -E \"\\\\.js$\")"
+      "Bash(grep -E \"\\\\.js$\")",
+      "Bash(find /Users/alejandromartir/DEV/bunkoshelf/app/[lang]/manga -type f -name \"*.js\" -o -name \"*.jsx\")",
+      "Bash(ls -la /Users/alejandromartir/DEV/bunkoshelf/app/[lang]/manga/[series]/)",
+      "Bash(ls -la /Users/alejandromartir/DEV/bunkoshelf/app/[lang]/manga/volume/[slug]/)"
     ]
   }
 }
