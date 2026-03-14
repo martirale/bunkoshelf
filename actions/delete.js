@@ -105,7 +105,10 @@ export async function deleteVolume({ slug }) {
       return { ok: false, error: "slug missing", status: 400 };
     }
 
-    const volume = await prisma.mangaVolume.findUnique({ where: { slug } });
+    const volume = await prisma.mangaVolume.findUnique({
+      where: { slug },
+      include: { series: { select: { path: true } } },
+    });
     if (!volume) {
       return { ok: false, error: "volume not found", status: 404 };
     }
@@ -136,6 +139,14 @@ export async function deleteVolume({ slug }) {
 
       const txtPath = `/${txtKey}`;
       await prisma.fileChecksum.deleteMany({ where: { filePath: txtPath } });
+
+      if (volume.coverImage && volume.series?.path) {
+        const seriesPath = volume.series.path.replace(/^\//, "");
+        const coverKey = `${seriesPath}/${volume.coverImage}`;
+        await r2Client.send(
+          new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: coverKey })
+        );
+      }
     } else {
       await fs.rm(fullPath, { force: true });
       const txtPath = path.join(
@@ -144,6 +155,11 @@ export async function deleteVolume({ slug }) {
       );
       await fs.rm(txtPath, { force: true });
       await prisma.fileChecksum.deleteMany({ where: { filePath: txtPath } });
+
+      if (volume.coverImage && volume.series?.path) {
+        const coverPath = path.join(volume.series.path, volume.coverImage);
+        await fs.rm(coverPath, { force: true });
+      }
     }
 
     if (volume.seriesId) {
