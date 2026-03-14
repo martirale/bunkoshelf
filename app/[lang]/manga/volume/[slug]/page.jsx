@@ -93,15 +93,31 @@ export default async function VolumeMangaPage({ params }) {
       isRead = readEntry?.isRead ?? false;
     }
 
+    let readingEntries = [];
+
+    if (user) {
+      readingEntries = await prisma.readingEntry.findMany({
+        where: {
+          userId: user.id,
+          volumeId: volumeEntry.id,
+        },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, readAt: true },
+      });
+    }
+
     return (
-      <VolumesContent
-        volumeData={normalizedVolume}
-        lang={lang}
-        intl={intl}
-        isFavorite={isFavorite}
-        isRead={isRead}
-        user={user}
-      />
+      <>
+        <VolumesContent
+          volumeData={normalizedVolume}
+          lang={lang}
+          intl={intl}
+          isFavorite={isFavorite}
+          isRead={isRead}
+          user={user}
+          readingEntries={readingEntries}
+        />
+      </>
     );
   } catch (error) {
     console.error("Error al obtener datos del volumen:", error);

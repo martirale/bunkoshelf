@@ -22,6 +22,7 @@ model User {
   ReadingChallenge ReadingChallenge[]
   DailyReadingLog  DailyReadingLog[]
   PushSubscription PushSubscription[]
+  ReadingEntry     ReadingEntry[]
 }
 
 model ReadingChallenge {
@@ -98,6 +99,20 @@ model DailyReadingLog {
   @@unique([userId, date])
 }
 
+model ReadingEntry {
+  id       String      @id @default(cuid())
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  volume   MangaVolume @relation(fields: [volumeId], references: [id], onDelete: Cascade)
+  volumeId String
+
+  readAt String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, volumeId])
+}
+
 // Manga Library
 model MangaSeries {
   id        String   @id @default(cuid())
@@ -134,7 +149,8 @@ model MangaVolume {
   genres VolumeToGenre[]
   tags   VolumeToTag[]
 
-  usersProgress UserToVolume[]
+  usersProgress  UserToVolume[]
+  readingEntries ReadingEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

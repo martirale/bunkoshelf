@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import MangaCard from "@/components/ui/MangaCard";
 import ReadButtonsSeries from "./ReadButtonsSeries";
+import MetadataPanel from "./MetadataPanel";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 import DeleteMangaItem from "./DeleteMangaItem";
@@ -103,100 +103,12 @@ export default function SeriesContent({
 
           <Separator />
 
-          {/* Author Info */}
-          {(() => {
-            const normalize = (field) => {
-              if (!field) return null;
-              if (Array.isArray(field)) {
-                if (field.length === 0) return null;
-                return field.join(", ");
-              }
-              if (typeof field === "string") {
-                const parts = field
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean);
-                if (parts.length === 0) return null;
-                return parts.join(", ");
-              }
-              return String(field);
-            };
-
-            const renderMetaField = (field, labelKey) => {
-              const value = normalize(field);
-              if (!value) return null;
-              return (
-                <div className="flex flex-row items-baseline max-w-3xl">
-                  <p className="text-sm uppercase w-1/3 md:w-1/5">
-                    {intl.manga[labelKey]}
-                  </p>
-                  <p className="w-2/3 md:w-4/5">{value}</p>
-                </div>
-              );
-            };
-
-            return (
-              <>
-                {renderMetaField(aggregatedMeta.writer, "author")}
-                {renderMetaField(aggregatedMeta.penciller, "penciller")}
-                {renderMetaField(aggregatedMeta.inker, "inker")}
-                {renderMetaField(aggregatedMeta.colorist, "colorist")}
-                {renderMetaField(aggregatedMeta.letterer, "letterer")}
-                {renderMetaField(aggregatedMeta.coverArtist, "coverArtist")}
-                {renderMetaField(aggregatedMeta.editor, "editor")}
-                {renderMetaField(aggregatedMeta.publisher, "publisher")}
-                {renderMetaField(aggregatedMeta.imprint, "imprint")}
-                {renderMetaField(aggregatedMeta.format, "format")}
-              </>
-            );
-          })()}
-
-          {/* Classification */}
-          {meta.genres.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl mt-8">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.genre}
-              </p>
-              <div className="w-2/3 md:w-4/5 flex flex-wrap gap-2">
-                {meta.genres.map((genre, idx) => (
-                  <Link
-                    key={idx}
-                    href={{
-                      pathname: `/${lang}/manga/series`,
-                      query: { genre: genre.name },
-                    }}
-                    scroll={false}
-                    className="text-xs uppercase bg-neutral-700 rounded-md px-2 py-1 hover:bg-lilah transition-all duration-300"
-                  >
-                    {genre.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {meta.tags.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl mt-2">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.tags}
-              </p>
-              <div className="w-2/3 md:w-4/5 flex flex-wrap gap-2">
-                {meta.tags.map((tag, idx) => (
-                  <Link
-                    key={idx}
-                    href={{
-                      pathname: `/${lang}/manga/series`,
-                      query: { tag: tag.name },
-                    }}
-                    scroll={false}
-                    className="text-xs uppercase bg-neutral-700 rounded-md px-2 py-1 hover:bg-lilah transition-all duration-300"
-                  >
-                    {tag.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+          <MetadataPanel
+            meta={{ ...aggregatedMeta, genres: meta.genres, tags: meta.tags }}
+            lang={lang}
+            intl={intl}
+            linkBase="series"
+          />
         </div>
       </section>
 

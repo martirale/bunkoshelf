@@ -32,6 +32,16 @@
     "cancelled": "Cancelado",
     "scanSeries": "Re-Escanear serie",
     "scanVolume": "Re-Escanear tomo",
-    "scanning": "Escaneando..."
+    "scanning": "Escaneando...",
+    "details": "Detalles",
+    "readingHistory": "Historial de lectura",
+    "firstRead": "Primera lectura",
+    "reread": "Relectura",
+    "addEntry": "Añadir lectura",
+    "editEntry": "Editar lectura",
+    "deleteEntry": "Eliminar",
+    "date": "Fecha",
+    "save": "Guardar",
+    "noEntries": "Sin lecturas registradas"
   }
 }

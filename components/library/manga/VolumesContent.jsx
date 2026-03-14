@@ -1,11 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import ReadButtonsVolume from "./ReadButtonsVolume";
+import ReadingHistory from "./ReadingHistory";
+import MetadataPanel from "./MetadataPanel";
 import MangaSummary from "./MangaSummary";
 import { ageRatingMap } from "@/lib/utils";
 import DeleteMangaItem from "./DeleteMangaItem";
 import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
+import Tabs from "@/components/ui/Tabs";
 
 export default function VolumesContent({
   volumeData,
@@ -14,6 +17,7 @@ export default function VolumesContent({
   isFavorite,
   isRead,
   user,
+  readingEntries,
 }) {
   if (!volumeData) {
     return (
@@ -35,10 +39,10 @@ export default function VolumesContent({
     ageMin >= 18
       ? "bg-red-500"
       : ageMin >= 16
-      ? "bg-[#f5a524] text-onix"
-      : ageMin !== null
-      ? "bg-neutral-700"
-      : "bg-neutral-700"
+        ? "bg-[#f5a524] text-onix"
+        : ageMin !== null
+          ? "bg-neutral-700"
+          : "bg-neutral-700"
   }`;
 
   const isWesternReading =
@@ -134,102 +138,18 @@ export default function VolumesContent({
             </>
           )}
 
-          <Separator />
-
-          {(() => {
-            const normalize = (field) => {
-              if (!field) return null;
-              if (Array.isArray(field)) {
-                if (field.length === 0) return null;
-                return field.join(", ");
-              }
-              if (typeof field === "string") {
-                const parts = field
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean);
-                if (parts.length === 0) return null;
-                return parts.join(", ");
-              }
-              return String(field);
-            };
-
-            const renderMetaField = (field, labelKey) => {
-              const value = normalize(field);
-              if (!value) return null;
-              return (
-                <div className="flex flex-row items-baseline max-w-3xl">
-                  <p className="text-sm uppercase w-1/3 md:w-1/5">
-                    {intl.manga[labelKey]}
-                  </p>
-                  <p className="w-2/3 md:w-4/5">{value}</p>
-                </div>
-              );
-            };
-
-            return (
-              <>
-                {renderMetaField(meta.writer, "author")}
-                {renderMetaField(meta.penciller, "penciller")}
-                {renderMetaField(meta.inker, "inker")}
-                {renderMetaField(meta.colorist, "colorist")}
-                {renderMetaField(meta.letterer, "letterer")}
-                {renderMetaField(meta.coverArtist, "coverArtist")}
-                {renderMetaField(meta.editor, "editor")}
-                {renderMetaField(meta.publisher, "publisher")}
-                {renderMetaField(meta.imprint, "imprint")}
-                {renderMetaField(meta.format, "format")}
-                {renderMetaField(meta.gtin, "gtin")}
-              </>
-            );
-          })()}
-
-          {/* Classification */}
-          {meta.genres.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl mt-8">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.genre}
-              </p>
-              <div className="w-2/3 md:w-4/5 flex flex-wrap gap-2">
-                {meta.genres.map((genre, idx) => (
-                  <Link
-                    key={idx}
-                    href={{
-                      pathname: `/${lang}/manga/volumes`,
-                      query: { genre: genre.name },
-                    }}
-                    scroll={false}
-                    className="text-xs uppercase bg-neutral-700 rounded-md px-2 py-1 hover:bg-lilah transition-all duration-300"
-                  >
-                    {genre.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {meta.tags.length > 0 && (
-            <div className="flex flex-row items-baseline max-w-3xl mt-2">
-              <p className="text-sm uppercase w-1/3 md:w-1/5">
-                {intl.manga.tags}
-              </p>
-              <div className="w-2/3 md:w-4/5 flex flex-wrap gap-2">
-                {meta.tags.map((tag, idx) => (
-                  <Link
-                    key={idx}
-                    href={{
-                      pathname: `/${lang}/manga/volumes`,
-                      query: { tag: tag.name },
-                    }}
-                    scroll={false}
-                    className="text-xs uppercase bg-neutral-700 rounded-md px-2 py-1 hover:bg-lilah transition-all duration-300"
-                  >
-                    {tag.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+          <Tabs
+            tabs={[
+              {
+                label: intl.manga.details,
+                content: <MetadataPanel meta={meta} lang={lang} intl={intl} />,
+              },
+              {
+                label: intl.manga.readingHistory,
+                content: <ReadingHistory volumeId={volume.id} intl={intl} initialEntries={readingEntries} />,
+              },
+            ]}
+          />
 
           {user.isAdmin && (
             <>

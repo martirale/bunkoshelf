@@ -32,6 +32,16 @@
     "cancelled": "Cancelled",
     "scanSeries": "Rescan Series",
     "scanVolume": "Rescan Volume",
-    "scanning": "Scanning..."
+    "scanning": "Scanning...",
+    "details": "Details",
+    "readingHistory": "Reading history",
+    "firstRead": "First read",
+    "reread": "Reread",
+    "addEntry": "Add reading",
+    "editEntry": "Edit reading",
+    "deleteEntry": "Delete",
+    "date": "Date",
+    "save": "Save",
+    "noEntries": "No readings recorded"
   }
 }

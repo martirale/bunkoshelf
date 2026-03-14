@@ -79,7 +79,15 @@ export async function syncReadingProgress({
       },
     });
 
-    if (!wasRead && isNowRead) {
+    if (isNowRead) {
+      await prisma.readingEntry.create({
+        data: {
+          userId,
+          volumeId,
+          readAt: date,
+        },
+      });
+
       const currentYear = new Date().getFullYear();
       await prisma.readingChallenge.upsert({
         where: {

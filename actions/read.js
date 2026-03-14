@@ -81,6 +81,16 @@ export async function updateReadState({
       },
     });
 
+    if (normalizedRead && typeof firstRead === "string") {
+      await prisma.readingEntry.create({
+        data: {
+          userId: user.id,
+          volumeId: normalizedVolumeId,
+          readAt: firstRead,
+        },
+      });
+    }
+
     return { success: true, status: 200 };
   } catch (e) {
     error = e;
