@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { StarIcon } from "lucide-react";
+import { StarIcon, MinusIcon, PlusIcon } from "lucide-react";
 import { updatePersonalRating } from "@/actions/rating";
 
-const STEPS = [
-  0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5,
-  10,
-];
+const MIN = 0.5;
+const MAX = 10;
 
 export default function VolumeRating({
   volumeId,
@@ -17,33 +15,51 @@ export default function VolumeRating({
   const [personalRating, setPersonalRating] = useState(initialPersonalRating);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [draft, setDraft] = useState(5);
   const panelRef = useRef(null);
 
   const hasPersonal = personalRating !== null && personalRating !== undefined;
   const displayRating = hasPersonal ? personalRating : communityRating;
   const hasRating = displayRating !== null && displayRating !== undefined;
 
+  const closeAndSave = async (value) => {
+    setIsOpen(false);
+    setIsLoading(true);
+    const result = await updatePersonalRating({
+      volumeId,
+      rating: value,
+    });
+    if (result.success) {
+      setPersonalRating(value);
+    }
+    setIsLoading(false);
+  };
+
   useEffect(() => {
     function handleClickOutside(e) {
       if (panelRef.current && !panelRef.current.contains(e.target)) {
-        setIsOpen(false);
+        closeAndSave(draft);
       }
     }
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+  }, [isOpen, draft]);
 
-  const handleSelect = async (value) => {
-    const newValue = value === personalRating ? null : value;
+  const openPanel = () => {
+    setDraft(hasPersonal ? personalRating : 5);
+    setIsOpen(true);
+  };
+
+  const handleRemove = async () => {
     setIsLoading(true);
     const result = await updatePersonalRating({
       volumeId,
-      rating: newValue,
+      rating: null,
     });
     if (result.success) {
-      setPersonalRating(newValue);
+      setPersonalRating(null);
     }
     setIsLoading(false);
     setIsOpen(false);
@@ -52,7 +68,7 @@ export default function VolumeRating({
   if (!hasRating && !isOpen) {
     return (
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={openPanel}
         className="mt-4 flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
       >
         <StarIcon size={14} />
@@ -64,7 +80,7 @@ export default function VolumeRating({
   return (
     <div className="relative" ref={panelRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => (isOpen ? closeAndSave(draft) : openPanel())}
         className={`flex items-center gap-1.5 text-4xl transition-colors cursor-pointer ${
           hasPersonal
             ? "text-amber-400 hover:text-amber-300"
@@ -72,32 +88,37 @@ export default function VolumeRating({
         }`}
       >
         <StarIcon size={20} className={hasPersonal ? "fill-amber-400" : ""} />
-        <span className="font-bold">{Number(displayRating).toFixed(1)}</span>
+        <span className="tabular-nums font-bold">
+          {Number(displayRating).toFixed(1)}
+        </span>
       </button>
 
       {isOpen && (
         <div className="absolute z-50 mt-2 bg-neutral-900 border border-neutral-700 rounded-lg p-3 shadow-lg">
-          <div className="grid grid-cols-5 gap-1.5 w-fit">
-            {STEPS.map((value) => (
-              <button
-                key={value}
-                disabled={isLoading}
-                onClick={() => handleSelect(value)}
-                className={`px-2 py-1 text-xs rounded tabular-nums transition-colors cursor-pointer ${
-                  value === personalRating
-                    ? "bg-amber-400 text-neutral-900 font-bold"
-                    : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-                }`}
-              >
-                {value.toFixed(1)}
-              </button>
-            ))}
+          <div className="flex items-center gap-3">
+            <button
+              disabled={isLoading || draft <= MIN}
+              onClick={() => setDraft((d) => Math.max(MIN, d - 0.5))}
+              className="p-1.5 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700 disabled:opacity-30 cursor-pointer transition-colors"
+            >
+              <MinusIcon size={16} />
+            </button>
+            <span className="text-2xl font-bold tabular-nums text-neutral-100 w-10 text-center">
+              {draft.toFixed(1)}
+            </span>
+            <button
+              disabled={isLoading || draft >= MAX}
+              onClick={() => setDraft((d) => Math.min(MAX, d + 0.5))}
+              className="p-1.5 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700 disabled:opacity-30 cursor-pointer transition-colors"
+            >
+              <PlusIcon size={16} />
+            </button>
           </div>
           {hasPersonal && (
             <button
               disabled={isLoading}
-              onClick={() => handleSelect(personalRating)}
-              className="mt-2 w-full text-xs text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
+              onClick={handleRemove}
+              className="mt-3 w-full text-xs text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
             >
               Quitar valoración
             </button>
