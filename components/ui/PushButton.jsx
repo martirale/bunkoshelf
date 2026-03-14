@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { BellIcon } from "lucide-react";
 import { subscribePush } from "@/actions/admin-push";
 
-const VAPID_PUBLIC_KEY =
-  "BI7ycHYWezzuK3ulcjtiz7OEk4P_ZFCB0i4IUa8m5Bfh1snde-6L-fUdnfPKu-s11Uc3AAv7qPuggLv0ppmnFPQ";
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -60,7 +59,7 @@ export default function PushButton({ lang, intl }) {
         });
         console.log("Suscripción obtenida:", subscription);
 
-        await fetch("https://push.amlab.site/send", {
+        await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVER_URL}/send`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

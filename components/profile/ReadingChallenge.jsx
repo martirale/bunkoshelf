@@ -40,7 +40,7 @@ export default function ReadingChallenge({ intl, lang }) {
                 await registration.pushManager.getSubscription();
 
               if (subscription) {
-                await fetch("https://push.amlab.site/send", {
+                await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVER_URL}/send`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -51,7 +51,7 @@ export default function ReadingChallenge({ intl, lang }) {
                       title: intl.push.ttChallengeDone,
                       body: intl.push.bodyChallengeDone.replace(
                         "{year}",
-                        currentYear
+                        currentYear,
                       ),
                       url: `/${lang}/profile`,
                     },

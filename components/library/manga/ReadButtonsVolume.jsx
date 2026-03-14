@@ -118,7 +118,7 @@ export default function ReadButtonsVolume({
     const localDate = new Date(
       now.getFullYear(),
       now.getMonth(),
-      now.getDate()
+      now.getDate(),
     );
     const year = localDate.getFullYear();
     const month = String(localDate.getMonth() + 1).padStart(2, "0");
@@ -170,7 +170,7 @@ export default function ReadButtonsVolume({
               await registration.pushManager.getSubscription();
 
             if (subscription) {
-              await fetch("https://push.amlab.site/send", {
+              await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVER_URL}/send`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -181,7 +181,7 @@ export default function ReadButtonsVolume({
                     title: intl.push.ttFirstRead,
                     body: intl.push.bodyFirstRead.replace(
                       "{title}",
-                      volumeTitle
+                      volumeTitle,
                     ),
                     url: `/${lang}/library`,
                   },
@@ -233,7 +233,7 @@ export default function ReadButtonsVolume({
                 isRead,
               "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl":
                 !isRead,
-            }
+            },
           )}
         >
           <CheckIcon size={20} />
@@ -250,7 +250,7 @@ export default function ReadButtonsVolume({
                 isFavorite,
               "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl":
                 !isFavorite,
-            }
+            },
           )}
         >
           {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}

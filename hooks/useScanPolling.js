@@ -61,18 +61,21 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
             try {
               const { subscriptions } = await getPushSubscriptions();
               if (subscriptions?.length) {
-                await fetch("https://push.amlab.site/send-many", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    subscriptions,
-                    payload: {
-                      title: intl.push.ttLibraryUpdate,
-                      body: intl.push.bodyLibraryUpdate,
-                      url: `/${lang}/manga`,
-                    },
-                  }),
-                });
+                await fetch(
+                  `${process.env.NEXT_PUBLIC_PUSH_SERVER_URL}/send-many`,
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      subscriptions,
+                      payload: {
+                        title: intl.push.ttLibraryUpdate,
+                        body: intl.push.bodyLibraryUpdate,
+                        url: `/${lang}/manga`,
+                      },
+                    }),
+                  },
+                );
               }
             } catch (e) {
               console.error("Error al enviar notificaciones push:", e);
