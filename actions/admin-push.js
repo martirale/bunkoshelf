@@ -47,6 +47,7 @@ export async function subscribePush(subscription) {
       create: {
         endpoint: subscription.endpoint,
         keys: subscription.keys,
+        userId: user.id,
       },
     });
 
