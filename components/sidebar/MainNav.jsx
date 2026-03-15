@@ -12,8 +12,9 @@ import {
 import { useEffect, useState, useRef } from "react";
 import { usePathname, useParams } from "next/navigation";
 import clsx from "clsx";
+import { requireRole, ROLES } from "@/lib/auth/roles";
 
-export default function MainNav({ intl }) {
+export default function MainNav({ intl, user }) {
   const params = useParams();
   const currentLang = params.lang || "es";
   const pathname = usePathname();
@@ -47,12 +48,14 @@ export default function MainNav({ intl }) {
       href: `/${currentLang}`,
       icon: House,
       isActive: pathname === `/${currentLang}`,
+      minRole: ROLES.MEMBER,
     },
     {
       label: intl.sidebar.library,
       icon: LibraryBigIcon,
       isDropdown: true,
       isActive: isLibraryActive,
+      minRole: ROLES.MEMBER,
       subItems: [
         {
           label: intl.sidebar.manga,
@@ -71,14 +74,16 @@ export default function MainNav({ intl }) {
       href: `/${currentLang}/favorites`,
       icon: HeartIcon,
       isActive: pathname.startsWith(`/${currentLang}/favorites`),
+      minRole: ROLES.MEMBER,
     },
     {
       label: intl.sidebar.profile,
       href: `/${currentLang}/profile`,
       icon: UserRoundIcon,
       isActive: pathname.startsWith(`/${currentLang}/profile`),
+      minRole: ROLES.MEMBER,
     },
-  ];
+  ].filter((link) => requireRole(user, link.minRole));
 
   return (
     <nav className="mt-8 space-y-2">

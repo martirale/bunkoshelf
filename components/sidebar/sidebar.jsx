@@ -27,7 +27,7 @@ export default async function Sidebar({ lang }) {
 
         {user && (
           <div className="flex-1">
-            <MainNav intl={intl} />
+            <MainNav intl={intl} user={user} />
 
             <div className="mt-16">
               <SearchInput intl={intl} />
