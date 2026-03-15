@@ -12,6 +12,7 @@ export default function CreateUserForm({ intl }) {
   const [lastname, setLastname] = useState("");
   const [birthYear, setBirthYear] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState("MEMBER");
   const [error, setError] = useState(null);
 
   const { addToast } = useToast();
@@ -26,6 +27,7 @@ export default function CreateUserForm({ intl }) {
       lastname,
       birthYear: birthYear ? parseInt(birthYear) : null,
       isAdmin,
+      role,
     };
 
     const result = await createUser(userData);
@@ -42,6 +44,7 @@ export default function CreateUserForm({ intl }) {
       setLastname("");
       setBirthYear("");
       setIsAdmin(false);
+      setRole("MEMBER");
       setError(null);
       setTimeout(() => {
         window.location.reload();
@@ -110,6 +113,19 @@ export default function CreateUserForm({ intl }) {
             id="isAdmin"
           />
           <label htmlFor="isAdmin">{intl.settings.isAdmin}</label>
+        </div>
+        <div className="flex flex-col space-y-1">
+          <label htmlFor="role">{intl.settings.role}</label>
+          <select
+            id="role"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="bg-pearl border border-onix rounded-lg px-5 py-3"
+          >
+            <option value="ADMIN">{intl.settings.roleAdmin}</option>
+            <option value="MEMBER">{intl.settings.roleMember}</option>
+            <option value="GUEST">{intl.settings.roleGuest}</option>
+          </select>
         </div>
         <button
           type="submit"

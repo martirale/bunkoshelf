@@ -30,6 +30,7 @@ export default async function SettingsPage({ params }) {
       id: true,
       username: true,
       isAdmin: true,
+      role: true,
       name: true,
       lastname: true,
       birthYear: true,

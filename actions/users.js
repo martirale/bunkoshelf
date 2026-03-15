@@ -12,6 +12,7 @@ export async function createUser({
   lastname,
   birthYear,
   isAdmin,
+  role,
 }) {
   let _err;
   try {
@@ -47,6 +48,7 @@ export async function createUser({
         lastname: lastname || null,
         birthYear: birthYear || null,
         isAdmin: !!isAdmin,
+        role: role || "MEMBER",
       },
     });
 
@@ -60,6 +62,7 @@ export async function createUser({
         userId: newUser.id,
         username: newUser.username,
         isAdmin: newUser.isAdmin,
+        role: newUser.role,
       },
     });
 
@@ -130,6 +133,7 @@ export async function adminUpdateUser({
   lastname,
   birthYear,
   isAdmin,
+  role,
 }) {
   try {
     const user = await verifySession();
@@ -152,6 +156,7 @@ export async function adminUpdateUser({
       lastname: lastname || null,
       birthYear: birthYear || null,
       isAdmin: !!isAdmin,
+      role: role || "MEMBER",
     };
 
     if (password && password.length > 0) {
@@ -175,6 +180,7 @@ export async function adminUpdateUser({
         username: username || "unknown",
         passwordUpdated: !!password,
         isAdmin: !!isAdmin,
+        role: role || "MEMBER",
       },
     });
 
@@ -208,7 +214,7 @@ export async function deleteUser({ id }) {
 
     const userToDelete = await prisma.user.findUnique({
       where: { id },
-      select: { username: true, name: true, lastname: true, isAdmin: true },
+      select: { username: true, name: true, lastname: true, isAdmin: true, role: true },
     });
 
     if (!userToDelete) {
@@ -229,6 +235,7 @@ export async function deleteUser({ id }) {
         userId: id,
         username: userToDelete.username || "unknown",
         isAdmin: userToDelete.isAdmin,
+        role: userToDelete.role,
         deletedBy: user.id,
       },
     });

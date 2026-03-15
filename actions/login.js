@@ -22,6 +22,7 @@ export async function login({ username, password, lang = "es" }) {
         id: user.id,
         username: user.username,
         isAdmin: user.isAdmin,
+        role: user.role,
       },
       process.env.JWT_SECRET,
       {

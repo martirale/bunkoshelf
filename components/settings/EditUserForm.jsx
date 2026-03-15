@@ -12,6 +12,7 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
   const [lastname, setLastname] = useState("");
   const [birthYear, setBirthYear] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState("MEMBER");
   const [error] = useState(null);
 
   const { addToast } = useToast();
@@ -26,6 +27,7 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
       setLastname(user.lastname || "");
       setBirthYear(user.birthYear?.toString() || "");
       setIsAdmin(user.isAdmin || false);
+      setRole(user.role || "MEMBER");
     }
   }, [user]);
 
@@ -40,6 +42,7 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
       lastname,
       birthYear: birthYear ? parseInt(birthYear) : null,
       isAdmin,
+      role,
     };
 
     const result = await adminUpdateUser(userData);
@@ -134,15 +137,30 @@ export default function EditUserForm({ user, intl, onSuccess, currentUserId }) {
           className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
         />
         {!isSelf && (
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={isAdmin}
-              onChange={() => setIsAdmin(!isAdmin)}
-              id="isAdmin"
-            />
-            <label htmlFor="isAdmin">{intl.settings.isAdmin}</label>
-          </div>
+          <>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={isAdmin}
+                onChange={() => setIsAdmin(!isAdmin)}
+                id="isAdmin"
+              />
+              <label htmlFor="isAdmin">{intl.settings.isAdmin}</label>
+            </div>
+            <div className="flex flex-col space-y-1">
+              <label htmlFor="role">{intl.settings.role}</label>
+              <select
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="bg-pearl border border-onix rounded-lg px-5 py-3"
+              >
+                <option value="ADMIN">{intl.settings.roleAdmin}</option>
+                <option value="MEMBER">{intl.settings.roleMember}</option>
+                <option value="GUEST">{intl.settings.roleGuest}</option>
+              </select>
+            </div>
+          </>
         )}
         <button
           type="submit"

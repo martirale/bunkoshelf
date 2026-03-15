@@ -38,12 +38,19 @@ export default function UsersTable({ users, intl, currentUserId }) {
               return (
                 <div key={user.id} className="grid grid-cols-5">
                   <div className="p-4">{user.username}</div>
-                  <div className="p-4 text-center">
-                    <span className="bg-neutral-700 px-2 py-1 rounded-full text-sm uppercase">
-                      {user.isAdmin
-                        ? intl.profile.usrAdmin
-                        : intl.profile.usrNormal}
+                  <div className="p-4 text-center flex items-center justify-center gap-1">
+                    <span className="bg-neutral-700 px-2 py-1 rounded-full text-xs uppercase">
+                      {user.role === "ADMIN"
+                        ? intl.settings.roleAdmin
+                        : user.role === "GUEST"
+                          ? intl.settings.roleGuest
+                          : intl.settings.roleMember}
                     </span>
+                    {user.isAdmin && (
+                      <span className="bg-pearl text-onix px-2 py-1 rounded-full text-xs uppercase">
+                        {intl.profile.usrAdmin}
+                      </span>
+                    )}
                   </div>
                   <div className="p-4 text-center">{user.name || "—"}</div>
                   <div className="p-4 text-center">{user.lastname || "—"}</div>

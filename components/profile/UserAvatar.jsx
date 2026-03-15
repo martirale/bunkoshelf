@@ -13,6 +13,7 @@ export default async function UserAvatar({ intl }) {
       name: true,
       lastname: true,
       isAdmin: true,
+      role: true,
       birthYear: true,
     },
   });
@@ -46,16 +47,18 @@ export default async function UserAvatar({ intl }) {
         </h3>
 
         <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
-          <span
-            className={clsx(
-              "inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase",
-              user.isAdmin ? "bg-pearl text-onix" : "bg-neutral-700"
-            )}
-          >
-            {user.isAdmin
-              ? `${intl.profile.usrAdmin}`
-              : `${intl.profile.usrNormal}`}
+          <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase bg-neutral-700">
+            {user.role === "ADMIN"
+              ? intl.settings.roleAdmin
+              : user.role === "GUEST"
+                ? intl.settings.roleGuest
+                : intl.settings.roleMember}
           </span>
+          {user.isAdmin && (
+            <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase bg-pearl text-onix">
+              {intl.profile.usrAdmin}
+            </span>
+          )}
 
           {age !== null && (
             <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase bg-neutral-700">

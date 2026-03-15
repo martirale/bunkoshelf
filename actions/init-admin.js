@@ -17,13 +17,14 @@ export async function initAdmin() {
           username: "bunko",
           password: hashedPassword,
           isAdmin: true,
+          role: "ADMIN",
           name: "Bunko",
           lastname: "Shelf",
         },
       });
 
       const message = "✅ Usuario admin creado: bunko / admin123";
-      console.error(message);
+      console.info(message);
 
       return {
         created: true,
@@ -32,7 +33,7 @@ export async function initAdmin() {
     }
 
     const message = "ℹ️ Usuario admin ya existe";
-    console.error(message);
+    console.info(message);
 
     return {
       created: false,

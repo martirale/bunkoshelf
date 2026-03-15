@@ -31,7 +31,8 @@ export async function authProxy(request) {
     }
 
     // If you try to access /settings without being admin
-    if (pathname.startsWith(`/${lang}/settings`) && !payload.isAdmin) {
+    const isAdminUser = payload.isAdmin === true || payload.role === "ADMIN";
+    if (pathname.startsWith(`/${lang}/settings`) && !isAdminUser) {
       return NextResponse.redirect(new URL(`/${lang}/`, request.url));
     }
 
