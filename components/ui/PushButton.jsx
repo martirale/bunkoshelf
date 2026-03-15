@@ -74,7 +74,7 @@ export default function PushButton({ lang, intl }) {
           }),
         });
 
-        await subscribePush(subscription);
+        await subscribePush(subscription.toJSON());
       } catch (err) {
         console.error("Error al subscribir:", err);
       }
