@@ -3,31 +3,7 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-export async function getPushSubscriptions() {
-  const user = await verifySession();
-  if (!user || !user.isAdmin) {
-    return { error: "Unauthorized", status: 401 };
-  }
-
-  let error = null;
-  try {
-    const subscriptions = await prisma.pushSubscription.findMany({
-      select: {
-        endpoint: true,
-        keys: true,
-      },
-    });
-
-    return { subscriptions };
-  } catch (err) {
-    error = err;
-  } finally {
-    if (error) {
-      console.error("Error getting push subscriptions:", error);
-      return { error: "Error al obtener suscripciones", status: 500 };
-    }
-  }
-}
+const PUSH_SERVER_URL = process.env.NEXT_PUBLIC_PUSH_SERVER_URL;
 
 export async function subscribePush(subscription) {
   const user = await verifySession();
@@ -58,6 +34,110 @@ export async function subscribePush(subscription) {
     if (error) {
       console.error("Error subscribing to push:", error);
       return { error: "Error al suscribir", status: 500 };
+    }
+  }
+}
+
+export async function sendPush(payload) {
+  const user = await verifySession();
+  if (!user) {
+    return { error: "Unauthorized", status: 401 };
+  }
+
+  let error = null;
+  try {
+    const subscriptions = await prisma.pushSubscription.findMany({
+      where: { userId: user.id },
+      select: { endpoint: true, keys: true },
+    });
+
+    if (!subscriptions.length) {
+      return { success: true, sent: 0 };
+    }
+
+    const res = await fetch(`${PUSH_SERVER_URL}/send-many`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subscriptions, payload }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Push server responded with ${res.status}`);
+    }
+
+    return { success: true, sent: subscriptions.length };
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error("Error sending push:", error);
+      return { error: "Error al enviar notificación", status: 500 };
+    }
+  }
+}
+
+export async function sendPushToSubscription(subscription, payload) {
+  const user = await verifySession();
+  if (!user) {
+    return { error: "Unauthorized", status: 401 };
+  }
+
+  let error = null;
+  try {
+    const res = await fetch(`${PUSH_SERVER_URL}/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subscription, payload }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Push server responded with ${res.status}`);
+    }
+
+    return { success: true };
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error("Error sending push:", error);
+      return { error: "Error al enviar notificación", status: 500 };
+    }
+  }
+}
+
+export async function sendPushBroadcast(payload) {
+  const user = await verifySession();
+  if (!user || !user.isAdmin) {
+    return { error: "Unauthorized", status: 401 };
+  }
+
+  let error = null;
+  try {
+    const subscriptions = await prisma.pushSubscription.findMany({
+      select: { endpoint: true, keys: true },
+    });
+
+    if (!subscriptions.length) {
+      return { success: true, sent: 0 };
+    }
+
+    const res = await fetch(`${PUSH_SERVER_URL}/send-many`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subscriptions, payload }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Push server responded with ${res.status}`);
+    }
+
+    return { success: true, sent: subscriptions.length };
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error("Error sending broadcast push:", error);
+      return { error: "Error al enviar notificaciones", status: 500 };
     }
   }
 }

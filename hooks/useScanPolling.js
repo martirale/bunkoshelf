@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { startScan, getScanStatus } from "@/actions/admin-scan";
-import { getPushSubscriptions } from "@/actions/admin-push";
+import { sendPushBroadcast } from "@/actions/admin-push";
 
 export default function useScanPolling({ lang, intl, addToast, updateToast }) {
   const pollingRef = useRef(null);
@@ -59,24 +59,11 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
             setLoading(false);
 
             try {
-              const { subscriptions } = await getPushSubscriptions();
-              if (subscriptions?.length) {
-                await fetch(
-                  `${process.env.NEXT_PUBLIC_PUSH_SERVER_URL}/send-many`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      subscriptions,
-                      payload: {
-                        title: intl.push.ttLibraryUpdate,
-                        body: intl.push.bodyLibraryUpdate,
-                        url: `/${lang}/manga`,
-                      },
-                    }),
-                  },
-                );
-              }
+              await sendPushBroadcast({
+                title: intl.push.ttLibraryUpdate,
+                body: intl.push.bodyLibraryUpdate,
+                url: `/${lang}/manga`,
+              });
             } catch (e) {
               console.error("Error al enviar notificaciones push:", e);
             }

@@ -13,6 +13,7 @@ import MangaReader from "@/components/reader/MangaReader";
 import { toggleVolumeFavorite } from "@/actions/favorites";
 import { updateReadState } from "@/actions/read";
 import { syncReadingProgress } from "@/actions/progress";
+import { sendPush } from "@/actions/admin-push";
 
 export default function ReadButtonsVolume({
   lang,
@@ -157,36 +158,13 @@ export default function ReadButtonsVolume({
           setIsRead(true);
         }
 
-        if (
-          isFinished &&
-          data.success &&
-          "serviceWorker" in navigator &&
-          "PushManager" in window
-        ) {
+        if (isFinished && data.success) {
           try {
-            const registration = await navigator.serviceWorker.ready;
-            const subscription =
-              await registration.pushManager.getSubscription();
-
-            if (subscription) {
-              await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVER_URL}/send`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  subscription,
-                  payload: {
-                    title: intl.push.ttFirstRead,
-                    body: intl.push.bodyFirstRead.replace(
-                      "{title}",
-                      volumeTitle,
-                    ),
-                    url: `/${lang}/library`,
-                  },
-                }),
-              });
-            }
+            await sendPush({
+              title: intl.push.ttFirstRead,
+              body: intl.push.bodyFirstRead.replace("{title}", volumeTitle),
+              url: `/${lang}/library`,
+            });
           } catch (pushErr) {
             console.error("Error al enviar notificación push:", pushErr);
           }

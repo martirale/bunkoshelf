@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { PlusIcon, MinusIcon } from "lucide-react";
 import { updateChallenge, getChallenge } from "@/actions/challenge";
+import { sendPush } from "@/actions/admin-push";
 
 export default function ReadingChallenge({ intl, lang }) {
   const [goal, setGoal] = useState(0);
@@ -27,41 +28,19 @@ export default function ReadingChallenge({ intl, lang }) {
           setGoal(userGoal);
           setProgress(completed);
 
-          if (
-            completed >= userGoal &&
-            userGoal > 0 &&
-            !notified &&
-            "serviceWorker" in navigator &&
-            "PushManager" in window
-          ) {
+          if (completed >= userGoal && userGoal > 0 && !notified) {
             try {
-              const registration = await navigator.serviceWorker.ready;
-              const subscription =
-                await registration.pushManager.getSubscription();
+              await sendPush({
+                title: intl.push.ttChallengeDone,
+                body: intl.push.bodyChallengeDone.replace(
+                  "{year}",
+                  currentYear,
+                ),
+                url: `/${lang}/profile`,
+              });
 
-              if (subscription) {
-                await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVER_URL}/send`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    subscription,
-                    payload: {
-                      title: intl.push.ttChallengeDone,
-                      body: intl.push.bodyChallengeDone.replace(
-                        "{year}",
-                        currentYear,
-                      ),
-                      url: `/${lang}/profile`,
-                    },
-                  }),
-                });
-
-                await updateChallenge({ year: currentYear, notified: true });
-
-                notifiedRef.current = true;
-              }
+              await updateChallenge({ year: currentYear, notified: true });
+              notifiedRef.current = true;
             } catch (pushErr) {
               console.error("Error al enviar notificación push:", pushErr);
             }

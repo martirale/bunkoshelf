@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BellIcon } from "lucide-react";
-import { subscribePush } from "@/actions/admin-push";
+import { subscribePush, sendPushToSubscription } from "@/actions/admin-push";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -59,22 +59,14 @@ export default function PushButton({ lang, intl }) {
         });
         console.log("Suscripción obtenida:", subscription);
 
-        await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVER_URL}/send`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            subscription,
-            payload: {
-              title: intl.push.ttSubscription,
-              body: intl.push.bodySubscription,
-              url: `/${lang}/`,
-            },
-          }),
-        });
+        const sub = subscription.toJSON();
+        await subscribePush(sub);
 
-        await subscribePush(subscription.toJSON());
+        await sendPushToSubscription(sub, {
+          title: intl.push.ttSubscription,
+          body: intl.push.bodySubscription,
+          url: `/${lang}/`,
+        });
       } catch (err) {
         console.error("Error al subscribir:", err);
       }
