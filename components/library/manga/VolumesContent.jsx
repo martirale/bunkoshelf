@@ -57,7 +57,7 @@ export default function VolumesContent({
         {/* Cover Image */}
         <div className="w-full md:w-5/12 2xl:w-1/3">
           {volume.coverImage && (
-            <div className="mb-8 md:mb-0 md:mr-4 px-16 md:px-0">
+            <div className="mb-8 md:mb-0 md:mr-4 px-16 md:px-0 md:sticky md:top-4 md:self-start">
               <Image
                 src={volume.coverImage || "/placeholder.svg?=v1"}
                 alt={`Cover for ${volume.title || volume.filename}`}
