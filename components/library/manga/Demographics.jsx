@@ -17,7 +17,7 @@ export default function DemographicsTiles({ intl, lang }) {
           className="h-[110px] rounded-lg bg-pearl p-4 2xl:px-4 2xl:pb-5 flex flex-col justify-between group"
         >
           <span className="text-onix text-sm uppercase">
-            {intl.libraries.volumes}
+            {intl.libraries.manga}
           </span>
           <p className="text-onix 2xl:text-2xl font-boldonse leading-7.5 mt-2 flex items-center group-hover:text-lilah transition-all duration-300">
             {demo.name}
