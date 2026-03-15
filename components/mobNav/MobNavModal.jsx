@@ -74,7 +74,7 @@ export default function MobNavModal({
         {/* Nav Content */}
         <div>
           {!user && <SecondNav intl={intl} />}
-          {user && <MainNav intl={intl} />}
+          {user && <MainNav intl={intl} user={user} />}
         </div>
 
         {/* Footer Nav */}
