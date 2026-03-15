@@ -20,15 +20,20 @@ export default function UsersTable({ users, intl, currentUserId }) {
 
   return (
     <>
-      <div className="bg-blackamber p-4 rounded-lg relative">
+      <div className="bg-blackamber p-4 rounded-lg">
         <div className="overflow-x-auto">
-          <div className="min-w-[800px] xl:min-w-full h-72 overflow-y-auto pr-24">
-            <div className="grid grid-cols-5 font-bold uppercase bg-onix sticky top-0 z-10 rounded-l-md">
-              <div className="p-4 text-left">{intl.settings.username}</div>
-              <div className="p-4 text-center">{intl.settings.type}</div>
-              <div className="p-4 text-center">{intl.settings.name}</div>
-              <div className="p-4 text-center">{intl.settings.lastname}</div>
-              <div className="p-4 text-center">{intl.settings.age}</div>
+          <div className="min-w-[800px] xl:min-w-full h-72 overflow-y-auto">
+            <div className="flex sticky top-0 z-10">
+              <div className="grid grid-cols-5 flex-1 font-bold uppercase bg-onix rounded-l-md">
+                <div className="p-4 text-left">{intl.settings.username}</div>
+                <div className="p-4 text-center">{intl.settings.type}</div>
+                <div className="p-4 text-center">{intl.settings.name}</div>
+                <div className="p-4 text-center">{intl.settings.lastname}</div>
+                <div className="p-4 text-center">{intl.settings.age}</div>
+              </div>
+              <div className="w-24 shrink-0 sticky right-0 bg-onix rounded-r-md p-4 text-center uppercase font-bold">
+                {intl.settings.edit}
+              </div>
             </div>
 
             {userList.map((user) => {
@@ -36,52 +41,42 @@ export default function UsersTable({ users, intl, currentUserId }) {
               const age = user.birthYear ? currentYear - user.birthYear : "—";
 
               return (
-                <div key={user.id} className="grid grid-cols-5">
-                  <div className="p-4">{user.username}</div>
-                  <div className="p-4 text-center">
-                    <div className="flex gap-1 items-center mt-2">
-                      <span className="bg-neutral-700 px-2 rounded-full text-xs uppercase">
-                        {user.role === "ADMIN"
-                          ? intl.settings.roleAdmin
-                          : user.role === "GUEST"
-                            ? intl.settings.roleGuest
-                            : intl.settings.roleMember}
-                      </span>
-                      {user.isAdmin && (
-                        <span className="bg-pearl text-onix px-2 rounded-full text-xs uppercase">
-                          {intl.profile.usrAdmin}
+                <div key={user.id} className="flex">
+                  <div className="grid grid-cols-5 flex-1">
+                    <div className="p-4">{user.username}</div>
+                    <div className="p-4 text-center">
+                      <div className="flex gap-1 items-center mt-2">
+                        <span className="bg-neutral-700 px-2 rounded-full text-xs uppercase">
+                          {user.role === "ADMIN"
+                            ? intl.settings.roleAdmin
+                            : user.role === "GUEST"
+                              ? intl.settings.roleGuest
+                              : intl.settings.roleMember}
                         </span>
-                      )}
+                        {user.isAdmin && (
+                          <span className="bg-pearl text-onix px-2 rounded-full text-xs uppercase">
+                            {intl.profile.usrAdmin}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    <div className="p-4 text-center">{user.name || "—"}</div>
+                    <div className="p-4 text-center">
+                      {user.lastname || "—"}
+                    </div>
+                    <div className="p-4 text-center">{age}</div>
                   </div>
-                  <div className="p-4 text-center">{user.name || "—"}</div>
-                  <div className="p-4 text-center">{user.lastname || "—"}</div>
-                  <div className="p-4 text-center">{age}</div>
+                  <div className="w-24 shrink-0 sticky right-0 bg-blackamber p-4 flex items-center justify-center">
+                    <UserRoundPenIcon
+                      onClick={() => handleEdit(user)}
+                      size={20}
+                      className="cursor-pointer hover:text-lilah transition-colors duration-300"
+                    />
+                  </div>
                 </div>
               );
             })}
           </div>
-        </div>
-
-        <div className="bg-blackamber absolute top-0 right-0 h-full w-24 pointer-events-none rounded-r-lg">
-          <div className="p-4 text-center uppercase font-bold bg-onix sticky mt-4 mr-4 -ml-4 z-20 pointer-events-auto rounded-r-md">
-            {intl.settings.edit}
-          </div>
-
-          {userList.map((user) => (
-            <div
-              key={`edit-${user.id}`}
-              className="p-4 -ml-4 z-10 pointer-events-auto"
-            >
-              <div className="flex justify-center">
-                <UserRoundPenIcon
-                  onClick={() => handleEdit(user)}
-                  size={20}
-                  className="cursor-pointer hover:text-lilah transition-colors duration-300 mt-1"
-                />
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
