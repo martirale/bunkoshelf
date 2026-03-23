@@ -1,2 +1,4 @@
 prisma/data/bunkoshelf.db
 public/covers/*
+.env
+.env.*

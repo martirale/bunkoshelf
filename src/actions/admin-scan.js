@@ -18,7 +18,7 @@ export async function startScan() {
       .join("; ");
 
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/start`,
+      `${process.env.SITE_URL}/api/admin/scan-manga/start`,
       {
         method: "POST",
         headers: {
@@ -57,7 +57,7 @@ export async function getScanStatus() {
       .join("; ");
 
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/status`,
+      `${process.env.SITE_URL}/api/admin/scan-manga/status`,
       {
         headers: {
           Cookie: cookieHeader,
@@ -99,7 +99,7 @@ export async function reindexLibrary({ forceAll = true }) {
       .join("; ");
 
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/index-library`,
+      `${process.env.SITE_URL}/api/admin/scan-manga/index-library`,
       {
         method: "POST",
         headers: {
@@ -142,7 +142,7 @@ export async function regenerateCovers({ forceAll = true }) {
       .join("; ");
 
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/extract-cover`,
+      `${process.env.SITE_URL}/api/admin/scan-manga/extract-cover`,
       {
         method: "POST",
         headers: {
@@ -188,7 +188,7 @@ export async function reprocessMetadata({ forceAll = true }) {
       .join("; ");
 
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/admin/scan-manga/extract-meta`,
+      `${process.env.SITE_URL}/api/admin/scan-manga/extract-meta`,
       {
         method: "POST",
         headers: {

@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { BellIcon } from "lucide-react";
 import { subscribePush, sendPushToSubscription } from "@/actions/admin-push";
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding)
@@ -19,7 +17,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-export default function PushButton({ lang, intl }) {
+export default function PushButton({ lang, intl, vapidPublicKey }) {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState("default");
 
@@ -55,7 +53,7 @@ export default function PushButton({ lang, intl }) {
         const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         });
         console.log("Suscripción obtenida:", subscription);
 

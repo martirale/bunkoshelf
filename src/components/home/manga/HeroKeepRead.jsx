@@ -9,7 +9,7 @@ import ReloadButton from "@/components/ui/ReloadButton";
 import PushButton from "@/components/ui/PushButton";
 import { getMangaVolumes } from "@/actions/library";
 
-export default function HeroKeepRead({ lang, intl }) {
+export default function HeroKeepRead({ lang, intl, vapidPublicKey }) {
   const [entry, setEntry] = useState(null);
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function HeroKeepRead({ lang, intl }) {
         </Link>
 
         <div className="flex md:hidden gap-2">
-          <PushButton lang={lang} intl={intl} />
+          <PushButton lang={lang} intl={intl} vapidPublicKey={vapidPublicKey} />
           <ReloadButton />
         </div>
       </div>

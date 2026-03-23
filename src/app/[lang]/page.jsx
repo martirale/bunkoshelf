@@ -24,13 +24,13 @@ export default async function HomePage({ params }) {
           )}
         >
           <div className="w-full md:w-1/2">
-            <HeroKeepRead lang={lang} intl={intl} />
+            <HeroKeepRead lang={lang} intl={intl} vapidPublicKey={process.env.VAPID_PUBLIC_KEY} />
           </div>
 
           <div className="w-full md:w-1/2 flex flex-col justify-between">
             <div className="group">
               <div className="hidden md:flex justify-end gap-2">
-                <PushButton lang={lang} intl={intl} />
+                <PushButton lang={lang} intl={intl} vapidPublicKey={process.env.VAPID_PUBLIC_KEY} />
                 <ReloadButton />
               </div>
 
