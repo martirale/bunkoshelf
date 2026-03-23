@@ -25,6 +25,8 @@ export default function ReadButtonsVolume({
   initFavorite,
   initRead,
   mangaStyle,
+  communityRating,
+  initialPersonalRating,
 }) {
   const [isFavorite, setIsFavorite] = useState(initFavorite);
   const [isRead, setIsRead] = useState(initRead);
@@ -245,6 +247,9 @@ export default function ReadButtonsVolume({
         mangaTitle={volumeTitle}
         isFavorite={isFavorite}
         onToggleFavorite={toggleFavorite}
+        volumeId={volumeId}
+        communityRating={communityRating}
+        initialPersonalRating={initialPersonalRating}
       />
     </>
   );

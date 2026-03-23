@@ -97,6 +97,8 @@ export default function VolumesContent({
             initRead={isRead}
             slug={volume.slug}
             mangaStyle={meta.mangaStyle}
+            communityRating={meta.communityRating}
+            initialPersonalRating={personalRating}
           />
 
           {/* Rating */}

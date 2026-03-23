@@ -9,6 +9,7 @@ import {
   HeartOffIcon,
 } from "lucide-react";
 import Loader from "@/components/ui/Loader";
+import VolumeRating from "@/components/library/manga/VolumeRating";
 import { getMangaImages, getReadingProgress } from "@/actions/reader";
 
 export default function MangaReader({
@@ -22,6 +23,9 @@ export default function MangaReader({
   mangaTitle,
   isFavorite = false,
   onToggleFavorite,
+  volumeId,
+  communityRating,
+  initialPersonalRating,
 }) {
   const modalRef = useRef(null);
   const wakeLockRef = useRef(null);
@@ -212,6 +216,11 @@ export default function MangaReader({
             />
           )}
           {mangaTitle && <h2 className="text-xl">{mangaTitle}</h2>}
+          <VolumeRating
+            volumeId={volumeId}
+            communityRating={communityRating}
+            initialPersonalRating={initialPersonalRating}
+          />
           <div className="flex flex-col md:flex-row gap-4 mt-2 w-full md:w-auto">
             {onToggleFavorite && (
               <button
