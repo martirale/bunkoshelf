@@ -1,8 +1,22 @@
 import path from "path";
 import crypto from "crypto";
 import prisma from "@/lib/prisma";
+import type { ComicMetadata } from "@/lib/types";
 
-export function toSlug(str) {
+interface IndexUploadParams {
+  fileName: string;
+  fullPath: string;
+  dirName: string;
+  seriesPath: string;
+  isOneshot: boolean;
+  coverFilename: string | null;
+  metadata: ComicMetadata | null;
+  genres: string[] | null;
+  tags: string[] | null;
+  fileSize: number;
+}
+
+export function toSlug(str: string): string {
   return str
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -11,7 +25,7 @@ export function toSlug(str) {
     .replace(/^-+|-+$/g, "");
 }
 
-function generateChecksum() {
+function generateChecksum(): string {
   return crypto.randomBytes(8).toString("hex");
 }
 
@@ -26,7 +40,7 @@ export async function indexUploadedVolume({
   genres,
   tags,
   fileSize,
-}) {
+}: IndexUploadParams) {
   const cleanTitle = dirName.replace(/\[oneshot\]/gi, "").trim();
   const seriesSlug = toSlug(cleanTitle);
 

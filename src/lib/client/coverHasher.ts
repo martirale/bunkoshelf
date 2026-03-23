@@ -1,4 +1,4 @@
-function makeCrc32Table() {
+function makeCrc32Table(): Uint32Array {
   const table = new Uint32Array(256);
   for (let i = 0; i < 256; i++) {
     let c = i;
@@ -12,7 +12,7 @@ function makeCrc32Table() {
 
 const CRC32_TABLE = makeCrc32Table();
 
-function crc32(data) {
+function crc32(data: Uint8Array): number {
   let crc = 0xffffffff;
   for (let i = 0; i < data.length; i++) {
     crc = CRC32_TABLE[(crc ^ data[i]) & 0xff] ^ (crc >>> 8);
@@ -20,7 +20,7 @@ function crc32(data) {
   return (crc ^ 0xffffffff) >>> 0;
 }
 
-export async function generateCoverFilename(blob, ext) {
+export async function generateCoverFilename(blob: Blob, ext: string): Promise<string> {
   const buffer = await blob.arrayBuffer();
   const data = new Uint8Array(buffer);
   const hash = crc32(data).toString(16);

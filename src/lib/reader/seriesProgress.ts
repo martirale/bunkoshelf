@@ -1,10 +1,10 @@
 import { getSeriesProgress } from "@/actions/reader";
 
-export async function seriesProgress(seriesSlug) {
+export async function seriesProgress(seriesSlug: string) {
   try {
     const data = await getSeriesProgress({ seriesSlug });
 
-    if (data.error) return null;
+    if (!data || "error" in data) return null;
 
     return data;
   } catch (err) {

@@ -1,6 +1,13 @@
 import pkg from "../../package.json";
 
-export async function getVersionInfo() {
+interface VersionInfo {
+  version: string;
+  versionUrl: string;
+  changelogUrl: string | null;
+  buildDate: string | null;
+}
+
+export async function getVersionInfo(): Promise<VersionInfo> {
   const localVersion = pkg.version;
 
   const res = await fetch(

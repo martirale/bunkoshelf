@@ -5,9 +5,10 @@ import AdmZip from "adm-zip";
 import crc from "crc";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import type { StorageProvider } from "@/lib/types";
 
-async function extractCoverFromR2(fullPath, outputDir) {
-  let error = null;
+async function extractCoverFromR2(fullPath: string, outputDir: string): Promise<string | null> {
+  let error: Error | null = null;
 
   try {
     const key = fullPath.replace(/^\//, "");
@@ -16,7 +17,7 @@ async function extractCoverFromR2(fullPath, outputDir) {
       new GetObjectCommand({ Bucket: R2_BUCKET, Key: key })
     );
 
-    const buffer = Buffer.from(await response.Body.transformToByteArray());
+    const buffer = Buffer.from(await response.Body!.transformToByteArray());
     const zip = new AdmZip(buffer);
     const zipEntries = zip.getEntries();
 
@@ -43,17 +44,19 @@ async function extractCoverFromR2(fullPath, outputDir) {
     console.warn(`No se encontró imagen de portada válida en: ${fullPath}`);
     return null;
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error(`Error extrayendo portada desde R2: ${fullPath}`, error);
       return null;
     }
   }
+
+  return null;
 }
 
-async function extractCoverLocal(filePath, outputDir) {
-  let error = null;
+async function extractCoverLocal(filePath: string, outputDir: string): Promise<string | null> {
+  let error: Error | null = null;
 
   try {
     if (!fs.existsSync(filePath)) {
@@ -87,17 +90,23 @@ async function extractCoverLocal(filePath, outputDir) {
     console.warn(`No se encontró imagen de portada válida en: ${filePath}`);
     return null;
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error(`Error extrayendo portada en: ${filePath}`, error);
       return null;
     }
   }
+
+  return null;
 }
 
-export async function extractCoverCbz(fullPath, outputDir, provider) {
-  let error = null;
+export async function extractCoverCbz(
+  fullPath: string,
+  outputDir: string,
+  provider: StorageProvider
+): Promise<string | null> {
+  let error: Error | null = null;
 
   try {
     if (provider === "cloud") {
@@ -106,11 +115,13 @@ export async function extractCoverCbz(fullPath, outputDir, provider) {
       return await extractCoverLocal(fullPath, outputDir);
     }
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error(`Error extrayendo portada: ${fullPath}`, error);
       return null;
     }
   }
+
+  return null;
 }

@@ -5,13 +5,14 @@ import { createExtractorFromData } from "node-unrar-js";
 import crc from "crc";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import type { StorageProvider } from "@/lib/types";
 
 const wasmBinary = await fsp.readFile(
   path.join(process.cwd(), "node_modules/node-unrar-js/esm/js/unrar.wasm")
 );
 
-async function extractCoverFromR2(fullPath, outputDir) {
-  let error = null;
+async function extractCoverFromR2(fullPath: string, outputDir: string): Promise<string | null> {
+  let error: Error | null = null;
 
   try {
     const key = fullPath.replace(/^\//, "");
@@ -20,11 +21,11 @@ async function extractCoverFromR2(fullPath, outputDir) {
       new GetObjectCommand({ Bucket: R2_BUCKET, Key: key })
     );
 
-    const buffer = Buffer.from(await response.Body.transformToByteArray());
+    const buffer = Buffer.from(await response.Body!.transformToByteArray());
 
     const extractor = await createExtractorFromData({
-      data: buffer,
-      wasmBinary,
+      data: new Uint8Array(buffer).buffer as ArrayBuffer,
+      wasmBinary: new Uint8Array(wasmBinary).buffer as ArrayBuffer,
     });
     const list = extractor.getFileList();
     const fileHeaders = [...list.fileHeaders];
@@ -50,9 +51,9 @@ async function extractCoverFromR2(fullPath, outputDir) {
     const files = [...extracted.files];
 
     if (files.length > 0) {
-      const fileData = files[0].extraction;
+      const fileData = files[0].extraction!;
       const ext = path.extname(firstImage.name).toLowerCase();
-      const hash = crc.crc32(fileData).toString(16);
+      const hash = crc.crc32(Buffer.from(fileData)).toString(16);
 
       const filename = `cover-${hash}${ext}`;
       const outputPath = path.join(outputDir, filename);
@@ -65,17 +66,19 @@ async function extractCoverFromR2(fullPath, outputDir) {
     console.warn(`No se pudo extraer la primera imagen de: ${fullPath}`);
     return null;
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error(`Error extrayendo portada desde R2: ${fullPath}`, error);
       return null;
     }
   }
+
+  return null;
 }
 
-async function extractCoverLocal(filePath, outputDir) {
-  let error = null;
+async function extractCoverLocal(filePath: string, outputDir: string): Promise<string | null> {
+  let error: Error | null = null;
 
   try {
     if (!fs.existsSync(filePath)) {
@@ -85,8 +88,8 @@ async function extractCoverLocal(filePath, outputDir) {
 
     const buffer = await fsp.readFile(filePath);
     const extractor = await createExtractorFromData({
-      data: buffer,
-      wasmBinary,
+      data: new Uint8Array(buffer).buffer as ArrayBuffer,
+      wasmBinary: new Uint8Array(wasmBinary).buffer as ArrayBuffer,
     });
     const list = extractor.getFileList();
     const fileHeaders = [...list.fileHeaders];
@@ -112,9 +115,9 @@ async function extractCoverLocal(filePath, outputDir) {
     const files = [...extracted.files];
 
     if (files.length > 0) {
-      const fileData = files[0].extraction;
+      const fileData = files[0].extraction!;
       const ext = path.extname(firstImage.name).toLowerCase();
-      const hash = crc.crc32(fileData).toString(16);
+      const hash = crc.crc32(Buffer.from(fileData)).toString(16);
 
       const filename = `cover-${hash}${ext}`;
       const outputPath = path.join(outputDir, filename);
@@ -127,17 +130,23 @@ async function extractCoverLocal(filePath, outputDir) {
     console.warn(`No se pudo extraer la primera imagen de: ${filePath}`);
     return null;
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error(`Error extrayendo portada en: ${filePath}`, error);
       return null;
     }
   }
+
+  return null;
 }
 
-export async function extractCoverCbr(fullPath, outputDir, provider) {
-  let error = null;
+export async function extractCoverCbr(
+  fullPath: string,
+  outputDir: string,
+  provider: StorageProvider
+): Promise<string | null> {
+  let error: Error | null = null;
 
   try {
     if (provider === "cloud") {
@@ -146,11 +155,13 @@ export async function extractCoverCbr(fullPath, outputDir, provider) {
       return await extractCoverLocal(fullPath, outputDir);
     }
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error(`Error extrayendo portada: ${fullPath}`, error);
       return null;
     }
   }
+
+  return null;
 }

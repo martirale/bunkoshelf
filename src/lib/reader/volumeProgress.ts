@@ -1,10 +1,10 @@
 import { getReadingProgress } from "@/actions/reader";
 
-export async function volumeProgress(slug) {
+export async function volumeProgress(slug: string) {
   try {
     const data = await getReadingProgress({ slug });
 
-    if (data.error) return null;
+    if (!data || "error" in data) return null;
 
     return data;
   } catch (err) {

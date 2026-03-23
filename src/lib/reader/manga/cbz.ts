@@ -1,19 +1,17 @@
-import { createExtractorFromData } from "node-unrar-js";
-import fsp from "fs/promises";
+import AdmZip from "adm-zip";
+import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import type { MangaVolume } from "@prisma/client";
+import type { StorageProvider } from "@/lib/types";
 
 const validImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
 const TEMP_DIR_LIFETIME = 14 * 24 * 60 * 60 * 1000;
 
-const wasmBinary = await fsp.readFile(
-  path.join(process.cwd(), "node_modules/node-unrar-js/esm/js/unrar.wasm")
-);
-
-async function downloadFromR2(fullPath) {
+async function downloadFromR2(fullPath: string): Promise<Buffer> {
   const key = fullPath.replace(/^\//, "");
 
   const command = new GetObjectCommand({
@@ -32,8 +30,8 @@ async function downloadFromR2(fullPath) {
   return Buffer.from(arrayBuffer);
 }
 
-async function getImagePathsFromDir(tempDir) {
-  const files = await fsp.readdir(tempDir);
+async function getImagePathsFromDir(tempDir: string): Promise<string[]> {
+  const files = await fs.readdir(tempDir);
   return files
     .filter((file) =>
       validImageExtensions.includes(path.extname(file).toLowerCase())
@@ -46,45 +44,45 @@ async function getImagePathsFromDir(tempDir) {
     );
 }
 
-export async function extractImagesCbr(volume, slug, provider, activeVolumes) {
-  let error = null;
+export async function extractImagesCbz(
+  volume: MangaVolume,
+  slug: string,
+  provider: StorageProvider,
+  activeVolumes: Map<string, string>
+): Promise<{ images: string[] }> {
+  let error: Error | null = null;
 
   try {
     if (activeVolumes.has(slug)) {
-      const tempDir = await activeVolumes.get(slug);
+      const tempDir = activeVolumes.get(slug)!;
 
       try {
-        await fsp.access(tempDir);
+        await fs.access(tempDir);
         const imagePaths = await getImagePathsFromDir(tempDir);
         return { images: imagePaths };
-      } catch (err) {
+      } catch {
         activeVolumes.delete(slug);
       }
     }
 
-    let rarBuffer;
+    let zipBuffer: Buffer;
 
     if (provider === "cloud") {
-      rarBuffer = await downloadFromR2(volume.fullPath);
+      zipBuffer = await downloadFromR2(volume.fullPath);
     } else {
-      rarBuffer = await fsp.readFile(volume.fullPath);
+      zipBuffer = await fs.readFile(volume.fullPath);
     }
 
-    const extractor = await createExtractorFromData({
-      data: rarBuffer,
-      wasmBinary,
-    });
+    const zip = new AdmZip(zipBuffer);
+    const zipEntries = zip.getEntries();
 
-    const list = extractor.getFileList();
-    const fileHeaders = [...list.fileHeaders];
-
-    const entries = fileHeaders
-      .filter((header) => {
-        const ext = path.extname(header.name).toLowerCase();
-        return validImageExtensions.includes(ext);
+    const entries = zipEntries
+      .filter((entry) => {
+        const ext = path.extname(entry.entryName).toLowerCase();
+        return !entry.isDirectory && validImageExtensions.includes(ext);
       })
       .sort((a, b) => {
-        const normalize = (name) =>
+        const normalize = (name: string) =>
           name
             .split("/")
             .map((segment) =>
@@ -92,52 +90,49 @@ export async function extractImagesCbr(volume, slug, provider, activeVolumes) {
             )
             .join("/");
 
-        const nameA = normalize(a.name);
-        const nameB = normalize(b.name);
+        const nameA = normalize(a.entryName);
+        const nameB = normalize(b.entryName);
 
         return nameA.localeCompare(nameB);
       });
 
-    const tempDir = await fsp.mkdtemp(path.join(os.tmpdir(), "bunko-reader-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "bunko-reader-"));
     activeVolumes.set(slug, tempDir);
 
     setTimeout(async () => {
       try {
-        await fsp.rm(tempDir, { recursive: true, force: true });
+        await fs.rm(tempDir, { recursive: true, force: true });
         activeVolumes.delete(slug);
       } catch (err) {
         console.error("Failed to delete temp folder:", tempDir, err);
       }
     }, TEMP_DIR_LIFETIME);
 
-    const imagePaths = [];
+    const imagePaths: string[] = [];
     let imageCounter = 1;
 
     for (const entry of entries) {
-      const ext = path.extname(entry.name).toLowerCase();
+      const ext = path.extname(entry.entryName).toLowerCase();
       const newName = `${String(imageCounter).padStart(4, "0")}${ext}`;
       const imagePath = path.join(tempDir, newName);
+      const fileData = entry.getData();
 
-      const extracted = extractor.extract({ files: [entry.name] });
-      const files = [...extracted.files];
-
-      if (files.length > 0) {
-        const fileData = files[0].extraction;
-        await fsp.writeFile(imagePath, fileData);
-        imagePaths.push(
-          `/api/reader/temp-image?path=${encodeURIComponent(imagePath)}`
-        );
-        imageCounter++;
-      }
+      await fs.writeFile(imagePath, fileData);
+      imagePaths.push(
+        `/api/reader/temp-image?path=${encodeURIComponent(imagePath)}`
+      );
+      imageCounter++;
     }
 
     return { images: imagePaths };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
-      console.error("RAR read error:", error);
+      console.error("ZIP read error:", error);
       throw new Error("Failed to read archive");
     }
   }
+
+  throw new Error("Failed to read archive");
 }

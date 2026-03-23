@@ -1,10 +1,10 @@
 import { updateScanStatus } from "./updateScanStatus";
 import { cookies } from "next/headers";
 
-export async function indexVolumesJob() {
+export async function extractMetadataJob(): Promise<void> {
   try {
     await updateScanStatus({
-      steps: { index: "running" },
+      steps: { extractMeta: "running" },
     });
 
     const cookieStore = await cookies();
@@ -15,7 +15,7 @@ export async function indexVolumesJob() {
     }
 
     const res = await fetch(
-      "http://localhost:3000/api/admin/scan-manga/index-library",
+      "http://localhost:3000/api/admin/scan-manga/extract-meta",
       {
         method: "POST",
         headers: {
@@ -24,16 +24,17 @@ export async function indexVolumesJob() {
       }
     );
 
-    if (!res.ok)
-      throw new Error(`indexLibrary API responded with status ${res.status}`);
+    if (!res.ok) {
+      throw new Error(`extractMeta API responded with status ${res.status}`);
+    }
 
     await updateScanStatus({
-      steps: { index: "done" },
+      steps: { extractMeta: "done" },
     });
   } catch (err) {
-    console.error("Error en indexVolumesJob:", err);
+    console.error("Error en extractMetadataJob:", err);
     await updateScanStatus({
-      steps: { index: "error" },
+      steps: { extractMeta: "error" },
     });
   }
 }

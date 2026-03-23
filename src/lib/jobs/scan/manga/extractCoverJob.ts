@@ -1,7 +1,7 @@
 import { updateScanStatus } from "./updateScanStatus";
 import { cookies } from "next/headers";
 
-export async function extractCoverJob() {
+export async function extractCoverJob(): Promise<void> {
   try {
     await updateScanStatus({
       steps: { extractCover: "running" },

@@ -113,9 +113,15 @@ importers:
       '@tailwindcss/postcss':
         specifier: 4.1.5
         version: 4.1.5
+      '@types/adm-zip':
+        specifier: 0.5.8
+        version: 0.5.8
       '@types/better-sqlite3':
         specifier: 7.6.13
         version: 7.6.13
+      '@types/crc':
+        specifier: 4.0.0
+        version: 4.0.0
       '@types/jsonwebtoken':
         specifier: 9.0.10
         version: 9.0.10
@@ -128,6 +134,9 @@ importers:
       '@types/react':
         specifier: 19.2.14
         version: 19.2.14
+      '@types/xml2js':
+        specifier: 0.4.14
+        version: 0.4.14
       baseline-browser-mapping:
         specifier: 2.10.7
         version: 2.10.7
@@ -938,8 +947,15 @@ packages:
   '@tailwindcss/postcss@4.1.5':
     resolution: {integrity: sha512-5lAC2/pzuyfhsFgk6I58HcNy6vPK3dV/PoPxSDuOTVbDvCddYHzHiJZZInGIY0venvzzfrTEUAXJFULAfFmObg==}
 
+  '@types/adm-zip@0.5.8':
+    resolution: {integrity: sha512-RVVH7QvZYbN+ihqZ4kX/dMiowf6o+Jk1fNwiSdx0NahBJLU787zkULhGhJM8mf/obmLGmgdMM0bXsQTmyfbR7Q==}
+
   '@types/better-sqlite3@7.6.13':
     resolution: {integrity: sha512-NMv9ASNARoKksWtsq/SHakpYAYnhBrQgGD8zkLYk/jaK8jUGn08CfEdTRgYhMypUQAfzSP8W6gNLe0q19/t4VA==}
+
+  '@types/crc@4.0.0':
+    resolution: {integrity: sha512-R8H9yJnMKiUIJNsWI8h2l+hxq3XBZ7C6zycLwto5g10J5lKVny8KBbanOZeuZ1HyhI+F7TrSi7N+cr2v9/IuRA==}
+    deprecated: This is a stub types definition. crc provides its own type definitions, so you do not need this installed.
 
   '@types/d3-array@3.2.2':
     resolution: {integrity: sha512-hOLWVbm7uRza0BYXpIIW5pxfrKe0W+D5lrFiAEYR+pb6w3N2SwSMaJbXdUfSEv+dT4MfHBLtn5js0LAWaO6otw==}
@@ -982,6 +998,9 @@ packages:
 
   '@types/react@19.2.14':
     resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
+
+  '@types/xml2js@0.4.14':
+    resolution: {integrity: sha512-4YnrRemBShWRO2QjvUin8ESA41rH+9nQGLUGZV/1IDhi3SL9OhdpNC/MrulTWuptXKwhx/aDxE7toV0f/ypIXQ==}
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -3394,9 +3413,19 @@ snapshots:
       postcss: 8.5.6
       tailwindcss: 4.1.5
 
+  '@types/adm-zip@0.5.8':
+    dependencies:
+      '@types/node': 25.5.0
+
   '@types/better-sqlite3@7.6.13':
     dependencies:
       '@types/node': 25.5.0
+
+  '@types/crc@4.0.0':
+    dependencies:
+      crc: 4.3.2
+    transitivePeerDependencies:
+      - buffer
 
   '@types/d3-array@3.2.2': {}
 
@@ -3438,6 +3467,10 @@ snapshots:
   '@types/react@19.2.14':
     dependencies:
       csstype: 3.2.3
+
+  '@types/xml2js@0.4.14':
+    dependencies:
+      '@types/node': 25.5.0
 
   accepts@2.0.0:
     dependencies:

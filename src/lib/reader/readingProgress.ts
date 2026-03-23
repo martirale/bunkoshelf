@@ -1,6 +1,9 @@
 import prisma from "@/lib/prisma";
 
-export async function getSeriesBulkProgress(userId, seriesIds) {
+export async function getSeriesBulkProgress(
+  userId: string | null,
+  seriesIds: string[]
+): Promise<Record<string, number>> {
   if (!userId || !seriesIds?.length) return {};
 
   const records = await prisma.userToVolume.findMany({
@@ -12,7 +15,7 @@ export async function getSeriesBulkProgress(userId, seriesIds) {
     select: { volume: { select: { seriesId: true } } },
   });
 
-  return records.reduce((acc, { volume }) => {
+  return records.reduce<Record<string, number>>((acc, { volume }) => {
     acc[volume.seriesId] = (acc[volume.seriesId] || 0) + 1;
     return acc;
   }, {});

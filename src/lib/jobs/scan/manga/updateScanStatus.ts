@@ -1,21 +1,20 @@
 import path from "path";
 import fs from "fs/promises";
+import type { ScanStatus } from "@/lib/types";
 
 const statusFile = path.join(process.cwd(), "tmp", "scan-status.json");
 
-export async function updateScanStatus(partialUpdate) {
-  let current = {};
+export async function updateScanStatus(partialUpdate: Partial<ScanStatus>): Promise<void> {
+  let current: ScanStatus = {};
 
   try {
     const data = await fs.readFile(statusFile, "utf-8");
     current = JSON.parse(data);
-  } catch (err) {
-    // Si no existe, asumimos que estamos inicializando
+  } catch {
     current = {};
   }
 
-  // Mezcla profunda parcial (para que solo sobrescriba lo necesario)
-  const updated = {
+  const updated: ScanStatus = {
     ...current,
     ...partialUpdate,
     steps: {

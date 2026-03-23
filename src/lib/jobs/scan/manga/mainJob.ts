@@ -8,7 +8,9 @@ import { log } from "@/lib/logger";
 
 const statusFile = path.join(process.cwd(), "tmp", "scan-status.json");
 
-export async function mainJob() {
+export async function mainJob(): Promise<void> {
+  let duration = 0;
+
   try {
     await fs.mkdir(path.dirname(statusFile), { recursive: true });
 
@@ -42,7 +44,7 @@ export async function mainJob() {
       status: "working",
     });
 
-    const duration = Date.now() - start;
+    duration = Date.now() - start;
 
     await extractMetadataJob();
     await updateScanStatus({
@@ -62,10 +64,11 @@ export async function mainJob() {
       },
     });
   } catch (error) {
-    console.error("Error general en mainJob:", error);
+    const err = error as Error;
+    console.error("Error general en mainJob:", err);
     await updateScanStatus({
       status: "error",
-      error: error.message || "Error desconocido",
+      error: err.message || "Error desconocido",
       currentTask: null,
       finishedAt: new Date().toISOString(),
     });
@@ -76,7 +79,7 @@ export async function mainJob() {
       duration,
       meta: {
         result: "error",
-        message: error.message || "Error desconocido",
+        message: err.message || "Error desconocido",
       },
     });
   }

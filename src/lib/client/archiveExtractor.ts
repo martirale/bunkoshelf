@@ -1,6 +1,20 @@
 const IMAGE_REGEX = /\.(jpg|jpeg|png|webp)$/i;
 
-export async function extractFromArchive(file) {
+interface ArchiveEntry {
+  path: string;
+  file: {
+    name: string;
+    extract: () => Promise<Blob | null>;
+  };
+}
+
+interface ExtractionResult {
+  coverBlob: Blob | null;
+  coverExt: string | null;
+  comicInfoXml: string | null;
+}
+
+export async function extractFromArchive(file: File): Promise<ExtractionResult | null> {
   const { Archive } = await import("libarchive.js");
 
   await Archive.init({
@@ -8,7 +22,7 @@ export async function extractFromArchive(file) {
   });
 
   const archive = await Archive.open(file);
-  const entries = await archive.getFilesArray();
+  const entries: ArchiveEntry[] = await archive.getFilesArray();
 
   const imageEntries = entries
     .filter(
@@ -26,8 +40,8 @@ export async function extractFromArchive(file) {
     (entry) => entry.file.name.toLowerCase() === "comicinfo.xml"
   );
 
-  let coverBlob = null;
-  let coverExt = null;
+  let coverBlob: Blob | null = null;
+  let coverExt: string | null = null;
 
   if (imageEntries.length > 0) {
     const firstImage = imageEntries[0];
@@ -40,7 +54,7 @@ export async function extractFromArchive(file) {
     }
   }
 
-  let comicInfoXml = null;
+  let comicInfoXml: string | null = null;
 
   if (comicInfoEntry) {
     const extractedXml = await comicInfoEntry.file.extract();
