@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import {
   BookCheckIcon,
@@ -28,6 +29,7 @@ export default function ReadButtonsVolume({
   communityRating,
   initialPersonalRating,
 }) {
+  const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(initFavorite);
   const [isRead, setIsRead] = useState(initRead);
   const [isLoading, setIsLoading] = useState(false);
@@ -179,6 +181,7 @@ export default function ReadButtonsVolume({
         console.error("Error syncing progress:", error);
       }
       setIsReaderOpen(false);
+      router.refresh();
     }
   };
 
