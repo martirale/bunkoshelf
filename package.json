@@ -45,9 +45,15 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.5",
+    "@types/better-sqlite3": "7.6.13",
+    "@types/jsonwebtoken": "9.0.10",
+    "@types/negotiator": "0.6.4",
+    "@types/node": "25.5.0",
+    "@types/react": "19.2.14",
     "baseline-browser-mapping": "2.10.7",
     "prisma": "7.4.1",
-    "tailwindcss": "4.1.5"
+    "tailwindcss": "4.1.5",
+    "typescript": "6.0.2"
   },
   "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a",
   "pnpm": {

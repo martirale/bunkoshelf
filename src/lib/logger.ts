@@ -3,7 +3,14 @@ import path from "path";
 
 const logFilePath = path.join(process.cwd(), "logs", "server.log");
 
-export function log({ event, category, duration, meta }) {
+interface LogParams {
+  event: string;
+  category?: string;
+  duration?: number;
+  meta?: Record<string, unknown>;
+}
+
+export function log({ event, category, duration, meta }: LogParams) {
   const timestamp = new Date().toISOString();
 
   let line = `[${timestamp}]`;

@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import prisma from "@/lib/prisma";
+import type { Session } from "@/lib/types";
 
-export async function verifySession() {
+export async function verifySession(): Promise<Session | null> {
   try {
     const cookiesInstance = await cookies();
     const token = cookiesInstance.get("yomimono_key")?.value;
@@ -14,7 +15,7 @@ export async function verifySession() {
     );
 
     const user = await prisma.user.findUnique({
-      where: { id: payload.id },
+      where: { id: payload.id as string },
       select: {
         id: true,
         username: true,

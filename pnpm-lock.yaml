@@ -33,7 +33,7 @@ importers:
         version: 7.4.1
       '@prisma/client':
         specifier: 7.4.1
-        version: 7.4.1(prisma@7.4.1(@types/react@19.2.7)(better-sqlite3@12.6.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))
+        version: 7.4.1(prisma@7.4.1(@types/react@19.2.14)(better-sqlite3@12.6.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.2))(typescript@6.0.2)
       '@smithy/node-http-handler':
         specifier: 4.4.10
         version: 4.4.10
@@ -113,15 +113,33 @@ importers:
       '@tailwindcss/postcss':
         specifier: 4.1.5
         version: 4.1.5
+      '@types/better-sqlite3':
+        specifier: 7.6.13
+        version: 7.6.13
+      '@types/jsonwebtoken':
+        specifier: 9.0.10
+        version: 9.0.10
+      '@types/negotiator':
+        specifier: 0.6.4
+        version: 0.6.4
+      '@types/node':
+        specifier: 25.5.0
+        version: 25.5.0
+      '@types/react':
+        specifier: 19.2.14
+        version: 19.2.14
       baseline-browser-mapping:
         specifier: 2.10.7
         version: 2.10.7
       prisma:
         specifier: 7.4.1
-        version: 7.4.1(@types/react@19.2.7)(better-sqlite3@12.6.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 7.4.1(@types/react@19.2.14)(better-sqlite3@12.6.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.2)
       tailwindcss:
         specifier: 4.1.5
         version: 4.1.5
+      typescript:
+        specifier: 6.0.2
+        version: 6.0.2
 
 packages:
 
@@ -920,6 +938,9 @@ packages:
   '@tailwindcss/postcss@4.1.5':
     resolution: {integrity: sha512-5lAC2/pzuyfhsFgk6I58HcNy6vPK3dV/PoPxSDuOTVbDvCddYHzHiJZZInGIY0venvzzfrTEUAXJFULAfFmObg==}
 
+  '@types/better-sqlite3@7.6.13':
+    resolution: {integrity: sha512-NMv9ASNARoKksWtsq/SHakpYAYnhBrQgGD8zkLYk/jaK8jUGn08CfEdTRgYhMypUQAfzSP8W6gNLe0q19/t4VA==}
+
   '@types/d3-array@3.2.2':
     resolution: {integrity: sha512-hOLWVbm7uRza0BYXpIIW5pxfrKe0W+D5lrFiAEYR+pb6w3N2SwSMaJbXdUfSEv+dT4MfHBLtn5js0LAWaO6otw==}
 
@@ -947,8 +968,20 @@ packages:
   '@types/d3-timer@3.0.2':
     resolution: {integrity: sha512-Ps3T8E8dZDam6fUyNiMkekK3XUsaUEik+idO9/YjPtfj2qruF8tFBXS7XhtE4iIXBLxhmLjP3SXpLhVf21I9Lw==}
 
-  '@types/react@19.2.7':
-    resolution: {integrity: sha512-MWtvHrGZLFttgeEj28VXHxpmwYbor/ATPYbBfSFZEIRK0ecCFLl2Qo55z52Hss+UV9CRN7trSeq1zbgx7YDWWg==}
+  '@types/jsonwebtoken@9.0.10':
+    resolution: {integrity: sha512-asx5hIG9Qmf/1oStypjanR7iKTv0gXQ1Ov/jfrX6kS/EO0OFni8orbmGCn0672NHR3kXHwpAwR+B368ZGN/2rA==}
+
+  '@types/ms@2.1.0':
+    resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
+
+  '@types/negotiator@0.6.4':
+    resolution: {integrity: sha512-elf6BsTq+AkyNsb2h5cGNst2Mc7dPliVoAPm1fXglC/BM3f2pFA40BaSSv3E5lyHteEawVKLP+8TwiY1DMNb3A==}
+
+  '@types/node@25.5.0':
+    resolution: {integrity: sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw==}
+
+  '@types/react@19.2.14':
+    resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -1119,9 +1152,6 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
-
-  csstype@3.1.3:
-    resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
@@ -2092,6 +2122,14 @@ packages:
     resolution: {integrity: sha512-OZs6gsjF4vMp32qrCbiVSkrFmXtG/AZhY3t0iAMrMBiAZyV9oALtXO8hsrHbMXF9x6L3grlFuwW2oAz7cav+Gw==}
     engines: {node: '>= 0.6'}
 
+  typescript@6.0.2:
+    resolution: {integrity: sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  undici-types@7.18.2:
+    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
+
   undici@7.22.0:
     resolution: {integrity: sha512-RqslV2Us5BrllB+JeiZnK4peryVTndy9Dnqq62S3yYRRTj0tFQCwEniUy2167skdGOy3vqRzEvl1Dm4sV2ReDg==}
     engines: {node: '>=20.18.1'}
@@ -2865,11 +2903,12 @@ snapshots:
 
   '@prisma/client-runtime-utils@7.4.1': {}
 
-  '@prisma/client@7.4.1(prisma@7.4.1(@types/react@19.2.7)(better-sqlite3@12.6.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))':
+  '@prisma/client@7.4.1(prisma@7.4.1(@types/react@19.2.14)(better-sqlite3@12.6.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.2))(typescript@6.0.2)':
     dependencies:
       '@prisma/client-runtime-utils': 7.4.1
     optionalDependencies:
-      prisma: 7.4.1(@types/react@19.2.7)(better-sqlite3@12.6.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      prisma: 7.4.1(@types/react@19.2.14)(better-sqlite3@12.6.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.2)
+      typescript: 6.0.2
 
   '@prisma/config@7.4.1':
     dependencies:
@@ -2884,7 +2923,7 @@ snapshots:
 
   '@prisma/debug@7.4.1': {}
 
-  '@prisma/dev@0.20.0':
+  '@prisma/dev@0.20.0(typescript@6.0.2)':
     dependencies:
       '@electric-sql/pglite': 0.3.15
       '@electric-sql/pglite-socket': 0.0.20(@electric-sql/pglite@0.3.15)
@@ -2901,7 +2940,7 @@ snapshots:
       proper-lockfile: 4.1.2
       remeda: 2.33.4
       std-env: 3.10.0
-      valibot: 1.2.0
+      valibot: 1.2.0(typescript@6.0.2)
       zeptomatch: 2.1.0
     transitivePeerDependencies:
       - typescript
@@ -2935,9 +2974,9 @@ snapshots:
 
   '@prisma/query-plan-executor@7.2.0': {}
 
-  '@prisma/studio-core@0.13.1(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@prisma/studio-core@0.13.1(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
-      '@types/react': 19.2.7
+      '@types/react': 19.2.14
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
 
@@ -3355,6 +3394,10 @@ snapshots:
       postcss: 8.5.6
       tailwindcss: 4.1.5
 
+  '@types/better-sqlite3@7.6.13':
+    dependencies:
+      '@types/node': 25.5.0
+
   '@types/d3-array@3.2.2': {}
 
   '@types/d3-color@3.1.3': {}
@@ -3379,7 +3422,20 @@ snapshots:
 
   '@types/d3-timer@3.0.2': {}
 
-  '@types/react@19.2.7':
+  '@types/jsonwebtoken@9.0.10':
+    dependencies:
+      '@types/ms': 2.1.0
+      '@types/node': 25.5.0
+
+  '@types/ms@2.1.0': {}
+
+  '@types/negotiator@0.6.4': {}
+
+  '@types/node@25.5.0':
+    dependencies:
+      undici-types: 7.18.2
+
+  '@types/react@19.2.14':
     dependencies:
       csstype: 3.2.3
 
@@ -3547,8 +3603,6 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
-  csstype@3.1.3: {}
-
   csstype@3.2.3: {}
 
   d3-array@3.2.4:
@@ -3622,7 +3676,7 @@ snapshots:
   dom-helpers@5.2.1:
     dependencies:
       '@babel/runtime': 7.28.4
-      csstype: 3.1.3
+      csstype: 3.2.3
 
   dotenv@16.6.1: {}
 
@@ -4191,16 +4245,17 @@ snapshots:
     dependencies:
       parse-ms: 4.0.0
 
-  prisma@7.4.1(@types/react@19.2.7)(better-sqlite3@12.6.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  prisma@7.4.1(@types/react@19.2.14)(better-sqlite3@12.6.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.2):
     dependencies:
       '@prisma/config': 7.4.1
-      '@prisma/dev': 0.20.0
+      '@prisma/dev': 0.20.0(typescript@6.0.2)
       '@prisma/engines': 7.4.1
-      '@prisma/studio-core': 0.13.1(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@prisma/studio-core': 0.13.1(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       mysql2: 3.15.3
       postgres: 3.4.7
     optionalDependencies:
       better-sqlite3: 12.6.2
+      typescript: 6.0.2
     transitivePeerDependencies:
       - '@types/react'
       - magicast
@@ -4517,6 +4572,10 @@ snapshots:
       media-typer: 1.1.0
       mime-types: 3.0.2
 
+  typescript@6.0.2: {}
+
+  undici-types@7.18.2: {}
+
   undici@7.22.0: {}
 
   unicorn-magic@0.3.0: {}
@@ -4525,7 +4584,9 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  valibot@1.2.0: {}
+  valibot@1.2.0(typescript@6.0.2):
+    optionalDependencies:
+      typescript: 6.0.2
 
   vary@1.1.2: {}
 

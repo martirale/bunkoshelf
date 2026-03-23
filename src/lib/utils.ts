@@ -1,8 +1,11 @@
 import prisma from "./prisma";
+import type { Session } from "@/lib/types";
 
-// Sorting volumes by title and number
-export function sortByPaddedTitle(items, getValue = (item) => item.title) {
-  const padNumbers = (str) =>
+export function sortByPaddedTitle<T>(
+  items: T[],
+  getValue: (item: T) => string = (item) => (item as { title: string }).title
+): T[] {
+  const padNumbers = (str: string) =>
     str.replace(/\d+/g, (num) => num.padStart(5, "0")).toLowerCase();
 
   return items.slice().sort((a, b) => {
@@ -12,11 +15,10 @@ export function sortByPaddedTitle(items, getValue = (item) => item.title) {
   });
 }
 
-// Convert age rating to numbers
-export function ageRatingMap(ageRating) {
+export function ageRatingMap(ageRating: string | null | undefined): number | null {
   if (!ageRating || typeof ageRating !== "string") return null;
 
-  const mapping = {
+  const mapping: Record<string, number | null> = {
     Unknown: null,
     "Adults Only 18+": 18,
     "Early Childhood": 0,
@@ -37,8 +39,7 @@ export function ageRatingMap(ageRating) {
   return mapping[ageRating] ?? null;
 }
 
-// Reading challenge data
-export async function getChallengeData(user) {
+export async function getChallengeData(user: Session | null) {
   if (!user) return null;
   const currentYear = new Date().getFullYear();
 

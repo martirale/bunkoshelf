@@ -12,7 +12,9 @@ const prismaClientSingleton = () => {
   return new PrismaClient({ adapter });
 };
 
-const globalForPrisma = globalThis;
+const globalForPrisma = globalThis as typeof globalThis & {
+  prisma?: PrismaClient;
+};
 
 const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
