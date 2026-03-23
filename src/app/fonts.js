@@ -12,7 +12,7 @@ export const robotoCondensed = Roboto_Condensed({
 export const boldonse = localFont({
   src: [
     {
-      path: "../public/fonts/Boldonse.woff2",
+      path: "../../public/fonts/Boldonse.woff2",
       weight: "400",
       style: "normal",
     },
