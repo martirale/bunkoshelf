@@ -43,12 +43,13 @@ model ReadingChallenge {
 }
 
 model PushSubscription {
-  id        String   @id @default(cuid())
-  endpoint  String   @unique
-  keys      Json
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  id         String   @id @default(cuid())
+  endpoint   String   @unique
+  keys       Json
+  deviceName String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
 
   @@index([userId])
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { startScan, getScanStatus } from "@/actions/admin-scan";
-import { sendPushBroadcast } from "@/actions/admin-push";
+import { sendPushBroadcast } from "@/actions/web-push";
 
 export default function useScanPolling({ lang, intl, addToast, updateToast }) {
   const pollingRef = useRef(null);

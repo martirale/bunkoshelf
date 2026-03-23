@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BellIcon } from "lucide-react";
-import { subscribePush, sendPushToSubscription } from "@/actions/admin-push";
+import { subscribePush, sendPushToSubscription } from "@/actions/web-push";
 
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -17,26 +17,50 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+function getDeviceName() {
+  const ua = navigator.userAgent;
+  let browser = "Navegador";
+  let os = "";
+
+  if (ua.includes("Firefox")) browser = "Firefox";
+  else if (ua.includes("Edg")) browser = "Edge";
+  else if (ua.includes("Chrome")) browser = "Chrome";
+  else if (ua.includes("Safari")) browser = "Safari";
+
+  if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+  else if (ua.includes("Android")) os = "Android";
+  else if (ua.includes("Windows")) os = "Windows";
+  else if (ua.includes("Mac OS")) os = "macOS";
+  else if (ua.includes("Linux")) os = "Linux";
+
+  return os ? `${browser} - ${os}` : browser;
+}
+
 export default function PushButton({ lang, intl, vapidPublicKey }) {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState("default");
+  const [hasSubscription, setHasSubscription] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      if ("serviceWorker" in navigator && "PushManager" in window) {
-        setSupported(true);
-        setPermission(Notification.permission);
+    if (typeof window === "undefined") return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((registration) => {
-            console.log("Service Worker registrado", registration);
-          })
-          .catch((err) => {
-            console.error("Error al registrar SW", err);
-          });
-      }
-    }
+    setSupported(true);
+    setPermission(Notification.permission);
+
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(() => navigator.serviceWorker.ready)
+      .then((reg) => reg.pushManager.getSubscription())
+      .then((sub) => {
+        setHasSubscription(!!sub);
+        setReady(true);
+      })
+      .catch((err) => {
+        console.error("Error al registrar SW", err);
+        setReady(true);
+      });
   }, []);
 
   async function subscribeUser() {
@@ -55,10 +79,10 @@ export default function PushButton({ lang, intl, vapidPublicKey }) {
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         });
-        console.log("Suscripción obtenida:", subscription);
 
         const sub = subscription.toJSON();
-        await subscribePush(sub);
+        await subscribePush(sub, getDeviceName());
+        setHasSubscription(true);
 
         await sendPushToSubscription(sub, {
           title: intl.push.ttSubscription,
@@ -71,7 +95,7 @@ export default function PushButton({ lang, intl, vapidPublicKey }) {
     }
   }
 
-  if (!supported || permission === "granted") return null;
+  if (!ready || !supported || (permission === "granted" && hasSubscription)) return null;
 
   return (
     <button

@@ -13,7 +13,7 @@ import MangaReader from "@/components/reader/MangaReader";
 import { toggleVolumeFavorite } from "@/actions/favorites";
 import { updateReadState } from "@/actions/read";
 import { syncReadingProgress } from "@/actions/progress";
-import { sendPush } from "@/actions/admin-push";
+import { sendPush } from "@/actions/web-push";
 
 export default function ReadButtonsVolume({
   lang,

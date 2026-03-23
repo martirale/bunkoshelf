@@ -11,7 +11,7 @@ const pushHeaders = {
   ...(PUSH_API_KEY && { Authorization: `Bearer ${PUSH_API_KEY}` }),
 };
 
-export async function subscribePush(subscription) {
+export async function subscribePush(subscription, deviceName) {
   const user = await verifySession();
   if (!user) {
     return { error: "Unauthorized", status: 401 };
@@ -25,10 +25,12 @@ export async function subscribePush(subscription) {
       },
       update: {
         keys: subscription.keys,
+        deviceName,
       },
       create: {
         endpoint: subscription.endpoint,
         keys: subscription.keys,
+        deviceName,
         userId: user.id,
       },
     });
@@ -107,6 +109,77 @@ export async function sendPushToSubscription(subscription, payload) {
     if (error) {
       console.error("Error sending push:", error);
       return { error: "Error al enviar notificación", status: 500 };
+    }
+  }
+}
+
+export async function getUserSubscriptions() {
+  const user = await verifySession();
+  if (!user) {
+    return { error: "Unauthorized", status: 401 };
+  }
+
+  let error = null;
+  try {
+    const subscriptions = await prisma.pushSubscription.findMany({
+      where: { userId: user.id },
+      select: { id: true, endpoint: true, deviceName: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return { success: true, subscriptions };
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error("Error fetching subscriptions:", error);
+      return { error: "Error al obtener suscripciones", status: 500 };
+    }
+  }
+}
+
+export async function deleteSubscription(id) {
+  const user = await verifySession();
+  if (!user) {
+    return { error: "Unauthorized", status: 401 };
+  }
+
+  let error = null;
+  try {
+    await prisma.pushSubscription.delete({
+      where: { id, userId: user.id },
+    });
+
+    return { success: true };
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error("Error deleting subscription:", error);
+      return { error: "Error al eliminar suscripción", status: 500 };
+    }
+  }
+}
+
+export async function deleteAllSubscriptions() {
+  const user = await verifySession();
+  if (!user) {
+    return { error: "Unauthorized", status: 401 };
+  }
+
+  let error = null;
+  try {
+    await prisma.pushSubscription.deleteMany({
+      where: { userId: user.id },
+    });
+
+    return { success: true };
+  } catch (err) {
+    error = err;
+  } finally {
+    if (error) {
+      console.error("Error deleting all subscriptions:", error);
+      return { error: "Error al eliminar suscripciones", status: 500 };
     }
   }
 }

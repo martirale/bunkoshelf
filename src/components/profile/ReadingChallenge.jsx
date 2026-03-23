@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { PlusIcon, MinusIcon } from "lucide-react";
 import { updateChallenge, getChallenge } from "@/actions/challenge";
-import { sendPush } from "@/actions/admin-push";
+import { sendPush } from "@/actions/web-push";
 
 export default function ReadingChallenge({ intl, lang }) {
   const [goal, setGoal] = useState(0);

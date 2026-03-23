@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutPanelTopIcon, UserRoundPenIcon } from "lucide-react";
+import { LayoutPanelTopIcon, UserRoundPenIcon, BellIcon } from "lucide-react";
 import { usePathname, useParams } from "next/navigation";
 import clsx from "clsx";
 
@@ -22,6 +22,12 @@ export default function ProfileNav({ intl }) {
       href: `/${currentLang}/profile/update`,
       icon: UserRoundPenIcon,
       isActive: pathname === `/${currentLang}/profile/update`,
+    },
+    {
+      label: intl.profile.notifications,
+      href: `/${currentLang}/profile/notifications`,
+      icon: BellIcon,
+      isActive: pathname === `/${currentLang}/profile/notifications`,
     },
   ];
 
