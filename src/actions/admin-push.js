@@ -3,7 +3,13 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-const PUSH_SERVER_URL = process.env.NEXT_PUBLIC_PUSH_SERVER_URL;
+const PUSH_SERVER_URL = process.env.PUSH_SERVER_URL;
+const PUSH_API_KEY = process.env.PUSH_API_KEY;
+
+const pushHeaders = {
+  "Content-Type": "application/json",
+  ...(PUSH_API_KEY && { Authorization: `Bearer ${PUSH_API_KEY}` }),
+};
 
 export async function subscribePush(subscription) {
   const user = await verifySession();
@@ -57,7 +63,7 @@ export async function sendPush(payload) {
 
     const res = await fetch(`${PUSH_SERVER_URL}/send-many`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: pushHeaders,
       body: JSON.stringify({ subscriptions, payload }),
     });
 
@@ -86,7 +92,7 @@ export async function sendPushToSubscription(subscription, payload) {
   try {
     const res = await fetch(`${PUSH_SERVER_URL}/send`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: pushHeaders,
       body: JSON.stringify({ subscription, payload }),
     });
 
@@ -123,7 +129,7 @@ export async function sendPushBroadcast(payload) {
 
     const res = await fetch(`${PUSH_SERVER_URL}/send-many`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: pushHeaders,
       body: JSON.stringify({ subscriptions, payload }),
     });
 

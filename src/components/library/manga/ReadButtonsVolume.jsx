@@ -163,7 +163,7 @@ export default function ReadButtonsVolume({
             await sendPush({
               title: intl.push.ttFirstRead,
               body: intl.push.bodyFirstRead.replace("{title}", volumeTitle),
-              url: `/${lang}/library`,
+              url: `/${lang}/manga`,
             });
           } catch (pushErr) {
             console.error("Error al enviar notificación push:", pushErr);
