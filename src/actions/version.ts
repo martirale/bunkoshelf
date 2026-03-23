@@ -2,10 +2,20 @@
 
 import { verifySession } from "@/lib/auth/verifySession";
 
-let cached = { timestamp: 0, data: null };
+interface VersionData {
+  version: string;
+  versionUrl: string;
+  changelogUrl: string | null;
+  buildDate: string | null;
+}
+
+let cached: { timestamp: number; data: VersionData | null } = {
+  timestamp: 0,
+  data: null,
+};
 
 export async function getVersion() {
-  let _err;
+  let _err: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -23,11 +33,11 @@ export async function getVersion() {
       cache: "no-cache",
     });
     if (!res.ok) throw new Error("Remote fetch failed");
-    const data = await res.json();
+    const data: VersionData = await res.json();
     cached = { timestamp: Date.now(), data };
     return data;
   } catch (e) {
-    _err = e;
+    _err = e as Error;
   } finally {
     if (_err) {
       if (cached.data) {

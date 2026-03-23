@@ -77,8 +77,8 @@ importers:
         specifier: 0.553.0
         version: 0.553.0(react@19.2.3)
       minisearch:
-        specifier: 1.1.0
-        version: 1.1.0
+        specifier: 7.2.0
+        version: 7.2.0
       negotiator:
         specifier: 1.0.0
         version: 1.0.0
@@ -1712,8 +1712,8 @@ packages:
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
 
-  minisearch@1.1.0:
-    resolution: {integrity: sha512-anw4FuGiY1hOfufNfnsm3G9KSB41BekRGJo+rAgRGykGjF0Y0k7ymVj4CBScgwqxEoV2WwAwlfMVj4QxTmPj1A==}
+  minisearch@7.2.0:
+    resolution: {integrity: sha512-dqT2XBYUOZOiC5t2HRnwADjhNS2cecp9u+TJRiJ1Qp/f5qjkeT5APcGPjHw+bz89Ms8Jp+cG4AlE+QZ/QnDglg==}
 
   mkdirp-classic@0.5.3:
     resolution: {integrity: sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A==}
@@ -4119,7 +4119,7 @@ snapshots:
 
   minimist@1.2.8: {}
 
-  minisearch@1.1.0: {}
+  minisearch@7.2.0: {}
 
   mkdirp-classic@0.5.3: {}
 

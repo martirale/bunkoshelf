@@ -3,10 +3,19 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
+interface UpdateSeriesStatusParams {
+  seriesId: string | number | null | undefined;
+  status: string;
+}
+
+interface GetSeriesStatusParams {
+  seriesId: string | number | null | undefined;
+}
+
 const ALLOWED = new Set(["ONGOING", "FINISHED", "HIATUS", "CANCELLED"]);
 
-export async function updateSeriesStatus({ seriesId, status }) {
-  let _err;
+export async function updateSeriesStatus({ seriesId, status }: UpdateSeriesStatusParams) {
+  let _err: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -28,7 +37,7 @@ export async function updateSeriesStatus({ seriesId, status }) {
 
     return { status: updated.status, statusCode: 200 };
   } catch (err) {
-    _err = err;
+    _err = err as Error;
   } finally {
     if (_err) {
       console.error("Error updating series status:", _err);
@@ -37,8 +46,8 @@ export async function updateSeriesStatus({ seriesId, status }) {
   }
 }
 
-export async function getSeriesStatus({ seriesId }) {
-  let _err;
+export async function getSeriesStatus({ seriesId }: GetSeriesStatusParams) {
+  let _err: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -60,7 +69,7 @@ export async function getSeriesStatus({ seriesId }) {
 
     return { status: record.status || "FINISHED" };
   } catch (err) {
-    _err = err;
+    _err = err as Error;
   } finally {
     if (_err) {
       console.error("Error fetching series status:", _err);

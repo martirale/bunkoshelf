@@ -31,7 +31,7 @@
     "jsonwebtoken": "9.0.3",
     "libarchive.js": "2.0.2",
     "lucide-react": "0.553.0",
-    "minisearch": "1.1.0",
+    "minisearch": "7.2.0",
     "negotiator": "1.0.0",
     "next": "16.1.6",
     "next-devtools-mcp": "0.3.10",

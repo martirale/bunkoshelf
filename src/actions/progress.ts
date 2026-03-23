@@ -4,14 +4,22 @@ import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { syncFirstRead } from "@/actions/readingHistory";
 
+interface SyncProgressParams {
+  volumeSlug: string;
+  lastPage: number;
+  totalPages: number;
+  lastReadAt: string;
+  date: string;
+}
+
 export async function syncReadingProgress({
   volumeSlug,
   lastPage,
   totalPages,
   lastReadAt,
   date,
-}) {
-  let error = null;
+}: SyncProgressParams) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -111,7 +119,7 @@ export async function syncReadingProgress({
 
     return { success: true };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error updating reading progress:", error);

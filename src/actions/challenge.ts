@@ -3,7 +3,17 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-export async function getChallenge({ year }) {
+interface GetChallengeParams {
+  year: number;
+}
+
+interface UpdateChallengeParams {
+  year: number;
+  goal?: number;
+  notified?: boolean;
+}
+
+export async function getChallenge({ year }: GetChallengeParams) {
   const user = await verifySession();
   if (!user) {
     return { error: "Unauthorized", status: 401 };
@@ -40,8 +50,8 @@ export async function getChallenge({ year }) {
   return { challenge };
 }
 
-export async function updateChallenge({ year, goal, notified }) {
-  let error = null;
+export async function updateChallenge({ year, goal, notified }: UpdateChallengeParams) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -77,7 +87,9 @@ export async function updateChallenge({ year, goal, notified }) {
     }).length;
 
     if (challenge) {
-      const dataToUpdate = { completed: completedCount };
+      const dataToUpdate: { completed: number; goal?: number; notified?: boolean } = {
+        completed: completedCount,
+      };
       if (goal !== undefined) dataToUpdate.goal = goal;
       if (notified !== undefined) dataToUpdate.notified = notified;
 
@@ -103,7 +115,7 @@ export async function updateChallenge({ year, goal, notified }) {
 
     return { challenge };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error updating challenge:", error);

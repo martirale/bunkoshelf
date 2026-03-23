@@ -4,14 +4,22 @@ import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { syncFirstRead } from "@/actions/readingHistory";
 
+interface UpdateReadStateParams {
+  volumeId: string;
+  read: boolean | string;
+  totalPages?: number | null;
+  lastReadAt?: string | null;
+  firstRead?: string;
+}
+
 export async function updateReadState({
   volumeId,
   read,
   totalPages,
   lastReadAt,
   firstRead,
-}) {
-  let error;
+}: UpdateReadStateParams) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -41,7 +49,7 @@ export async function updateReadState({
 
     const updatePayload = {
       isRead: normalizedRead,
-      lastPage: normalizedRead ? normalizedTotalPages - 1 : 0,
+      lastPage: normalizedRead ? normalizedTotalPages! - 1 : 0,
       totalPages: normalizedTotalPages,
       lastReadAt: normalizedRead ? new Date(lastReadAt || Date.now()) : null,
     };
@@ -75,7 +83,7 @@ export async function updateReadState({
 
     return { success: true, status: 200 };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error updating read state:", error);

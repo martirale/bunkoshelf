@@ -3,13 +3,36 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import { cookies } from "next/headers";
 
-export async function startScan() {
+interface ScanActionResult {
+  success?: boolean;
+  error?: string;
+  status?: number;
+}
+
+interface ScanStatusResult {
+  error?: string;
+  status?: number;
+  [key: string]: unknown;
+}
+
+interface ReindexParams {
+  forceAll?: boolean;
+}
+
+interface ReindexResult {
+  success?: boolean;
+  error?: string;
+  status?: number;
+  [key: string]: unknown;
+}
+
+export async function startScan(): Promise<ScanActionResult | undefined> {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore
@@ -33,7 +56,7 @@ export async function startScan() {
 
     return { success: true };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error starting scan:", error);
@@ -42,13 +65,13 @@ export async function startScan() {
   }
 }
 
-export async function getScanStatus() {
+export async function getScanStatus(): Promise<ScanStatusResult | undefined> {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore
@@ -75,7 +98,7 @@ export async function getScanStatus() {
     const data = await res.json();
     return data;
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error getting scan status:", error);
@@ -84,13 +107,13 @@ export async function getScanStatus() {
   }
 }
 
-export async function reindexLibrary({ forceAll = true }) {
+export async function reindexLibrary({ forceAll = true }: ReindexParams): Promise<ReindexResult | undefined> {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore
@@ -118,7 +141,7 @@ export async function reindexLibrary({ forceAll = true }) {
 
     return { success: true, ...data };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error reindexing library:", error);
@@ -127,13 +150,13 @@ export async function reindexLibrary({ forceAll = true }) {
   }
 }
 
-export async function regenerateCovers({ forceAll = true }) {
+export async function regenerateCovers({ forceAll = true }: ReindexParams): Promise<ReindexResult | undefined> {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore
@@ -164,7 +187,7 @@ export async function regenerateCovers({ forceAll = true }) {
 
     return { success: true, ...data };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error regenerating covers:", error);
@@ -173,13 +196,13 @@ export async function regenerateCovers({ forceAll = true }) {
   }
 }
 
-export async function reprocessMetadata({ forceAll = true }) {
+export async function reprocessMetadata({ forceAll = true }: ReindexParams): Promise<ReindexResult | undefined> {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore
@@ -210,7 +233,7 @@ export async function reprocessMetadata({ forceAll = true }) {
 
     return { success: true, ...data };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error reprocessing metadata:", error);

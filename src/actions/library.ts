@@ -3,28 +3,50 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
+import type { MangaSeries, MangaVolume, VolumeMetadata, UserToVolume } from "@prisma/client";
+
+interface GenreFilter {
+  id: string;
+  name: string;
+}
+
+interface TagFilter {
+  id: string;
+  name: string;
+}
+
+interface SeriesWithVolumes extends MangaSeries {
+  volumes: MangaVolume[];
+  volumeSlug?: string;
+}
+
+interface VolumeWithRelations extends MangaVolume {
+  series: MangaSeries;
+  metadataObj: VolumeMetadata | null;
+  usersProgress: UserToVolume[];
+}
 
 export async function getLibraryFilters() {
-  let error;
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
       return { error: "Unauthorized", status: 401 };
     }
 
-    const genres = await prisma.genre.findMany({
+    const genres: GenreFilter[] = await prisma.genre.findMany({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     });
 
-    const tags = await prisma.tag.findMany({
+    const tags: TagFilter[] = await prisma.tag.findMany({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     });
 
     return { genres, tags };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error fetching filters:", error);
@@ -34,7 +56,7 @@ export async function getLibraryFilters() {
 }
 
 export async function getMangaOverall() {
-  let error;
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -47,7 +69,7 @@ export async function getMangaOverall() {
       },
     });
 
-    const formatted = series.map((s) => {
+    const formatted = series.map((s: SeriesWithVolumes) => {
       if (s.isOneshot && s.volumes.length === 1) {
         return {
           ...s,
@@ -60,7 +82,7 @@ export async function getMangaOverall() {
 
     return { success: true, data: formatted };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error al obtener los datos desde la DB:", error);
@@ -74,7 +96,7 @@ export async function getMangaOverall() {
 }
 
 export async function getMangaSeries() {
-  let error;
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -93,7 +115,7 @@ export async function getMangaSeries() {
 
     return { success: true, data: series };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error al obtener series:", error);
@@ -107,7 +129,7 @@ export async function getMangaSeries() {
 }
 
 export async function getMangaVolumes() {
-  let error;
+  let error: Error | null = null;
   try {
     const currentUser = await verifySession();
 
@@ -119,7 +141,7 @@ export async function getMangaVolumes() {
       };
     }
 
-    let volumes = await prisma.mangaVolume.findMany({
+    let volumes: VolumeWithRelations[] = await prisma.mangaVolume.findMany({
       include: {
         series: true,
         metadataObj: true,
@@ -135,7 +157,7 @@ export async function getMangaVolumes() {
 
     return { success: true, data: volumes };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error al obtener volúmenes:", error);

@@ -3,8 +3,18 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
+interface GenreStat {
+  genre: string;
+  user: number;
+}
+
+interface MonthlyRead {
+  month: number;
+  count: number;
+}
+
 export async function getGenresStats() {
-  let error;
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -39,7 +49,7 @@ export async function getGenresStats() {
     const readVolumeIds = readVolumes.map((v) => v.volumeId);
 
     if (readVolumeIds.length === 0) {
-      return { topGenres: [] };
+      return { topGenres: [] as GenreStat[] };
     }
 
     const [genres, tags] = await Promise.all([
@@ -57,8 +67,8 @@ export async function getGenresStats() {
       }),
     ]);
 
-    const volumeNames = new Map();
-    const displayMap = new Map();
+    const volumeNames = new Map<string, Set<string>>();
+    const displayMap = new Map<string, string>();
 
     for (const entry of genres) {
       const id = entry.volumeId;
@@ -66,7 +76,7 @@ export async function getGenresStats() {
       const key = name.toLowerCase();
       if (!displayMap.has(key)) displayMap.set(key, name);
       if (!volumeNames.has(id)) volumeNames.set(id, new Set());
-      volumeNames.get(id).add(key);
+      volumeNames.get(id)!.add(key);
     }
 
     for (const entry of tags) {
@@ -76,10 +86,10 @@ export async function getGenresStats() {
       if (ignoreSet.has(key)) continue;
       if (!displayMap.has(key)) displayMap.set(key, name);
       if (!volumeNames.has(id)) volumeNames.set(id, new Set());
-      volumeNames.get(id).add(key);
+      volumeNames.get(id)!.add(key);
     }
 
-    const countMap = new Map();
+    const countMap = new Map<string, number>();
 
     for (const names of volumeNames.values()) {
       for (const key of names) {
@@ -87,7 +97,7 @@ export async function getGenresStats() {
       }
     }
 
-    const sorted = Array.from(countMap.entries())
+    const sorted: GenreStat[] = Array.from(countMap.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
       .map(([key, count]) => ({
@@ -97,7 +107,7 @@ export async function getGenresStats() {
 
     return { topGenres: sorted };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error fetching top genres:", error);
@@ -228,10 +238,10 @@ export async function getReaderStats() {
   const totalUnread = totalVolumes - totalRead;
 
   const now = new Date();
-  const monthlyReadCount = Array(12).fill(0);
+  const monthlyReadCount = Array(12).fill(0) as number[];
 
   for (const entry of allFirstReadDates) {
-    const [yearStr, monthStr] = entry.firstRead.split("-");
+    const [yearStr, monthStr] = entry.firstRead!.split("-");
     const year = Number(yearStr);
     const month = Number(monthStr);
 
@@ -240,7 +250,7 @@ export async function getReaderStats() {
     }
   }
 
-  const monthlyReads = monthlyReadCount
+  const monthlyReads: MonthlyRead[] = monthlyReadCount
     .map((count, index) => ({
       month: index + 1,
       count,
@@ -248,7 +258,7 @@ export async function getReaderStats() {
     .filter((_, index) => index <= now.getMonth());
 
   const goal = currentChallenge?.goal || 0;
-  let monthlyGoal = null;
+  let monthlyGoal: number | null = null;
 
   if (goal > 0) {
     const currentMonth = now.getMonth() + 1;

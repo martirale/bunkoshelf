@@ -4,13 +4,25 @@ import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
 
-export async function getLogs() {
+interface GetLogsResult {
+  logs?: string;
+  error?: string;
+  status?: number;
+}
+
+interface ClearLogsResult {
+  success?: boolean;
+  error?: string;
+  status?: number;
+}
+
+export async function getLogs(): Promise<GetLogsResult | undefined> {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const logPath = path.join(process.cwd(), "app.log");
 
@@ -22,7 +34,7 @@ export async function getLogs() {
       return { logs: "" };
     }
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error reading logs:", error);
@@ -31,13 +43,13 @@ export async function getLogs() {
   }
 }
 
-export async function clearLogs() {
+export async function clearLogs(): Promise<ClearLogsResult | undefined> {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const logPath = path.join(process.cwd(), "app.log");
 
@@ -50,7 +62,7 @@ export async function clearLogs() {
 
     return { success: true };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error clearing logs:", error);

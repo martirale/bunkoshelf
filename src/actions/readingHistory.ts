@@ -3,7 +3,7 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-export async function syncFirstRead(userId, volumeId) {
+export async function syncFirstRead(userId: string, volumeId: string) {
   const oldest = await prisma.readingEntry.findFirst({
     where: { userId, volumeId },
     orderBy: { readAt: "asc" },
@@ -12,7 +12,7 @@ export async function syncFirstRead(userId, volumeId) {
 
   const hasEntries = !!oldest;
 
-  let progressUpdate = {};
+  let progressUpdate: { lastPage?: number; totalPages?: number } = {};
 
   if (hasEntries) {
     const existing = await prisma.userToVolume.findUnique({
@@ -27,7 +27,7 @@ export async function syncFirstRead(userId, volumeId) {
         where: { id: volumeId },
         select: { metadataObj: { select: { pageCount: true } } },
       });
-      totalPages = volume?.metadataObj?.pageCount;
+      totalPages = volume?.metadataObj?.pageCount ?? undefined;
     }
 
     if (totalPages) {
@@ -54,7 +54,7 @@ export async function syncFirstRead(userId, volumeId) {
   });
 }
 
-export async function getReadingHistory({ volumeId }) {
+export async function getReadingHistory({ volumeId }: { volumeId: string }) {
   const user = await verifySession();
   if (!user) {
     return { error: "Unauthorized", status: 401 };
@@ -75,8 +75,8 @@ export async function getReadingHistory({ volumeId }) {
   return { entries };
 }
 
-export async function createReadingEntry({ volumeId, readAt }) {
-  let error;
+export async function createReadingEntry({ volumeId, readAt }: { volumeId: string; readAt: string }) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -100,7 +100,7 @@ export async function createReadingEntry({ volumeId, readAt }) {
 
     return { success: true, entry };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error creating reading entry:", error);
@@ -109,8 +109,8 @@ export async function createReadingEntry({ volumeId, readAt }) {
   }
 }
 
-export async function updateReadingEntry({ entryId, readAt }) {
-  let error;
+export async function updateReadingEntry({ entryId, readAt }: { entryId: string; readAt: string }) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -140,7 +140,7 @@ export async function updateReadingEntry({ entryId, readAt }) {
 
     return { success: true, entry };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error updating reading entry:", error);
@@ -149,8 +149,8 @@ export async function updateReadingEntry({ entryId, readAt }) {
   }
 }
 
-export async function deleteReadingEntry({ entryId }) {
-  let error;
+export async function deleteReadingEntry({ entryId }: { entryId: string }) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -178,7 +178,7 @@ export async function deleteReadingEntry({ entryId }) {
 
     return { success: true };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error deleting reading entry:", error);

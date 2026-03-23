@@ -4,8 +4,15 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
+import type { Locale } from "@/lib/types";
 
-export async function login({ username, password, lang = "es" }) {
+interface LoginParams {
+  username: string;
+  password: string;
+  lang?: Locale;
+}
+
+export async function login({ username, password, lang = "es" }: LoginParams) {
   if (!username || !password) {
     throw new Error("missing");
   }
@@ -24,7 +31,7 @@ export async function login({ username, password, lang = "es" }) {
         isAdmin: user.isAdmin,
         role: user.role,
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET!,
       {
         expiresIn: "180d",
         algorithm: "HS256",
@@ -37,7 +44,7 @@ export async function login({ username, password, lang = "es" }) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 180 * 24 * 60 * 60, // Six months
+      maxAge: 180 * 24 * 60 * 60,
     });
 
     return { success: true };

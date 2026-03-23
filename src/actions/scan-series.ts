@@ -10,25 +10,51 @@ import { extractMetadataCbz } from "@/lib/jobs/scan/manga/meta/cbz";
 import { extractMetadataCbr } from "@/lib/jobs/scan/manga/meta/cbr";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import type { StorageProvider, ComicInfoResult } from "@/lib/types";
 
-const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
+const LIB_PROVIDER: StorageProvider = (process.env.LIB_PROVIDER as StorageProvider) || "local";
 const TEMP_PATH = path.resolve(process.cwd(), "../temp");
 
-function getCoverExtractor(filePath) {
+interface VolumeInfo {
+  id: string;
+  slug: string;
+  fullPath: string;
+  metadataId: string | null;
+}
+
+interface VolumeScanResult {
+  coversUpdated: number;
+  metaUpdated: number;
+  errors: number;
+}
+
+interface ScanResult {
+  success?: boolean;
+  error?: string;
+  coversUpdated?: number;
+  metaUpdated?: number;
+  errors?: number;
+  totalVolumes?: number;
+}
+
+type CoverExtractor = (fullPath: string, outputDir: string, provider: StorageProvider) => Promise<string | null>;
+type MetaExtractor = (fullPath: string, provider: StorageProvider) => Promise<ComicInfoResult | null>;
+
+function getCoverExtractor(filePath: string): CoverExtractor | null {
   const ext = path.extname(filePath).toLowerCase();
   if (ext === ".cbz" || ext === ".zip") return extractCoverCbz;
   if (ext === ".cbr" || ext === ".rar") return extractCoverCbr;
   return null;
 }
 
-function getMetaExtractor(filePath) {
+function getMetaExtractor(filePath: string): MetaExtractor | null {
   const ext = path.extname(filePath).toLowerCase();
   if (ext === ".cbz" || ext === ".zip") return extractMetadataCbz;
   if (ext === ".cbr" || ext === ".rar") return extractMetadataCbr;
   return null;
 }
 
-async function processVolumeScan(volume, seriesPath) {
+async function processVolumeScan(volume: VolumeInfo, seriesPath: string): Promise<VolumeScanResult> {
   let coversUpdated = 0;
   let metaUpdated = 0;
   let errors = 0;
@@ -36,7 +62,7 @@ async function processVolumeScan(volume, seriesPath) {
   const coverExtractor = getCoverExtractor(volume.fullPath);
   if (coverExtractor) {
     try {
-      let outputDir;
+      let outputDir: string;
 
       if (LIB_PROVIDER === "cloud") {
         await fsp.mkdir(TEMP_PATH, { recursive: true });
@@ -81,7 +107,7 @@ async function processVolumeScan(volume, seriesPath) {
     } catch (err) {
       console.error(
         `Error extrayendo portada de ${volume.fullPath}:`,
-        err.message
+        (err as Error).message
       );
       errors++;
     }
@@ -143,7 +169,7 @@ async function processVolumeScan(volume, seriesPath) {
     } catch (err) {
       console.error(
         `Error extrayendo metadatos de ${volume.fullPath}:`,
-        err.message
+        (err as Error).message
       );
       errors++;
     }
@@ -152,13 +178,13 @@ async function processVolumeScan(volume, seriesPath) {
   return { coversUpdated, metaUpdated, errors };
 }
 
-export async function scanSeries(seriesId) {
+export async function scanSeries(seriesId: string): Promise<ScanResult | undefined> {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
     return { error: "Unauthorized" };
   }
 
-  let _err;
+  let _err: Error | null = null;
   try {
     const series = await prisma.mangaSeries.findUnique({
       where: { id: seriesId },
@@ -197,7 +223,7 @@ export async function scanSeries(seriesId) {
       totalVolumes: series.volumes.length,
     };
   } catch (e) {
-    _err = e;
+    _err = e as Error;
   } finally {
     if (_err) {
       console.error("Error en scanSeries:", _err);
@@ -206,13 +232,13 @@ export async function scanSeries(seriesId) {
   }
 }
 
-export async function scanVolume(volumeId) {
+export async function scanVolume(volumeId: string): Promise<ScanResult | undefined> {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
     return { error: "Unauthorized" };
   }
 
-  let _err;
+  let _err: Error | null = null;
   try {
     const volume = await prisma.mangaVolume.findUnique({
       where: { id: volumeId },
@@ -239,7 +265,7 @@ export async function scanVolume(volumeId) {
       totalVolumes: 1,
     };
   } catch (e) {
-    _err = e;
+    _err = e as Error;
   } finally {
     if (_err) {
       console.error("Error en scanVolume:", _err);

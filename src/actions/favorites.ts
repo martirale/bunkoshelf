@@ -3,8 +3,18 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-export async function toggleSeriesFavorite({ seriesId, favorite }) {
-  let error;
+interface ToggleSeriesFavoriteParams {
+  seriesId: string | number | null | undefined;
+  favorite: boolean | string;
+}
+
+interface ToggleVolumeFavoriteParams {
+  volumeId: string | number | null | undefined;
+  favorite: boolean | string;
+}
+
+export async function toggleSeriesFavorite({ seriesId, favorite }: ToggleSeriesFavoriteParams) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -46,7 +56,7 @@ export async function toggleSeriesFavorite({ seriesId, favorite }) {
 
     return { success: true, status: 200 };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error updating favorite (series):", error);
@@ -55,8 +65,8 @@ export async function toggleSeriesFavorite({ seriesId, favorite }) {
   }
 }
 
-export async function toggleVolumeFavorite({ volumeId, favorite }) {
-  let error;
+export async function toggleVolumeFavorite({ volumeId, favorite }: ToggleVolumeFavoriteParams) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -98,7 +108,7 @@ export async function toggleVolumeFavorite({ volumeId, favorite }) {
 
     return { success: true, status: 200 };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error updating favorite (volume):", error);

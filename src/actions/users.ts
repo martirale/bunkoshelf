@@ -4,6 +4,64 @@ import { verifySession } from "@/lib/auth/verifySession";
 import { hash } from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { log } from "@/lib/logger";
+import type { User } from "@prisma/client";
+
+interface CreateUserParams {
+  username: string;
+  password: string;
+  name?: string;
+  lastname?: string;
+  birthYear?: number | null;
+  isAdmin?: boolean;
+  role?: string;
+}
+
+interface CreateUserResult {
+  success?: boolean;
+  user?: User;
+  error?: string;
+  status?: number;
+}
+
+interface UpdateUserParams {
+  name?: string;
+  lastname?: string;
+  password?: string;
+}
+
+interface UpdateUserResult {
+  success?: boolean;
+  error?: string;
+  status?: number;
+}
+
+interface AdminUpdateUserParams {
+  id: string;
+  username: string;
+  password?: string;
+  name?: string;
+  lastname?: string;
+  birthYear?: number | null;
+  isAdmin?: boolean;
+  role?: string;
+}
+
+interface AdminUpdateUserResult {
+  success?: boolean;
+  user?: User;
+  error?: string;
+  status?: number;
+}
+
+interface DeleteUserParams {
+  id: string;
+}
+
+interface DeleteUserResult {
+  success?: boolean;
+  error?: string;
+  status?: number;
+}
 
 export async function createUser({
   username,
@@ -13,8 +71,8 @@ export async function createUser({
   birthYear,
   isAdmin,
   role,
-}) {
-  let _err;
+}: CreateUserParams): Promise<CreateUserResult | undefined> {
+  let _err: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -68,7 +126,7 @@ export async function createUser({
 
     return { success: true, user: newUser };
   } catch (error) {
-    _err = error;
+    _err = error as Error;
   } finally {
     if (_err) {
       console.error("Error creando usuario:", _err);
@@ -77,7 +135,7 @@ export async function createUser({
   }
 }
 
-export async function updateUser({ name, lastname, password }) {
+export async function updateUser({ name, lastname, password }: UpdateUserParams): Promise<UpdateUserResult> {
   try {
     const session = await verifySession();
     if (!session) {
@@ -86,7 +144,7 @@ export async function updateUser({ name, lastname, password }) {
 
     const start = Date.now();
 
-    const data = {
+    const data: { name?: string; lastname?: string; password?: string } = {
       name,
       lastname,
     };
@@ -134,7 +192,7 @@ export async function adminUpdateUser({
   birthYear,
   isAdmin,
   role,
-}) {
+}: AdminUpdateUserParams): Promise<AdminUpdateUserResult> {
   try {
     const user = await verifySession();
     if (!user) {
@@ -150,7 +208,7 @@ export async function adminUpdateUser({
       return { error: "Faltan campos requeridos", status: 400 };
     }
 
-    const dataToUpdate = {
+    const dataToUpdate: Record<string, string | boolean | number | null> = {
       username,
       name: name || null,
       lastname: lastname || null,
@@ -191,8 +249,8 @@ export async function adminUpdateUser({
   }
 }
 
-export async function deleteUser({ id }) {
-  let _err;
+export async function deleteUser({ id }: DeleteUserParams): Promise<DeleteUserResult | undefined> {
+  let _err: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -242,7 +300,7 @@ export async function deleteUser({ id }) {
 
     return { success: true };
   } catch (error) {
-    _err = error;
+    _err = error as Error;
   } finally {
     if (_err) {
       console.error("Error al eliminar usuario:", _err);

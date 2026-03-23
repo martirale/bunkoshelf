@@ -5,11 +5,20 @@ import prisma from "@/lib/prisma";
 import path from "path";
 import { extractImagesCbz } from "@/lib/reader/manga/cbz";
 import { extractImagesCbr } from "@/lib/reader/manga/cbr";
+import type { MangaVolume } from "@prisma/client";
+import type { StorageProvider } from "@/lib/types";
 
-const activeVolumes = new Map();
-const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
+type Extractor = (
+  volume: MangaVolume,
+  slug: string,
+  provider: StorageProvider,
+  activeVolumes: Map<string, string>
+) => Promise<{ images: string[] }>;
 
-function getExtractorForFile(filePath) {
+const activeVolumes = new Map<string, string>();
+const LIB_PROVIDER = (process.env.LIB_PROVIDER || "local") as StorageProvider;
+
+function getExtractorForFile(filePath: string): Extractor | null {
   const ext = path.extname(filePath).toLowerCase();
 
   if (ext === ".cbz" || ext === ".zip") {
@@ -23,8 +32,8 @@ function getExtractorForFile(filePath) {
   return null;
 }
 
-export async function getMangaImages({ slug }) {
-  let error = null;
+export async function getMangaImages({ slug }: { slug: string }) {
+  let error: Error | null = null;
 
   try {
     const user = await verifySession();
@@ -57,7 +66,7 @@ export async function getMangaImages({ slug }) {
 
     return result;
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Reader error:", error);
@@ -69,8 +78,8 @@ export async function getMangaImages({ slug }) {
   }
 }
 
-export async function getReadingProgress({ slug }) {
-  let error;
+export async function getReadingProgress({ slug }: { slug: string }) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -110,7 +119,7 @@ export async function getReadingProgress({ slug }) {
 
     return progress;
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error fetching progress:", error);
@@ -119,8 +128,8 @@ export async function getReadingProgress({ slug }) {
   }
 }
 
-export async function getSeriesProgress({ seriesSlug }) {
-  let error;
+export async function getSeriesProgress({ seriesSlug }: { seriesSlug: string }) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -169,7 +178,7 @@ export async function getSeriesProgress({ seriesSlug }) {
       totalVolumes,
     };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error fetching series progress:", error);

@@ -2,22 +2,35 @@
 
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
+
+interface PushSubscriptionInput {
+  endpoint: string;
+  keys: Prisma.InputJsonValue;
+}
+
+interface PushPayload {
+  title: string;
+  body?: string;
+  icon?: string;
+  url?: string;
+}
 
 const PUSH_SERVER_URL = process.env.PUSH_SERVER_URL;
 const PUSH_API_KEY = process.env.PUSH_API_KEY;
 
-const pushHeaders = {
+const pushHeaders: HeadersInit = {
   "Content-Type": "application/json",
   ...(PUSH_API_KEY && { Authorization: `Bearer ${PUSH_API_KEY}` }),
 };
 
-export async function subscribePush(subscription, deviceName) {
+export async function subscribePush(subscription: PushSubscriptionInput, deviceName: string) {
   const user = await verifySession();
   if (!user) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     await prisma.pushSubscription.upsert({
       where: {
@@ -37,7 +50,7 @@ export async function subscribePush(subscription, deviceName) {
 
     return { success: true };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error subscribing to push:", error);
@@ -46,13 +59,13 @@ export async function subscribePush(subscription, deviceName) {
   }
 }
 
-export async function sendPush(payload) {
+export async function sendPush(payload: PushPayload) {
   const user = await verifySession();
   if (!user) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const subscriptions = await prisma.pushSubscription.findMany({
       where: { userId: user.id },
@@ -75,7 +88,7 @@ export async function sendPush(payload) {
 
     return { success: true, sent: subscriptions.length };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error sending push:", error);
@@ -84,13 +97,13 @@ export async function sendPush(payload) {
   }
 }
 
-export async function sendPushToSubscription(subscription, payload) {
+export async function sendPushToSubscription(subscription: PushSubscriptionInput, payload: PushPayload) {
   const user = await verifySession();
   if (!user) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const res = await fetch(`${PUSH_SERVER_URL}/send`, {
       method: "POST",
@@ -104,7 +117,7 @@ export async function sendPushToSubscription(subscription, payload) {
 
     return { success: true };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error sending push:", error);
@@ -119,7 +132,7 @@ export async function getUserSubscriptions() {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const subscriptions = await prisma.pushSubscription.findMany({
       where: { userId: user.id },
@@ -129,7 +142,7 @@ export async function getUserSubscriptions() {
 
     return { success: true, subscriptions };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error fetching subscriptions:", error);
@@ -138,13 +151,13 @@ export async function getUserSubscriptions() {
   }
 }
 
-export async function deleteSubscription(id) {
+export async function deleteSubscription(id: string) {
   const user = await verifySession();
   if (!user) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     await prisma.pushSubscription.delete({
       where: { id, userId: user.id },
@@ -152,7 +165,7 @@ export async function deleteSubscription(id) {
 
     return { success: true };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error deleting subscription:", error);
@@ -167,7 +180,7 @@ export async function deleteAllSubscriptions() {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     await prisma.pushSubscription.deleteMany({
       where: { userId: user.id },
@@ -175,7 +188,7 @@ export async function deleteAllSubscriptions() {
 
     return { success: true };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error deleting all subscriptions:", error);
@@ -184,13 +197,13 @@ export async function deleteAllSubscriptions() {
   }
 }
 
-export async function sendPushBroadcast(payload) {
+export async function sendPushBroadcast(payload: PushPayload) {
   const user = await verifySession();
   if (!user || !user.isAdmin) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  let error = null;
+  let error: Error | null = null;
   try {
     const subscriptions = await prisma.pushSubscription.findMany({
       select: { endpoint: true, keys: true },
@@ -212,7 +225,7 @@ export async function sendPushBroadcast(payload) {
 
     return { success: true, sent: subscriptions.length };
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error sending broadcast push:", error);

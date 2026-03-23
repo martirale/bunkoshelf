@@ -3,8 +3,13 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 
-export async function updatePersonalRating({ volumeId, rating }) {
-  let error;
+interface UpdatePersonalRatingParams {
+  volumeId: string | number | null | undefined;
+  rating: number | null;
+}
+
+export async function updatePersonalRating({ volumeId, rating }: UpdatePersonalRatingParams) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -51,7 +56,7 @@ export async function updatePersonalRating({ volumeId, rating }) {
 
     return { success: true, status: 200 };
   } catch (e) {
-    error = e;
+    error = e as Error;
   } finally {
     if (error) {
       console.error("Error updating personal rating:", error);

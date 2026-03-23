@@ -4,13 +4,25 @@ import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
 import { ListObjectsV2Command, DeleteObjectsCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import type { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
 import prisma from "@/lib/prisma";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import type { StorageProvider } from "@/lib/types";
 
-const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
+const LIB_PROVIDER: StorageProvider = (process.env.LIB_PROVIDER as StorageProvider) || "local";
 
-export async function deleteSeries({ slug }) {
-  let _err;
+interface DeleteBySlugParams {
+  slug: string;
+}
+
+interface DeleteResult {
+  ok: boolean;
+  error?: string;
+  status?: number;
+}
+
+export async function deleteSeries({ slug }: DeleteBySlugParams): Promise<DeleteResult | undefined> {
+  let _err: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -31,7 +43,7 @@ export async function deleteSeries({ slug }) {
       select: { metadataId: true },
     });
 
-    const metadataIds = volumes.map((v) => v.metadataId).filter(Boolean);
+    const metadataIds = volumes.map((v) => v.metadataId).filter(Boolean) as string[];
 
     await prisma.mangaSeries.delete({ where: { id: series.id } });
 
@@ -45,9 +57,9 @@ export async function deleteSeries({ slug }) {
 
     if (LIB_PROVIDER === "cloud") {
       const prefix = seriesPath.replace(/^\/+/, "").replace(/\\/g, "/");
-      let continuationToken = undefined;
+      let continuationToken: string | undefined = undefined;
       do {
-        const listRes = await r2Client.send(
+        const listRes: ListObjectsV2CommandOutput = await r2Client.send(
           new ListObjectsV2Command({
             Bucket: R2_BUCKET,
             Prefix: prefix,
@@ -84,7 +96,7 @@ export async function deleteSeries({ slug }) {
 
     return { ok: true };
   } catch (error) {
-    _err = error;
+    _err = error as Error;
   } finally {
     if (_err) {
       console.error("Error deleting series:", _err);
@@ -93,8 +105,8 @@ export async function deleteSeries({ slug }) {
   }
 }
 
-export async function deleteVolume({ slug }) {
-  let _err;
+export async function deleteVolume({ slug }: DeleteBySlugParams): Promise<DeleteResult | undefined> {
+  let _err: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -173,7 +185,7 @@ export async function deleteVolume({ slug }) {
 
     return { ok: true };
   } catch (error) {
-    _err = error;
+    _err = error as Error;
   } finally {
     if (_err) {
       console.error("Error deleting volume:", _err);

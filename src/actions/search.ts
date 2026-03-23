@@ -3,8 +3,64 @@
 import MiniSearch from "minisearch";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
+import type { MangaSeries, MangaVolume, VolumeMetadata, VolumeToGenre, VolumeToTag, Genre, Tag } from "@prisma/client";
 
-export async function searchManga({ query }) {
+interface SearchParams {
+  query: string;
+}
+
+interface VolumeWithRelations extends MangaVolume {
+  series: MangaSeries;
+  metadataObj: VolumeMetadata | null;
+  genres: (VolumeToGenre & { genre: Genre })[];
+  tags: (VolumeToTag & { tag: Tag })[];
+}
+
+interface SeriesDoc {
+  id: string;
+  title: string;
+  slug: string;
+  isOneshot: boolean;
+  writer: string;
+  series: string;
+}
+
+interface VolumeDoc {
+  id: string;
+  title: string;
+  writer: string;
+  series: string;
+  slug: string;
+  isOneshot: boolean;
+  genres: string;
+  tags: string;
+}
+
+interface SeriesResult {
+  id: string;
+  type: string;
+  title: string;
+  slug: string;
+  isOneshot: boolean;
+  writer: string;
+  series: string;
+  score: number;
+}
+
+interface VolumeResult {
+  id: string;
+  type: string;
+  title: string;
+  writer: string;
+  series: string;
+  slug: string;
+  isOneshot: boolean;
+  score: number;
+  genres: string;
+  tags: string;
+}
+
+export async function searchManga({ query }: SearchParams) {
   const user = await verifySession();
   if (!user) {
     return { error: "Unauthorized", status: 401 };
@@ -14,7 +70,7 @@ export async function searchManga({ query }) {
     return { success: true, data: [] };
   }
 
-  const volumes = await prisma.mangaVolume.findMany({
+  const volumes: VolumeWithRelations[] = await prisma.mangaVolume.findMany({
     include: {
       series: true,
       metadataObj: true,
@@ -31,8 +87,8 @@ export async function searchManga({ query }) {
     },
   });
 
-  const writerBySeriesId = new Map();
-  const seriesNameById = new Map();
+  const writerBySeriesId = new Map<string, string>();
+  const seriesNameById = new Map<string, string>();
 
   for (const vol of volumes) {
     const writer = vol.metadataObj?.writer?.trim();
@@ -46,9 +102,9 @@ export async function searchManga({ query }) {
     }
   }
 
-  const seriesList = await prisma.mangaSeries.findMany();
+  const seriesList: MangaSeries[] = await prisma.mangaSeries.findMany();
 
-  const seriesDocs = seriesList.map((s) => ({
+  const seriesDocs: SeriesDoc[] = seriesList.map((s) => ({
     id: `series-${s.id}`,
     title: s.title,
     slug: s.slug,
@@ -57,7 +113,7 @@ export async function searchManga({ query }) {
     series: seriesNameById.get(s.id) || s.title,
   }));
 
-  const seriesMap = new Map(seriesDocs.map((s) => [s.id, s]));
+  const seriesMap = new Map<string, SeriesDoc>(seriesDocs.map((s) => [s.id, s]));
 
   const seriesSearch = new MiniSearch({
     fields: ["title"],
@@ -71,8 +127,8 @@ export async function searchManga({ query }) {
     fuzzy: 0.2,
   });
 
-  const seriesResults = foundSeries.map((res) => {
-    const doc = seriesMap.get(res.id);
+  const seriesResults: SeriesResult[] = foundSeries.map((res) => {
+    const doc = seriesMap.get(res.id as string)!;
     return {
       id: doc.id,
       type: "series",
@@ -85,17 +141,17 @@ export async function searchManga({ query }) {
     };
   });
 
-  const volumeDocs = volumes.map((vol) => {
+  const volumeDocs: VolumeDoc[] = volumes.map((vol) => {
     const genreNames = Array.isArray(vol.genres)
       ? vol.genres
           .map((g) => (g.genre?.name ? g.genre.name.trim() : null))
-          .filter(Boolean)
+          .filter((name): name is string => Boolean(name))
       : [];
 
     const tagNames = Array.isArray(vol.tags)
       ? vol.tags
           .map((t) => (t.tag?.name ? t.tag.name.trim() : null))
-          .filter(Boolean)
+          .filter((name): name is string => Boolean(name))
       : [];
 
     return {
@@ -110,7 +166,7 @@ export async function searchManga({ query }) {
     };
   });
 
-  const volumesMap = new Map(volumeDocs.map((doc) => [doc.id, doc]));
+  const volumesMap = new Map<string, VolumeDoc>(volumeDocs.map((doc) => [doc.id, doc]));
 
   const volumeSearch = new MiniSearch({
     fields: ["title", "writer", "series", "slug", "genres", "tags"],
@@ -124,8 +180,8 @@ export async function searchManga({ query }) {
     fuzzy: 0.2,
   });
 
-  const volumeResults = foundVolumes.map((res) => {
-    const doc = volumesMap.get(res.id);
+  const volumeResults: VolumeResult[] = foundVolumes.map((res) => {
+    const doc = volumesMap.get(res.id as string)!;
     return {
       id: doc.id,
       type: "volume",
@@ -141,7 +197,7 @@ export async function searchManga({ query }) {
   });
 
   const allResults = [...seriesResults, ...volumeResults].sort((a, b) => {
-    const getPriority = (item) => {
+    const getPriority = (item: SeriesResult | VolumeResult): number => {
       if (item.type === "volume" && item.isOneshot) return 0;
       if (item.type === "series") return 1;
       return 2;
