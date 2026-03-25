@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import { useState, useEffect, useRef } from "react";
 import { startScan, getScanStatus } from "@/actions/admin-scan";
 import { sendPushBroadcast } from "@/actions/web-push";
 import type { ScanStatus } from "@/lib/types";
 
 interface ToastOptions {
   title: string;
-  description: string | ReactNode;
+  description: string;
   variant: "default" | "success" | "error";
   duration?: number;
   manual?: boolean;
@@ -79,12 +79,11 @@ export default function useScanPolling({
           setScanStatus(status);
 
           const taskText = status.currentTask || intl.toastScan.noTask;
-          const toastContent = <p>{taskText}</p>;
 
           if (toastIdRef.current) {
             updateToast(toastIdRef.current, {
               title: intl.toastScan.progressTt,
-              description: toastContent,
+              description: taskText,
               variant: "default",
               manual: true,
               open: true,
@@ -92,7 +91,7 @@ export default function useScanPolling({
           } else {
             toastIdRef.current = addToast({
               title: intl.toastScan.progressTt,
-              description: toastContent,
+              description: taskText,
               variant: "default",
               manual: true,
               open: true,
