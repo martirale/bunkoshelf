@@ -1,6 +1,13 @@
 import Link from "next/link";
+import type { Dictionary, ChallengeData } from "@/lib/types";
 
-export default function ChallengeProg({ lang, intl, data }) {
+interface ChallengeProgProps {
+  lang: string;
+  intl: Dictionary;
+  data: ChallengeData | null;
+}
+
+export default function ChallengeProg({ lang, intl, data }: ChallengeProgProps) {
   if (!data) return null;
 
   return (
@@ -8,7 +15,7 @@ export default function ChallengeProg({ lang, intl, data }) {
       <Link href={`/${lang}/profile`} className="group">
         <div className="space-y-1">
           <div className="text-neutral-400 md:text-neutral-500 flex justify-between text-sm uppercase">
-            <span>{intl.profile.ttChallenge}</span>
+            <span>{intl.profile.ttChallenge as string}</span>
             <span>{Math.round(data.percentage)}%</span>
           </div>
 

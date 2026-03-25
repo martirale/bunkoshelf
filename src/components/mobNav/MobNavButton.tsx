@@ -4,6 +4,16 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { MenuIcon } from "lucide-react";
 import MobNavModal from "./MobNavModal";
+import type { Dictionary, Session, ChallengeData } from "@/lib/types";
+import type { VersionInfo } from "@/lib/versionInfo";
+
+interface MobNavButtonProps {
+  lang: string;
+  intl: Dictionary;
+  user: Session | null;
+  challengeData: ChallengeData | null;
+  versionData: VersionInfo;
+}
 
 export default function MobNavButton({
   lang,
@@ -11,7 +21,7 @@ export default function MobNavButton({
   user,
   challengeData,
   versionData,
-}) {
+}: MobNavButtonProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 

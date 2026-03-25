@@ -1,7 +1,7 @@
 import "server-only";
-import type { Locale, Dictionary } from "@/lib/types";
+import type { Locale, Dictionary, DictionarySection } from "@/lib/types";
 
-const dictionaries: Record<Locale, () => Promise<Record<string, unknown>[]>> = {
+const dictionaries: Record<Locale, () => Promise<Record<string, DictionarySection>[]>> = {
   en: () =>
     Promise.all([
       import("./dictionaries/en/home.json").then((m) => m.default),
@@ -53,7 +53,7 @@ export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
 
   if (!loader) {
     console.error(`Invalid locale: ${locale}`);
-    return {};
+    return {} as Dictionary;
   }
 
   const modules = await loader();

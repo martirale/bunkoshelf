@@ -4,7 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function MainLogo({ width = 196, height = 39 }) {
+interface MainLogoProps {
+  width?: number;
+  height?: number;
+}
+
+export default function MainLogo({ width = 196, height = 39 }: MainLogoProps) {
   const pathname = usePathname();
   const lang = pathname.split("/")[1] === "en" ? "en" : "es";
 

@@ -1,3 +1,7 @@
 export type Locale = "es" | "en";
 
-export type Dictionary = Record<string, unknown>;
+export interface DictionarySection {
+  [key: string]: string | DictionarySection;
+}
+
+export type Dictionary = Record<string, DictionarySection>;

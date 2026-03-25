@@ -4,10 +4,13 @@ import "../globals.css";
 import Sidebar from "@/components/sidebar/sidebar";
 import MobNav from "@/components/mobNav/MobNav";
 import { ToastProvider } from "@/components/ToastProvider";
+import type { Locale } from "@/lib/types";
+import type { ReactNode } from "react";
+import type { Metadata } from "next";
 
-const VALID_LOCALES = ["es", "en"];
+const VALID_LOCALES: Locale[] = ["es", "en"];
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Bunko Shelf",
   description: "Self-hosted server for managing-reading manga & ebooks.",
   icons: {
@@ -21,7 +24,12 @@ export async function generateStaticParams() {
   return [{ lang: "es" }, { lang: "en" }];
 }
 
-export default async function RootLayout({ children, params }) {
+interface RootLayoutProps {
+  children: ReactNode;
+  params: Promise<{ lang: Locale }>;
+}
+
+export default async function RootLayout({ children, params }: RootLayoutProps) {
   const { lang } = await params;
 
   if (!VALID_LOCALES.includes(lang)) notFound();

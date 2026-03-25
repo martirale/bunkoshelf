@@ -1,19 +1,31 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import ToastItem from "./ui/ToastItem";
+import type { Toast, ToastInput, ToastContextValue } from "@/lib/types";
 
-const ToastContext = createContext();
+const ToastContext = createContext<ToastContextValue | null>(null);
 
 export const useToast = () => useContext(ToastContext);
 
 let toastIdCounter = 0;
 
-export function ToastProvider({ children }) {
-  const [toasts, setToasts] = useState([]);
+interface ToastProviderProps {
+  children: ReactNode;
+}
+
+export function ToastProvider({ children }: ToastProviderProps) {
+  const [toasts, setToasts] = useState<Toast[]>([]);
   const [mounted, setMounted] = useState(false);
-  const timeouts = useRef({});
+  const timeouts = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
     setMounted(true);
@@ -22,7 +34,7 @@ export function ToastProvider({ children }) {
     };
   }, []);
 
-  const removeToast = (id) => {
+  const removeToast = (id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
     if (timeouts.current[id]) {
       clearTimeout(timeouts.current[id]);
@@ -30,7 +42,7 @@ export function ToastProvider({ children }) {
     }
   };
 
-  const addToast = (toast) => {
+  const addToast = (toast: ToastInput): number => {
     const id = Date.now() + toastIdCounter++;
     const duration = toast.manual ? null : toast.duration || 3500;
 
@@ -45,7 +57,7 @@ export function ToastProvider({ children }) {
     return id;
   };
 
-  const updateToast = (id, updatedData) => {
+  const updateToast = (id: number, updatedData: Partial<ToastInput>) => {
     const duration = updatedData.manual ? null : updatedData.duration || 3500;
 
     setToasts((prev) =>

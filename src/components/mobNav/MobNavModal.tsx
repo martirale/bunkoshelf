@@ -8,6 +8,18 @@ import SecondNav from "@/components/sidebar/SecondNav";
 import ChallengeProg from "@/components/sidebar/ChallengeProg";
 import FooterNav from "@/components/sidebar/FooterNav";
 import SearchInputMob from "@/components/search/SearchInputMob";
+import type { Dictionary, Session, ChallengeData } from "@/lib/types";
+import type { VersionInfo } from "@/lib/versionInfo";
+
+interface MobNavModalProps {
+  lang: string;
+  intl: Dictionary;
+  isOpen: boolean;
+  onClose: () => void;
+  user: Session | null;
+  challengeData: ChallengeData | null;
+  versionData: VersionInfo;
+}
 
 export default function MobNavModal({
   lang,
@@ -17,12 +29,11 @@ export default function MobNavModal({
   user,
   challengeData,
   versionData,
-}) {
-  const modalRef = useRef(null);
+}: MobNavModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  // Cerrar con Escape
   useEffect(() => {
-    const handleEscPress = (event) => {
+    const handleEscPress = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isOpen) {
         onClose();
       }
@@ -37,7 +48,6 @@ export default function MobNavModal({
     };
   }, [isOpen, onClose]);
 
-  // Forzar focus al abrir
   useEffect(() => {
     if (isOpen && modalRef.current) {
       const timeout = setTimeout(() => {
@@ -60,7 +70,6 @@ export default function MobNavModal({
         className="flex flex-col justify-between w-full max-w-5xl space-y-4 relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex flex-row items-center justify-between">
           <MobNavLogo width={150} height={30} />
           <button onClick={onClose} className="cursor-pointer">
@@ -71,13 +80,11 @@ export default function MobNavModal({
           </button>
         </div>
 
-        {/* Nav Content */}
         <div>
           {!user && <SecondNav intl={intl} />}
           {user && <MainNav intl={intl} user={user} />}
         </div>
 
-        {/* Footer Nav */}
         <div className="mt-8 mb-4">
           <div className="mb-8">
             <SearchInputMob intl={intl} />

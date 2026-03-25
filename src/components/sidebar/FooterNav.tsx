@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
   LanguagesIcon,
   LogOutIcon,
@@ -13,18 +14,46 @@ import SessionStatus from "@/hooks/SessionStatus";
 import AlertBox from "@/components/ui/AlertBox";
 import { logout } from "@/actions/logout";
 import { getVersion } from "@/actions/version";
+import type { Dictionary, Session } from "@/lib/types";
+import type { VersionInfo } from "@/lib/versionInfo";
 
-export default function FooterNav({ lang, intl, user, versionData }) {
-  const [remoteVersion, setRemoteVersion] = useState(null);
+interface FooterNavProps {
+  lang: string;
+  intl: Dictionary;
+  user: Session | null;
+  versionData: VersionInfo;
+}
+
+type FooterButton =
+  | {
+      type: "link";
+      icon: LucideIcon;
+      href: string;
+      target: string;
+      title: string;
+    }
+  | {
+      type: "button";
+      icon: LucideIcon;
+      title: string;
+      onClick: () => void;
+    };
+
+export default function FooterNav({
+  lang,
+  intl,
+  user,
+  versionData,
+}: FooterNavProps) {
+  const [remoteVersion, setRemoteVersion] = useState<string | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [remoteChangelog, setRemoteChangelog] = useState(null);
-  const [remoteVersionUrl, setRemoteVersionUrl] = useState(null);
+  const [remoteChangelog, setRemoteChangelog] = useState<string | null>(null);
   const localVersion = versionData?.version;
 
   const params = useParams();
   const router = useRouter();
   const pathname = usePathname();
-  const currentLang = params.lang || "es";
+  const currentLang = (params.lang as string) || "es";
 
   const toggleLang = () => {
     const newLang = currentLang === "es" ? "en" : "es";
@@ -47,8 +76,7 @@ export default function FooterNav({ lang, intl, user, versionData }) {
   useEffect(() => {
     if (!localVersion) return;
 
-    function isRemoteVersionNewer(local, remote) {
-      if (!local || !remote) return false;
+    function isRemoteVersionNewer(local: string, remote: string): boolean {
       const localParts = String(local)
         .split(".")
         .map((p) => Number(p) || 0);
@@ -68,22 +96,21 @@ export default function FooterNav({ lang, intl, user, versionData }) {
     async function checkVersion() {
       try {
         const data = await getVersion();
-        const remote = data.version ?? data.latest ?? null;
-        const changelog =
-          data.changelogUrl ?? data.changelog_url ?? data.url ?? null;
-        const versionUrl = data.versionUrl ?? data.version_url ?? null;
+        if (!data || "error" in data) return;
+
+        const remote = data.version ?? null;
+        const changelog = data.changelogUrl ?? null;
 
         if (remote) {
           setRemoteVersion(remote);
           if (changelog) setRemoteChangelog(changelog);
-          if (versionUrl) setRemoteVersionUrl(versionUrl);
           if (isRemoteVersionNewer(localVersion, remote)) {
             setUpdateAvailable(true);
           } else {
             setUpdateAvailable(false);
           }
         }
-      } catch (err) {
+      } catch {
         console.warn("No se pudo verificar la versión más reciente");
       }
     }
@@ -93,37 +120,37 @@ export default function FooterNav({ lang, intl, user, versionData }) {
     return () => clearInterval(interval);
   }, [localVersion]);
 
-  const buttons = [
+  const buttons: FooterButton[] = [
     {
       type: "link",
       icon: BookOpenIcon,
       href: "https://bunko.am25.app/guides/manga",
       target: "_blank",
-      title: intl.tooltip.userGuide,
+      title: intl.tooltip.userGuide as string,
     },
     {
       type: "button",
       icon: LanguagesIcon,
-      title: intl.tooltip.switchLang,
+      title: intl.tooltip.switchLang as string,
       onClick: toggleLang,
     },
     ...(user?.isAdmin
       ? [
           {
-            type: "link",
+            type: "link" as const,
             icon: Settings2Icon,
             href: `/${lang}/settings`,
             target: "_self",
-            title: intl.tooltip.settings,
+            title: intl.tooltip.settings as string,
           },
         ]
       : []),
     ...(isLoggedIn
       ? [
           {
-            type: "button",
+            type: "button" as const,
             icon: LogOutIcon,
-            title: intl.tooltip.logout,
+            title: intl.tooltip.logout as string,
             onClick: handleLogout,
           },
         ]
@@ -136,8 +163,8 @@ export default function FooterNav({ lang, intl, user, versionData }) {
         <div className="text-sand mb-4">
           <a href={remoteChangelog || "#"} target="_blank" rel="noopener">
             <AlertBox
-              title={`${intl.toastVersion.title} (${remoteVersion})`}
-              description={intl.toastVersion.description}
+              title={`${intl.toastVersion.title as string} (${remoteVersion})`}
+              description={intl.toastVersion.description as string}
             />
           </a>
         </div>
@@ -154,28 +181,33 @@ export default function FooterNav({ lang, intl, user, versionData }) {
         </a>
 
         <div className="flex items-center gap-2">
-          {buttons.map(({ type, icon: Icon, ...props }, i) =>
-            type === "button" ? (
-              <button
-                key={i}
-                {...props}
-                className="border border-stone-300 md:border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
-              >
-                <Icon size={20} />
-              </button>
-            ) : (
+          {buttons.map((btn, i) => {
+            const Icon = btn.icon;
+            if (btn.type === "button") {
+              return (
+                <button
+                  key={i}
+                  onClick={btn.onClick}
+                  title={btn.title}
+                  className="border border-stone-300 md:border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
+                >
+                  <Icon size={20} />
+                </button>
+              );
+            }
+            return (
               <Link
                 key={i}
-                href={props.href}
-                target={props.target}
+                href={btn.href}
+                target={btn.target}
                 rel="noopener"
-                title={props.title}
+                title={btn.title}
                 className="border border-stone-300 md:border-neutral-800 rounded-lg p-2 hover:text-pearl transition-all duration-300 hover:border-lilah"
               >
                 <Icon size={20} />
               </Link>
-            )
-          )}
+            );
+          })}
         </div>
       </div>
     </>

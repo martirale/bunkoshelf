@@ -4,7 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function SidebarLogo({ className }) {
+interface SidebarLogoProps {
+  className?: string;
+}
+
+export default function SidebarLogo({ className }: SidebarLogoProps) {
   const pathname = usePathname();
   const lang = pathname.split("/")[1] === "en" ? "en" : "es";
 

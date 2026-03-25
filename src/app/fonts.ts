@@ -1,7 +1,6 @@
 import { Roboto_Condensed } from "next/font/google";
 import localFont from "next/font/local";
 
-// Google Font for body text
 export const robotoCondensed = Roboto_Condensed({
   weight: ["400", "700"],
   subsets: ["latin"],

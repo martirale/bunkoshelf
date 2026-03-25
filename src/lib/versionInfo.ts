@@ -1,6 +1,6 @@
 import pkg from "../../package.json";
 
-interface VersionInfo {
+export interface VersionInfo {
   version: string;
   versionUrl: string;
   changelogUrl: string | null;

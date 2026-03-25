@@ -10,7 +10,13 @@ import SearchModal from "@/components/search/SearchModal";
 import { getChallengeData } from "@/lib/utils";
 import { getVersionInfo } from "@/lib/versionInfo";
 
-export default async function Sidebar({ lang }) {
+import type { Locale } from "@/lib/types";
+
+interface SidebarProps {
+  lang: Locale;
+}
+
+export default async function Sidebar({ lang }: SidebarProps) {
   const intl = await getDictionary(lang);
   const user = await verifySession();
   const challengeData = await getChallengeData(user);

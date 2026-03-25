@@ -1,12 +1,18 @@
 import Link from "next/link";
 import { BookOpenIcon } from "lucide-react";
+import type { Dictionary } from "@/lib/types";
 
-export default function SecondNav({ intl, className }) {
+interface SecondNavProps {
+  intl: Dictionary;
+  className?: string;
+}
+
+export default function SecondNav({ intl, className }: SecondNavProps) {
   const links = [
     {
       href: "https://bunko.am25.app/guides",
       icon: BookOpenIcon,
-      label: intl.noauth.guide,
+      label: intl.noauth.guide as string,
       external: true,
     },
   ];

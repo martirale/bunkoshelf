@@ -1,6 +1,6 @@
 export type { Session, Role, Permission } from "./auth";
 export type { ActionResponse, ActionSuccess, ActionError } from "./actions";
-export type { Locale, Dictionary } from "./i18n";
+export type { Locale, Dictionary, DictionarySection } from "./i18n";
 export type {
   StorageProvider,
   ComicMetadata,
@@ -8,3 +8,10 @@ export type {
   ScanStepStatus,
   ScanStatus,
 } from "./manga";
+export type { ChallengeData } from "./challenge";
+export type {
+  ToastVariant,
+  ToastInput,
+  Toast,
+  ToastContextValue,
+} from "./toast";
