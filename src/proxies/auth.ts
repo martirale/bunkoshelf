@@ -1,7 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-export async function authProxy(request) {
+export async function authProxy(
+  request: NextRequest
+): Promise<NextResponse | null> {
   const { pathname } = request.nextUrl;
   const langMatch = pathname.match(/^\/(es|en)/);
   const lang = langMatch?.[1] || "es";
@@ -11,7 +13,6 @@ export async function authProxy(request) {
 
   const isLoginPage = pathname === `/${lang}/login`;
 
-  // If there is no token
   if (!token) {
     if (!isLoginPage) {
       return NextResponse.redirect(new URL(`/${lang}/login`, request.url));
@@ -25,12 +26,10 @@ export async function authProxy(request) {
       new TextEncoder().encode(process.env.JWT_SECRET)
     );
 
-    // If there is a valid token and you go to login, redirect to home
     if (isLoginPage) {
       return NextResponse.redirect(new URL(`/${lang}/`, request.url));
     }
 
-    // If you try to access /settings without being admin
     const isAdminUser = payload.isAdmin === true || payload.role === "ADMIN";
     if (pathname.startsWith(`/${lang}/settings`) && !isAdminUser) {
       return NextResponse.redirect(new URL(`/${lang}/`, request.url));

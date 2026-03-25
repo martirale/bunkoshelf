@@ -1,13 +1,57 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { startScan, getScanStatus } from "@/actions/admin-scan";
 import { sendPushBroadcast } from "@/actions/web-push";
+import type { ScanStatus } from "@/lib/types";
 
-export default function useScanPolling({ lang, intl, addToast, updateToast }) {
-  const pollingRef = useRef(null);
-  const toastIdRef = useRef(null);
-  const [scanStatus, setScanStatus] = useState(null);
+interface ToastOptions {
+  title: string;
+  description: string | ReactNode;
+  variant: "default" | "success" | "error";
+  duration?: number;
+  manual?: boolean;
+  open?: boolean;
+}
+
+interface ScanPollingIntl {
+  toastScan: {
+    noTask: string;
+    progressTt: string;
+    successTt: string;
+    successDesc: string;
+    errorTt: string;
+    errorDesc: string;
+  };
+  push: {
+    ttLibraryUpdate: string;
+    bodyLibraryUpdate: string;
+  };
+}
+
+interface UseScanPollingProps {
+  lang: string;
+  intl: ScanPollingIntl;
+  addToast: (toast: ToastOptions) => number;
+  updateToast: (id: number, data: Partial<ToastOptions>) => void;
+}
+
+interface UseScanPollingReturn {
+  startPolling: () => Promise<void>;
+  stopPolling: () => void;
+  loading: boolean;
+  scanStatus: ScanStatus | null;
+}
+
+export default function useScanPolling({
+  lang,
+  intl,
+  addToast,
+  updateToast,
+}: UseScanPollingProps): UseScanPollingReturn {
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const toastIdRef = useRef<number | null>(null);
+  const [scanStatus, setScanStatus] = useState<ScanStatus | null>(null);
   const [loading, setLoading] = useState(false);
 
   const stopPolling = () => {
@@ -20,20 +64,21 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
   const startPolling = async () => {
     setLoading(true);
     setScanStatus(null);
-    let startError = null;
+    let startError: Error | null = null;
     try {
       const result = await startScan();
-      if (result.error) throw new Error(result.error);
+      if (result?.error) throw new Error(result.error);
 
       pollingRef.current = setInterval(async () => {
-        let err = null;
+        let err: Error | null = null;
         try {
           const data = await getScanStatus();
-          if (data.error) throw new Error(data.error);
+          if (data?.error) throw new Error(data.error);
 
-          setScanStatus(data);
+          const status = data as ScanStatus;
+          setScanStatus(status);
 
-          const taskText = data.currentTask || intl.toastScan.noTask;
+          const taskText = status.currentTask || intl.toastScan.noTask;
           const toastContent = <p>{taskText}</p>;
 
           if (toastIdRef.current) {
@@ -54,7 +99,7 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
             });
           }
 
-          if (data.status === "done") {
+          if (status.status === "done") {
             stopPolling();
             setLoading(false);
 
@@ -87,7 +132,7 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
             }, 300);
           }
         } catch (e) {
-          err = e;
+          err = e as Error;
         } finally {
           if (err) {
             console.error("Error en polling de escaneo:", err);
@@ -107,7 +152,7 @@ export default function useScanPolling({ lang, intl, addToast, updateToast }) {
         }
       }, 3000);
     } catch (e) {
-      startError = e;
+      startError = e as Error;
     } finally {
       if (startError) {
         setLoading(false);
