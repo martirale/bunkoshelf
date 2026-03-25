@@ -2,8 +2,13 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import LoginForm from "./LoginForm";
 import MainLogo from "@/components/ui/MainLogo";
 import { initAdmin } from "@/actions/init-admin";
+import type { Locale } from "@/lib/types";
 
-export default async function LoginPage({ params }) {
+interface LoginPageProps {
+  params: Promise<{ lang: Locale }>;
+}
+
+export default async function LoginPage({ params }: LoginPageProps) {
   const { lang = "es" } = await params;
 
   await initAdmin();
