@@ -8,6 +8,17 @@ import DeleteMangaItem from "./DeleteMangaItem";
 import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 import SeriesRating from "./SeriesRating";
+import type { Locale, Dictionary, Session } from "@/lib/types";
+
+interface SeriesContentProps {
+  serieData: Record<string, unknown>;
+  lang: Locale;
+  intl: Dictionary;
+  isFavorite: boolean;
+  aggregatedMeta: Record<string, string[]>;
+  averageRating: number | null;
+  user: Session | null;
+}
 
 export default function SeriesContent({
   serieData,
@@ -17,20 +28,19 @@ export default function SeriesContent({
   aggregatedMeta,
   averageRating,
   user,
-}) {
+}: SeriesContentProps) {
+  const volumes = serieData.volumes as Record<string, unknown>[];
   const coverImage =
-    serieData.volumes?.[serieData.volumes.length - 1]?.coverImage ?? null;
-  const meta = serieData.volumes?.[0]?.meta;
+    (volumes?.[volumes.length - 1]?.coverImage as string) ?? null;
+  const meta = (volumes?.[0]?.meta || {}) as Record<string, unknown>;
 
-  const ageMin = ageRatingMap(meta.ageRating);
+  const ageMin = ageRatingMap(meta.ageRating as string);
   const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-2 ${
-    ageMin >= 18
+    ageMin !== null && ageMin >= 18
       ? "bg-red-500"
-      : ageMin >= 16
+      : ageMin !== null && ageMin >= 16
         ? "bg-[#f5a524] text-onix"
-        : ageMin !== null
-          ? "bg-neutral-700"
-          : "bg-neutral-700"
+        : "bg-neutral-700"
   }`;
 
   const isWesternReading =
@@ -39,13 +49,12 @@ export default function SeriesContent({
   return (
     <div className="p-4">
       <section className="flex flex-col md:flex-row">
-        {/* Cover Image */}
         <div className="w-full md:w-5/12 2xl:w-1/3">
           {coverImage && (
             <div className="mb-8 md:mb-0 md:mr-4 px-16 md:px-0 md:sticky md:top-4 md:self-start">
               <Image
                 src={coverImage || "/placeholder.svg?=v1"}
-                alt={`Cover for ${serieData.title || serieData.filename}`}
+                alt={`Cover for ${(serieData.title as string) || (serieData.filename as string)}`}
                 width={0}
                 height={0}
                 sizes="100vw"
@@ -57,56 +66,51 @@ export default function SeriesContent({
 
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">
-            {meta.series || serieData.title}
+            {(meta.series as string) || (serieData.title as string)}
           </h1>
 
-          {/* Read Buttons */}
           <ReadButtonsSeries
             lang={lang}
             intl={intl}
-            seriesId={serieData.id}
+            seriesId={serieData.id as string}
             initFavorite={isFavorite}
           />
 
-          {/* Rating */}
           <div className="mt-8">
             <SeriesRating rating={averageRating} />
           </div>
 
-          {/* Meta Tags */}
           <div className="mt-2">
-            {meta.ageRating && (
+            {meta.ageRating ? (
               <span className={badgeClass}>
-                {ageRatingMap(meta.ageRating) !== null
-                  ? `${ageRatingMap(meta.ageRating)}+`
-                  : meta.ageRating}
+                {ageRatingMap(meta.ageRating as string) !== null
+                  ? `${ageRatingMap(meta.ageRating as string)}+`
+                  : (meta.ageRating as string)}
               </span>
-            )}
-            {meta.languageISO && (
+            ) : null}
+            {meta.languageISO ? (
               <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1 mr-2">
-                {meta.languageISO}
+                {meta.languageISO as string}
               </span>
-            )}
+            ) : null}
             <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1">
-              {isWesternReading ? intl.manga.readingEn : intl.manga.readingJp}
+              {isWesternReading ? (intl.manga.readingEn as string) : (intl.manga.readingJp as string)}
             </span>
           </div>
 
-          {/* Year & Volumes */}
           <p className="mt-4">
-            {meta.year && meta.year} &bull; {serieData.volumes.length}{" "}
-            {intl.manga.volumes}
+            {meta.year ? (meta.year as number) : null} &bull; {volumes.length}{" "}
+            {intl.manga.volumes as string}
           </p>
 
-          {/* Description */}
-          {meta.summary && (
+          {meta.summary ? (
             <>
               <h2 className="text-sm mt-8 mb-1">
-                {intl.manga.synopsis} (vol. 1)
+                {intl.manga.synopsis as string} (vol. 1)
               </h2>
               <MangaSummary meta={meta} intl={intl} />
             </>
-          )}
+          ) : null}
 
           <Separator />
 
@@ -119,42 +123,47 @@ export default function SeriesContent({
         </div>
       </section>
 
-      {/* SERIES VOLUMES */}
       <section>
         <Separator />
-        <h2>{intl.manga.seriesVolumes}</h2>
+        <h2>{intl.manga.seriesVolumes as string}</h2>
 
         <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
-          {serieData.volumes && serieData.volumes.length > 0 ? (
-            serieData.volumes.map((volume, idx) => (
+          {volumes && volumes.length > 0 ? (
+            volumes.map((volume, idx) => (
               <MangaCard
                 key={idx}
-                title={volume.meta?.title || volume.filename}
-                href={`/${lang}/manga/volume/${volume.slug}`}
+                title={(volume.meta as Record<string, string>)?.title || (volume.filename as string)}
+                href={`/${lang}/manga/volume/${volume.slug as string}`}
                 isSeries={false}
+                isOneshot={false}
+                onGoing={false}
+                onPause={false}
                 volumeCount={null}
-                cover={volume.coverImage ?? null}
+                cover={(volume.coverImage as string) ?? null}
+                isDragging={false}
+                seriesSlug={null}
+                progressRatio={null}
                 intl={intl}
                 className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
               />
             ))
           ) : (
             <div>
-              {intl?.library?.noVolumes ||
+              {(intl?.library?.noVolumes as string) ||
                 "No hay volúmenes disponibles para esta serie."}
             </div>
           )}
         </div>
 
-        {user.isAdmin && (
+        {user?.isAdmin && (
           <>
             <Separator />
             <div className="flex flex-wrap items-center gap-4">
-              <ScanSeriesButton seriesId={serieData.id} intl={intl} />
+              <ScanSeriesButton seriesId={serieData.id as string} intl={intl} />
               <DeleteMangaItem
                 intl={intl}
                 type="series"
-                slug={serieData.slug}
+                slug={serieData.slug as string}
               />
             </div>
           </>

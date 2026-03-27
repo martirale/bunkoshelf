@@ -1,4 +1,3 @@
-import React from "react";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { LibraryBigIcon } from "lucide-react";
@@ -7,8 +6,17 @@ import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getSeriesBulkProgress } from "@/lib/reader/readingProgress";
+import type { Locale, Dictionary } from "@/lib/types";
 
 const PAGE_SIZE = 35;
+
+interface SeriesIndexProps {
+  lang: Locale;
+  intl: Dictionary;
+  page?: number;
+  genreFilter?: string | string[];
+  tagFilter?: string | string[];
+}
 
 export default async function SeriesIndex({
   lang,
@@ -16,7 +24,7 @@ export default async function SeriesIndex({
   page = 1,
   genreFilter = [],
   tagFilter = [],
-}) {
+}: SeriesIndexProps) {
   const genreList =
     typeof genreFilter === "string" ? genreFilter.split(",") : genreFilter;
   const tagList =
@@ -114,7 +122,7 @@ export default async function SeriesIndex({
   const paginatedEntries = entries.slice(start, start + PAGE_SIZE);
 
   const readCountMap = await getSeriesBulkProgress(
-    user?.id,
+    user?.id ?? null,
     paginatedEntries.map((e) => e.id)
   );
 
@@ -123,7 +131,7 @@ export default async function SeriesIndex({
       <div className="flex items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg mr-4">
           <LibraryBigIcon size={28} className="mr-2" />
-          {intl.manga.allSeries}
+          {intl.manga.allSeries as string}
         </h2>
 
         <FiltersDrawer intl={intl} />
@@ -147,6 +155,8 @@ export default async function SeriesIndex({
               volumeCount={totalVolumes}
               cover={entry.coverImage}
               progressRatio={progressRatio}
+              isDragging={false}
+              seriesSlug={entry.slug}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />

@@ -11,10 +11,31 @@ import {
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { getReaderStats } from "@/actions/stats";
+import type { Locale, Dictionary, DictionarySection } from "@/lib/types";
+import type { LucideIcon } from "lucide-react";
 
-export default function MangaNav({ lang, intl }) {
+interface MangaNavProps {
+  lang: Locale;
+  intl: Dictionary;
+}
+
+interface NavLink {
+  label: string | DictionarySection;
+  href: string;
+  icon: LucideIcon;
+  isActive: boolean;
+  count?: number | null;
+}
+
+interface Stats {
+  totalVolumes: number | null;
+  totalSeries: number | null;
+  totalUnread: number | null;
+}
+
+export default function MangaNav({ lang, intl }: MangaNavProps) {
   const pathname = usePathname();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<Stats>({
     totalVolumes: null,
     totalSeries: null,
     totalUnread: null,
@@ -25,9 +46,9 @@ export default function MangaNav({ lang, intl }) {
       try {
         const data = await getReaderStats();
         setStats({
-          totalVolumes: data.totalVolumes,
-          totalSeries: data.totalSeries,
-          totalUnread: data.readingProgressSummary?.totalUnread,
+          totalVolumes: data.totalVolumes ?? null,
+          totalSeries: data.totalSeries ?? null,
+          totalUnread: data.readingProgressSummary?.totalUnread ?? null,
         });
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -37,7 +58,7 @@ export default function MangaNav({ lang, intl }) {
     fetchStats();
   }, []);
 
-  const links = [
+  const links: NavLink[] = [
     {
       label: intl.libraries.overview,
       href: `/${lang}/manga`,
@@ -84,7 +105,7 @@ export default function MangaNav({ lang, intl }) {
           )}
         >
           <Icon size={20} className="mr-0 md:mr-2" />
-          <span className="hidden md:inline">{label}</span>
+          <span className="hidden md:inline">{label as string}</span>
           {typeof count === "number" && (
             <span
               className={clsx(

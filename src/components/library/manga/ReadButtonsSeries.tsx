@@ -5,13 +5,21 @@ import { HeartIcon, HeartOffIcon } from "lucide-react";
 import clsx from "clsx";
 import StatusSelect from "./StatusSelect";
 import { toggleSeriesFavorite } from "@/actions/favorites";
+import type { Locale, Dictionary } from "@/lib/types";
+
+interface ReadButtonsSeriesProps {
+  lang: Locale;
+  intl: Dictionary;
+  seriesId: string;
+  initFavorite: boolean;
+}
 
 export default function ReadButtonsSeries({
   lang,
   intl,
   seriesId,
   initFavorite,
-}) {
+}: ReadButtonsSeriesProps) {
   const [isFavorite, setIsFavorite] = useState(initFavorite);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,9 +32,11 @@ export default function ReadButtonsSeries({
         favorite: !isFavorite,
       });
 
+      if (!result) return;
+
       if (result.success) {
         setIsFavorite((prev) => !prev);
-      } else {
+      } else if ("error" in result) {
         console.error("Failed to toggle favorite:", result.error);
       }
     } catch (err) {

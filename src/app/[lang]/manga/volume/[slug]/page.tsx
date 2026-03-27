@@ -2,10 +2,15 @@ import VolumesContent from "@/components/library/manga/VolumesContent";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import prisma from "@/lib/prisma";
+import type { Locale } from "@/lib/types";
 
-export default async function VolumeMangaPage({ params }) {
+interface VolumeMangaPageProps {
+  params: Promise<{ lang: string; slug: string }>;
+}
+
+export default async function VolumeMangaPage({ params }: VolumeMangaPageProps) {
   const { lang = "es", slug } = await params;
-  const intl = await getDictionary(lang);
+  const intl = await getDictionary(lang as Locale);
 
   try {
     const user = await verifySession();
@@ -33,7 +38,7 @@ export default async function VolumeMangaPage({ params }) {
     if (!volumeEntry) {
       return (
         <div className="text-center mt-8">
-          {intl?.errors?.notFound || "Volumen no encontrado."}
+          {(intl?.errors?.notFound as string) || "Volumen no encontrado."}
         </div>
       );
     }
@@ -52,7 +57,6 @@ export default async function VolumeMangaPage({ params }) {
         : [],
     };
 
-    // Normalizar la portada
     const normalizedVolume = {
       ...volumeEntry,
       coverImage: volumeEntry.coverImage
@@ -63,8 +67,8 @@ export default async function VolumeMangaPage({ params }) {
 
     let isFavorite = false;
     let isRead = false;
-    let firstRead = null;
-    let personalRating = null;
+    let firstRead: string | null = null;
+    let personalRating: number | null = null;
 
     if (user) {
       const userVolume = await prisma.userToVolume.findUnique({
@@ -88,7 +92,7 @@ export default async function VolumeMangaPage({ params }) {
       personalRating = userVolume?.personalRating ?? null;
     }
 
-    let readingEntries = [];
+    let readingEntries: { id: string; readAt: string | null }[] = [];
 
     if (user) {
       readingEntries = await prisma.readingEntry.findMany({
@@ -105,7 +109,7 @@ export default async function VolumeMangaPage({ params }) {
       <>
         <VolumesContent
           volumeData={normalizedVolume}
-          lang={lang}
+          lang={lang as Locale}
           intl={intl}
           isFavorite={isFavorite}
           isRead={isRead}
@@ -120,7 +124,7 @@ export default async function VolumeMangaPage({ params }) {
     console.error("Error al obtener datos del volumen:", error);
     return (
       <div className="text-center mt-8">
-        {intl?.errors?.serverError || "Error al cargar el volumen."}
+        {(intl?.errors?.serverError as string) || "Error al cargar el volumen."}
       </div>
     );
   }

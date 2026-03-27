@@ -5,12 +5,19 @@ import clsx from "clsx";
 import { ScanSearchIcon, Loader2Icon } from "lucide-react";
 import { scanSeries, scanVolume } from "@/actions/scan-series";
 import { useToast } from "@/components/ToastProvider";
+import type { Dictionary } from "@/lib/types";
 
-export default function ScanSeriesButton({ seriesId, volumeId, intl }) {
+interface ScanSeriesButtonProps {
+  seriesId?: string;
+  volumeId?: string;
+  intl: Dictionary;
+}
+
+export default function ScanSeriesButton({ seriesId, volumeId, intl }: ScanSeriesButtonProps) {
   const t = intl;
 
   const [isScanning, setIsScanning] = useState(false);
-  const { addToast } = useToast();
+  const { addToast } = useToast()!;
 
   const isVolume = !!volumeId;
 
@@ -19,20 +26,20 @@ export default function ScanSeriesButton({ seriesId, volumeId, intl }) {
 
     try {
       const result = isVolume
-        ? await scanVolume(volumeId)
-        : await scanSeries(seriesId);
+        ? await scanVolume(volumeId!)
+        : await scanSeries(seriesId!);
 
-      if (result.error) {
+      if (!result || "error" in result) {
         addToast({
           title: "Error",
-          description: result.error,
+          description: result && "error" in result ? result.error : "Scan failed",
           variant: "error",
         });
         return;
       }
 
       addToast({
-        title: intl?.manga?.scanComplete || "Escaneo completado",
+        title: (intl?.manga?.scanComplete as string) || "Escaneo completado",
         description: `${result.coversUpdated} portada(s), ${result.metaUpdated} metadatos`,
         variant: "success",
       });
@@ -69,10 +76,10 @@ export default function ScanSeriesButton({ seriesId, volumeId, intl }) {
         <ScanSearchIcon size={12} />
       )}
       {isScanning
-        ? t.manga.scanning
+        ? (t.manga.scanning as string)
         : isVolume
-          ? t.manga.scanVolume
-          : t.manga.scanSeries}
+          ? (t.manga.scanVolume as string)
+          : (t.manga.scanSeries as string)}
     </button>
   );
 }

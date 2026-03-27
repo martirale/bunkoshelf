@@ -9,11 +9,32 @@ import {
   CircleXIcon,
 } from "lucide-react";
 import { getSeriesStatus, updateSeriesStatus } from "@/actions/series-status";
+import type { Locale, Dictionary } from "@/lib/types";
+import type { LucideIcon } from "lucide-react";
 
-export default function StatusSelect({ intl, seriesId }) {
+interface StatusSelectProps {
+  intl: Dictionary;
+  lang: Locale;
+  seriesId: string;
+}
+
+interface StatusOption {
+  value: string;
+  label: unknown;
+  icon: LucideIcon;
+}
+
+const COLOR_MAP: Record<string, string> = {
+  ONGOING: "text-cyan-500",
+  FINISHED: "text-pearl",
+  HIATUS: "text-yellow-500",
+  CANCELLED: "text-red-500",
+};
+
+export default function StatusSelect({ intl, seriesId }: StatusSelectProps) {
   const t = intl;
 
-  const STATUS_OPTIONS = [
+  const STATUS_OPTIONS: StatusOption[] = [
     {
       value: "ONGOING",
       label: t.manga.onGoing,
@@ -36,30 +57,24 @@ export default function StatusSelect({ intl, seriesId }) {
     },
   ];
 
-  const [currentStatus, setCurrentStatus] = useState(null);
+  const [currentStatus, setCurrentStatus] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const selectRef = useRef(null);
+  const selectRef = useRef<HTMLDivElement>(null);
 
   const currentOption = STATUS_OPTIONS.find(
     (opt) => opt.value === currentStatus
   );
   const CurrentIcon = currentOption?.icon || CircleFadingArrowUpIcon;
 
-  const COLOR_MAP = {
-    ONGOING: "text-cyan-500",
-    FINISHED: "text-pearl",
-    HIATUS: "text-yellow-500",
-    CANCELLED: "text-red-500",
-  };
-  const iconColorClass = COLOR_MAP[currentStatus] || "text-sand";
+  const iconColorClass = COLOR_MAP[currentStatus || ""] || "text-sand";
 
   useEffect(() => {
     let mounted = true;
 
     const load = async () => {
       const data = await getSeriesStatus({ seriesId });
-      if (!data.error && mounted) {
+      if (data && !("error" in data) && mounted) {
         setCurrentStatus(data.status || "FINISHED");
       }
     };
@@ -72,8 +87,8 @@ export default function StatusSelect({ intl, seriesId }) {
   }, [seriesId]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (selectRef.current && !selectRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -87,11 +102,11 @@ export default function StatusSelect({ intl, seriesId }) {
     };
   }, [isOpen]);
 
-  const handleStatusChange = async (newStatus) => {
+  const handleStatusChange = async (newStatus: string) => {
     setIsLoading(true);
     try {
       const result = await updateSeriesStatus({ seriesId, status: newStatus });
-      if (!result.error) {
+      if (result && !("error" in result)) {
         setCurrentStatus(result.status);
         setIsOpen(false);
       }
@@ -109,7 +124,7 @@ export default function StatusSelect({ intl, seriesId }) {
           "group p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
           "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"
         )}
-        title={currentOption?.label || "Seleccionar estado"}
+        title={(currentOption?.label as string) || "Seleccionar estado"}
       >
         <CurrentIcon
           size={20}
@@ -138,7 +153,7 @@ export default function StatusSelect({ intl, seriesId }) {
                 )}
               >
                 <OptionIcon size={20} />
-                <span className="text-sm font-medium">{option.label}</span>
+                <span className="text-sm font-medium">{option.label as string}</span>
               </button>
             );
           })}

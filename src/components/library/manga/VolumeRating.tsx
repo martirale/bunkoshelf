@@ -7,37 +7,43 @@ import { updatePersonalRating } from "@/actions/rating";
 const MIN = 0.5;
 const MAX = 10;
 
+interface VolumeRatingProps {
+  volumeId: string;
+  communityRating: number | null;
+  initialPersonalRating: number | null;
+}
+
 export default function VolumeRating({
   volumeId,
   communityRating,
   initialPersonalRating,
-}) {
+}: VolumeRatingProps) {
   const [personalRating, setPersonalRating] = useState(initialPersonalRating);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [draft, setDraft] = useState(5);
-  const panelRef = useRef(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const hasPersonal = personalRating !== null && personalRating !== undefined;
   const displayRating = hasPersonal ? personalRating : communityRating;
   const hasRating = displayRating !== null && displayRating !== undefined;
 
-  const closeAndSave = async (value) => {
+  const closeAndSave = async (value: number) => {
     setIsOpen(false);
     setIsLoading(true);
     const result = await updatePersonalRating({
       volumeId,
       rating: value,
     });
-    if (result.success) {
+    if (result?.success) {
       setPersonalRating(value);
     }
     setIsLoading(false);
   };
 
   useEffect(() => {
-    function handleClickOutside(e) {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
+    function handleClickOutside(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         closeAndSave(draft);
       }
     }
@@ -48,7 +54,7 @@ export default function VolumeRating({
   }, [isOpen, draft]);
 
   const openPanel = () => {
-    setDraft(hasPersonal ? personalRating : 5);
+    setDraft(hasPersonal ? personalRating! : 5);
     setIsOpen(true);
   };
 
@@ -58,7 +64,7 @@ export default function VolumeRating({
       volumeId,
       rating: null,
     });
-    if (result.success) {
+    if (result?.success) {
       setPersonalRating(null);
     }
     setIsLoading(false);

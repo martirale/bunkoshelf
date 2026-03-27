@@ -15,6 +15,21 @@ import { toggleVolumeFavorite } from "@/actions/favorites";
 import { updateReadState } from "@/actions/read";
 import { syncReadingProgress } from "@/actions/progress";
 import { sendPush } from "@/actions/web-push";
+import type { Locale, Dictionary } from "@/lib/types";
+
+interface ReadButtonsVolumeProps {
+  lang: Locale;
+  intl: Dictionary;
+  volumeId: string;
+  volumeTitle: string;
+  coverSrc: string;
+  slug: string;
+  initFavorite: boolean;
+  initRead: boolean;
+  mangaStyle: string;
+  communityRating: number | null;
+  initialPersonalRating: number | null;
+}
 
 export default function ReadButtonsVolume({
   lang,
@@ -28,7 +43,7 @@ export default function ReadButtonsVolume({
   mangaStyle,
   communityRating,
   initialPersonalRating,
-}) {
+}: ReadButtonsVolumeProps) {
   const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(initFavorite);
   const [isRead, setIsRead] = useState(initRead);
@@ -49,8 +64,21 @@ export default function ReadButtonsVolume({
     setIsReaderOpen(true);
   };
 
+  const getLocalDateString = () => {
+    const now = new Date();
+    const localDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, "0");
+    const day = String(localDate.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const toggleRead = async () => {
-    let error = null;
+    let error: unknown = null;
 
     setIsLoading(true);
     try {
@@ -74,13 +102,15 @@ export default function ReadButtonsVolume({
         volumeId,
         read: !isRead,
         totalPages,
-        lastReadAt: !isRead ? now.toISOString() : null,
-        firstRead: !isRead ? localDate : null,
+        lastReadAt: !isRead ? now.toISOString() : undefined,
+        firstRead: !isRead ? localDate : undefined,
       });
+
+      if (!result) return;
 
       if (result.success) {
         setIsRead((prev) => !prev);
-      } else {
+      } else if ("error" in result) {
         console.error("Failed to toggle read state:", result.error);
       }
     } catch (err) {
@@ -94,7 +124,7 @@ export default function ReadButtonsVolume({
   };
 
   const toggleFavorite = async () => {
-    let error = null;
+    let error: unknown = null;
 
     setIsLoading(true);
     try {
@@ -103,9 +133,11 @@ export default function ReadButtonsVolume({
         favorite: !isFavorite,
       });
 
+      if (!result) return;
+
       if (result.success) {
         setIsFavorite((prev) => !prev);
-      } else {
+      } else if ("error" in result) {
         console.error("Failed to toggle favorite:", result.error);
       }
     } catch (err) {
@@ -118,21 +150,8 @@ export default function ReadButtonsVolume({
     }
   };
 
-  const getLocalDateString = () => {
-    const now = new Date();
-    const localDate = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-    );
-    const year = localDate.getFullYear();
-    const month = String(localDate.getMonth() + 1).padStart(2, "0");
-    const day = String(localDate.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
   const handleClose = async () => {
-    let error = null;
+    let error: unknown = null;
 
     try {
       const storageKey = `reader-progress:${slug}`;
@@ -154,19 +173,19 @@ export default function ReadButtonsVolume({
 
         const data = await syncReadingProgress(body);
 
-        if (!data.success) {
-          console.error("Sync failed:", data.error);
+        if (!data || !data.success) {
+          console.error("Sync failed:", data && "error" in data ? data.error : "Unknown error");
         }
 
-        if (isFinished && data.success) {
+        if (isFinished && data?.success) {
           setIsRead(true);
         }
 
-        if (isFinished && data.success) {
+        if (isFinished && data?.success) {
           try {
             await sendPush({
-              title: intl.push.ttFirstRead,
-              body: intl.push.bodyFirstRead.replace("{title}", volumeTitle),
+              title: intl.push.ttFirstRead as string,
+              body: (intl.push.bodyFirstRead as string).replace("{title}", volumeTitle),
               url: `/${lang}/manga`,
             });
           } catch (pushErr) {
@@ -193,7 +212,7 @@ export default function ReadButtonsVolume({
           className="flex items-center font-bold px-5 py-2 2xl:px-6 2xl:py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
         >
           <BookCheckIcon size={20} className="mr-2" />
-          {intl.manga.read}
+          {intl.manga.read as string}
         </button>
 
         <button

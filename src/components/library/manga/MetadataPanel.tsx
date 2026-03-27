@@ -1,6 +1,7 @@
 import Link from "next/link";
+import type { Locale, Dictionary } from "@/lib/types";
 
-function normalize(field) {
+function normalize(field: unknown): string | null {
   if (!field) return null;
   if (Array.isArray(field)) {
     if (field.length === 0) return null;
@@ -17,18 +18,33 @@ function normalize(field) {
   return String(field);
 }
 
-function MetaField({ field, label }) {
+interface MetaFieldProps {
+  field: unknown;
+  label: unknown;
+}
+
+function MetaField({ field, label }: MetaFieldProps) {
   const value = normalize(field);
   if (!value) return null;
   return (
     <div className="flex flex-row items-baseline max-w-3xl">
-      <p className="text-sm uppercase w-1/3 md:w-1/5">{label}</p>
+      <p className="text-sm uppercase w-1/3 md:w-1/5">{label as string}</p>
       <p className="w-2/3 md:w-4/5">{value}</p>
     </div>
   );
 }
 
-export default function MetadataPanel({ meta, lang, intl, linkBase = "volumes" }) {
+interface MetadataPanelProps {
+  meta: Record<string, unknown>;
+  lang: Locale;
+  intl: Dictionary;
+  linkBase?: string;
+}
+
+export default function MetadataPanel({ meta, lang, intl, linkBase = "volumes" }: MetadataPanelProps) {
+  const genres = (meta.genres || []) as { name: string }[];
+  const tags = (meta.tags || []) as { name: string }[];
+
   return (
     <>
       <MetaField field={meta.writer} label={intl.manga.author} />
@@ -43,13 +59,13 @@ export default function MetadataPanel({ meta, lang, intl, linkBase = "volumes" }
       <MetaField field={meta.format} label={intl.manga.format} />
       <MetaField field={meta.gtin} label={intl.manga.gtin} />
 
-      {meta.genres.length > 0 && (
+      {genres.length > 0 && (
         <div className="flex flex-row items-baseline max-w-3xl mt-8">
           <p className="text-sm uppercase w-1/3 md:w-1/5">
-            {intl.manga.genre}
+            {intl.manga.genre as string}
           </p>
           <div className="w-2/3 md:w-4/5 flex flex-wrap gap-2">
-            {meta.genres.map((genre, idx) => (
+            {genres.map((genre, idx) => (
               <Link
                 key={idx}
                 href={{
@@ -66,13 +82,13 @@ export default function MetadataPanel({ meta, lang, intl, linkBase = "volumes" }
         </div>
       )}
 
-      {meta.tags.length > 0 && (
+      {tags.length > 0 && (
         <div className="flex flex-row items-baseline max-w-3xl mt-2">
           <p className="text-sm uppercase w-1/3 md:w-1/5">
-            {intl.manga.tags}
+            {intl.manga.tags as string}
           </p>
           <div className="w-2/3 md:w-4/5 flex flex-wrap gap-2">
-            {meta.tags.map((tag, idx) => (
+            {tags.map((tag, idx) => (
               <Link
                 key={idx}
                 href={{

@@ -2,8 +2,14 @@
 
 import { ChevronUpIcon, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
+import type { Dictionary } from "@/lib/types";
 
-export default function MangaSummary({ meta, intl }) {
+interface MangaSummaryProps {
+  meta: Record<string, unknown>;
+  intl: Dictionary;
+}
+
+export default function MangaSummary({ meta, intl }: MangaSummaryProps) {
   const [expanded, setExpanded] = useState(false);
 
   if (!meta.summary) return null;
@@ -15,7 +21,7 @@ export default function MangaSummary({ meta, intl }) {
           !expanded ? "line-clamp-3" : ""
         } transition-all duration-300`}
       >
-        {meta.summary}
+        {meta.summary as string}
       </p>
       <div className="flex justify-center">
         <button
@@ -24,11 +30,11 @@ export default function MangaSummary({ meta, intl }) {
         >
           {expanded ? (
             <>
-              {intl.manga.showLess} <ChevronUpIcon size={16} />
+              {intl.manga.showLess as string} <ChevronUpIcon size={16} />
             </>
           ) : (
             <>
-              {intl.manga.showMore} <ChevronDownIcon size={16} />
+              {intl.manga.showMore as string} <ChevronDownIcon size={16} />
             </>
           )}
         </button>

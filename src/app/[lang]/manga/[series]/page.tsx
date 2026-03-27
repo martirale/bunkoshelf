@@ -3,24 +3,28 @@ import { verifySession } from "@/lib/auth/verifySession";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
+import type { Locale } from "@/lib/types";
+import type { VolumeMetadata } from "@prisma/client";
 
-function aggregateMetadata(volumes) {
-  const aggregated = {
-    writer: new Set(),
-    penciller: new Set(),
-    inker: new Set(),
-    colorist: new Set(),
-    letterer: new Set(),
-    coverArtist: new Set(),
-    editor: new Set(),
-    publisher: new Set(),
-    imprint: new Set(),
-    format: new Set(),
-  };
+interface AggregatedMeta {
+  [key: string]: string[];
+}
+
+function aggregateMetadata(volumes: { metadataObj?: VolumeMetadata | null }[]) {
+  const fields = [
+    "writer", "penciller", "inker", "colorist", "letterer",
+    "coverArtist", "editor", "publisher", "imprint", "format",
+  ] as const;
+
+  const aggregated: Record<string, Set<string>> = {};
+  for (const key of fields) {
+    aggregated[key] = new Set();
+  }
 
   for (const vol of volumes) {
-    const meta = vol.metadataObj || {};
-    for (const key in aggregated) {
+    const meta = vol.metadataObj;
+    if (!meta) continue;
+    for (const key of fields) {
       const raw = meta[key];
       if (typeof raw === "string" && raw.trim() !== "") {
         raw.split(",").forEach((entry) => {
@@ -30,18 +34,21 @@ function aggregateMetadata(volumes) {
     }
   }
 
-  // Convert Sets a arrays ordenadas alfabéticamente
-  const result = {};
-  for (const key in aggregated) {
+  const result: AggregatedMeta = {};
+  for (const key of fields) {
     result[key] = Array.from(aggregated[key]);
   }
 
   return result;
 }
 
-export default async function SeriesMangaPage({ params }) {
+interface SeriesMangaPageProps {
+  params: Promise<{ lang: string; series: string }>;
+}
+
+export default async function SeriesMangaPage({ params }: SeriesMangaPageProps) {
   const { lang = "es", series } = await params;
-  const intl = await getDictionary(lang);
+  const intl = await getDictionary(lang as Locale);
 
   try {
     const user = await verifySession();
@@ -72,12 +79,11 @@ export default async function SeriesMangaPage({ params }) {
     if (!serie) {
       return (
         <div className="text-center mt-8">
-          {intl?.errors?.notFound || "Serie no encontrada."}
+          {(intl?.errors?.notFound as string) || "Serie no encontrada."}
         </div>
       );
     }
 
-    // Normalizar la portada y los volúmenes
     const normalizedSerie = {
       ...serie,
       coverImage: serie.volumes?.[0]?.coverImage
@@ -117,7 +123,7 @@ export default async function SeriesMangaPage({ params }) {
     const aggregatedMeta = aggregateMetadata(sortedVolumes);
 
     let isFavorite = false;
-    let averageRating = null;
+    let averageRating: number | null = null;
 
     if (user) {
       const favEntry = await prisma.userToSeries.findUnique({
@@ -151,7 +157,7 @@ export default async function SeriesMangaPage({ params }) {
 
       const ratings = serie.volumes
         .map((v) => personalMap.get(v.id) ?? v.metadataObj?.communityRating)
-        .filter((r) => r !== null && r !== undefined);
+        .filter((r): r is number => r !== null && r !== undefined);
 
       if (ratings.length > 0) {
         averageRating =
@@ -162,7 +168,7 @@ export default async function SeriesMangaPage({ params }) {
     return (
       <SeriesContent
         serieData={{ ...normalizedSerie, volumes: sortedVolumes }}
-        lang={lang}
+        lang={lang as Locale}
         intl={intl}
         isFavorite={isFavorite}
         aggregatedMeta={aggregatedMeta}
@@ -174,7 +180,7 @@ export default async function SeriesMangaPage({ params }) {
     console.error("Error al obtener datos de la serie:", error);
     return (
       <div className="text-center mt-8">
-        {intl?.errors?.serverError || "Error al cargar la serie."}
+        {(intl?.errors?.serverError as string) || "Error al cargar la serie."}
       </div>
     );
   }

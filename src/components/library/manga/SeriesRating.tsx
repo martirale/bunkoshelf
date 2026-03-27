@@ -1,6 +1,10 @@
 import { StarIcon } from "lucide-react";
 
-export default function SeriesRating({ rating }) {
+interface SeriesRatingProps {
+  rating: number | null;
+}
+
+export default function SeriesRating({ rating }: SeriesRatingProps) {
   if (rating === null || rating === undefined) return null;
 
   return (

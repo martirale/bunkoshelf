@@ -8,10 +8,26 @@ import {
   ChevronRightIcon,
 } from "lucide-react";
 import { getMangaVolumes } from "@/actions/library";
+import type { Locale, Dictionary } from "@/lib/types";
+import type { MouseEvent as ReactMouseEvent, DragEvent } from "react";
 
-export default function NextVol({ lang, intl, maxItems = 12 }) {
-  const scrollRef = useRef(null);
-  const [entries, setEntries] = useState([]);
+interface NextVolProps {
+  lang: Locale;
+  intl: Dictionary;
+  maxItems?: number;
+}
+
+interface VolEntry {
+  slug: string;
+  title: string;
+  isOneshot: boolean;
+  coverImage: string | null;
+  meta: Record<string, unknown> | null;
+}
+
+export default function NextVol({ lang, intl, maxItems = 12 }: NextVolProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [entries, setEntries] = useState<VolEntry[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
   const scrollStart = useRef(0);
@@ -20,36 +36,40 @@ export default function NextVol({ lang, intl, maxItems = 12 }) {
   useEffect(() => {
     async function fetchNextVolumes() {
       const result = await getMangaVolumes();
-      if (!result.success) return;
+      if (!result || !result.success) return;
 
       const data = result.data;
+      if (!data) return;
 
-      const seriesMap = new Map();
+      type Vol = (typeof data)[number];
+      const seriesMap = new Map<string, Vol[]>();
 
       data.forEach((vol) => {
         const seriesId = vol.seriesId;
         if (!seriesMap.has(seriesId)) seriesMap.set(seriesId, []);
-        seriesMap.get(seriesId).push(vol);
+        seriesMap.get(seriesId)!.push(vol);
       });
 
-      const nextVolumes = [];
+      const nextVolumes: VolEntry[] = [];
 
-      function prepVolume(vol) {
-        vol.coverImage = vol.coverImage
-          ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-          : null;
-        vol.meta = vol.metadataObj || null;
-        vol.isOneshot = vol.series?.isOneshot === true;
-        return vol;
+      function prepVolume(vol: Vol): VolEntry {
+        return {
+          ...vol,
+          coverImage: vol.coverImage
+            ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
+            : null,
+          meta: vol.metadataObj || null,
+          isOneshot: vol.series?.isOneshot === true,
+        };
       }
 
-      for (const [seriesId, volumes] of seriesMap.entries()) {
+      for (const [, volumes] of seriesMap.entries()) {
         const sorted = volumes
           .map((vol) => {
             const progress = vol.usersProgress?.[0] || null;
             return {
               ...vol,
-              volumeNumber: Number(vol.volumeNumber) || 0,
+              volumeNumber: Number(vol.metadataObj?.number) || 0,
               isRead: progress?.isRead ?? false,
               lastReadAt: progress?.lastReadAt
                 ? new Date(progress.lastReadAt)
@@ -58,13 +78,11 @@ export default function NextVol({ lang, intl, maxItems = 12 }) {
           })
           .sort((a, b) => a.volumeNumber - b.volumeNumber);
 
-        // Verificar si la serie está empezada
         const hasStarted = sorted.some((v) => v.isRead || v.lastReadAt);
         if (!hasStarted) {
           continue;
         }
 
-        // Buscar el primer volumen sin leer ni empezado
         const nextUnread = sorted.find((v) => !v.isRead && !v.lastReadAt);
 
         if (nextUnread) {
@@ -78,22 +96,22 @@ export default function NextVol({ lang, intl, maxItems = 12 }) {
     fetchNextVolumes();
   }, [maxItems]);
 
-  const handleMouseDown = (e) => {
+  const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
     hasDragged.current = false;
-    startX.current = e.pageX - scrollRef.current.offsetLeft;
-    scrollStart.current = scrollRef.current.scrollLeft;
+    startX.current = e.pageX - scrollRef.current!.offsetLeft;
+    scrollStart.current = scrollRef.current!.scrollLeft;
     document.body.style.cursor = "grabbing";
   };
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
+    const x = e.pageX - scrollRef.current!.offsetLeft;
     const delta = Math.abs(x - startX.current);
     if (delta > 5) hasDragged.current = true;
     const walk = (x - startX.current) * 1.5;
-    scrollRef.current.scrollLeft = scrollStart.current - walk;
+    scrollRef.current!.scrollLeft = scrollStart.current - walk;
   };
 
   const stopDragging = () => {
@@ -104,10 +122,10 @@ export default function NextVol({ lang, intl, maxItems = 12 }) {
     document.body.style.cursor = "default";
   };
 
-  const scrollCards = (direction) => {
+  const scrollCards = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const container = scrollRef.current;
-      const card = container.querySelector("div > div");
+      const card = container.querySelector("div > div") as HTMLElement | null;
       const cardWidth = card?.offsetWidth || 200;
       const scrollAmount = cardWidth * 2 * (direction === "left" ? -1 : 1);
       container.scrollBy({ left: scrollAmount, behavior: "smooth" });
@@ -119,7 +137,7 @@ export default function NextVol({ lang, intl, maxItems = 12 }) {
       <div className="flex justify-between items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg">
           <BookMarkedIcon size={28} className="mr-2" />
-          {intl.libraries.inProgress}
+          {intl.libraries.inProgress as string}
         </h2>
         <div className="flex gap-4">
           <button
@@ -151,7 +169,7 @@ export default function NextVol({ lang, intl, maxItems = 12 }) {
         onMouseMove={handleMouseMove}
         onMouseUp={stopDragging}
         onMouseLeave={stopDragging}
-        onDragStart={(e) => e.preventDefault()}
+        onDragStart={(e: DragEvent) => e.preventDefault()}
         onClickCapture={(e) => {
           if (hasDragged.current) {
             e.preventDefault();
@@ -167,14 +185,18 @@ export default function NextVol({ lang, intl, maxItems = 12 }) {
               className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/7"
             >
               <MangaCard
-                title={entry.meta?.title ?? entry.title}
+                title={(entry.meta as Record<string, string>)?.title ?? entry.title}
                 href={href}
                 isSeries={false}
                 isOneshot={entry.isOneshot}
+                onGoing={false}
+                onPause={false}
                 volumeCount={null}
                 cover={entry.coverImage}
                 intl={intl}
                 isDragging={isDragging}
+                seriesSlug={null}
+                progressRatio={null}
                 className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
               />
             </div>

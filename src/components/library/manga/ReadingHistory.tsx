@@ -9,37 +9,50 @@ import {
 } from "lucide-react";
 import { createReadingEntry } from "@/actions/readingHistory";
 import ReadingEntryForm from "./ReadingEntryForm";
+import type { Dictionary } from "@/lib/types";
+
+interface ReadingEntry {
+  id: string;
+  readAt: string | null;
+}
+
+interface ReadingHistoryProps {
+  volumeId: string;
+  intl: Dictionary;
+  initialEntries: ReadingEntry[];
+  firstRead: string | null;
+}
 
 export default function ReadingHistory({
   volumeId,
   intl,
   initialEntries,
   firstRead,
-}) {
+}: ReadingHistoryProps) {
   const [entries, setEntries] = useState(initialEntries || []);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState(null);
+  const [editingEntry, setEditingEntry] = useState<ReadingEntry | null>(null);
   const [isMigrating, setIsMigrating] = useState(false);
 
   const canMigrate = firstRead && entries.length === 0;
 
-  const isReread = (index) => index < entries.length - 1;
-  const isLast = (index) => index === entries.length - 1;
+  const isReread = (index: number) => index < entries.length - 1;
+  const isLast = (index: number) => index === entries.length - 1;
 
   const openAdd = () => {
     setEditingEntry(null);
     setModalOpen(true);
   };
 
-  const openEdit = (entry) => {
+  const openEdit = (entry: ReadingEntry) => {
     setEditingEntry(entry);
     setModalOpen(true);
   };
 
   const handleMigrate = async () => {
     setIsMigrating(true);
-    const result = await createReadingEntry({ volumeId, readAt: firstRead });
-    if (result.success) {
+    const result = await createReadingEntry({ volumeId, readAt: firstRead! });
+    if (result?.success) {
       window.location.reload();
     }
     setIsMigrating(false);
@@ -53,7 +66,7 @@ export default function ReadingHistory({
           className="flex items-center gap-1 text-sm uppercase text-lilah hover:text-sand transition-colors duration-300 cursor-pointer"
         >
           <PlusIcon size={18} />
-          {intl.manga.addEntry}
+          {intl.manga.addEntry as string}
         </button>
 
         {canMigrate && (
@@ -63,13 +76,13 @@ export default function ReadingHistory({
             className="flex items-center gap-1 text-sm uppercase text-lilah hover:text-sand transition-colors duration-300 cursor-pointer disabled:opacity-50"
           >
             <ArchiveRestoreIcon size={16} />
-            {intl.manga.migrateEntry}
+            {intl.manga.migrateEntry as string}
           </button>
         )}
       </div>
 
       {entries.length === 0 ? (
-        <p className="text-neutral-500">{intl.manga.noEntries}</p>
+        <p className="text-neutral-500">{intl.manga.noEntries as string}</p>
       ) : (
         <div className="relative">
           {entries.map((entry, index) => (
@@ -94,7 +107,7 @@ export default function ReadingHistory({
 
                 <div className="flex flex-col">
                   <span className="text-sand leading-none">
-                    {isReread(index) ? intl.manga.reread : intl.manga.firstRead}
+                    {isReread(index) ? (intl.manga.reread as string) : (intl.manga.firstRead as string)}
                   </span>
                   <span className="text-neutral-500 text-sm mt-1">
                     {entry.readAt}

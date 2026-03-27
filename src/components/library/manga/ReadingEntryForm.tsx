@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { PenLineIcon } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import {
@@ -8,6 +8,20 @@ import {
   updateReadingEntry,
   deleteReadingEntry,
 } from "@/actions/readingHistory";
+import type { Dictionary } from "@/lib/types";
+
+interface ReadingEntry {
+  id: string;
+  readAt: string | null;
+}
+
+interface ReadingEntryFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  volumeId: string;
+  entry: ReadingEntry | null;
+  intl: Dictionary;
+}
 
 export default function ReadingEntryForm({
   isOpen,
@@ -15,7 +29,7 @@ export default function ReadingEntryForm({
   volumeId,
   entry,
   intl,
-}) {
+}: ReadingEntryFormProps) {
   const [readAt, setReadAt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,31 +41,31 @@ export default function ReadingEntryForm({
     }
   }, [isOpen, entry]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!readAt) return;
 
     setIsLoading(true);
 
     const result = isEdit
-      ? await updateReadingEntry({ entryId: entry.id, readAt })
+      ? await updateReadingEntry({ entryId: entry!.id, readAt })
       : await createReadingEntry({ volumeId, readAt });
 
     setIsLoading(false);
 
-    if (result.success) {
+    if (result?.success) {
       window.location.reload();
     }
   };
 
   const handleDelete = async () => {
-    const confirm = window.confirm(intl.alerts?.confirmDelete || "Are you sure?");
-    if (!confirm) return;
+    const confirmResult = window.confirm((intl.alerts?.confirmDelete as string) || "Are you sure?");
+    if (!confirmResult) return;
 
     setIsLoading(true);
-    const result = await deleteReadingEntry({ entryId: entry.id });
+    const result = await deleteReadingEntry({ entryId: entry!.id });
 
-    if (result.success) {
+    if (result?.success) {
       window.location.reload();
     }
   };
@@ -60,13 +74,13 @@ export default function ReadingEntryForm({
     <Modal isOpen={isOpen} onClose={onClose}>
       <h2 className="flex items-center mb-6">
         <PenLineIcon size={24} className="mr-2" />
-        {isEdit ? intl.manga.editEntry : intl.manga.addEntry}
+        {isEdit ? (intl.manga.editEntry as string) : (intl.manga.addEntry as string)}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm uppercase mb-1">
-            {intl.manga.date}
+            {intl.manga.date as string}
           </label>
           <input
             type="date"
@@ -83,7 +97,7 @@ export default function ReadingEntryForm({
             disabled={isLoading}
             className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer disabled:opacity-50"
           >
-            {intl.manga.save}
+            {intl.manga.save as string}
           </button>
 
           {isEdit && (
@@ -93,7 +107,7 @@ export default function ReadingEntryForm({
               disabled={isLoading}
               className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-red-700 border border-red-700 hover:bg-red-800 transition-all duration-300 cursor-pointer disabled:opacity-50"
             >
-              {intl.manga.deleteEntry}
+              {intl.manga.deleteEntry as string}
             </button>
           )}
         </div>

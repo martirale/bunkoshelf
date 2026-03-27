@@ -1,20 +1,26 @@
 "use client";
 
-import React from "react";
 import clsx from "clsx";
 import { TrashIcon } from "lucide-react";
 import { deleteSeries, deleteVolume } from "@/actions/delete";
+import type { Dictionary } from "@/lib/types";
 
-export default function DeleteMangaItem({ intl, type = "volume", slug }) {
+interface DeleteMangaItemProps {
+  intl: Dictionary;
+  type?: "volume" | "series";
+  slug: string;
+}
+
+export default function DeleteMangaItem({ intl, type = "volume", slug }: DeleteMangaItemProps) {
   const t = intl;
 
   async function handleDelete() {
-    let err = null;
+    let err: unknown = null;
     try {
       const confirmed = confirm(
         type === "volume"
-          ? t.libraries.deleteSure.volume
-          : t.libraries.deleteSure.series
+          ? (t.libraries.deleteSure as Record<string, string>).volume
+          : (t.libraries.deleteSure as Record<string, string>).series
       );
       if (!confirmed) return;
 
@@ -23,8 +29,8 @@ export default function DeleteMangaItem({ intl, type = "volume", slug }) {
           ? await deleteVolume({ slug })
           : await deleteSeries({ slug });
 
-      if (result.error || !result.ok) {
-        err = new Error(result.error || "Delete failed");
+      if (!result || "error" in result || !("ok" in result) || !result.ok) {
+        err = new Error(result && "error" in result ? result.error : "Delete failed");
       } else {
         const path =
           typeof window !== "undefined" ? window.location.pathname : "/";
@@ -53,8 +59,8 @@ export default function DeleteMangaItem({ intl, type = "volume", slug }) {
     >
       <TrashIcon size={11} className="mb-0.5" />
       {type === "volume"
-        ? t.libraries.deleteItem.volume
-        : t.libraries.deleteItem.series}
+        ? (t.libraries.deleteItem as Record<string, string>).volume
+        : (t.libraries.deleteItem as Record<string, string>).series}
     </button>
   );
 }
