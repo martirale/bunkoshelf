@@ -3,8 +3,14 @@ import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { GhostIcon, BookCopyIcon } from "lucide-react";
+import type { Locale, Dictionary } from "@/lib/types";
 
-export default async function VolumesIndexFav({ lang, intl }) {
+interface VolumesIndexFavProps {
+  lang: Locale;
+  intl: Dictionary;
+}
+
+export default async function VolumesIndexFav({ lang, intl }: VolumesIndexFavProps) {
   const user = await verifySession();
   if (!user) return null;
 
@@ -43,7 +49,7 @@ export default async function VolumesIndexFav({ lang, intl }) {
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
         <GhostIcon size={64} />
-        <h2>{intl.misc.noVolumesFav}</h2>
+        <h2>{intl.misc.noVolumesFav as string}</h2>
       </div>
     );
   }
@@ -52,7 +58,7 @@ export default async function VolumesIndexFav({ lang, intl }) {
     <>
       <h2 className="flex items-center mt-8 mb-4">
         <BookCopyIcon size={28} className="mr-2" />
-        {intl.favorites.ttVolumes}
+        {intl.favorites.ttVolumes as string}
       </h2>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
@@ -63,12 +69,17 @@ export default async function VolumesIndexFav({ lang, intl }) {
           return (
             <MangaCard
               key={entry.title}
-              title={entry.meta.title}
+              title={entry.meta?.title}
               href={href}
               isSeries={false}
               isOneshot={entry.isOneshot}
+              onGoing={false}
+              onPause={false}
               volumeCount={null}
               cover={coverImage}
+              progressRatio={null}
+              isDragging={false}
+              seriesSlug={null}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />

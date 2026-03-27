@@ -4,13 +4,26 @@ import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import { BookHeartIcon } from "lucide-react";
 import clsx from "clsx";
+import type { Dictionary, DictionarySection, Locale } from "@/lib/types";
+import type { LucideIcon } from "lucide-react";
 
-export default function FavoritesNav({ intl }) {
-  const params = useParams();
+interface FavoritesNavProps {
+  intl: Dictionary;
+}
+
+interface NavLink {
+  label: string | DictionarySection;
+  href: string;
+  icon: LucideIcon;
+  isActive: boolean;
+}
+
+export default function FavoritesNav({ intl }: FavoritesNavProps) {
+  const params = useParams<{ lang: Locale }>();
   const pathname = usePathname();
   const currentLang = params.lang || "es";
 
-  const links = [
+  const links: NavLink[] = [
     {
       label: intl.favorites.sectionManga,
       href: `/${currentLang}/favorites`,
@@ -39,7 +52,7 @@ export default function FavoritesNav({ intl }) {
           >
             <span className="flex">
               <Icon size={20} className="mr-1 md:mr-2" />
-              {label}
+              {label as string}
             </span>
           </Link>
         ))}

@@ -2,17 +2,24 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import SidebarMisc from "@/components/ui/SidebarMisc";
 import FavoritesNav from "@/components/favorites/FavoritesNav";
 import { HeartIcon } from "lucide-react";
+import type { Locale } from "@/lib/types";
+import type { ReactNode } from "react";
 
-export default async function FavoritesLayout({ children, params }) {
+interface FavoritesLayoutProps {
+  children: ReactNode;
+  params: Promise<{ lang: string }>;
+}
+
+export default async function FavoritesLayout({ children, params }: FavoritesLayoutProps) {
   const { lang = "es" } = await params;
-  const intl = await getDictionary(lang);
+  const intl = await getDictionary(lang as Locale);
 
   return (
     <div className="flex flex-col md:flex-row md:h-screen overflow-hidden">
       <SidebarMisc>
         <h2 className="flex items-center text-onix">
           <HeartIcon size={28} className="mr-2" />
-          {intl.favorites.title}
+          {intl.favorites.title as string}
         </h2>
 
         <FavoritesNav intl={intl} />

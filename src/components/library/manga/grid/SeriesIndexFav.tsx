@@ -4,8 +4,14 @@ import prisma from "@/lib/prisma";
 import { GhostIcon, LibraryBigIcon } from "lucide-react";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { getSeriesBulkProgress } from "@/lib/reader/readingProgress";
+import type { Locale, Dictionary } from "@/lib/types";
 
-export default async function SeriesIndexFav({ lang, intl }) {
+interface SeriesIndexFavProps {
+  lang: Locale;
+  intl: Dictionary;
+}
+
+export default async function SeriesIndexFav({ lang, intl }: SeriesIndexFavProps) {
   const user = await verifySession();
   if (!user) return null;
 
@@ -36,7 +42,7 @@ export default async function SeriesIndexFav({ lang, intl }) {
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
         <GhostIcon size={64} />
-        <h2>{intl.misc.noSeriesFav}</h2>
+        <h2>{intl.misc.noSeriesFav as string}</h2>
       </div>
     );
   }
@@ -70,7 +76,7 @@ export default async function SeriesIndexFav({ lang, intl }) {
     <>
       <h2 className="flex items-center mb-4">
         <LibraryBigIcon size={28} className="mr-2" />
-        {intl.favorites.ttSeries}
+        {intl.favorites.ttSeries as string}
       </h2>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
@@ -98,6 +104,8 @@ export default async function SeriesIndexFav({ lang, intl }) {
               volumeCount={isSeries ? totalVolumes : null}
               cover={entry.coverImage}
               progressRatio={progressRatio}
+              isDragging={false}
+              seriesSlug={entry.slug}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />
