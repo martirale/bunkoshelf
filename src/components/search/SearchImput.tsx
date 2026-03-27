@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { openSearchModal } from "@/hooks/useSearchModal";
 import { SearchIcon } from "lucide-react";
-import Link from "next/link";
+import type { Dictionary } from "@/lib/types";
 
-export default function SearchInputMob({ intl }) {
-  // Lang options
-  const params = useParams();
-  const currentLang = params.lang || "es";
+interface SearchInputProps {
+  intl: Dictionary;
+}
 
+export default function SearchInput({ intl }: SearchInputProps) {
   const [shortcut, setShortcut] = useState("Ctrl+K");
 
   useEffect(() => {
@@ -22,9 +22,9 @@ export default function SearchInputMob({ intl }) {
   }, []);
 
   return (
-    <Link
-      href={`/${currentLang}/search`}
-      className="flex items-center w-full border border-stone-300 rounded-lg cursor-pointer transition-all duration-300"
+    <div
+      className="flex items-center w-full border border-neutral-800 hover:border-lilah rounded-lg cursor-pointer transition-all duration-300"
+      onClick={openSearchModal}
     >
       <div className="p-1 ml-3">
         <SearchIcon size={20} />
@@ -32,14 +32,14 @@ export default function SearchInputMob({ intl }) {
 
       <input
         type="text"
-        placeholder={intl.search.placeholder}
+        placeholder={intl.search.placeholder as string}
         className="w-full p-3 cursor-pointer focus:outline-none"
         readOnly
       />
 
-      <span className="text-sm uppercase bg-sand px-3 py-1 mr-4 rounded-md">
+      <span className="text-sm uppercase bg-onix px-3 py-1 mr-4 rounded-md">
         {shortcut}
       </span>
-    </Link>
+    </div>
   );
 }

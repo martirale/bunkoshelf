@@ -1,7 +1,12 @@
 import SearchComp from "@/components/search/SearchComp";
 import { getDictionary } from "@/lib/i18n/Dictionary";
+import type { Locale } from "@/lib/types";
 
-export default async function SearchPage({ params }) {
+interface SearchPageProps {
+  params: Promise<{ lang: Locale }>;
+}
+
+export default async function SearchPage({ params }: SearchPageProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
 

@@ -4,6 +4,7 @@ import MiniSearch from "minisearch";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
 import type { MangaSeries, MangaVolume, VolumeMetadata, VolumeToGenre, VolumeToTag, Genre, Tag } from "@prisma/client";
+import type { SearchResult } from "@/lib/types";
 
 interface SearchParams {
   query: string;
@@ -36,26 +37,12 @@ interface VolumeDoc {
   tags: string;
 }
 
-interface SeriesResult {
-  id: string;
-  type: string;
-  title: string;
-  slug: string;
-  isOneshot: boolean;
-  writer: string;
-  series: string;
-  score: number;
+interface SeriesResult extends SearchResult {
+  type: "series";
 }
 
-interface VolumeResult {
-  id: string;
-  type: string;
-  title: string;
-  writer: string;
-  series: string;
-  slug: string;
-  isOneshot: boolean;
-  score: number;
+interface VolumeResult extends SearchResult {
+  type: "volume";
   genres: string;
   tags: string;
 }

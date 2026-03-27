@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchModal } from "@/hooks/useSearchModal";
 import Link from "next/link";
 import { searchManga } from "@/actions/search";
+import type { Locale, Dictionary, SearchResult } from "@/lib/types";
 import {
   SearchIcon,
   UserRoundPenIcon,
@@ -14,23 +15,25 @@ import {
   TagsIcon,
 } from "lucide-react";
 
-export default function SearchModal({ lang, intl }) {
+interface SearchModalProps {
+  lang: Locale;
+  intl: Dictionary;
+}
+
+export default function SearchModal({ lang, intl }: SearchModalProps) {
   const { open, setOpen } = useSearchModal();
 
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Función para juntar géneros o tags de volúmenes que pertenezcan a la serie
-  function getGenresAndTagsForSeries(seriesSlug) {
-    // Filtra volúmenes que tengan series igual a esta serieSlug
+  function getGenresAndTagsForSeries(seriesSlug: string) {
     const relatedVolumes = results.filter(
       (r) => r.type === "volume" && r.series && r.series === seriesSlug
     );
 
-    // Extraer géneros y etiquetas únicos
-    const genresSet = new Set();
-    const tagsSet = new Set();
+    const genresSet = new Set<string>();
+    const tagsSet = new Set<string>();
 
     relatedVolumes.forEach((vol) => {
       if (vol.genres) {
@@ -54,7 +57,7 @@ export default function SearchModal({ lang, intl }) {
   }
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setOpen(true);
@@ -79,7 +82,7 @@ export default function SearchModal({ lang, intl }) {
     const performSearch = async () => {
       try {
         const result = await searchManga({ query });
-        if (result.data) {
+        if ("data" in result && result.data) {
           setResults(result.data);
         }
         setLoading(false);
@@ -96,7 +99,6 @@ export default function SearchModal({ lang, intl }) {
 
   if (!open) return null;
 
-  // Aquí filtro para no mostrar series que son oneshot
   const filteredResults = results.filter(
     (res) => !(res.type === "series" && res.isOneshot === true)
   );
@@ -119,7 +121,7 @@ export default function SearchModal({ lang, intl }) {
           <input
             type="search"
             autoFocus
-            placeholder={intl.search.titleAuthor}
+            placeholder={intl.search.titleAuthor as string}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 border border-onix rounded-lg focus:outline-none"
@@ -127,11 +129,11 @@ export default function SearchModal({ lang, intl }) {
         </div>
 
         {loading && (
-          <p className="text-base mt-4 text-center">{intl.search.searching}</p>
+          <p className="text-base mt-4 text-center">{intl.search.searching as string}</p>
         )}
 
         {!loading && filteredResults.length === 0 && query.trim() && (
-          <p className="text-base mt-4 text-center">{intl.search.noResults}</p>
+          <p className="text-base mt-4 text-center">{intl.search.noResults as string}</p>
         )}
 
         <ul className="max-h-96 overflow-y-auto space-y-4">
@@ -141,7 +143,6 @@ export default function SearchModal({ lang, intl }) {
               ? `/${lang}/manga/${res.slug}`
               : `/${lang}/manga/volume/${res.slug}`;
 
-            // Obtener géneros y tags para series (porque no vienen directos)
             let genres = res.genres || "";
             let tags = res.tags || "";
 
@@ -173,17 +174,15 @@ export default function SearchModal({ lang, intl }) {
                     {isSeries ? (
                       <>
                         <p className="text-base truncate">
-                          {/* Series Author */}
                           <span className="flex items-center">
                             <UserRoundPenIcon size={16} className="mr-1" />
                             {res.writer || "Desconocido"}
                           </span>
                         </p>
                         <p className="text-base truncate">
-                          {/* Series Meta */}
                           <span className="flex items-center">
                             <LibraryBigIcon size={16} className="mr-1" />
-                            {intl.search.series}
+                            {intl.search.series as string}
                           </span>
                           <span className="flex items-center capitalize">
                             {genres && (
@@ -204,7 +203,6 @@ export default function SearchModal({ lang, intl }) {
                     ) : (
                       <>
                         <p className="text-base truncate">
-                          {/* Volumes Author */}
                           <span className="flex items-center">
                             <UserRoundPenIcon size={16} className="mr-1" />
                             {res.writer || "Desconocido"}
@@ -212,7 +210,6 @@ export default function SearchModal({ lang, intl }) {
                         </p>
                         {res.isOneshot ? (
                           <p className="text-base truncate">
-                            {/* Oneshot Meta */}
                             <span className="flex items-center">
                               <BookIcon size={16} className="mr-1" />
                               Oneshot
@@ -234,10 +231,9 @@ export default function SearchModal({ lang, intl }) {
                           </p>
                         ) : (
                           <p className="text-base truncate">
-                            {/* Volumes Meta */}
                             <span className="flex items-center">
                               <BookCopyIcon size={16} className="mr-1" />
-                              {intl.search.volume}
+                              {intl.search.volume as string}
                             </span>
                             <span className="flex items-center capitalize">
                               {genres && (
