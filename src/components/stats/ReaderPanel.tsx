@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { getReaderStats } from "@/actions/stats";
 import TileStreak from "./TileStreak";
 import TileLastRead from "./TileLastRead";
@@ -24,6 +25,7 @@ export default async function ReaderStatsPanel({
   textColor = "text-onix",
   mdCols,
 }: ReaderStatsPanelProps) {
+  await connection();
   const stats = intl.stats as DictionarySection;
   const data = await getReaderStats();
 

@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import prisma from "./prisma";
 import type { Session } from "@/lib/types";
 
@@ -41,6 +42,7 @@ export function ageRatingMap(ageRating: string | null | undefined): number | nul
 
 export async function getChallengeData(user: Session | null) {
   if (!user) return null;
+  await connection();
   const currentYear = new Date().getFullYear();
 
   const challenge = await prisma.readingChallenge.findFirst({
