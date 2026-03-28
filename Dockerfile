@@ -1,5 +1,5 @@
 # Etapa 1: dependencias
-FROM node:24-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat python3 make g++
@@ -18,7 +18,7 @@ RUN echo "DATABASE_URL=file:/app/prisma/data/bunkoshelf.db" > .env && \
 
 
 # Etapa 2: build de la app Next.js
-FROM node:24-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 RUN corepack enable
@@ -33,7 +33,7 @@ RUN pnpm run build
 
 
 # Etapa 3: runtime final
-FROM node:24-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
