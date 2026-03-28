@@ -3,9 +3,15 @@
 import { useEffect, useState } from "react";
 import { getReaderStats } from "@/actions/stats";
 
-export default function TileDaysRead({ title, bgColor, textColor }) {
-  const [daysReadCount, setDaysReadCount] = useState(null);
-  const [daysInMonth, setDaysInMonth] = useState(null);
+type TileDaysReadProps = {
+  title: string;
+  bgColor: string;
+  textColor: string;
+};
+
+export default function TileDaysRead({ title, bgColor, textColor }: TileDaysReadProps) {
+  const [daysReadCount, setDaysReadCount] = useState<number | null>(null);
+  const [daysInMonth, setDaysInMonth] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -17,7 +23,7 @@ export default function TileDaysRead({ title, bgColor, textColor }) {
         const thisMonth = now.getMonth() + 1;
         const thisYear = now.getFullYear();
 
-        const uniqueDays = new Set();
+        const uniqueDays = new Set<number>();
 
         dailyReading.forEach(({ date }) => {
           const [yearStr, monthStr, dayStr] = date.split("-");

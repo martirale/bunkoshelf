@@ -3,9 +3,15 @@
 import { useEffect, useState } from "react";
 import { getReaderStats } from "@/actions/stats";
 
-export default function TileAllRead({ title, bgColor, textColor }) {
-  const [count, setCount] = useState(null);
-  const [totalVolumes, setTotalVolumes] = useState(null);
+type TileAllReadProps = {
+  title: string;
+  bgColor: string;
+  textColor: string;
+};
+
+export default function TileAllRead({ title, bgColor, textColor }: TileAllReadProps) {
+  const [count, setCount] = useState<number | string | null>(null);
+  const [totalVolumes, setTotalVolumes] = useState<number | string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -14,7 +20,7 @@ export default function TileAllRead({ title, bgColor, textColor }) {
 
         setCount(data?.allCompleted?.length ?? "—");
         setTotalVolumes(data?.totalVolumes ?? "—");
-      } catch (err) {
+      } catch {
         setCount("—");
         setTotalVolumes("—");
       }

@@ -4,9 +4,15 @@ import { useEffect, useState } from "react";
 import { toZonedTime } from "date-fns-tz";
 import { getReaderStats } from "@/actions/stats";
 
-export default function TileMonthRead({ title, bgColor, textColor }) {
-  const [count, setCount] = useState("—");
-  const [goal, setGoal] = useState(null);
+type TileMonthReadProps = {
+  title: string;
+  bgColor: string;
+  textColor: string;
+};
+
+export default function TileMonthRead({ title, bgColor, textColor }: TileMonthReadProps) {
+  const [count, setCount] = useState<number | string>("—");
+  const [goal, setGoal] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {

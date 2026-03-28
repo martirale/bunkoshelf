@@ -5,9 +5,17 @@ import { ArrowUpIcon, ArrowDownIcon, MinusIcon } from "lucide-react";
 import { toZonedTime } from "date-fns-tz";
 import { getReaderStats } from "@/actions/stats";
 
-export default function TileMonthTrend({ title, bgColor, textColor }) {
-  const [percentageChange, setPercentageChange] = useState("—");
-  const [trend, setTrend] = useState(null);
+type TileMonthTrendProps = {
+  title: string;
+  bgColor: string;
+  textColor: string;
+};
+
+type Trend = "up" | "down" | "flat" | null;
+
+export default function TileMonthTrend({ title, bgColor, textColor }: TileMonthTrendProps) {
+  const [percentageChange, setPercentageChange] = useState<number | string>("—");
+  const [trend, setTrend] = useState<Trend>(null);
 
   useEffect(() => {
     async function fetchTrend() {
@@ -20,8 +28,6 @@ export default function TileMonthTrend({ title, bgColor, textColor }) {
 
         const thisMonth = now.getMonth() + 1;
         const lastMonth = thisMonth === 1 ? 12 : thisMonth - 1;
-        const thisYear = now.getFullYear();
-        const lastMonthYear = thisMonth === 1 ? thisYear - 1 : thisYear;
 
         const current =
           monthlyReads.find((m) => m.month === thisMonth)?.count ?? 0;

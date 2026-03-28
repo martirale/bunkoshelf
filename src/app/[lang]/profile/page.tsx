@@ -7,8 +7,13 @@ import TopGenres from "@/components/stats/TopGenres";
 import ReadingHeatmap from "@/components/stats/ReadingHeatmap";
 import { verifySession } from "@/lib/auth/verifySession";
 import Challenges from "@/components/challenges/Challenges";
+import type { Locale } from "@/lib/types";
 
-export default async function ProfilePage({ params }) {
+interface ProfilePageProps {
+  params: Promise<{ lang: Locale }>;
+}
+
+export default async function ProfilePage({ params }: ProfilePageProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
 
@@ -19,7 +24,6 @@ export default async function ProfilePage({ params }) {
     <>
       <UserAvatar intl={intl} />
 
-      {/* User Stats */}
       <div className="flex flex-col 2xl:flex-row gap-4">
         <div className="flex w-full 2xl:w-1/2">
           <ReadingChallenge lang={lang} intl={intl} />
@@ -39,7 +43,7 @@ export default async function ProfilePage({ params }) {
         <Challenges intl={intl} />
       </div>
 
-      <ReadingHeatmap userId={user.id} intl={intl} />
+      <ReadingHeatmap intl={intl} />
 
       <div className="flex flex-col 2xl:flex-row gap-4 mt-4">
         <div className="flex-1/2">

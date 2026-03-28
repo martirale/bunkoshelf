@@ -1,10 +1,18 @@
-import React from "react";
 import TileStreak from "./TileStreak";
 import TileLastRead from "./TileLastRead";
 import TileMonthRead from "./TileMonthRead";
 import TileDaysRead from "./TileDaysRead";
 import TileAllRead from "./TileAllRead";
 import TileMonthTrend from "./TileMonthTrend";
+import type { DictionarySection } from "@/lib/types";
+
+type ReaderStatsPanelProps = {
+  lang?: string;
+  intl: DictionarySection;
+  bgColor?: string;
+  textColor?: string;
+  mdCols?: string;
+};
 
 export default function ReaderStatsPanel({
   lang,
@@ -12,39 +20,40 @@ export default function ReaderStatsPanel({
   bgColor = "bg-sand",
   textColor = "text-onix",
   mdCols,
-}) {
+}: ReaderStatsPanelProps) {
+  const stats = intl.stats as DictionarySection;
+
   return (
     <section className={`grid grid-cols-2 ${mdCols} w-full gap-4`}>
       <TileStreak
-        title={intl.stats.streak}
-        lang={lang}
+        title={stats.streak as string}
         intl={intl}
         bgColor={bgColor}
         textColor={textColor}
       />
       <TileLastRead
-        title={intl.stats.lastRead}
+        title={stats.lastRead as string}
         lang={lang}
         bgColor={bgColor}
         textColor={textColor}
       />
       <TileDaysRead
-        title={intl.stats.daysRead}
+        title={stats.daysRead as string}
         bgColor={bgColor}
         textColor={textColor}
       />
       <TileMonthRead
-        title={intl.stats.monthRead}
+        title={stats.monthRead as string}
         bgColor={bgColor}
         textColor={textColor}
       />
       <TileAllRead
-        title={intl.stats.mangaRead}
+        title={stats.mangaRead as string}
         bgColor={bgColor}
         textColor={textColor}
       />
       <TileMonthTrend
-        title={intl.stats.prevMonth}
+        title={stats.prevMonth as string}
         bgColor={bgColor}
         textColor={textColor}
       />

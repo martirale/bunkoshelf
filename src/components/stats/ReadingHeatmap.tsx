@@ -6,18 +6,28 @@ import {
   format,
   startOfToday,
   subDays,
-  addDays,
-  getMonth,
   startOfWeek,
   eachDayOfInterval,
+  getMonth,
 } from "date-fns";
 import { getReaderStats } from "@/actions/stats";
+import type { DictionarySection } from "@/lib/types";
 
 const DAYS_TO_DISPLAY = 365;
 
-export default function ReadingHeatmap({ intl }) {
-  const [weeks, setWeeks] = useState([]);
-  const [monthLabels, setMonthLabels] = useState([]);
+type HeatmapDay = {
+  date: string;
+  active: boolean;
+  rawDate: Date;
+};
+
+type ReadingHeatmapProps = {
+  intl: DictionarySection;
+};
+
+export default function ReadingHeatmap({ intl }: ReadingHeatmapProps) {
+  const [weeks, setWeeks] = useState<HeatmapDay[][]>([]);
+  const [monthLabels, setMonthLabels] = useState<string[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -33,10 +43,10 @@ export default function ReadingHeatmap({ intl }) {
 
       const activityDates = new Set(dailyReading.map((entry) => entry.date));
 
-      const tempWeeks = [];
+      const tempWeeks: HeatmapDay[][] = [];
 
       for (let i = 0; i < daysArray.length; i += 7) {
-        const week = [];
+        const week: HeatmapDay[] = [];
 
         for (let j = 0; j < 7; j++) {
           const date = daysArray[i + j];
@@ -55,15 +65,16 @@ export default function ReadingHeatmap({ intl }) {
 
       setWeeks(tempWeeks);
 
-      const labels = [];
-      let lastMonth = null;
+      const labels: string[] = [];
+      let lastMonth: number | null = null;
+      const months = intl.months as DictionarySection;
 
       for (let i = 0; i < tempWeeks.length; i++) {
         const firstDay = tempWeeks[i].find(Boolean);
         if (firstDay) {
           const month = getMonth(firstDay.rawDate);
           if (month !== lastMonth) {
-            labels.push(intl.months[month + 1]);
+            labels.push(months[month + 1] as string);
             lastMonth = month;
           } else {
             labels.push("");
@@ -79,9 +90,11 @@ export default function ReadingHeatmap({ intl }) {
     loadData();
   }, [intl]);
 
+  const stats = intl.stats as DictionarySection;
+
   return (
     <div className="bg-blackamber rounded-lg p-4 mt-4">
-      <h2 className="text-base mb-4">{intl.stats.daysReadYear}</h2>
+      <h2 className="text-base mb-4">{stats.daysReadYear as string}</h2>
 
       <div className="flex flex-col gap-1 w-full overflow-x-auto">
         <div className="min-w-[960px] 2xl:min-w-0 w-fit">

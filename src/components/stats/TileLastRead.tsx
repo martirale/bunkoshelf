@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 import { toZonedTime } from "date-fns-tz";
 import { getReaderStats } from "@/actions/stats";
 
-export default function TileLastRead({ title, lang, bgColor, textColor }) {
+type TileLastReadProps = {
+  title: string;
+  lang?: string;
+  bgColor: string;
+  textColor: string;
+};
+
+export default function TileLastRead({ title, lang, bgColor, textColor }: TileLastReadProps) {
   const [lastRead, setLastRead] = useState("—");
 
   useEffect(() => {
@@ -23,7 +30,7 @@ export default function TileLastRead({ title, lang, bgColor, textColor }) {
           if (!isNaN(zonedDate.getTime())) {
             const now = toZonedTime(new Date(), timeZone);
 
-            const options = {
+            const options: Intl.DateTimeFormatOptions = {
               day: "numeric",
               month: "short",
               ...(zonedDate.getFullYear() !== now.getFullYear()

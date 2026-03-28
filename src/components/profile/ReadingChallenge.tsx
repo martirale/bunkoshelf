@@ -4,8 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import { PlusIcon, MinusIcon } from "lucide-react";
 import { updateChallenge, getChallenge } from "@/actions/challenge";
 import { sendPush } from "@/actions/web-push";
+import type { DictionarySection } from "@/lib/types";
 
-export default function ReadingChallenge({ intl, lang }) {
+interface ReadingChallengeProps {
+  intl: DictionarySection;
+  lang: string;
+}
+
+export default function ReadingChallenge({ intl, lang }: ReadingChallengeProps) {
   const [goal, setGoal] = useState(0);
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -13,9 +19,12 @@ export default function ReadingChallenge({ intl, lang }) {
 
   const currentYear = new Date().getFullYear();
 
+  const profile = intl.profile as DictionarySection;
+  const push = intl.push as DictionarySection;
+
   useEffect(() => {
     const fetchData = async () => {
-      let error = null;
+      let error: unknown = null;
       try {
         const data = await getChallenge({ year: currentYear });
 
@@ -31,10 +40,10 @@ export default function ReadingChallenge({ intl, lang }) {
           if (completed >= userGoal && userGoal > 0 && !notified) {
             try {
               await sendPush({
-                title: intl.push.ttChallengeDone,
-                body: intl.push.bodyChallengeDone.replace(
+                title: push.ttChallengeDone as string,
+                body: (push.bodyChallengeDone as string).replace(
                   "{year}",
-                  currentYear,
+                  String(currentYear),
                 ),
                 url: `/${lang}/profile`,
               });
@@ -59,11 +68,11 @@ export default function ReadingChallenge({ intl, lang }) {
     };
 
     fetchData();
-  }, [currentYear, intl, lang]);
+  }, [currentYear, push, lang]);
 
-  const updateGoal = async (newGoal) => {
+  const updateGoal = async (newGoal: number) => {
     setGoal(newGoal);
-    let error = null;
+    let error: unknown = null;
     try {
       await updateChallenge({ year: currentYear, goal: newGoal });
     } catch (err) {
@@ -85,7 +94,7 @@ export default function ReadingChallenge({ intl, lang }) {
   return (
     <div className="flex flex-col justify-between w-full mx-auto rounded-lg bg-blackamber p-4 h-auto md:h-[128px] 2xl:h-auto">
       <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 md:gap-2">
-        <h2 className="text-base">{intl.profile.ttChallenge}</h2>
+        <h2 className="text-base">{profile.ttChallenge as string}</h2>
 
         <div className="flex items-center justify-center md:mt-1 2xl:mt-0 gap-2">
           <button
@@ -113,7 +122,7 @@ export default function ReadingChallenge({ intl, lang }) {
       <div className="mt-8 md:mt-4 space-y-1">
         <div className="flex justify-between text-sm uppercase">
           <span>
-            {intl.profile.completed}: {progress}
+            {profile.completed as string}: {progress}
           </span>
           <span>{Math.round(percentage)}%</span>
         </div>

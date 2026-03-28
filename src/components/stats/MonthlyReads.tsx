@@ -11,16 +11,33 @@ import {
   LabelList,
 } from "recharts";
 import { getReaderStats } from "@/actions/stats";
+import type { DictionarySection } from "@/lib/types";
 
-export default function MonthlyReads({ intl, bgColor, textColor }) {
-  const [data, setData] = useState([]);
+type MonthlyReadsProps = {
+  intl: DictionarySection;
+  bgColor: string;
+  textColor: string;
+};
+
+type ChartEntry = {
+  name: string;
+  count: number;
+};
+
+export default function MonthlyReads({
+  intl,
+  bgColor,
+  textColor,
+}: MonthlyReadsProps) {
+  const [data, setData] = useState<ChartEntry[]>([]);
 
   useEffect(() => {
     async function fetchMonthlyReads() {
       const json = await getReaderStats();
-      if (json.monthlyReads) {
+      if ("monthlyReads" in json && json.monthlyReads) {
+        const months = intl.months as Record<string, string>;
         const localized = json.monthlyReads.map((entry) => ({
-          name: intl.months[entry.month],
+          name: months[entry.month],
           count: entry.count,
         }));
         setData(localized);
@@ -30,11 +47,13 @@ export default function MonthlyReads({ intl, bgColor, textColor }) {
     fetchMonthlyReads();
   }, [intl]);
 
+  const stats = intl.stats as DictionarySection;
+
   return (
     <div
       className={`${bgColor} ${textColor} p-4 2xl:px-4 2xl:pt-4 rounded-lg flex flex-col justify-between`}
     >
-      <h3 className="text-base mb-4">{intl.stats.ttMonthlyRead}</h3>
+      <h3 className="text-base mb-4">{stats.ttMonthlyRead as string}</h3>
       <div className="overflow-x-auto">
         <div className="min-w-[400px] md:min-w-[500px] h-72 uppercase">
           <ResponsiveContainer width="100%" height="100%">
@@ -65,7 +84,10 @@ export default function MonthlyReads({ intl, bgColor, textColor }) {
                   fontSize: "0.875rem",
                 }}
                 labelStyle={{ color: "#e5e0dc" }}
-                formatter={(value) => [`${value}`, intl.stats.tooltip]}
+                formatter={(value: number) => [
+                  `${value}`,
+                  stats.tooltip as string,
+                ]}
               />
               <Bar
                 dataKey="count"

@@ -3,12 +3,23 @@ import { verifySession } from "@/lib/auth/verifySession";
 import SidebarMisc from "@/components/ui/SidebarMisc";
 import ProfileNav from "@/components/profile/ProfileNav";
 import { UserRoundIcon } from "lucide-react";
+import type { Locale, DictionarySection } from "@/lib/types";
 
-export default async function ProfileLayout({ children, params }) {
+interface ProfileLayoutProps {
+  children: React.ReactNode;
+  params: Promise<{ lang: Locale }>;
+}
+
+export default async function ProfileLayout({
+  children,
+  params,
+}: ProfileLayoutProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
 
   const user = await verifySession();
+
+  const profile = intl.profile as DictionarySection;
 
   return (
     <div className="flex flex-col md:flex-row md:h-screen overflow-hidden">
@@ -16,12 +27,12 @@ export default async function ProfileLayout({ children, params }) {
         {!user || !user.name ? (
           <h2 className="flex items-center text-onix">
             <UserRoundIcon size={28} className="mr-2" />
-            {intl.profile.title}
+            {profile.title as string}
           </h2>
         ) : (
           <h2 className="flex items-center text-onix">
             <UserRoundIcon size={28} className="mr-2" />
-            {intl.profile.greeting} {user.name}
+            {profile.greeting as string} {user.name}
           </h2>
         )}
 

@@ -2,8 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { getReaderStats } from "@/actions/stats";
+import type { DictionarySection } from "@/lib/types";
 
-export default function TileStreak({ title, intl, bgColor, textColor }) {
+type TileStreakProps = {
+  title: string;
+  intl: DictionarySection;
+  bgColor: string;
+  textColor: string;
+};
+
+export default function TileStreak({ title, intl, bgColor, textColor }: TileStreakProps) {
   const [streak, setStreak] = useState("—");
 
   useEffect(() => {
@@ -55,7 +63,7 @@ export default function TileStreak({ title, intl, bgColor, textColor }) {
       <div
         className={`font-boldonse ${textColor} 2xl:text-2xl leading-7.5 mt-2 flex items-center`}
       >
-        {streak} {intl.stats.days}
+        {streak} {(intl.stats as DictionarySection).days as string}
       </div>
     </div>
   );

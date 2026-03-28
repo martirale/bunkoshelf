@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Trash2Icon, BellOffIcon } from "lucide-react";
 import { deleteSubscription, deleteAllSubscriptions } from "@/actions/web-push";
+import type { PushSubscriptionEntry, DictionarySection } from "@/lib/types";
 
 async function unsubscribeFromPushManager() {
   try {
@@ -12,7 +13,7 @@ async function unsubscribeFromPushManager() {
   } catch {}
 }
 
-async function getCurrentEndpoint() {
+async function getCurrentEndpoint(): Promise<string | null> {
   try {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
@@ -22,19 +23,26 @@ async function getCurrentEndpoint() {
   }
 }
 
-export default function SubscriptionsTable({ subscriptions: initial, intl }) {
+interface SubscriptionsTableProps {
+  subscriptions: PushSubscriptionEntry[];
+  intl: DictionarySection;
+}
+
+export default function SubscriptionsTable({ subscriptions: initial, intl }: SubscriptionsTableProps) {
   const [subscriptions, setSubscriptions] = useState(initial);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentEndpoint, setCurrentEndpoint] = useState(null);
+  const [currentEndpoint, setCurrentEndpoint] = useState<string | null>(null);
+
+  const profile = intl.profile as DictionarySection;
 
   useEffect(() => {
     getCurrentEndpoint().then(setCurrentEndpoint);
   }, []);
 
-  const handleDelete = async (id, endpoint) => {
+  const handleDelete = async (id: string, endpoint: string) => {
     setIsLoading(true);
     const result = await deleteSubscription(id);
-    if (result.success) {
+    if (result?.success) {
       setSubscriptions((prev) => prev.filter((s) => s.id !== id));
       if (endpoint === currentEndpoint) {
         await unsubscribeFromPushManager();
@@ -47,7 +55,7 @@ export default function SubscriptionsTable({ subscriptions: initial, intl }) {
   const handleDeleteAll = async () => {
     setIsLoading(true);
     const result = await deleteAllSubscriptions();
-    if (result.success) {
+    if (result?.success) {
       setSubscriptions([]);
       await unsubscribeFromPushManager();
       setCurrentEndpoint(null);
@@ -55,7 +63,7 @@ export default function SubscriptionsTable({ subscriptions: initial, intl }) {
     setIsLoading(false);
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",
@@ -75,7 +83,7 @@ export default function SubscriptionsTable({ subscriptions: initial, intl }) {
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold uppercase bg-red-600 hover:bg-red-700 text-sand transition-all duration-300 cursor-pointer disabled:opacity-50"
           >
             <BellOffIcon size={16} />
-            {intl.profile.unsubscribeAll}
+            {profile.unsubscribeAll as string}
           </button>
         </div>
       )}
@@ -83,7 +91,7 @@ export default function SubscriptionsTable({ subscriptions: initial, intl }) {
       <div className="bg-blackamber p-4 rounded-lg">
         {subscriptions.length === 0 ? (
           <p className="text-center py-8 text-neutral-400">
-            {intl.profile.noSubscriptions}
+            {profile.noSubscriptions as string}
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -91,14 +99,14 @@ export default function SubscriptionsTable({ subscriptions: initial, intl }) {
               <div className="flex sticky top-0 z-10">
                 <div className="grid grid-cols-2 flex-1 font-bold uppercase bg-onix rounded-l-md">
                   <div className="p-4 text-left">
-                    {intl.profile.device}
+                    {profile.device as string}
                   </div>
                   <div className="p-4 text-center">
-                    {intl.profile.subscribedAt}
+                    {profile.subscribedAt as string}
                   </div>
                 </div>
                 <div className="w-24 shrink-0 sticky right-0 bg-onix rounded-r-md p-4 text-center uppercase font-bold">
-                  {intl.profile.unsubscribe}
+                  {profile.unsubscribe as string}
                 </div>
               </div>
 
@@ -106,10 +114,10 @@ export default function SubscriptionsTable({ subscriptions: initial, intl }) {
                 <div key={sub.id} className="flex">
                   <div className="grid grid-cols-2 flex-1">
                     <div className="p-4 text-sm">
-                      {sub.deviceName || intl.profile.unknownDevice}
+                      {sub.deviceName || (profile.unknownDevice as string)}
                       {sub.endpoint === currentEndpoint && (
                         <span className="ml-2 text-xs bg-lilah rounded px-1.5 py-0.5 uppercase">
-                          {intl.profile.thisDevice}
+                          {profile.thisDevice as string}
                         </span>
                       )}
                     </div>

@@ -1,30 +1,49 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutPanelTopIcon, UserRoundPenIcon, BellIcon } from "lucide-react";
+import {
+  LayoutPanelTopIcon,
+  UserRoundPenIcon,
+  BellIcon,
+  type LucideIcon,
+} from "lucide-react";
 import { usePathname, useParams } from "next/navigation";
 import clsx from "clsx";
+import type { DictionarySection } from "@/lib/types";
 
-export default function ProfileNav({ intl }) {
+interface NavLink {
+  label: string | DictionarySection;
+  href: string;
+  icon: LucideIcon;
+  isActive: boolean;
+}
+
+interface ProfileNavProps {
+  intl: DictionarySection;
+}
+
+export default function ProfileNav({ intl }: ProfileNavProps) {
   const params = useParams();
   const pathname = usePathname();
-  const currentLang = params.lang || "es";
+  const currentLang = (params.lang as string) || "es";
 
-  const links = [
+  const profile = intl.profile as DictionarySection;
+
+  const links: NavLink[] = [
     {
-      label: intl.profile.overview,
+      label: profile.overview as string,
       href: `/${currentLang}/profile`,
       icon: LayoutPanelTopIcon,
       isActive: pathname === `/${currentLang}/profile`,
     },
     {
-      label: intl.profile.updateProfile,
+      label: profile.updateProfile as string,
       href: `/${currentLang}/profile/update`,
       icon: UserRoundPenIcon,
       isActive: pathname === `/${currentLang}/profile/update`,
     },
     {
-      label: intl.profile.notifications,
+      label: profile.notifications as string,
       href: `/${currentLang}/profile/notifications`,
       icon: BellIcon,
       isActive: pathname === `/${currentLang}/profile/notifications`,
@@ -44,7 +63,7 @@ export default function ProfileNav({ intl }) {
             )}
           >
             <Icon size={20} className="mr-1 md:mr-2" />
-            <span className="hidden md:inline">{label}</span>
+            <span className="hidden md:inline">{label as string}</span>
           </Link>
         ))}
       </div>

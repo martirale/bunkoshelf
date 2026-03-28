@@ -1,8 +1,13 @@
 import clsx from "clsx";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
+import type { DictionarySection } from "@/lib/types";
 
-export default async function UserAvatar({ intl }) {
+interface UserAvatarProps {
+  intl: DictionarySection;
+}
+
+export default async function UserAvatar({ intl }: UserAvatarProps) {
   const userSession = await verifySession();
 
   if (!userSession) return null;
@@ -29,6 +34,9 @@ export default async function UserAvatar({ intl }) {
       ? new Date().getFullYear() - user.birthYear
       : null;
 
+  const settings = intl.settings as DictionarySection;
+  const profile = intl.profile as DictionarySection;
+
   return (
     <div className="flex flex-col items-center gap-4 text-center my-8 2xl:mb-12">
       <div
@@ -49,20 +57,20 @@ export default async function UserAvatar({ intl }) {
         <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
           <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase bg-neutral-700">
             {user.role === "ADMIN"
-              ? intl.settings.roleAdmin
+              ? (settings.roleAdmin as string)
               : user.role === "GUEST"
-                ? intl.settings.roleGuest
-                : intl.settings.roleMember}
+                ? (settings.roleGuest as string)
+                : (settings.roleMember as string)}
           </span>
           {user.isAdmin && (
             <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase bg-pearl text-onix">
-              {intl.profile.usrAdmin}
+              {profile.usrAdmin as string}
             </span>
           )}
 
           {age !== null && (
             <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md uppercase bg-neutral-700">
-              {age} {intl.profile.age}
+              {age} {profile.age as string}
             </span>
           )}
         </div>

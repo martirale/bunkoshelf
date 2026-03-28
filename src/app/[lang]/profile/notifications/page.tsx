@@ -3,21 +3,31 @@ import { verifySession } from "@/lib/auth/verifySession";
 import { getUserSubscriptions } from "@/actions/web-push";
 import SubscriptionsTable from "@/components/profile/SubscriptionsTable";
 import { BellIcon } from "lucide-react";
+import type { Locale, DictionarySection } from "@/lib/types";
 
-export default async function NotificationsPage({ params }) {
+interface NotificationsPageProps {
+  params: Promise<{ lang: Locale }>;
+}
+
+export default async function NotificationsPage({
+  params,
+}: NotificationsPageProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
 
   const user = await verifySession();
   if (!user) return <p>No autorizado</p>;
 
-  const { subscriptions = [] } = await getUserSubscriptions();
+  const result = await getUserSubscriptions();
+  const subscriptions = result?.subscriptions ?? [];
+
+  const profile = intl.profile as DictionarySection;
 
   return (
     <>
       <h2 className="flex items-center mb-4">
         <BellIcon size={28} className="mr-2" />
-        {intl.profile.notifications}
+        {profile.notifications as string}
       </h2>
 
       <SubscriptionsTable subscriptions={subscriptions} intl={intl} />
