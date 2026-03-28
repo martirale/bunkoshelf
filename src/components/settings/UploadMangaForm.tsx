@@ -7,6 +7,7 @@ import DropzoneUpload from "@/components/DropzoneUpload";
 import { extractFromArchive } from "@/lib/client/archiveExtractor";
 import { parseComicInfo } from "@/lib/client/comicInfoParser";
 import { generateCoverFilename } from "@/lib/client/coverHasher";
+import { sendPushBroadcast } from "@/actions/web-push";
 import type { Dictionary } from "@/lib/types";
 import type { ComicMetadata } from "@/lib/types/manga";
 
@@ -43,9 +44,10 @@ interface UploadedFileEntry {
 
 interface UploadMangaFormProps {
   intl: Dictionary;
+  lang: string;
 }
 
-export default function UploadMangaForm({ intl }: UploadMangaFormProps) {
+export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
   const [isManga, setIsManga] = useState(true);
   const [directories, setDirectories] = useState<string[]>([]);
   const [selectedDirectory, setSelectedDirectory] = useState("");
@@ -360,6 +362,16 @@ export default function UploadMangaForm({ intl }: UploadMangaFormProps) {
         if (!confirmRes.ok) {
           throw new Error("Error confirming upload");
         }
+      }
+
+      try {
+        await sendPushBroadcast({
+          title: intl.push.ttLibraryUpdate as string,
+          body: intl.push.bodyLibraryUpdate as string,
+          url: `/${lang}/manga`,
+        });
+      } catch (e) {
+        console.error("Error al enviar notificaciones push:", e);
       }
 
       addToast({

@@ -256,7 +256,7 @@ export default function LibSettingsButtons({
       ))}
 
       <Modal isOpen={uploadOpen} onClose={() => setUploadOpen(false)}>
-        <UploadMangaForm intl={intl} />
+        <UploadMangaForm intl={intl} lang={lang} />
       </Modal>
     </div>
   );
