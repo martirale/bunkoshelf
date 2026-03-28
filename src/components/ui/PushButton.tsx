@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { BellIcon } from "lucide-react";
 import { subscribePush, sendPushToSubscription } from "@/actions/web-push";
+import type { DictionarySection } from "@/lib/types";
 
-function urlBase64ToUint8Array(base64String) {
+function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding)
     .replace(/\-/g, "+")
@@ -14,10 +15,10 @@ function urlBase64ToUint8Array(base64String) {
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
-  return outputArray;
+  return outputArray.buffer as ArrayBuffer;
 }
 
-function getDeviceName() {
+function getDeviceName(): string {
   const ua = navigator.userAgent;
   let browser = "Navegador";
   let os = "";
@@ -36,7 +37,13 @@ function getDeviceName() {
   return os ? `${browser} - ${os}` : browser;
 }
 
-export default function PushButton({ lang, intl, vapidPublicKey }) {
+interface PushButtonProps {
+  lang: string;
+  intl: DictionarySection;
+  vapidPublicKey?: string;
+}
+
+export default function PushButton({ lang, intl, vapidPublicKey }: PushButtonProps) {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState("default");
   const [hasSubscription, setHasSubscription] = useState(false);
@@ -65,6 +72,7 @@ export default function PushButton({ lang, intl, vapidPublicKey }) {
 
   async function subscribeUser() {
     if (!supported) return alert("Push no es soportado en este navegador");
+    if (!vapidPublicKey) return;
 
     if (Notification.permission === "default") {
       const perm = await Notification.requestPermission();
@@ -81,12 +89,14 @@ export default function PushButton({ lang, intl, vapidPublicKey }) {
         });
 
         const sub = subscription.toJSON();
-        await subscribePush(sub, getDeviceName());
+        const subInput = { endpoint: sub.endpoint ?? "", keys: sub.keys ?? {} };
+        await subscribePush(subInput, getDeviceName());
         setHasSubscription(true);
 
-        await sendPushToSubscription(sub, {
-          title: intl.push.ttSubscription,
-          body: intl.push.bodySubscription,
+        const push = intl.push as DictionarySection;
+        await sendPushToSubscription(subInput, {
+          title: push.ttSubscription as string,
+          body: push.bodySubscription as string,
           url: `/${lang}/`,
         });
       } catch (err) {

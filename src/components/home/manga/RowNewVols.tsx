@@ -4,10 +4,26 @@ import { useRef, useEffect, useState } from "react";
 import MangaCard from "@/components/ui/MangaCard";
 import { BookPlusIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { getMangaVolumes } from "@/actions/library";
+import type { DictionarySection } from "@/lib/types";
 
-export default function RowNewVols({ lang, intl, maxItems = 8 }) {
-  const scrollRef = useRef(null);
-  const [entries, setEntries] = useState([]);
+interface VolumeEntry {
+  title: string;
+  slug: string;
+  isOneshot: boolean;
+  coverImage: string | null;
+  meta: { title?: string | null } | null;
+  createdAt: string | Date;
+}
+
+interface RowNewVolsProps {
+  lang: string;
+  intl: DictionarySection;
+  maxItems?: number;
+}
+
+export default function RowNewVols({ lang, intl, maxItems = 8 }: RowNewVolsProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [entries, setEntries] = useState<VolumeEntry[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
   const scrollStart = useRef(0);
@@ -16,20 +32,20 @@ export default function RowNewVols({ lang, intl, maxItems = 8 }) {
   useEffect(() => {
     async function fetchVolumes() {
       const result = await getMangaVolumes();
-      if (!result.success) return;
+      if (!result || !result.success || !result.data) return;
 
-      const data = result.data;
-
-      const sorted = data
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      const sorted: VolumeEntry[] = [...result.data]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, maxItems)
         .map((vol) => ({
-          ...vol,
+          title: vol.title,
+          slug: vol.slug,
           isOneshot: vol.series?.isOneshot === true,
           coverImage: vol.coverImage
             ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
             : null,
-          meta: vol.metadataObj || null,
+          meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
+          createdAt: vol.createdAt,
         }));
 
       setEntries(sorted);
@@ -38,7 +54,8 @@ export default function RowNewVols({ lang, intl, maxItems = 8 }) {
     fetchVolumes();
   }, [maxItems]);
 
-  const handleMouseDown = (e) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!scrollRef.current) return;
     setIsDragging(true);
     hasDragged.current = false;
     startX.current = e.pageX - scrollRef.current.offsetLeft;
@@ -46,8 +63,8 @@ export default function RowNewVols({ lang, intl, maxItems = 8 }) {
     document.body.style.cursor = "grabbing";
   };
 
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !scrollRef.current) return;
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
     const delta = Math.abs(x - startX.current);
@@ -64,22 +81,24 @@ export default function RowNewVols({ lang, intl, maxItems = 8 }) {
     document.body.style.cursor = "default";
   };
 
-  const scrollCards = (direction) => {
+  const scrollCards = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const container = scrollRef.current;
-      const card = container.querySelector("div > div");
+      const card = container.querySelector("div > div") as HTMLElement | null;
       const cardWidth = card?.offsetWidth || 200;
       const scrollAmount = cardWidth * 2 * (direction === "left" ? -1 : 1);
       container.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
 
+  const libraries = intl.libraries as DictionarySection;
+
   return (
     <section className="mt-8">
       <div className="flex justify-between items-center mb-4">
         <h2 className="flex items-center text-onix text-base md:text-lg">
           <BookPlusIcon size={28} className="mr-2" />
-          {intl.libraries.recentlyAdded}
+          {libraries.recentlyAdded as string}
         </h2>
         <div className="flex gap-4 text-onix">
           <button

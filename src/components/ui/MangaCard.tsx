@@ -6,6 +6,23 @@ import Image from "next/image";
 import clsx from "clsx";
 import { volumeProgress } from "@/lib/reader/volumeProgress";
 import { seriesProgress } from "@/lib/reader/seriesProgress";
+import type { DictionarySection } from "@/lib/types";
+
+interface MangaCardProps {
+  title: string | null | undefined;
+  href: string;
+  isSeries: boolean;
+  isOneshot: boolean;
+  onGoing?: boolean;
+  onPause?: boolean;
+  volumeCount?: number | null;
+  cover?: string | null;
+  intl: DictionarySection;
+  isDragging: boolean;
+  className?: string;
+  seriesSlug?: string | null;
+  progressRatio?: number | null;
+}
 
 export default function MangaCard({
   title,
@@ -21,9 +38,9 @@ export default function MangaCard({
   className,
   seriesSlug,
   progressRatio,
-}) {
+}: MangaCardProps) {
   const t = intl;
-  const [clientRatio, setClientRatio] = useState(null);
+  const [clientRatio, setClientRatio] = useState<number | null>(null);
 
   useEffect(() => {
     if (progressRatio != null || !href) return;
@@ -36,9 +53,9 @@ export default function MangaCard({
         if (data?.readVolumes && data?.totalVolumes) {
           setClientRatio(data.readVolumes / data.totalVolumes);
         }
-      } else {
+      } else if (slug) {
         const data = await volumeProgress(slug);
-        if (data?.lastPage != null && data?.totalPages) {
+        if (data && "totalPages" in data && data.lastPage != null && data.totalPages) {
           setClientRatio((data.lastPage + 1) / data.totalPages);
         }
       }
@@ -48,6 +65,8 @@ export default function MangaCard({
   }, [href, isSeries, seriesSlug, progressRatio]);
 
   const ratio = progressRatio ?? clientRatio ?? 0;
+
+  const manga = t.manga as DictionarySection;
 
   return (
     <Link
@@ -60,7 +79,7 @@ export default function MangaCard({
       <div className="relative aspect-[7/10.5] w-full flex-shrink-0">
         <Image
           src={cover || "/placeholder.svg?=v1"}
-          alt={`Cover for ${title}`}
+          alt={`Cover for ${title ?? ""}`}
           fill
           className="object-cover z-0"
         />
@@ -89,16 +108,16 @@ export default function MangaCard({
           {isSeries && volumeCount != null && (
             <>
               <p className="mt-2 text-xs uppercase text-neutral-500">
-                {volumeCount} {intl.manga.volumes}
+                {volumeCount} {manga.volumes as string}
               </p>
               {onGoing && (
                 <span className="bg-cyan-500 text-white text-xs uppercase py-0.5 px-1 rounded">
-                  {t.manga.onGoing}
+                  {manga.onGoing as string}
                 </span>
               )}
               {onPause && (
                 <span className="bg-yellow-500 text-onix text-xs uppercase py-0.5 px-1 rounded">
-                  {t.manga.hiatus}
+                  {manga.hiatus as string}
                 </span>
               )}
             </>

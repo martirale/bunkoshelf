@@ -7,10 +7,17 @@ import Link from "next/link";
 import clsx from "clsx";
 import ReloadButton from "@/components/ui/ReloadButton";
 import PushButton from "@/components/ui/PushButton";
+import type { Locale, DictionarySection } from "@/lib/types";
 
-export default async function HomePage({ params }) {
+interface HomePageProps {
+  params: Promise<{ lang: Locale }>;
+}
+
+export default async function HomePage({ params }: HomePageProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang);
+
+  const home = intl.home as DictionarySection;
 
   return (
     <>
@@ -47,7 +54,7 @@ export default async function HomePage({ params }) {
                     "hover:underline transition-all duration-300"
                   )}
                 >
-                  {intl.home.goToProfile}
+                  {home.goToProfile as string}
                   <ChevronRightIcon size={20} className="ml-1" />
                 </Link>
               </div>
