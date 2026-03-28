@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
 export const dynamic = "force-dynamic";
@@ -10,8 +11,8 @@ import r2Client, { R2_BUCKET } from "@/lib/r2";
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
-export async function GET(request) {
-  let _err;
+export async function GET(request: NextRequest) {
+  let _err: Error | undefined;
   try {
     const user = await verifySession();
     if (!user) {
@@ -28,7 +29,7 @@ export async function GET(request) {
     if (action === "list") {
       const libraryType = type === "manga" ? "manga" : "books";
 
-      let directories = [];
+      let directories: string[] = [];
 
       if (LIB_PROVIDER === "cloud") {
         const prefix = `library/${libraryType}/`;
@@ -43,7 +44,7 @@ export async function GET(request) {
 
         if (response.CommonPrefixes) {
           directories = response.CommonPrefixes.map((item) => {
-            const fullPath = item.Prefix;
+            const fullPath = item.Prefix!;
             return fullPath.replace(prefix, "").replace(/\/$/, "");
           });
         }
@@ -60,7 +61,7 @@ export async function GET(request) {
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (e) {
-    _err = e;
+    _err = e as Error;
   } finally {
     if (_err) {
       return NextResponse.json(

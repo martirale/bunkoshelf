@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
 export const dynamic = "force-dynamic";
@@ -6,9 +7,10 @@ import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { log } from "@/lib/logger";
-import { PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { indexUploadedVolume } from "@/lib/uploadIndexer";
+import type { ComicMetadata } from "@/lib/types/manga";
 
 export const maxDuration = 300;
 
@@ -16,12 +18,12 @@ const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
 const TEMP_PATH = path.resolve(process.cwd(), "../temp");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
-function generateChecksum() {
+function generateChecksum(): string {
   return crypto.randomBytes(8).toString("hex");
 }
 
-export async function POST(request) {
-  let _err;
+export async function POST(request: NextRequest) {
+  let _err: Error | undefined;
   try {
     const user = await verifySession();
     if (!user) {
@@ -34,19 +36,25 @@ export async function POST(request) {
     await fs.mkdir(TEMP_PATH, { recursive: true });
 
     const formData = await request.formData();
-    const metadataStr = formData.get("metadata");
-    const chunk = formData.get("chunk");
-    const fileName = formData.get("fileName");
-    const chunkIndex = parseInt(formData.get("chunkIndex"));
-    const totalChunks = parseInt(formData.get("totalChunks"));
-    const fileIndex = parseInt(formData.get("fileIndex"));
-    const totalFiles = parseInt(formData.get("totalFiles"));
+    const metadataStr = formData.get("metadata") as string;
+    const chunk = formData.get("chunk") as Blob;
+    const fileName = formData.get("fileName") as string;
+    const chunkIndex = parseInt(formData.get("chunkIndex") as string);
+    const totalChunks = parseInt(formData.get("totalChunks") as string);
+    const fileIndex = parseInt(formData.get("fileIndex") as string);
+    const totalFiles = parseInt(formData.get("totalFiles") as string);
 
     if (!chunk || !fileName) {
       throw new Error("Missing chunk or fileName");
     }
 
-    const metadata = JSON.parse(metadataStr);
+    const metadata = JSON.parse(metadataStr) as {
+      type: string;
+      isNew: boolean;
+      newDirectoryName: string;
+      isOneshot: boolean;
+      existingDirectory: string;
+    };
     const { type, isNew, newDirectoryName, isOneshot, existingDirectory } =
       metadata;
 
@@ -58,9 +66,9 @@ export async function POST(request) {
     if (chunkIndex === 0) {
       await fs.writeFile(tempFilePath, uint8Array);
 
-      const cover = formData.get("cover");
-      const coverFilename = formData.get("coverFilename");
-      const volumeMetadata = formData.get("volumeMetadata");
+      const cover = formData.get("cover") as Blob | null;
+      const coverFilename = formData.get("coverFilename") as string | null;
+      const volumeMetadata = formData.get("volumeMetadata") as string | null;
 
       if (cover && coverFilename) {
         const coverBuffer = await cover.arrayBuffer();
@@ -92,8 +100,8 @@ export async function POST(request) {
       const checksum = generateChecksum();
       const txtFileName = `${path.parse(fileName).name}.txt`;
 
-      let coverData = null;
-      let coverFilename = null;
+      let coverData: Buffer | null = null;
+      let coverFilename: string | null = null;
       const coverPartPath = path.join(TEMP_PATH, `${fileName}.cover.part`);
       const coverNamePath = path.join(TEMP_PATH, `${fileName}.cover.name`);
 
@@ -105,7 +113,7 @@ export async function POST(request) {
         // no cover
       }
 
-      let volumeMeta = null;
+      let volumeMeta: { metadata: ComicMetadata | null; genres: string[]; tags: string[] } | null = null;
       const metaJsonPath = path.join(TEMP_PATH, `${fileName}.meta.json`);
       try {
         const metaStr = await fs.readFile(metaJsonPath, "utf8");
@@ -185,7 +193,7 @@ export async function POST(request) {
         }
       } else {
         const basePath = path.join(LIBRARY_PATH, libraryType);
-        let targetDirectory;
+        let targetDirectory: string;
 
         if (isNew) {
           targetDirectory = path.join(basePath, dirWithSuffix);
@@ -260,7 +268,7 @@ export async function POST(request) {
       totalChunks,
     });
   } catch (e) {
-    _err = e;
+    _err = e as Error;
   } finally {
     if (_err) {
       console.error("[CHUNK UPLOAD] Error:", _err);

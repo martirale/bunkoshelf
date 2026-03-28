@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import fsp from "fs/promises";
 import path from "path";
@@ -7,8 +8,9 @@ import { extractCoverCbz } from "@/lib/jobs/scan/manga/covers/cbz";
 import { extractCoverCbr } from "@/lib/jobs/scan/manga/covers/cbr";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import type { StorageProvider } from "@/lib/types/manga";
 
-const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
+const LIB_PROVIDER = (process.env.LIB_PROVIDER || "local") as StorageProvider;
 const TEMP_PATH = path.resolve(process.cwd(), "../temp");
 const CHECKSUM_STATUS_PATH = path.join(
   process.cwd(),
@@ -16,7 +18,13 @@ const CHECKSUM_STATUS_PATH = path.join(
   "checksum-status.json"
 );
 
-function getExtractorForFile(filePath) {
+type CoverExtractor = (
+  fullPath: string,
+  outputDir: string,
+  provider: StorageProvider
+) => Promise<string | null>;
+
+function getExtractorForFile(filePath: string): CoverExtractor | null {
   const ext = path.extname(filePath).toLowerCase();
 
   if (ext === ".cbz" || ext === ".zip") {
@@ -30,10 +38,10 @@ function getExtractorForFile(filePath) {
   return null;
 }
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   let updated = 0;
   let errors = 0;
-  let _err;
+  let _err: Error | undefined;
 
   try {
     const user = await verifySession();
@@ -45,9 +53,9 @@ export async function POST(request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const forceAll = body?.forceAll === true;
+    const forceAll = (body as Record<string, unknown>)?.forceAll === true;
 
-    let filesToIndex = [];
+    let filesToIndex: string[] = [];
 
     if (forceAll) {
       const volumes = await prisma.mangaVolume.findMany({
@@ -56,7 +64,7 @@ export async function POST(request) {
       filesToIndex = volumes.map((v) => v.fullPath);
     } else {
       const checksumData = await fsp.readFile(CHECKSUM_STATUS_PATH, "utf-8");
-      const parsed = JSON.parse(checksumData);
+      const parsed = JSON.parse(checksumData) as { filesToIndex?: string[] };
       filesToIndex = parsed.filesToIndex || [];
     }
 
@@ -95,7 +103,7 @@ export async function POST(request) {
           continue;
         }
 
-        let outputDir;
+        let outputDir: string;
 
         if (LIB_PROVIDER === "cloud") {
           outputDir = path.join(TEMP_PATH, `cover-${volume.slug}`);
@@ -146,7 +154,7 @@ export async function POST(request) {
       } catch (err) {
         console.warn(
           `No se pudo extraer la portada de ${volume.fullPath}:`,
-          err.message
+          (err as Error).message
         );
         errors++;
       }
@@ -159,7 +167,7 @@ export async function POST(request) {
       errors,
     });
   } catch (err) {
-    _err = err;
+    _err = err as Error;
   } finally {
     if (_err) {
       console.error("Error durante la extracción de portadas:", _err);

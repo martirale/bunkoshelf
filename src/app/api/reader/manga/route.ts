@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { getMangaImages } from "@/actions/reader";
 
-export async function POST(req) {
+export async function POST(req: NextRequest) {
   try {
-    const { slug } = await req.json();
+    const { slug } = (await req.json()) as { slug?: string };
 
     if (!slug) {
       return NextResponse.json({ error: "Missing slug" }, { status: 400 });
@@ -11,10 +12,10 @@ export async function POST(req) {
 
     const result = await getMangaImages({ slug });
 
-    if (result.error) {
+    if (!result || "error" in result) {
       return NextResponse.json(
-        { error: result.error },
-        { status: result.status ?? 500 }
+        { error: result?.error ?? "Unknown error" },
+        { status: ("status" in (result ?? {})) ? (result as { status: number }).status : 500 }
       );
     }
 

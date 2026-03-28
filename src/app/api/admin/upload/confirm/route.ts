@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
 export const dynamic = "force-dynamic";
@@ -7,13 +8,38 @@ import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { log } from "@/lib/logger";
 import crypto from "crypto";
 import { indexUploadedVolume } from "@/lib/uploadIndexer";
+import type { ComicMetadata } from "@/lib/types/manga";
 
-function generateChecksum() {
+function generateChecksum(): string {
   return crypto.randomBytes(8).toString("hex");
 }
 
-export async function POST(request) {
-  let _err;
+interface ConfirmFile {
+  key: string;
+  baseName: string;
+  fileName: string;
+  coverFilename?: string;
+  fileSize?: number;
+  volumeMetadata?: {
+    metadata: ComicMetadata | null;
+    genres: string[];
+    tags: string[];
+  };
+}
+
+interface ConfirmBody {
+  files: ConfirmFile[];
+  metadata: {
+    type: string;
+    isNew: boolean;
+    newDirectoryName: string;
+    isOneshot: boolean;
+    existingDirectory: string;
+  };
+}
+
+export async function POST(request: NextRequest) {
+  let _err: Error | undefined;
   try {
     const user = await verifySession();
     if (!user) {
@@ -23,7 +49,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { files, metadata } = await request.json();
+    const { files, metadata } = (await request.json()) as ConfirmBody;
     const { type, isNew, newDirectoryName, isOneshot, existingDirectory } =
       metadata;
 
@@ -83,7 +109,7 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true });
   } catch (e) {
-    _err = e;
+    _err = e as Error;
   } finally {
     if (_err) {
       console.error("[CONFIRM UPLOAD] Error:", _err);

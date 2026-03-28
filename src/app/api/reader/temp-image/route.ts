@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
 
-export async function GET(req) {
+const CONTENT_TYPE_MAP: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+};
+
+export async function GET(req: NextRequest) {
   try {
     const user = await verifySession();
     if (!user) {
@@ -20,18 +29,9 @@ export async function GET(req) {
     const filePath = decodeURIComponent(rawPath);
     const ext = path.extname(filePath).toLowerCase();
 
-    // Leer la imagen desde el sistema de archivos
     const imageBuffer = await fs.readFile(filePath);
 
-    // Detectar tipo de imagen
-    const contentType =
-      {
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".png": "image/png",
-        ".gif": "image/gif",
-        ".webp": "image/webp",
-      }[ext] || "application/octet-stream";
+    const contentType = CONTENT_TYPE_MAP[ext] || "application/octet-stream";
 
     return new Response(imageBuffer, {
       status: 200,

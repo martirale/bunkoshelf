@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
@@ -16,7 +17,7 @@ const CHECKSUM_STATUS_PATH = path.join(
   "checksum-status.json"
 );
 
-function toSlug(str) {
+function toSlug(str: string): string {
   return str
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -25,12 +26,17 @@ function toSlug(str) {
     .replace(/^-+|-+$/g, "");
 }
 
-function generateChecksum() {
+function generateChecksum(): string {
   return crypto.randomBytes(8).toString("hex");
 }
 
-export async function POST(request) {
-  let _err;
+interface VolumeFile {
+  fileName: string;
+  fullPath: string;
+}
+
+export async function POST(request: NextRequest) {
+  let _err: Error | undefined;
   try {
     const user = await verifySession();
     if (!user) {
@@ -41,12 +47,12 @@ export async function POST(request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const forceAll = body?.forceAll === true;
+    const forceAll = (body as Record<string, unknown>)?.forceAll === true;
 
     let seriesCount = 0;
     let volumeCount = 0;
 
-    let filesToIndex = [];
+    let filesToIndex: string[] = [];
 
     if (forceAll) {
       const volumes = await prisma.mangaVolume.findMany({
@@ -55,7 +61,7 @@ export async function POST(request) {
       filesToIndex = volumes.map((v) => v.fullPath);
     } else {
       const checksumData = await fs.readFile(CHECKSUM_STATUS_PATH, "utf-8");
-      const parsed = JSON.parse(checksumData);
+      const parsed = JSON.parse(checksumData) as { filesToIndex?: string[] };
       filesToIndex = parsed.filesToIndex || [];
     }
 
@@ -70,7 +76,7 @@ export async function POST(request) {
 
     if (LIB_PROVIDER === "cloud") {
       const prefix = "library/manga/";
-      const seriesMap = new Map();
+      const seriesMap = new Map<string, VolumeFile[]>();
 
       for (const fullPath of filesToIndex) {
         const relativePath = fullPath.replace(/^\//, "").replace(prefix, "");
@@ -88,7 +94,7 @@ export async function POST(request) {
           seriesMap.set(seriesName, []);
         }
 
-        seriesMap.get(seriesName).push({
+        seriesMap.get(seriesName)!.push({
           fileName,
           fullPath,
         });
@@ -167,7 +173,7 @@ export async function POST(request) {
         }
       }
     } else {
-      const seriesMap = new Map();
+      const seriesMap = new Map<string, { dirName: string; volumes: VolumeFile[] }>();
 
       for (const fullPath of filesToIndex) {
         const dirPath = path.dirname(fullPath);
@@ -181,7 +187,7 @@ export async function POST(request) {
           });
         }
 
-        seriesMap.get(dirPath).volumes.push({
+        seriesMap.get(dirPath)!.volumes.push({
           fileName,
           fullPath,
         });
@@ -263,7 +269,7 @@ export async function POST(request) {
       volumeCount,
     });
   } catch (error) {
-    _err = error;
+    _err = error as Error;
   } finally {
     if (_err) {
       console.error("Error al escanear la biblioteca:", _err);

@@ -57,8 +57,13 @@ async function cleanOrphanedGenresAndTags() {
   }
 }
 
-async function checksumVerification() {
-  const filesToIndex = [];
+interface CloudFileInfo {
+  volumeFiles: { name: string; fullPath: string }[];
+  txtFiles: { key: string; path: string; name: string }[];
+}
+
+async function checksumVerification(): Promise<number> {
+  const filesToIndex: string[] = [];
 
   await fs.mkdir(path.dirname(STATUS_PATH), { recursive: true });
 
@@ -70,18 +75,18 @@ async function checksumVerification() {
     });
 
     const response = await r2Client.send(command);
-    const directoriesWithFiles = new Map();
-    const existingVolumePaths = new Set();
-    const existingTxtPaths = new Set();
+    const directoriesWithFiles = new Map<string, CloudFileInfo>();
+    const existingVolumePaths = new Set<string>();
+    const existingTxtPaths = new Set<string>();
 
     if (response.Contents) {
       for (const item of response.Contents) {
-        const relativePath = item.Key.replace(prefix, "");
+        const relativePath = item.Key!.replace(prefix, "");
         const parts = relativePath.split("/");
 
         if (parts.length < 2) continue;
 
-        const directoryPath = `/${path.dirname(item.Key)}`;
+        const directoryPath = `/${path.dirname(item.Key!)}`;
         const fileName = parts[parts.length - 1];
         const ext = path.extname(fileName).toLowerCase();
 
@@ -93,22 +98,22 @@ async function checksumVerification() {
         }
 
         if (SUPPORTED_EXTENSIONS.includes(ext)) {
-          directoriesWithFiles.get(directoryPath).volumeFiles.push({
+          directoriesWithFiles.get(directoryPath)!.volumeFiles.push({
             name: fileName,
-            fullPath: `/${item.Key}`,
+            fullPath: `/${item.Key!}`,
           });
-          existingVolumePaths.add(`/${item.Key}`);
+          existingVolumePaths.add(`/${item.Key!}`);
         } else if (fileName.endsWith(".txt")) {
-          directoriesWithFiles.get(directoryPath).txtFiles.push({
-            key: item.Key,
-            path: `/${item.Key}`,
+          directoriesWithFiles.get(directoryPath)!.txtFiles.push({
+            key: item.Key!,
+            path: `/${item.Key!}`,
             name: fileName,
           });
-          existingTxtPaths.add(`/${item.Key}`);
+          existingTxtPaths.add(`/${item.Key!}`);
         }
       }
 
-      for (const [directoryPath, info] of directoriesWithFiles) {
+      for (const [, info] of directoriesWithFiles) {
         if (info.volumeFiles.length === 0) continue;
 
         if (info.txtFiles.length === 0) {
@@ -116,7 +121,7 @@ async function checksumVerification() {
             filesToIndex.push(volumeFile.fullPath);
           }
         } else {
-          const txtMap = new Map();
+          const txtMap = new Map<string, { key: string; path: string; name: string }>();
           for (const txtFile of info.txtFiles) {
             const baseName = path.parse(txtFile.name).name;
             txtMap.set(baseName, txtFile);
@@ -165,7 +170,7 @@ async function checksumVerification() {
       select: { fullPath: true, seriesId: true },
     });
 
-    const deletedSeriesIds = new Set();
+    const deletedSeriesIds = new Set<string>();
 
     for (const volume of allDbVolumes) {
       if (!existingVolumePaths.has(volume.fullPath)) {
@@ -204,7 +209,7 @@ async function checksumVerification() {
     });
 
     for (const record of allDbChecksums) {
-      if (!existingTxtPaths.has(record.filePath)) {
+      if (record.filePath && !existingTxtPaths.has(record.filePath)) {
         await prisma.fileChecksum.delete({
           where: { filePath: record.filePath },
         });
@@ -215,8 +220,8 @@ async function checksumVerification() {
       withFileTypes: true,
     });
 
-    const existingVolumePaths = new Set();
-    const existingTxtPaths = new Set();
+    const existingVolumePaths = new Set<string>();
+    const existingTxtPaths = new Set<string>();
 
     for (const entry of dirContents) {
       if (!entry.isDirectory()) continue;
@@ -245,7 +250,7 @@ async function checksumVerification() {
           filesToIndex.push(path.join(entryPath, volumeFile));
         }
       } else {
-        const txtMap = new Map();
+        const txtMap = new Map<string, string>();
         for (const txtFile of txtFiles) {
           const baseName = path.parse(txtFile).name;
           txtMap.set(baseName, txtFile);
@@ -280,7 +285,7 @@ async function checksumVerification() {
       select: { fullPath: true, seriesId: true },
     });
 
-    const deletedSeriesIds = new Set();
+    const deletedSeriesIds = new Set<string>();
 
     for (const volume of allDbVolumes) {
       if (!existingVolumePaths.has(volume.fullPath)) {
@@ -319,7 +324,7 @@ async function checksumVerification() {
     });
 
     for (const record of allDbChecksums) {
-      if (!existingTxtPaths.has(record.filePath)) {
+      if (record.filePath && !existingTxtPaths.has(record.filePath)) {
         await prisma.fileChecksum.delete({
           where: { filePath: record.filePath },
         });
@@ -358,7 +363,7 @@ async function runBackgroundJob() {
 }
 
 export async function POST() {
-  let _err;
+  let _err: Error | undefined;
   try {
     const user = await verifySession();
     if (!user) {
@@ -384,7 +389,7 @@ export async function POST() {
       { status: 200 }
     );
   } catch (error) {
-    _err = error;
+    _err = error as Error;
   } finally {
     if (_err) {
       console.error("Error al ejecutar el escaneo:", _err);

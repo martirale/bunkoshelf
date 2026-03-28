@@ -22,8 +22,7 @@ export async function GET() {
   } catch (err) {
     console.error("Error leyendo scan-status.json:", err);
 
-    // Si no existe el archivo, devolvemos un estado inicial
-    if (err.code === "ENOENT") {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
       return NextResponse.json({
         steps: {
           index: "pending",

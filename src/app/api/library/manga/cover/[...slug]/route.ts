@@ -3,11 +3,14 @@ import fs from "fs/promises";
 import prisma from "@/lib/prisma";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import type { NextRequest } from "next/server";
 
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
-export async function GET(req, contextPromise) {
-  const context = await contextPromise;
+export async function GET(
+  _req: NextRequest,
+  context: { params: Promise<{ slug: string[] }> }
+) {
   const params = await context.params;
   const segments = params?.slug;
 
@@ -42,10 +45,10 @@ export async function GET(req, contextPromise) {
       });
 
       const response = await r2Client.send(command);
-      const bytes = await response.Body.transformToByteArray();
+      const bytes = await response.Body!.transformToByteArray();
       const contentType = getContentType(volume.coverImage);
 
-      return new Response(bytes, {
+      return new Response(Buffer.from(bytes), {
         headers: {
           "Content-Type": contentType,
           "Cache-Control": "public, max-age=31536000, immutable",
@@ -70,7 +73,7 @@ export async function GET(req, contextPromise) {
   }
 }
 
-async function servePlaceholder() {
+async function servePlaceholder(): Promise<Response> {
   const fallbackPath = path.join(process.cwd(), "public", "placeholder.svg");
   try {
     const fallbackFile = await fs.readFile(fallbackPath);
@@ -91,7 +94,7 @@ async function servePlaceholder() {
   }
 }
 
-function getContentType(filePath) {
+function getContentType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
   switch (ext) {
     case ".jpg":

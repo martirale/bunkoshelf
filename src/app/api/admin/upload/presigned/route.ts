@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
 export const dynamic = "force-dynamic";
@@ -8,8 +9,20 @@ import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
-export async function POST(request) {
-  let _err;
+interface PresignedBody {
+  fileName: string;
+  metadata: {
+    type: string;
+    isNew: boolean;
+    newDirectoryName: string;
+    isOneshot: boolean;
+    existingDirectory: string;
+  };
+  coverFilename?: string;
+}
+
+export async function POST(request: NextRequest) {
+  let _err: Error | undefined;
   try {
     const user = await verifySession();
     if (!user) {
@@ -23,7 +36,8 @@ export async function POST(request) {
       return NextResponse.json({ useChunks: true });
     }
 
-    const { fileName, metadata, coverFilename } = await request.json();
+    const { fileName, metadata, coverFilename } =
+      (await request.json()) as PresignedBody;
     const { type, isNew, newDirectoryName, isOneshot, existingDirectory } =
       metadata;
 
@@ -42,8 +56,8 @@ export async function POST(request) {
       expiresIn: 3600,
     });
 
-    let coverPresignedUrl = null;
-    let coverKey = null;
+    let coverPresignedUrl: string | null = null;
+    let coverKey: string | null = null;
 
     if (coverFilename) {
       coverKey = `library/${libraryType}/${dirWithSuffix}/${coverFilename}`;
@@ -63,7 +77,7 @@ export async function POST(request) {
       coverKey,
     });
   } catch (e) {
-    _err = e;
+    _err = e as Error;
   } finally {
     if (_err) {
       console.error("[PRESIGNED URL] Error:", _err);

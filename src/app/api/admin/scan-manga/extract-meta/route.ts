@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import fsp from "fs/promises";
 import path from "path";
 import prisma from "@/lib/prisma";
 import { extractMetadataCbz } from "@/lib/jobs/scan/manga/meta/cbz";
 import { extractMetadataCbr } from "@/lib/jobs/scan/manga/meta/cbr";
+import type { StorageProvider, ComicInfoResult } from "@/lib/types/manga";
 
-const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
+const LIB_PROVIDER = (process.env.LIB_PROVIDER || "local") as StorageProvider;
 const CHECKSUM_STATUS_PATH = path.join(
   process.cwd(),
   "tmp",
@@ -53,7 +55,12 @@ async function cleanOrphanedGenresAndTags() {
   }
 }
 
-function getExtractorForFile(filePath) {
+type MetaExtractor = (
+  fullPath: string,
+  provider: StorageProvider
+) => Promise<ComicInfoResult | null>;
+
+function getExtractorForFile(filePath: string): MetaExtractor | null {
   const ext = path.extname(filePath).toLowerCase();
 
   if (ext === ".cbz" || ext === ".zip") {
@@ -67,8 +74,8 @@ function getExtractorForFile(filePath) {
   return null;
 }
 
-export async function POST(request) {
-  let error = null;
+export async function POST(request: NextRequest) {
+  let error: Error | null = null;
   try {
     const user = await verifySession();
     if (!user) {
@@ -79,9 +86,9 @@ export async function POST(request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const forceAll = body?.forceAll === true;
+    const forceAll = (body as Record<string, unknown>)?.forceAll === true;
 
-    let filesToIndex = [];
+    let filesToIndex: string[] = [];
 
     if (forceAll) {
       const volumes = await prisma.mangaVolume.findMany({
@@ -90,7 +97,7 @@ export async function POST(request) {
       filesToIndex = volumes.map((v) => v.fullPath);
     } else {
       const checksumData = await fsp.readFile(CHECKSUM_STATUS_PATH, "utf-8");
-      const parsed = JSON.parse(checksumData);
+      const parsed = JSON.parse(checksumData) as { filesToIndex?: string[] };
       filesToIndex = parsed.filesToIndex || [];
     }
 
@@ -137,7 +144,7 @@ export async function POST(request) {
           select: { metadataId: true },
         });
 
-        if (currentVolume.metadataId !== volumeMeta.id) {
+        if (currentVolume!.metadataId !== volumeMeta.id) {
           await prisma.mangaVolume.update({
             where: { id: volume.id },
             data: { metadataId: volumeMeta.id },
@@ -197,7 +204,7 @@ export async function POST(request) {
       message: "Metadatos procesados correctamente.",
     });
   } catch (err) {
-    error = err;
+    error = err as Error;
   } finally {
     if (error) {
       console.error("Error general al procesar metadatos:", error);
