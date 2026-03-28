@@ -7,23 +7,58 @@ import DropzoneUpload from "@/components/DropzoneUpload";
 import { extractFromArchive } from "@/lib/client/archiveExtractor";
 import { parseComicInfo } from "@/lib/client/comicInfoParser";
 import { generateCoverFilename } from "@/lib/client/coverHasher";
+import type { Dictionary } from "@/lib/types";
+import type { ComicMetadata } from "@/lib/types/manga";
 
 const CHUNK_SIZE = 32 * 1024 * 1024;
 
-export default function UploadMangaForm({ intl }) {
+interface ExtractedFileData {
+  coverBlob: Blob | null;
+  coverFilename: string | null;
+  metadata: ComicMetadata | null;
+  genres: string[];
+  tags: string[];
+}
+
+interface UploadMetadata {
+  type: "manga" | "books";
+  isNew: boolean;
+  newDirectoryName: string | null;
+  isOneshot: boolean;
+  existingDirectory: string | null;
+}
+
+interface UploadedFileEntry {
+  key: string;
+  baseName: string;
+  fileName: string;
+  coverFilename: string | null;
+  volumeMetadata: {
+    metadata: ComicMetadata | null;
+    genres: string[];
+    tags: string[];
+  } | null;
+  fileSize: number;
+}
+
+interface UploadMangaFormProps {
+  intl: Dictionary;
+}
+
+export default function UploadMangaForm({ intl }: UploadMangaFormProps) {
   const [isManga, setIsManga] = useState(true);
-  const [directories, setDirectories] = useState([]);
+  const [directories, setDirectories] = useState<string[]>([]);
   const [selectedDirectory, setSelectedDirectory] = useState("");
   const [newDirectoryName, setNewDirectoryName] = useState("");
   const [isOneshot, setIsOneshot] = useState(false);
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [progressPercent, setProgressPercent] = useState(0);
 
-  const extractedDataRef = useRef(new Map());
-  const { addToast } = useToast();
+  const extractedDataRef = useRef<Map<string, ExtractedFileData>>(new Map());
+  const { addToast } = useToast()!;
 
   const isOneshotMode =
     (selectedDirectory === "new" && isOneshot) ||
@@ -33,7 +68,7 @@ export default function UploadMangaForm({ intl }) {
 
   useEffect(() => {
     const fetchDirectories = async () => {
-      let _err;
+      let _err: unknown;
       try {
         const type = isManga ? "manga" : "books";
         const res = await fetch(
@@ -60,11 +95,11 @@ export default function UploadMangaForm({ intl }) {
     fetchDirectories();
   }, [isManga, addToast]);
 
-  const handleFilesAccepted = async (acceptedFiles) => {
+  const handleFilesAccepted = async (acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
     setIsProcessing(true);
 
-    const newExtractedData = new Map();
+    const newExtractedData = new Map<string, ExtractedFileData>();
 
     for (let i = 0; i < acceptedFiles.length; i++) {
       const file = acceptedFiles[i];
@@ -72,13 +107,13 @@ export default function UploadMangaForm({ intl }) {
         const result = await extractFromArchive(file);
 
         if (result) {
-          let coverFilename = null;
-          let coverBlob = null;
+          let coverFilename: string | null = null;
+          let coverBlob: Blob | null = null;
 
           if (result.coverBlob) {
             coverFilename = await generateCoverFilename(
               result.coverBlob,
-              result.coverExt,
+              result.coverExt!,
             );
             coverBlob = result.coverBlob;
           }
@@ -105,7 +140,13 @@ export default function UploadMangaForm({ intl }) {
     setIsProcessing(false);
   };
 
-  const uploadWithProgress = (url, method, body, headers, onProgress) => {
+  const uploadWithProgress = (
+    url: string,
+    method: string,
+    body: XMLHttpRequestBodyInit,
+    headers: Record<string, string> | null,
+    onProgress?: (loaded: number, total: number) => void,
+  ): Promise<XMLHttpRequest> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open(method, url);
@@ -138,7 +179,11 @@ export default function UploadMangaForm({ intl }) {
     });
   };
 
-  const uploadFileDirectToR2 = async (file, presignedUrl, onProgress) => {
+  const uploadFileDirectToR2 = async (
+    file: File,
+    presignedUrl: string,
+    onProgress: (loaded: number, total: number) => void,
+  ) => {
     await uploadWithProgress(
       presignedUrl,
       "PUT",
@@ -148,7 +193,7 @@ export default function UploadMangaForm({ intl }) {
     );
   };
 
-  const uploadCoverToR2 = async (coverBlob, presignedUrl) => {
+  const uploadCoverToR2 = async (coverBlob: Blob, presignedUrl: string) => {
     await uploadWithProgress(
       presignedUrl,
       "PUT",
@@ -157,7 +202,12 @@ export default function UploadMangaForm({ intl }) {
     );
   };
 
-  const uploadFileInChunks = async (file, metadata, fileIndex, totalFiles) => {
+  const uploadFileInChunks = async (
+    file: File,
+    metadata: UploadMetadata,
+    fileIndex: number,
+    totalFiles: number,
+  ) => {
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
     const extracted = extractedDataRef.current.get(file.name);
     const totalSize = file.size;
@@ -226,14 +276,14 @@ export default function UploadMangaForm({ intl }) {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let _err;
+    let _err: unknown;
 
     try {
       setIsLoading(true);
 
-      const metadata = {
+      const metadata: UploadMetadata = {
         type: isManga ? "manga" : "books",
         isNew: selectedDirectory === "new",
         newDirectoryName: selectedDirectory === "new" ? newDirectoryName : null,
@@ -242,7 +292,7 @@ export default function UploadMangaForm({ intl }) {
           selectedDirectory !== "new" ? selectedDirectory : null,
       };
 
-      const uploadedFiles = [];
+      const uploadedFiles: UploadedFileEntry[] = [];
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -334,7 +384,9 @@ export default function UploadMangaForm({ intl }) {
       if (_err) {
         addToast({
           title: "Error",
-          description: _err.message || "Error al subir archivos",
+          description:
+            (_err instanceof Error ? _err.message : null) ||
+            "Error al subir archivos",
           variant: "error",
         });
       }
@@ -345,7 +397,7 @@ export default function UploadMangaForm({ intl }) {
     <div className="max-w-7xl mx-auto p-2">
       <h2 className="flex items-center mb-4">
         <BookOpenIcon size={28} className="mr-2" />
-        {intl.settings.uploadLibraryTt}
+        {intl.settings.uploadLibraryTt as string}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -359,7 +411,7 @@ export default function UploadMangaForm({ intl }) {
                 : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
             }`}
           >
-            {intl.settings.uploadLibraryManga}
+            {intl.settings.uploadLibraryManga as string}
           </button>
           <button
             type="button"
@@ -370,7 +422,7 @@ export default function UploadMangaForm({ intl }) {
                 : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
             }`}
           >
-            {intl.settings.uploadLibraryBook}
+            {intl.settings.uploadLibraryBook as string}
           </button>
         </div>
 
@@ -380,11 +432,11 @@ export default function UploadMangaForm({ intl }) {
           className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
           required
         >
-          <option value="">{intl.settings.uploadLibrarySelect}</option>
+          <option value="">{intl.settings.uploadLibrarySelect as string}</option>
           <option value="new">
             {isManga
-              ? intl.settings.uploadLibraryNewManga
-              : intl.settings.uploadLibraryNewBook}
+              ? (intl.settings.uploadLibraryNewManga as string)
+              : (intl.settings.uploadLibraryNewBook as string)}
           </option>
           {directories.map((dir) => (
             <option key={dir} value={dir}>
@@ -399,7 +451,7 @@ export default function UploadMangaForm({ intl }) {
               type="text"
               value={newDirectoryName}
               onChange={(e) => setNewDirectoryName(e.target.value)}
-              placeholder={intl.settings.uploadLibraryNewFolder}
+              placeholder={intl.settings.uploadLibraryNewFolder as string}
               className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
               required
             />
@@ -452,8 +504,8 @@ export default function UploadMangaForm({ intl }) {
               {isProcessing
                 ? "Procesando..."
                 : isLoading
-                  ? intl.settings.uploadLibraryUploading
-                  : intl.settings.uploadLibraryBtn}
+                  ? (intl.settings.uploadLibraryUploading as string)
+                  : (intl.settings.uploadLibraryBtn as string)}
             </button>
           </div>
         </div>

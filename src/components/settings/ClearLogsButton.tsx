@@ -3,14 +3,18 @@
 import { TrashIcon } from "lucide-react";
 import { clearLogs } from "@/actions/admin-logs";
 
-export default function ClearLogsButton({ onClear }) {
+interface ClearLogsButtonProps {
+  onClear?: () => void;
+}
+
+export default function ClearLogsButton({ onClear }: ClearLogsButtonProps) {
   async function handleClick() {
     const confirmed = confirm("¿Seguro que deseas limpiar el log?");
     if (!confirmed) return;
 
     const result = await clearLogs();
 
-    if (result.success) {
+    if (result?.success) {
       if (onClear) {
         onClear();
       } else {

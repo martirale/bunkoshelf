@@ -4,15 +4,36 @@ import { UserRoundPenIcon } from "lucide-react";
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
 import EditUserForm from "./EditUserForm";
+import type { Dictionary } from "@/lib/types";
 
-export default function UsersTable({ users, intl, currentUserId }) {
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [userList, setUserList] = useState(users);
+interface UserRow {
+  id: string;
+  username: string;
+  isAdmin: boolean;
+  role: string;
+  name: string | null;
+  lastname: string | null;
+  birthYear: number | null;
+}
 
-  const handleEdit = (user) => setSelectedUser(user);
+interface UsersTableProps {
+  users: UserRow[];
+  intl: Dictionary;
+  currentUserId: string | undefined;
+}
+
+export default function UsersTable({
+  users,
+  intl,
+  currentUserId,
+}: UsersTableProps) {
+  const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
+  const [userList, setUserList] = useState<UserRow[]>(users);
+
+  const handleEdit = (user: UserRow) => setSelectedUser(user);
   const handleClose = () => setSelectedUser(null);
 
-  const updateUserList = (updatedUser) => {
+  const updateUserList = (updatedUser: UserRow) => {
     setUserList((prev) =>
       prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
     );
@@ -25,14 +46,14 @@ export default function UsersTable({ users, intl, currentUserId }) {
           <div className="min-w-[800px] xl:min-w-full h-72 overflow-y-auto">
             <div className="flex sticky top-0 z-10">
               <div className="grid grid-cols-5 flex-1 font-bold uppercase bg-onix rounded-l-md">
-                <div className="p-4 text-left">{intl.settings.username}</div>
-                <div className="p-4 text-center">{intl.settings.type}</div>
-                <div className="p-4 text-center">{intl.settings.name}</div>
-                <div className="p-4 text-center">{intl.settings.lastname}</div>
-                <div className="p-4 text-center">{intl.settings.age}</div>
+                <div className="p-4 text-left">{intl.settings.username as string}</div>
+                <div className="p-4 text-center">{intl.settings.type as string}</div>
+                <div className="p-4 text-center">{intl.settings.name as string}</div>
+                <div className="p-4 text-center">{intl.settings.lastname as string}</div>
+                <div className="p-4 text-center">{intl.settings.age as string}</div>
               </div>
               <div className="w-24 shrink-0 sticky right-0 bg-onix rounded-r-md p-4 text-center uppercase font-bold">
-                {intl.settings.edit}
+                {intl.settings.edit as string}
               </div>
             </div>
 
@@ -48,14 +69,14 @@ export default function UsersTable({ users, intl, currentUserId }) {
                       <div className="flex gap-1 items-center mt-2">
                         <span className="bg-neutral-700 px-2 rounded-full text-xs uppercase">
                           {user.role === "ADMIN"
-                            ? intl.settings.roleAdmin
+                            ? (intl.settings.roleAdmin as string)
                             : user.role === "GUEST"
-                              ? intl.settings.roleGuest
-                              : intl.settings.roleMember}
+                              ? (intl.settings.roleGuest as string)
+                              : (intl.settings.roleMember as string)}
                         </span>
                         {user.isAdmin && (
                           <span className="bg-pearl text-onix px-2 rounded-full text-xs uppercase">
-                            {intl.profile.usrAdmin}
+                            {intl.profile.usrAdmin as string}
                           </span>
                         )}
                       </div>

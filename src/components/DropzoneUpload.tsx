@@ -1,21 +1,29 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, type Accept } from "react-dropzone";
 import { BookOpenIcon, FileIcon } from "lucide-react";
+import type { Dictionary } from "@/lib/types";
+
+interface DropzoneUploadProps {
+  onDropAccepted: (files: File[]) => Promise<void>;
+  multiple?: boolean;
+  accept: Accept;
+  intl: Dictionary;
+}
 
 export default function DropzoneUpload({
   onDropAccepted,
   multiple = false,
   accept,
   intl,
-}) {
+}: DropzoneUploadProps) {
   const [isDragActive, setIsDragActive] = useState(false);
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState<File[]>([]);
 
   const onDrop = useCallback(
-    async (acceptedFiles) => {
-      let _err;
+    async (acceptedFiles: File[]) => {
+      let _err: unknown;
       try {
         setFiles(acceptedFiles);
         if (onDropAccepted) {
@@ -40,7 +48,7 @@ export default function DropzoneUpload({
     onDropRejected: () => setIsDragActive(false),
   });
 
-  function getFileIcon(file) {
+  function getFileIcon(file: File) {
     const ext = (file.name.split(".").pop() || "").toLowerCase();
     if (["cbz", "zip", "cbr", "rar"].includes(ext)) {
       return <BookOpenIcon size={32} className="text-lilah" />;
@@ -63,10 +71,10 @@ export default function DropzoneUpload({
       <input {...getInputProps()} />
       <div className="flex flex-col gap-2 items-center">
         <span className="font-medium text-muted-foreground">
-          {isDragActive ? intl.misc.dropzoneActive : intl.misc.dropzoneTt}
+          {isDragActive ? (intl.misc.dropzoneActive as string) : (intl.misc.dropzoneTt as string)}
         </span>
         <span className="text-xs text-muted-foreground uppercase">
-          {multiple ? intl.misc.dropzoneMulti : intl.misc.dropzoneSingle}
+          {multiple ? (intl.misc.dropzoneMulti as string) : (intl.misc.dropzoneSingle as string)}
         </span>
       </div>
       {files.length > 0 && (

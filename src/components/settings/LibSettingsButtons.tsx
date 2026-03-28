@@ -3,14 +3,9 @@
 import { useState } from "react";
 import {
   FolderUpIcon,
-  ScanSearchIcon,
   DatabaseBackupIcon,
-  Loader2Icon,
   ServerIcon,
   CloudCheckIcon,
-  ImageIcon,
-  FileTextIcon,
-  FolderSyncIcon,
 } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import useScanPolling from "@/hooks/useScanPolling";
@@ -21,14 +16,37 @@ import {
   regenerateCovers,
   reprocessMetadata,
 } from "@/actions/admin-scan";
+import type { Dictionary } from "@/lib/types";
+import type { LucideIcon } from "lucide-react";
 
-export default function LibSettingsButtons({ lang, intl, libProvider }) {
+interface LibSettingsButtonsProps {
+  lang: string;
+  intl: Dictionary;
+  libProvider: string | undefined;
+}
+
+type LoadingActionType = "reindex" | "covers" | "metadata" | null;
+
+interface ActionItem {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+  onClick?: () => void;
+  disabled?: boolean;
+  spinning?: boolean;
+}
+
+export default function LibSettingsButtons({
+  lang,
+  intl,
+  libProvider,
+}: LibSettingsButtonsProps) {
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [loadingAction, setLoadingAction] = useState(null);
-  const { addToast, updateToast } = useToast();
+  const [loadingAction, setLoadingAction] = useState<LoadingActionType>(null);
+  const { addToast, updateToast } = useToast()!;
   const { startPolling, loading } = useScanPolling({
     lang,
-    intl,
+    intl: intl as unknown as Parameters<typeof useScanPolling>[0]["intl"],
     addToast,
     updateToast,
   });
@@ -38,7 +56,7 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
   };
 
   const handleFullScan = async () => {
-    let _err;
+    let _err: unknown;
     try {
       await startPolling();
     } catch (e) {
@@ -46,8 +64,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
     } finally {
       if (_err) {
         addToast({
-          title: intl.toastScan.errorTt,
-          description: intl.toastScan.errorDesc,
+          title: intl.toastScan.errorTt as string,
+          description: intl.toastScan.errorDesc as string,
           variant: "error",
         });
       }
@@ -55,23 +73,24 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
   };
 
   const handleReindex = async () => {
-    let _err;
+    let _err: unknown;
+    let toastId: number;
     try {
       setLoadingAction("reindex");
-      addToast({
-        id: "reindex-task",
-        title: intl.toastScan.reindexTt,
-        description: intl.toastScan.reindexDesc,
+      toastId = addToast({
+        title: intl.toastScan.reindexTt as string,
+        description: intl.toastScan.reindexDesc as string,
         variant: "default",
+        manual: true,
       });
 
       const data = await reindexLibrary({ forceAll: true });
 
-      if (data.error) throw new Error(data.error);
+      if (data?.error) throw new Error(data.error);
 
-      updateToast("reindex-task", {
-        title: intl.toastScan.successReindexTt,
-        description: `${data.seriesCount} ${intl.toastScan.successReindexDesc.prefix} ${data.volumeCount} ${intl.toastScan.successReindexDesc.suffix}`,
+      updateToast(toastId, {
+        title: intl.toastScan.successReindexTt as string,
+        description: `${data?.seriesCount} ${(intl.toastScan.successReindexDesc as Record<string, string>).prefix} ${data?.volumeCount} ${(intl.toastScan.successReindexDesc as Record<string, string>).suffix}`,
         variant: "success",
       });
     } catch (e) {
@@ -79,9 +98,9 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
     } finally {
       setLoadingAction(null);
       if (_err) {
-        updateToast("reindex-task", {
-          title: intl.toastScan.errorTt,
-          description: intl.toastScan.errorReindexDesc,
+        updateToast(toastId!, {
+          title: intl.toastScan.errorTt as string,
+          description: intl.toastScan.errorReindexDesc as string,
           variant: "error",
         });
       }
@@ -89,23 +108,24 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
   };
 
   const handleRegenerateCovers = async () => {
-    let _err;
+    let _err: unknown;
+    let toastId: number;
     try {
       setLoadingAction("covers");
-      addToast({
-        id: "covers-task",
-        title: intl.toastScan.regeneratingCoversTt,
-        description: intl.toastScan.regeneratingCoversDesc,
+      toastId = addToast({
+        title: intl.toastScan.regeneratingCoversTt as string,
+        description: intl.toastScan.regeneratingCoversDesc as string,
         variant: "default",
+        manual: true,
       });
 
       const data = await regenerateCovers({ forceAll: true });
 
-      if (data.error) throw new Error(data.error);
+      if (data?.error) throw new Error(data.error);
 
-      updateToast("covers-task", {
-        title: intl.toastScan.successRegeneratingCoversTt,
-        description: `${data.volumesUpdated} ${intl.toastScan.successRegeneratingCoversDesc}`,
+      updateToast(toastId, {
+        title: intl.toastScan.successRegeneratingCoversTt as string,
+        description: `${data?.volumesUpdated} ${intl.toastScan.successRegeneratingCoversDesc}`,
         variant: "success",
       });
     } catch (e) {
@@ -113,9 +133,9 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
     } finally {
       setLoadingAction(null);
       if (_err) {
-        updateToast("covers-task", {
-          title: intl.toastScan.errorTt,
-          description: intl.toastScan.errorRegeneratingCoversDesc,
+        updateToast(toastId!, {
+          title: intl.toastScan.errorTt as string,
+          description: intl.toastScan.errorRegeneratingCoversDesc as string,
           variant: "error",
         });
       }
@@ -123,23 +143,24 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
   };
 
   const handleReprocessMetadata = async () => {
-    let _err;
+    let _err: unknown;
+    let toastId: number;
     try {
       setLoadingAction("metadata");
-      addToast({
-        id: "metadata-task",
-        title: intl.toastScan.reprocessingMetaTt,
-        description: intl.toastScan.reprocessingMetaDesc,
+      toastId = addToast({
+        title: intl.toastScan.reprocessingMetaTt as string,
+        description: intl.toastScan.reprocessingMetaDesc as string,
         variant: "default",
+        manual: true,
       });
 
       const data = await reprocessMetadata({ forceAll: true });
 
-      if (data.error) throw new Error(data.error);
+      if (data?.error) throw new Error(data.error);
 
-      updateToast("metadata-task", {
-        title: intl.toastScan.successReprocessingMetaTt,
-        description: data.message,
+      updateToast(toastId, {
+        title: intl.toastScan.successReprocessingMetaTt as string,
+        description: data?.message as string,
         variant: "success",
       });
     } catch (e) {
@@ -147,9 +168,9 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
     } finally {
       setLoadingAction(null);
       if (_err) {
-        updateToast("metadata-task", {
-          title: intl.toastScan.errorTt,
-          description: intl.toastScan.errorReprocessingMetaDesc,
+        updateToast(toastId!, {
+          title: intl.toastScan.errorTt as string,
+          description: intl.toastScan.errorReprocessingMetaDesc as string,
           variant: "error",
         });
       }
@@ -157,8 +178,8 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
   };
 
   const handleDownload = async () => {
-    let url;
-    let _err;
+    let url: string | undefined;
+    let _err: unknown;
     try {
       const res = await fetch("/api/admin/db/download");
       if (!res.ok) throw new Error("No se pudo descargar la base de datos");
@@ -183,13 +204,13 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
 
   const providerLabel =
     libProvider === "cloud"
-      ? intl.settings.storageCloud
-      : intl.settings.storageLocal;
+      ? (intl.settings.storageCloud as string)
+      : (intl.settings.storageLocal as string);
   const ProviderIcon = libProvider === "cloud" ? CloudCheckIcon : ServerIcon;
 
   const isLoading = loading || loadingAction !== null;
 
-  const ACTIONS = [
+  const ACTIONS: ActionItem[] = [
     {
       key: "provider",
       label: providerLabel,
@@ -197,62 +218,21 @@ export default function LibSettingsButtons({ lang, intl, libProvider }) {
     },
     {
       key: "backup",
-      label: intl.settings.backupdb,
+      label: intl.settings.backupdb as string,
       icon: DatabaseBackupIcon,
       onClick: handleDownload,
       disabled: isLoading,
     },
     {
       key: "upload",
-      label: intl.settings.uploadLibrary,
+      label: intl.settings.uploadLibrary as string,
       icon: FolderUpIcon,
       onClick: handleUploadMangas,
       disabled: isLoading,
     },
-    // {
-    //   key: "scan",
-    //   label: loading ? intl.settings.scanning : intl.settings.scanLibrary,
-    //   icon: loading ? Loader2Icon : ScanSearchIcon,
-    //   onClick: handleFullScan,
-    //   disabled: isLoading,
-    //   spinning: loading,
-    // },
-    // {
-    //   key: "reindex",
-    //   label:
-    //     loadingAction === "reindex"
-    //       ? intl.settings.reindexing
-    //       : intl.settings.reindex,
-    //   icon: loadingAction === "reindex" ? Loader2Icon : FolderSyncIcon,
-    //   onClick: handleReindex,
-    //   disabled: isLoading,
-    //   spinning: loadingAction === "reindex",
-    // },
-    // {
-    //   key: "covers",
-    //   label:
-    //     loadingAction === "covers"
-    //       ? intl.settings.regeneratingCovers
-    //       : intl.settings.regenerateCovers,
-    //   icon: loadingAction === "covers" ? Loader2Icon : ImageIcon,
-    //   onClick: handleRegenerateCovers,
-    //   disabled: isLoading,
-    //   spinning: loadingAction === "covers",
-    // },
-    // {
-    //   key: "metadata",
-    //   label:
-    //     loadingAction === "metadata"
-    //       ? intl.settings.reprocessingMeta
-    //       : intl.settings.reprocessMetadata,
-    //   icon: loadingAction === "metadata" ? Loader2Icon : FileTextIcon,
-    //   onClick: handleReprocessMetadata,
-    //   disabled: isLoading,
-    //   spinning: loadingAction === "metadata",
-    // },
   ];
 
-  function ActionButton({ action }) {
+  function ActionButton({ action }: { action: ActionItem }) {
     const Icon = action.icon;
     return (
       <button

@@ -3,11 +3,17 @@
 import { useEffect, useRef } from "react";
 import { Minimize2Icon } from "lucide-react";
 
-export default function Modal({ isOpen, onClose, children }) {
-  const modalRef = useRef(null);
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
+export default function Modal({ isOpen, onClose, children }: ModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleEscPress = (event) => {
+    const handleEscPress = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isOpen) {
         onClose();
       }
@@ -22,7 +28,6 @@ export default function Modal({ isOpen, onClose, children }) {
     };
   }, [isOpen, onClose]);
 
-  // Forzar focus al abrir
   useEffect(() => {
     if (isOpen && modalRef.current) {
       const timeout = setTimeout(() => {

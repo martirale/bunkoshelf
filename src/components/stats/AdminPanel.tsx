@@ -1,8 +1,15 @@
-import React from "react";
 import prisma from "@/lib/prisma";
 import { startOfMonth, endOfMonth } from "date-fns";
+import type { Dictionary } from "@/lib/types";
 
-async function getAdminStats() {
+interface AdminStats {
+  totalVolumes: number;
+  volumesAddedThisMonth: number;
+  totalSeries: number;
+  totalUsers: number;
+}
+
+async function getAdminStats(): Promise<AdminStats> {
   const now = new Date();
   const startMonth = startOfMonth(now);
   const endMonth = endOfMonth(now);
@@ -32,23 +39,32 @@ async function getAdminStats() {
   };
 }
 
-export default async function AdminStatsPanel({ intl }) {
+interface AdminStatsPanelProps {
+  intl: Dictionary;
+}
+
+export default async function AdminStatsPanel({ intl }: AdminStatsPanelProps) {
   const stats = await getAdminStats();
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <StatCard title={intl.settings.totalVolumes} value={stats.totalVolumes} />
+      <StatCard title={intl.settings.totalVolumes as string} value={stats.totalVolumes} />
       <StatCard
-        title={intl.settings.totalAddedMonth}
+        title={intl.settings.totalAddedMonth as string}
         value={stats.volumesAddedThisMonth}
       />
-      <StatCard title={intl.settings.totalSeries} value={stats.totalSeries} />
-      <StatCard title={intl.settings.totalUsers} value={stats.totalUsers} />
+      <StatCard title={intl.settings.totalSeries as string} value={stats.totalSeries} />
+      <StatCard title={intl.settings.totalUsers as string} value={stats.totalUsers} />
     </section>
   );
 }
 
-function StatCard({ title, value }) {
+interface StatCardProps {
+  title: string;
+  value: number;
+}
+
+function StatCard({ title, value }: StatCardProps) {
   return (
     <div className="h-[110px] rounded-lg bg-blackamber p-4 2xl:px-4 2xl:pb-5 flex flex-col justify-between">
       <span className="text-sm uppercase">{title}</span>

@@ -5,15 +5,27 @@ import { usePathname, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   LayoutPanelTopIcon,
-  UsersRoundIcon,
   FolderCogIcon,
 } from "lucide-react";
 import clsx from "clsx";
+import type { Dictionary } from "@/lib/types";
+import type { LucideIcon } from "lucide-react";
 
-export default function SettingsNav({ intl }) {
+interface SettingsNavProps {
+  intl: Dictionary;
+}
+
+interface NavLink {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  isActive: boolean;
+}
+
+export default function SettingsNav({ intl }: SettingsNavProps) {
   const params = useParams();
   const pathname = usePathname();
-  const currentLang = params.lang || "es";
+  const currentLang = (params.lang as string) || "es";
 
   const [hash, setHash] = useState("");
 
@@ -28,23 +40,17 @@ export default function SettingsNav({ intl }) {
     return () => window.removeEventListener("hashchange", updateHash);
   }, []);
 
-  const links = [
+  const links: NavLink[] = [
     {
-      label: intl.settings.overview,
+      label: intl.settings.overview as string,
       href: `/${currentLang}/settings#overview`,
       icon: LayoutPanelTopIcon,
       isActive:
         pathname === `/${currentLang}/settings` &&
         (hash === "#overview" || hash === ""),
     },
-    // {
-    //   label: intl.settings.users,
-    //   href: `/${currentLang}/settings#users`,
-    //   icon: UsersRoundIcon,
-    //   isActive: pathname === `/${currentLang}/settings` && hash === "#users",
-    // },
     {
-      label: intl.settings.library,
+      label: intl.settings.library as string,
       href: `/${currentLang}/settings/library`,
       icon: FolderCogIcon,
       isActive: pathname.startsWith(`/${currentLang}/settings/library`),
