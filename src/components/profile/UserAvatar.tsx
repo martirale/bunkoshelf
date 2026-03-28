@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import clsx from "clsx";
 import { verifySession } from "@/lib/auth/verifySession";
 import prisma from "@/lib/prisma";
@@ -8,6 +9,7 @@ interface UserAvatarProps {
 }
 
 export default async function UserAvatar({ intl }: UserAvatarProps) {
+  await connection();
   const userSession = await verifySession();
 
   if (!userSession) return null;

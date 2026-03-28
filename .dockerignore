@@ -2,3 +2,5 @@ prisma/data/bunkoshelf.db
 public/covers/*
 .env
 .env.*
+.next
+node_modules
