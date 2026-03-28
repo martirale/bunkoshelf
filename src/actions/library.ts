@@ -157,6 +157,9 @@ export async function getMangaVolumes() {
 
     return { success: true, data: volumes };
   } catch (e) {
+    if (e && typeof e === "object" && "digest" in e) {
+      throw e;
+    }
     error = e as Error;
   } finally {
     if (error) {

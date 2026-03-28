@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
-export const dynamic = "force-dynamic";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { log } from "@/lib/logger";

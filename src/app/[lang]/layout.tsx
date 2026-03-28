@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { robotoCondensed, boldonse } from "../fonts";
 import "../globals.css";
@@ -49,8 +50,12 @@ export default async function RootLayout({ children, params }: RootLayoutProps) 
       <body className="flex h-screen overflow-hidden text-lg relative">
         <div className="fixed inset-0 -z-10 pointer-events-none bg-seigaiha-pattern-k opacity-50" />
 
-        <MobNav lang={lang} />
-        <Sidebar lang={lang} />
+        <Suspense fallback={null}>
+          <MobNav lang={lang} />
+        </Suspense>
+        <Suspense fallback={<aside className="hidden md:flex md:w-[35%] lg:w-[25%] xl:w-[21%] 2xl:w-[17%] bg-blackamber flex-col" />}>
+          <Sidebar lang={lang} />
+        </Suspense>
 
         <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
           <ToastProvider>{children}</ToastProvider>

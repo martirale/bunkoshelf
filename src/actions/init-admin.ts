@@ -1,9 +1,11 @@
 "use server";
 
+import { connection } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export async function initAdmin() {
+  await connection();
   try {
     const adminExists = await prisma.user.findFirst({
       where: { isAdmin: true },

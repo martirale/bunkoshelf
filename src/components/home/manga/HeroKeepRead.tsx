@@ -1,6 +1,3 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { LibraryBigIcon, ChevronRightIcon } from "lucide-react";
@@ -8,66 +5,46 @@ import MangaCard from "@/components/ui/MangaCard";
 import ReloadButton from "@/components/ui/ReloadButton";
 import PushButton from "@/components/ui/PushButton";
 import { getMangaVolumes } from "@/actions/library";
-import type { DictionarySection } from "@/lib/types";
-
-interface HeroEntry {
-  title: string;
-  slug: string;
-  isOneshot: boolean;
-  coverImage: string | null;
-  meta: { title?: string | null } | null;
-  lastPage: number;
-  totalPages: number;
-  lastReadAt: Date | null;
-}
+import type { DictionarySection, Locale } from "@/lib/types";
 
 interface HeroKeepReadProps {
-  lang: string;
+  lang: Locale;
   intl: DictionarySection;
   vapidPublicKey?: string;
 }
 
-export default function HeroKeepRead({ lang, intl, vapidPublicKey }: HeroKeepReadProps) {
-  const [entry, setEntry] = useState<HeroEntry | null>(null);
+export default async function HeroKeepRead({ lang, intl, vapidPublicKey }: HeroKeepReadProps) {
+  const result = await getMangaVolumes();
 
-  useEffect(() => {
-    async function fetchProgress() {
-      const result = await getMangaVolumes();
-      if (!result || !result.success || !result.data) return;
+  const entry = (() => {
+    if (!result?.success || !result.data) return null;
 
-      const mapped: HeroEntry[] = result.data.map((vol) => {
-        const progress = vol.usersProgress?.[0] || null;
-
-        return {
-          title: vol.title,
-          slug: vol.slug,
-          isOneshot: vol.series?.isOneshot === true,
-          coverImage: vol.coverImage
-            ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-            : null,
-          meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
-          lastPage: progress?.lastPage ?? 0,
-          totalPages: progress?.totalPages ?? 0,
-          lastReadAt: progress?.lastReadAt
-            ? new Date(progress.lastReadAt)
-            : null,
-        };
-      });
-
-      const filtered = mapped
+    return (
+      result.data
+        .map((vol) => {
+          const progress = vol.usersProgress?.[0] ?? null;
+          return {
+            title: vol.title,
+            slug: vol.slug,
+            isOneshot: vol.series?.isOneshot === true,
+            coverImage: vol.coverImage
+              ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
+              : null,
+            meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
+            lastPage: progress?.lastPage ?? 0,
+            totalPages: progress?.totalPages ?? 0,
+            lastReadAt: progress?.lastReadAt ? new Date(progress.lastReadAt) : null,
+          };
+        })
         .filter((vol) => {
           if (!vol.lastReadAt) return false;
           const notStarted = vol.lastPage === 0;
           const alreadyFinished = vol.lastPage >= vol.totalPages - 1;
           return !notStarted && !alreadyFinished;
         })
-        .sort((a, b) => (b.lastReadAt?.getTime() ?? 0) - (a.lastReadAt?.getTime() ?? 0));
-
-      setEntry(filtered[0] ?? null);
-    }
-
-    fetchProgress();
-  }, []);
+        .sort((a, b) => (b.lastReadAt?.getTime() ?? 0) - (a.lastReadAt?.getTime() ?? 0))[0] ?? null
+    );
+  })();
 
   const libraries = intl.libraries as DictionarySection;
 

@@ -29,6 +29,9 @@ export async function verifySession(): Promise<Session | null> {
 
     return user;
   } catch (error) {
+    if (error && typeof error === "object" && "digest" in error) {
+      throw error;
+    }
     console.error("Error en verifySession:", error);
     return null;
   }

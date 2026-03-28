@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { verifySession } from "@/lib/auth/verifySession";
 import SidebarMisc from "@/components/ui/SidebarMisc";
@@ -10,31 +11,42 @@ interface ProfileLayoutProps {
   params: Promise<{ lang: string }>;
 }
 
+async function ProfileGreeting({ lang }: { lang: Locale }) {
+  const intl = await getDictionary(lang);
+  const user = await verifySession();
+  const profile = intl.profile as DictionarySection;
+
+  return (
+    <h2 className="flex items-center text-onix">
+      <UserRoundIcon size={28} className="mr-2" />
+      {user?.name
+        ? `${profile.greeting as string} ${user.name}`
+        : (profile.title as string)}
+    </h2>
+  );
+}
+
 export default async function ProfileLayout({
   children,
   params,
 }: ProfileLayoutProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
-
-  const user = await verifySession();
-
   const profile = intl.profile as DictionarySection;
 
   return (
     <div className="flex flex-col md:flex-row md:h-screen overflow-hidden">
       <SidebarMisc>
-        {!user || !user.name ? (
-          <h2 className="flex items-center text-onix">
-            <UserRoundIcon size={28} className="mr-2" />
-            {profile.title as string}
-          </h2>
-        ) : (
-          <h2 className="flex items-center text-onix">
-            <UserRoundIcon size={28} className="mr-2" />
-            {profile.greeting as string} {user.name}
-          </h2>
-        )}
+        <Suspense
+          fallback={
+            <h2 className="flex items-center text-onix">
+              <UserRoundIcon size={28} className="mr-2" />
+              {profile.title as string}
+            </h2>
+          }
+        >
+          <ProfileGreeting lang={lang as Locale} />
+        </Suspense>
 
         <ProfileNav intl={intl} />
       </SidebarMisc>

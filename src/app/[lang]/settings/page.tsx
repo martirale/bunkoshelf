@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import {
   BoltIcon,
@@ -19,7 +20,20 @@ interface SettingsPageProps {
   params: Promise<{ lang: string }>;
 }
 
-export default async function SettingsPage({ params }: SettingsPageProps) {
+function SettingsSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="h-8 w-48 rounded bg-sand animate-pulse" />
+      <div className="flex flex-col 2xl:flex-row gap-4">
+        <div className="h-64 2xl:h-96 w-full rounded-lg bg-sand animate-pulse" />
+        <div className="h-64 2xl:h-96 w-full rounded-lg bg-sand animate-pulse" />
+      </div>
+      <div className="h-64 w-full rounded-lg bg-sand animate-pulse mt-8" />
+    </div>
+  );
+}
+
+async function SettingsPageContent({ params }: SettingsPageProps) {
   const { lang = "es" } = await params;
   const intl: Dictionary = await getDictionary(lang as Locale);
 
@@ -38,9 +52,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       lastname: true,
       birthYear: true,
     },
-    orderBy: {
-      name: "asc",
-    },
+    orderBy: { name: "asc" },
   });
 
   return (
@@ -118,11 +130,18 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           <UsersRoundIcon size={28} className="mr-2" />
           {intl.settings.users as string}
         </h2>
-
         <AddUserButton intl={intl} />
       </div>
 
       <UsersTable users={users} currentUserId={currentUser?.id} intl={intl} />
     </>
+  );
+}
+
+export default function SettingsPage({ params }: SettingsPageProps) {
+  return (
+    <Suspense fallback={<SettingsSkeleton />}>
+      <SettingsPageContent params={params} />
+    </Suspense>
   );
 }

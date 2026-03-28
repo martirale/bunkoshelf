@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import VolumesContent from "@/components/library/manga/VolumesContent";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getDictionary } from "@/lib/i18n/Dictionary";
@@ -8,7 +9,23 @@ interface VolumeMangaPageProps {
   params: Promise<{ lang: string; slug: string }>;
 }
 
-export default async function VolumeMangaPage({ params }: VolumeMangaPageProps) {
+function VolumeSkeleton() {
+  return (
+    <div className="p-4">
+      <div className="h-8 w-48 rounded bg-sand animate-pulse mb-4" />
+      <div className="flex gap-4">
+        <div className="w-40 aspect-[3/5] rounded-lg bg-sand animate-pulse flex-shrink-0" />
+        <div className="flex-1 flex flex-col gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-4 rounded bg-sand animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
   const { lang = "es", slug } = await params;
   const intl = await getDictionary(lang as Locale);
 
@@ -16,22 +33,12 @@ export default async function VolumeMangaPage({ params }: VolumeMangaPageProps) 
     const user = await verifySession();
 
     const volumeEntry = await prisma.mangaVolume.findUnique({
-      where: {
-        slug,
-      },
+      where: { slug },
       include: {
         series: true,
         metadataObj: true,
-        genres: {
-          include: {
-            genre: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
+        genres: { include: { genre: true } },
+        tags: { include: { tag: true } },
       },
     });
 
@@ -73,10 +80,7 @@ export default async function VolumeMangaPage({ params }: VolumeMangaPageProps) 
     if (user) {
       const userVolume = await prisma.userToVolume.findUnique({
         where: {
-          userId_volumeId: {
-            userId: user.id,
-            volumeId: volumeEntry.id,
-          },
+          userId_volumeId: { userId: user.id, volumeId: volumeEntry.id },
         },
         select: {
           isFavorite: true,
@@ -96,31 +100,29 @@ export default async function VolumeMangaPage({ params }: VolumeMangaPageProps) 
 
     if (user) {
       readingEntries = await prisma.readingEntry.findMany({
-        where: {
-          userId: user.id,
-          volumeId: volumeEntry.id,
-        },
+        where: { userId: user.id, volumeId: volumeEntry.id },
         orderBy: { createdAt: "desc" },
         select: { id: true, readAt: true },
       });
     }
 
     return (
-      <>
-        <VolumesContent
-          volumeData={normalizedVolume}
-          lang={lang as Locale}
-          intl={intl}
-          isFavorite={isFavorite}
-          isRead={isRead}
-          user={user}
-          personalRating={personalRating}
-          readingEntries={readingEntries}
-          firstRead={firstRead}
-        />
-      </>
+      <VolumesContent
+        volumeData={normalizedVolume}
+        lang={lang as Locale}
+        intl={intl}
+        isFavorite={isFavorite}
+        isRead={isRead}
+        user={user}
+        personalRating={personalRating}
+        readingEntries={readingEntries}
+        firstRead={firstRead}
+      />
     );
   } catch (error) {
+    if (error && typeof error === "object" && "digest" in error) {
+      throw error;
+    }
     console.error("Error al obtener datos del volumen:", error);
     return (
       <div className="text-center mt-8">
@@ -128,4 +130,12 @@ export default async function VolumeMangaPage({ params }: VolumeMangaPageProps) 
       </div>
     );
   }
+}
+
+export default function VolumeMangaPage({ params }: VolumeMangaPageProps) {
+  return (
+    <Suspense fallback={<VolumeSkeleton />}>
+      <VolumeMangaPageContent params={params} />
+    </Suspense>
+  );
 }

@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import type { DictionarySection } from "@/lib/types";
 import Challenge2025 from "./Challenge2025";
 import Challenge2026 from "./Challenge2026";
@@ -8,6 +9,7 @@ interface ChallengesProps {
 }
 
 export default async function Challenges({ intl }: ChallengesProps) {
+  await connection();
   const challenge = await prisma.readingChallenge.findMany();
   const challenges = (intl.profile as DictionarySection).challenges as DictionarySection;
 

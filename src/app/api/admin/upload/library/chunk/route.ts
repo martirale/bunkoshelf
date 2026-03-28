@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
-export const dynamic = "force-dynamic";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";

@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import prisma from "@/lib/prisma";
 import { startOfMonth, endOfMonth } from "date-fns";
 import type { Dictionary } from "@/lib/types";
@@ -10,6 +11,7 @@ interface AdminStats {
 }
 
 async function getAdminStats(): Promise<AdminStats> {
+  await connection();
   const now = new Date();
   const startMonth = startOfMonth(now);
   const endMonth = endOfMonth(now);

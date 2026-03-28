@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import SeriesContent from "@/components/library/manga/SeriesContent";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getDictionary } from "@/lib/i18n/Dictionary";
@@ -46,7 +47,25 @@ interface SeriesMangaPageProps {
   params: Promise<{ lang: string; series: string }>;
 }
 
-export default async function SeriesMangaPage({ params }: SeriesMangaPageProps) {
+function SeriesSkeleton() {
+  return (
+    <div className="p-4">
+      <div className="h-8 w-64 rounded bg-sand animate-pulse mb-6" />
+      <div className="flex gap-6">
+        <div className="w-48 aspect-[3/5] rounded-lg bg-sand animate-pulse flex-shrink-0" />
+        <div className="flex-1 flex flex-col gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-4 rounded bg-sand animate-pulse" style={{ width: `${70 + i * 5}%` }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function SeriesMangaPageContent({
+  params,
+}: SeriesMangaPageProps) {
   const { lang = "es", series } = await params;
   const intl = await getDictionary(lang as Locale);
 
@@ -54,23 +73,13 @@ export default async function SeriesMangaPage({ params }: SeriesMangaPageProps) 
     const user = await verifySession();
 
     const serie = await prisma.mangaSeries.findUnique({
-      where: {
-        slug: series,
-      },
+      where: { slug: series },
       include: {
         volumes: {
           include: {
             metadataObj: true,
-            genres: {
-              include: {
-                genre: true,
-              },
-            },
-            tags: {
-              include: {
-                tag: true,
-              },
-            },
+            genres: { include: { genre: true } },
+            tags: { include: { tag: true } },
           },
         },
       },
@@ -94,21 +103,12 @@ export default async function SeriesMangaPage({ params }: SeriesMangaPageProps) 
           const meta = {
             ...(vol.metadataObj || null),
             genres: Array.isArray(vol.genres)
-              ? vol.genres
-                  .map((g) =>
-                    g.genre?.name ? { name: g.genre.name.trim() } : null
-                  )
-                  .filter(Boolean)
+              ? vol.genres.map((g) => (g.genre?.name ? { name: g.genre.name.trim() } : null)).filter(Boolean)
               : [],
             tags: Array.isArray(vol.tags)
-              ? vol.tags
-                  .map((t) =>
-                    t.tag?.name ? { name: t.tag.name.trim() } : null
-                  )
-                  .filter(Boolean)
+              ? vol.tags.map((t) => (t.tag?.name ? { name: t.tag.name.trim() } : null)).filter(Boolean)
               : [],
           };
-
           return {
             ...vol,
             coverImage: vol.coverImage
@@ -127,32 +127,20 @@ export default async function SeriesMangaPage({ params }: SeriesMangaPageProps) 
 
     if (user) {
       const favEntry = await prisma.userToSeries.findUnique({
-        where: {
-          userId_seriesId: {
-            userId: user.id,
-            seriesId: serie.id,
-          },
-        },
-        select: {
-          isFavorite: true,
-        },
+        where: { userId_seriesId: { userId: user.id, seriesId: serie.id } },
+        select: { isFavorite: true },
       });
 
       isFavorite = favEntry?.isFavorite ?? false;
 
       const volumeIds = serie.volumes.map((v) => v.id);
       const userVolumes = await prisma.userToVolume.findMany({
-        where: {
-          userId: user.id,
-          volumeId: { in: volumeIds },
-        },
+        where: { userId: user.id, volumeId: { in: volumeIds } },
         select: { volumeId: true, personalRating: true },
       });
 
       const personalMap = new Map(
-        userVolumes
-          .filter((uv) => uv.personalRating !== null)
-          .map((uv) => [uv.volumeId, uv.personalRating]),
+        userVolumes.filter((uv) => uv.personalRating !== null).map((uv) => [uv.volumeId, uv.personalRating]),
       );
 
       const ratings = serie.volumes
@@ -177,6 +165,9 @@ export default async function SeriesMangaPage({ params }: SeriesMangaPageProps) 
       />
     );
   } catch (error) {
+    if (error && typeof error === "object" && "digest" in error) {
+      throw error;
+    }
     console.error("Error al obtener datos de la serie:", error);
     return (
       <div className="text-center mt-8">
@@ -184,4 +175,12 @@ export default async function SeriesMangaPage({ params }: SeriesMangaPageProps) 
       </div>
     );
   }
+}
+
+export default function SeriesMangaPage({ params }: SeriesMangaPageProps) {
+  return (
+    <Suspense fallback={<SeriesSkeleton />}>
+      <SeriesMangaPageContent params={params} />
+    </Suspense>
+  );
 }
