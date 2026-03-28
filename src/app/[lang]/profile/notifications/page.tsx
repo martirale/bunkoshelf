@@ -6,14 +6,14 @@ import { BellIcon } from "lucide-react";
 import type { Locale, DictionarySection } from "@/lib/types";
 
 interface NotificationsPageProps {
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }
 
 export default async function NotificationsPage({
   params,
 }: NotificationsPageProps) {
   const { lang = "es" } = await params;
-  const intl = await getDictionary(lang);
+  const intl = await getDictionary(lang as Locale);
 
   const user = await verifySession();
   if (!user) return <p>No autorizado</p>;

@@ -8,14 +8,14 @@ import type { Locale, Dictionary } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 interface SettingsLibraryPageProps {
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }
 
 export default async function SettingsLibraryPage({
   params,
 }: SettingsLibraryPageProps) {
   const { lang = "es" } = await params;
-  const intl: Dictionary = await getDictionary(lang);
+  const intl: Dictionary = await getDictionary(lang as Locale);
   const libProvider = process.env.LIB_PROVIDER;
 
   return (
@@ -30,7 +30,7 @@ export default async function SettingsLibraryPage({
       </div>
 
       <Separator />
-      <LibSettingsButtons lang={lang} intl={intl} libProvider={libProvider} />
+      <LibSettingsButtons lang={lang as Locale} intl={intl} libProvider={libProvider} />
     </>
   );
 }

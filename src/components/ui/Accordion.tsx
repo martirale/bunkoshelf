@@ -1,9 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, type ReactNode } from "react";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
-export default function Accordion({ title, children, defaultOpen = false }) {
+interface AccordionProps {
+  title: string;
+  children: ReactNode;
+  defaultOpen?: boolean;
+}
+
+export default function Accordion({ title, children, defaultOpen = false }: AccordionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (

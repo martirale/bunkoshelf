@@ -5,14 +5,14 @@ import { UserRoundPenIcon } from "lucide-react";
 import type { Locale, DictionarySection } from "@/lib/types";
 
 interface UpdateProfilePageProps {
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }
 
 export default async function UpdateProfilePage({
   params,
 }: UpdateProfilePageProps) {
   const { lang = "es" } = await params;
-  const intl = await getDictionary(lang);
+  const intl = await getDictionary(lang as Locale);
 
   const user = await verifySession();
 

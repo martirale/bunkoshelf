@@ -1,9 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import clsx from "clsx";
 
-export default function Tabs({ tabs }) {
+interface Tab {
+  label: string;
+  content: ReactNode;
+}
+
+interface TabsProps {
+  tabs: Tab[];
+}
+
+export default function Tabs({ tabs }: TabsProps) {
   const [active, setActive] = useState(0);
 
   return (

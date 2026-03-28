@@ -6,16 +6,28 @@ import { ChevronRightIcon } from "lucide-react";
 import Accordion from "@/components/ui/Accordion";
 import clsx from "clsx";
 import { getLibraryFilters } from "@/actions/library";
+import type { DictionarySection } from "@/lib/types";
 
-export default function FiltersDrawer({ intl }) {
+interface FilterItem {
+  id: string;
+  name: string;
+}
+
+interface FiltersDrawerProps {
+  intl: DictionarySection;
+}
+
+export default function FiltersDrawer({ intl }: FiltersDrawerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [genres, setGenres] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [selectedGenres, setSelectedGenres] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [genres, setGenres] = useState<FilterItem[]>([]);
+  const [tags, setTags] = useState<FilterItem[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  const filters = intl.filters as DictionarySection;
 
   useEffect(() => {
     const genreParam = searchParams.get("genre");
@@ -29,7 +41,7 @@ export default function FiltersDrawer({ intl }) {
     async function fetchFilters() {
       try {
         const data = await getLibraryFilters();
-        if (data.error) throw new Error("Error fetching filters");
+        if (!data || "error" in data) throw new Error("Error fetching filters");
         setGenres(data.genres);
         setTags(data.tags);
       } catch (e) {
@@ -39,7 +51,7 @@ export default function FiltersDrawer({ intl }) {
     fetchFilters();
   }, []);
 
-  function toggleGenre(genreName) {
+  function toggleGenre(genreName: string) {
     setSelectedGenres((prev) =>
       prev.includes(genreName)
         ? prev.filter((g) => g !== genreName)
@@ -47,7 +59,7 @@ export default function FiltersDrawer({ intl }) {
     );
   }
 
-  function toggleTag(tagName) {
+  function toggleTag(tagName: string) {
     setSelectedTags((prev) =>
       prev.includes(tagName)
         ? prev.filter((t) => t !== tagName)
@@ -90,10 +102,10 @@ export default function FiltersDrawer({ intl }) {
       >
         {isFiltering ? (
           <span className="uppercase">
-            {intl.filters.filtering} (x{totalFilters})
+            {filters.filtering as string} (x{totalFilters})
           </span>
         ) : (
-          <span className="uppercase">{intl.filters.filter}</span>
+          <span className="uppercase">{filters.filter as string}</span>
         )}
       </button>
 
@@ -112,7 +124,7 @@ export default function FiltersDrawer({ intl }) {
         aria-label="Panel de filtros"
       >
         <header className="p-4 flex justify-between items-center">
-          <h2>{intl.filters.filters}</h2>
+          <h2>{filters.filters as string}</h2>
           <button
             onClick={() => setIsOpen(false)}
             aria-label="Cerrar filtros"
@@ -123,8 +135,7 @@ export default function FiltersDrawer({ intl }) {
         </header>
 
         <div className="p-4 flex flex-col gap-4 flex-grow overflow-hidden">
-          {/* Acordeón de géneros */}
-          <Accordion title={intl.filters.genres}>
+          <Accordion title={filters.genres as string}>
             <ul className="space-y-1 max-h-44 md:max-h-64 overflow-auto pr-2">
               {genres.map((genre) => (
                 <li key={genre.name}>
@@ -141,8 +152,7 @@ export default function FiltersDrawer({ intl }) {
             </ul>
           </Accordion>
 
-          {/* Acordeón de etiquetas */}
-          <Accordion title={intl.filters.tags}>
+          <Accordion title={filters.tags as string}>
             <ul className="space-y-1 max-h-44 md:max-h-64 overflow-auto pr-2">
               {tags.map((tag) => (
                 <li key={tag.name}>
@@ -165,13 +175,13 @@ export default function FiltersDrawer({ intl }) {
             onClick={clearFilters}
             className="px-2 py-3 w-full bg-pearl text-onix leading-none rounded-lg hover:bg-lilah hover:text-pearl cursor-pointer transition-all duration-300"
           >
-            {intl.filters.clean}
+            {filters.clean as string}
           </button>
           <button
             onClick={applyFilters}
             className="px-2 py-3 w-full bg-pearl text-onix leading-none rounded-lg hover:bg-lilah hover:text-pearl cursor-pointer transition-all duration-300"
           >
-            {intl.filters.apply}
+            {filters.apply as string}
           </button>
         </footer>
       </aside>

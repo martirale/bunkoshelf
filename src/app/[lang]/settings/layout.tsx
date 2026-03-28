@@ -6,7 +6,7 @@ import type { Locale, Dictionary } from "@/lib/types";
 
 interface SettingsLayoutProps {
   children: React.ReactNode;
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }
 
 export default async function SettingsLayout({
@@ -14,7 +14,7 @@ export default async function SettingsLayout({
   params,
 }: SettingsLayoutProps) {
   const { lang = "es" } = await params;
-  const intl: Dictionary = await getDictionary(lang);
+  const intl: Dictionary = await getDictionary(lang as Locale);
 
   return (
     <div className="flex flex-col md:flex-row md:h-screen overflow-hidden">

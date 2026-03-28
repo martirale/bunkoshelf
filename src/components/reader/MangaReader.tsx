@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Minimize2Icon,
   ChevronLeftIcon,
@@ -11,6 +11,23 @@ import {
 import Loader from "@/components/ui/Loader";
 import VolumeRating from "@/components/library/manga/VolumeRating";
 import { getMangaImages, getReadingProgress } from "@/actions/reader";
+import type { DictionarySection } from "@/lib/types";
+
+interface MangaReaderProps {
+  isOpen: boolean;
+  onClose: () => void;
+  slug: string;
+  intl: DictionarySection;
+  isYoureiMode: boolean;
+  readingDirection?: "rtl" | "ltr";
+  coverSrc?: string;
+  mangaTitle?: string;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
+  volumeId: string;
+  communityRating: number | null;
+  initialPersonalRating: number | null;
+}
 
 export default function MangaReader({
   isOpen,
@@ -26,10 +43,10 @@ export default function MangaReader({
   volumeId,
   communityRating,
   initialPersonalRating,
-}) {
-  const modalRef = useRef(null);
-  const wakeLockRef = useRef(null);
-  const [images, setImages] = useState([]);
+}: MangaReaderProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const [images, setImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showFinishScreen, setShowFinishScreen] = useState(false);
@@ -39,25 +56,30 @@ export default function MangaReader({
   const storageKey = `reader-progress:${slug}`;
   const isRTL = readingDirection === "rtl";
 
+  const reader = intl.reader as DictionarySection;
+
   useEffect(() => {
     if (!slug) return;
 
     async function fetchPages() {
-      let error = null;
+      let error: unknown = null;
 
       setLoading(true);
       setShowFinishScreen(false);
       try {
         const data = await getMangaImages({ slug });
 
-        if (data.images?.length) {
+        if (data && "images" in data && data.images?.length) {
           setImages(data.images);
 
           if (!isYoureiMode) {
             const progress = await getReadingProgress({ slug });
+
             let startIndex = 0;
 
             if (
+              progress &&
+              "lastPage" in progress &&
               typeof progress.lastPage === "number" &&
               progress.lastPage >= 0 &&
               progress.lastPage < data.images.length
@@ -70,7 +92,7 @@ export default function MangaReader({
             setCurrentIndex(0);
           }
         } else {
-          console.error(data.error || "No se encontraron imágenes");
+          console.error(data && "error" in data ? data.error : "No se encontraron imágenes");
         }
       } catch (err) {
         error = err;
@@ -98,24 +120,24 @@ export default function MangaReader({
     }
   }, [currentIndex, images.length, isYoureiMode, storageKey]);
 
-  const goPrev = () => {
+  const goPrev = useCallback(() => {
     if (showFinishScreen) {
       setShowFinishScreen(false);
       return;
     }
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
-  };
+  }, [showFinishScreen, currentIndex]);
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     if (currentIndex < images.length - 1) {
       setCurrentIndex((i) => i + 1);
     } else {
       setShowFinishScreen(true);
     }
-  };
+  }, [currentIndex, images.length]);
 
   useEffect(() => {
-    const handleKey = (e) => {
+    const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
       } else if (e.key === "ArrowLeft") {
@@ -142,7 +164,7 @@ export default function MangaReader({
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKey);
     };
-  }, [isOpen, onClose, currentIndex, images.length, isRTL, showFinishScreen]);
+  }, [isOpen, onClose, goNext, goPrev, isRTL]);
 
   useEffect(() => {
     if (isOpen && modalRef.current) {
@@ -198,7 +220,7 @@ export default function MangaReader({
       <button
         onClick={onClose}
         className="absolute top-4 right-4 z-50"
-        title={intl.reader.ttExit}
+        title={reader.ttExit as string}
       >
         <Minimize2Icon
           size={28}
@@ -227,8 +249,8 @@ export default function MangaReader({
                 onClick={onToggleFavorite}
                 title={
                   isFavorite
-                    ? intl.reader.finishUnfavorite
-                    : intl.reader.finishFavorite
+                    ? reader.finishUnfavorite as string
+                    : reader.finishFavorite as string
                 }
                 className="flex items-center justify-center gap-2 w-full md:w-auto px-5 py-2 rounded-lg border border-blackamber bg-blackamber text-sand hover:bg-pearl hover:text-onix hover:border-pearl transition-all duration-300 cursor-pointer font-bold uppercase"
               >
@@ -238,17 +260,17 @@ export default function MangaReader({
                   <HeartIcon size={20} />
                 )}
                 {isFavorite
-                  ? intl.reader.finishUnfavorite
-                  : intl.reader.finishFavorite}
+                  ? reader.finishUnfavorite as string
+                  : reader.finishFavorite as string}
               </button>
             )}
             <button
               onClick={onClose}
-              title={intl.reader.ttExit}
+              title={reader.ttExit as string}
               className="flex items-center justify-center gap-2 w-full md:w-auto px-5 py-2 rounded-lg border border-blackamber bg-blackamber text-sand hover:bg-pearl hover:text-onix hover:border-pearl transition-all duration-300 cursor-pointer font-bold uppercase"
             >
               <Minimize2Icon size={20} />
-              {intl.reader.ttExit}
+              {reader.ttExit as string}
             </button>
           </div>
         </div>
@@ -283,7 +305,7 @@ export default function MangaReader({
               onClick={isRTL ? goNext : goPrev}
               disabled={isRTL ? false : currentIndex <= 0}
               className="p-2 disabled:opacity-30"
-              title={isRTL ? intl.reader.ttNext : intl.reader.ttPrev}
+              title={isRTL ? reader.ttNext as string : reader.ttPrev as string}
             >
               <ChevronLeftIcon
                 size={28}
@@ -292,7 +314,7 @@ export default function MangaReader({
             </button>
 
             <span className="select-none">
-              {intl.reader.page}{" "}
+              {reader.page as string}{" "}
               {isEditingPage ? (
                 <input
                   type="text"
@@ -342,7 +364,7 @@ export default function MangaReader({
               onClick={isRTL ? goPrev : goNext}
               disabled={isRTL ? currentIndex <= 0 : false}
               className="p-2 disabled:opacity-30"
-              title={isRTL ? intl.reader.ttPrev : intl.reader.ttNext}
+              title={isRTL ? reader.ttPrev as string : reader.ttNext as string}
             >
               <ChevronRightIcon
                 size={28}

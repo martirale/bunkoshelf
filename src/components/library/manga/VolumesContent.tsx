@@ -10,7 +10,7 @@ import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 import Tabs from "@/components/ui/Tabs";
 import VolumeRating from "./VolumeRating";
-import type { Locale, Dictionary, Session } from "@/lib/types";
+import type { Locale, Dictionary, DictionarySection, Session } from "@/lib/types";
 
 interface ReadingEntry {
   id: string;
@@ -164,11 +164,11 @@ export default function VolumesContent({
           <Tabs
             tabs={[
               {
-                label: intl.manga.details,
+                label: (intl.manga as DictionarySection).details as string,
                 content: <MetadataPanel meta={meta} lang={lang} intl={intl} />,
               },
               {
-                label: intl.manga.readingHistory,
+                label: (intl.manga as DictionarySection).readingHistory as string,
                 content: (
                   <ReadingHistory
                     volumeId={volume.id as string}

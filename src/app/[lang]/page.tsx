@@ -10,12 +10,12 @@ import PushButton from "@/components/ui/PushButton";
 import type { Locale, DictionarySection } from "@/lib/types";
 
 interface HomePageProps {
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }
 
 export default async function HomePage({ params }: HomePageProps) {
   const { lang = "es" } = await params;
-  const intl = await getDictionary(lang);
+  const intl = await getDictionary(lang as Locale);
 
   const home = intl.home as DictionarySection;
 
@@ -31,18 +31,18 @@ export default async function HomePage({ params }: HomePageProps) {
           )}
         >
           <div className="w-full md:w-1/2">
-            <HeroKeepRead lang={lang} intl={intl} vapidPublicKey={process.env.VAPID_PUBLIC_KEY} />
+            <HeroKeepRead lang={lang as Locale} intl={intl} vapidPublicKey={process.env.VAPID_PUBLIC_KEY} />
           </div>
 
           <div className="w-full md:w-1/2 flex flex-col justify-between">
             <div className="group">
               <div className="hidden md:flex justify-end gap-2">
-                <PushButton lang={lang} intl={intl} vapidPublicKey={process.env.VAPID_PUBLIC_KEY} />
+                <PushButton lang={lang as Locale} intl={intl} vapidPublicKey={process.env.VAPID_PUBLIC_KEY} />
                 <ReloadButton />
               </div>
 
               <ReaderStatsPanel
-                lang={lang}
+                lang={lang as Locale}
                 intl={intl}
                 mdCols="md:grid-cols-3 mt-4"
               />
@@ -60,7 +60,7 @@ export default async function HomePage({ params }: HomePageProps) {
               </div>
             </div>
 
-            <RowNewVols lang={lang} intl={intl} />
+            <RowNewVols lang={lang as Locale} intl={intl} />
           </div>
         </div>
       </div>

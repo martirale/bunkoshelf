@@ -16,12 +16,12 @@ import { getLogs } from "@/actions/admin-logs";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface SettingsPageProps {
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }
 
 export default async function SettingsPage({ params }: SettingsPageProps) {
   const { lang = "es" } = await params;
-  const intl: Dictionary = await getDictionary(lang);
+  const intl: Dictionary = await getDictionary(lang as Locale);
 
   const currentUser = await verifySession();
   const logsResult = await getLogs();

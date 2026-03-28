@@ -10,12 +10,12 @@ import Challenges from "@/components/challenges/Challenges";
 import type { Locale } from "@/lib/types";
 
 interface ProfilePageProps {
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { lang = "es" } = await params;
-  const intl = await getDictionary(lang);
+  const intl = await getDictionary(lang as Locale);
 
   const user = await verifySession();
   if (!user) return <p>No autorizado</p>;
@@ -26,7 +26,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
       <div className="flex flex-col 2xl:flex-row gap-4">
         <div className="flex w-full 2xl:w-1/2">
-          <ReadingChallenge lang={lang} intl={intl} />
+          <ReadingChallenge lang={lang as Locale} intl={intl} />
         </div>
 
         <div className="flex w-full 2xl:w-1/2">

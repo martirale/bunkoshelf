@@ -2,6 +2,15 @@
 
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { DictionarySection } from "@/lib/types";
+
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  lang: string;
+  intl: DictionarySection;
+  basePath: string;
+}
 
 export default function Pagination({
   currentPage,
@@ -9,13 +18,13 @@ export default function Pagination({
   lang,
   intl,
   basePath,
-}) {
+}: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const goToPage = (page) => {
+  const goToPage = (page: number) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", page);
+    params.set("page", String(page));
     router.push(`/${lang}/manga${basePath}?${params.toString()}`);
   };
 
@@ -29,7 +38,7 @@ export default function Pagination({
         <ChevronLeftIcon size={20} />
       </button>
       <span className="px-2">
-        {intl.reader.page} {currentPage} / {totalPages}
+        {(intl as Record<string, DictionarySection>).reader.page as string} {currentPage} / {totalPages}
       </span>
       <button
         disabled={currentPage === totalPages}

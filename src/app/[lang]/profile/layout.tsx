@@ -7,7 +7,7 @@ import type { Locale, DictionarySection } from "@/lib/types";
 
 interface ProfileLayoutProps {
   children: React.ReactNode;
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }
 
 export default async function ProfileLayout({
@@ -15,7 +15,7 @@ export default async function ProfileLayout({
   params,
 }: ProfileLayoutProps) {
   const { lang = "es" } = await params;
-  const intl = await getDictionary(lang);
+  const intl = await getDictionary(lang as Locale);
 
   const user = await verifySession();
 
