@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   FolderUpIcon,
   DatabaseBackupIcon,
+  HardDriveUploadIcon,
   ServerIcon,
   CloudCheckIcon,
 } from "lucide-react";
@@ -25,7 +26,7 @@ interface LibSettingsButtonsProps {
   libProvider: string | undefined;
 }
 
-type LoadingActionType = "reindex" | "covers" | "metadata" | null;
+type LoadingActionType = "reindex" | "covers" | "metadata" | "dbUpload" | null;
 
 interface ActionItem {
   key: string;
@@ -43,6 +44,7 @@ export default function LibSettingsButtons({
 }: LibSettingsButtonsProps) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [loadingAction, setLoadingAction] = useState<LoadingActionType>(null);
+  const dbFileInputRef = useRef<HTMLInputElement>(null);
   const { addToast, updateToast } = useToast()!;
   const { startPolling, loading } = useScanPolling({
     lang,
@@ -202,6 +204,55 @@ export default function LibSettingsButtons({
     }
   };
 
+  const handleRestoreDB = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!e.target) return;
+    e.target.value = "";
+    if (!file) return;
+
+    let _err: unknown;
+    let toastId: number;
+    try {
+      setLoadingAction("dbUpload");
+      toastId = addToast({
+        title: intl.settings.restoredb as string,
+        description: intl.settings.restoringDb as string,
+        variant: "default",
+        manual: true,
+      });
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/db/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Unknown error");
+      }
+
+      updateToast(toastId, {
+        title: intl.settings.successRestoreDbTt as string,
+        description: intl.settings.successRestoreDbDesc as string,
+        variant: "success",
+      });
+    } catch (e) {
+      _err = e;
+    } finally {
+      setLoadingAction(null);
+      if (_err) {
+        updateToast(toastId!, {
+          title: intl.toastScan.errorTt as string,
+          description: intl.settings.errorRestoreDbDesc as string,
+          variant: "error",
+        });
+      }
+    }
+  };
+
   const providerLabel =
     libProvider === "cloud"
       ? (intl.settings.storageCloud as string)
@@ -217,6 +268,13 @@ export default function LibSettingsButtons({
       icon: ProviderIcon,
     },
     {
+      key: "upload",
+      label: intl.settings.uploadLibrary as string,
+      icon: FolderUpIcon,
+      onClick: handleUploadMangas,
+      disabled: isLoading,
+    },
+    {
       key: "backup",
       label: intl.settings.backupdb as string,
       icon: DatabaseBackupIcon,
@@ -224,10 +282,10 @@ export default function LibSettingsButtons({
       disabled: isLoading,
     },
     {
-      key: "upload",
-      label: intl.settings.uploadLibrary as string,
-      icon: FolderUpIcon,
-      onClick: handleUploadMangas,
+      key: "restoredb",
+      label: intl.settings.restoredb as string,
+      icon: HardDriveUploadIcon,
+      onClick: () => dbFileInputRef.current?.click(),
       disabled: isLoading,
     },
   ];
@@ -254,6 +312,14 @@ export default function LibSettingsButtons({
       {ACTIONS.map((a) => (
         <ActionButton key={a.key} action={a} />
       ))}
+
+      <input
+        ref={dbFileInputRef}
+        type="file"
+        accept=".db"
+        className="hidden"
+        onChange={handleRestoreDB}
+      />
 
       <Modal isOpen={uploadOpen} onClose={() => setUploadOpen(false)}>
         <UploadMangaForm intl={intl} lang={lang} />
