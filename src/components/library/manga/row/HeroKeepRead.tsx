@@ -70,7 +70,10 @@ export default function HeroKeepRead({ lang, intl }: HeroKeepReadProps) {
           const alreadyFinished = vol.lastPage >= vol.totalPages - 1;
           return !notStarted && !alreadyFinished;
         })
-        .sort((a, b) => (b.lastReadAt as Date).getTime() - (a.lastReadAt as Date).getTime());
+        .sort(
+          (a, b) =>
+            (b.lastReadAt as Date).getTime() - (a.lastReadAt as Date).getTime(),
+        );
 
       setEntries(filtered);
     }
@@ -131,79 +134,86 @@ export default function HeroKeepRead({ lang, intl }: HeroKeepReadProps) {
   return (
     <>
       {!shouldHideHero && (
-        <section className="w-full p-4 bg-pearl">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="flex items-center text-base md:text-lg text-onix">
-              <LibraryBigIcon size={28} className="mr-2" />
-              {intl.libraries.keepReading as string}
-            </h2>
-            <div className="flex gap-4 text-onix">
-              <button
-                onClick={() => scrollCards("left")}
-                className="cursor-pointer"
-              >
-                <ChevronLeftIcon
-                  size={28}
-                  className="hover:scale-110 transition-all duration-150"
-                />
-              </button>
-              <button
-                onClick={() => scrollCards("right")}
-                className="cursor-pointer"
-              >
-                <ChevronRightIcon
-                  size={28}
-                  className="hover:scale-110 transition-all duration-150"
-                />
-              </button>
-            </div>
-          </div>
-
-          <div
-            ref={scrollRef}
-            className="overflow-x-auto scrollbar-none flex gap-4"
-            style={{ WebkitOverflowScrolling: "touch", cursor: "grab" }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={stopDragging}
-            onMouseLeave={stopDragging}
-            onDragStart={(e: DragEvent) => e.preventDefault()}
-            onClickCapture={(e) => {
-              if (hasDragged.current) {
-                e.preventDefault();
-                e.stopPropagation();
-              }
-            }}
-          >
-            {entries.map((entry) => {
-              const href = `/${lang}/manga/volume/${entry.slug}`;
-              return (
-                <div
-                  key={entry.slug}
-                  className="flex-shrink-0 w-1/2 md:w-1/4 2xl:w-1/5"
+        <>
+          <section className="w-full px-4 pt-4 bg-pearl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="flex items-center text-base md:text-lg text-onix">
+                <LibraryBigIcon size={28} className="mr-2" />
+                {intl.libraries.keepReading as string}
+              </h2>
+              <div className="flex gap-4 text-onix">
+                <button
+                  onClick={() => scrollCards("left")}
+                  className="cursor-pointer"
                 >
-                  <MangaCard
-                    title={(entry.meta as Record<string, string>)?.title ?? entry.title}
-                    href={href}
-                    isSeries={false}
-                    isOneshot={entry.isOneshot}
-                    onGoing={false}
-                    onPause={false}
-                    volumeCount={null}
-                    cover={entry.coverImage}
-                    intl={intl}
-                    isDragging={isDragging}
-                    seriesSlug={null}
-                    progressRatio={null}
-                    className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-xl"
+                  <ChevronLeftIcon
+                    size={28}
+                    className="hover:scale-110 transition-all duration-150"
                   />
-                </div>
-              );
-            })}
-          </div>
+                </button>
+                <button
+                  onClick={() => scrollCards("right")}
+                  className="cursor-pointer"
+                >
+                  <ChevronRightIcon
+                    size={28}
+                    className="hover:scale-110 transition-all duration-150"
+                  />
+                </button>
+              </div>
+            </div>
 
-          <MangaNav lang={lang} intl={intl} />
-        </section>
+            <div
+              ref={scrollRef}
+              className="overflow-x-auto scrollbar-none flex gap-4"
+              style={{ WebkitOverflowScrolling: "touch", cursor: "grab" }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={stopDragging}
+              onMouseLeave={stopDragging}
+              onDragStart={(e: DragEvent) => e.preventDefault()}
+              onClickCapture={(e) => {
+                if (hasDragged.current) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+            >
+              {entries.map((entry) => {
+                const href = `/${lang}/manga/volume/${entry.slug}`;
+                return (
+                  <div
+                    key={entry.slug}
+                    className="flex-shrink-0 w-1/2 md:w-1/4 2xl:w-1/5"
+                  >
+                    <MangaCard
+                      title={
+                        (entry.meta as Record<string, string>)?.title ??
+                        entry.title
+                      }
+                      href={href}
+                      isSeries={false}
+                      isOneshot={entry.isOneshot}
+                      onGoing={false}
+                      onPause={false}
+                      volumeCount={null}
+                      cover={entry.coverImage}
+                      intl={intl}
+                      isDragging={isDragging}
+                      seriesSlug={null}
+                      progressRatio={null}
+                      className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-xl"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <div className="sticky top-0 z-10 bg-pearl p-4">
+            <MangaNav lang={lang} intl={intl} />
+          </div>
+        </>
       )}
     </>
   );

@@ -89,7 +89,7 @@ export default function MangaNav({ lang, intl }: MangaNavProps) {
   ];
 
   return (
-    <nav className="flex justify-center pt-4 gap-2 md:gap-4">
+    <nav className="flex justify-center gap-2 md:gap-4">
       {links.map(({ label, href, icon: Icon, isActive, count }) => (
         <Link
           key={href}
@@ -101,7 +101,7 @@ export default function MangaNav({ lang, intl }: MangaNavProps) {
               "bg-sand": isActive,
               "hover:bg-sand": !isActive,
             },
-            "transition-all duration-300 group"
+            "transition-all duration-300 group",
           )}
         >
           <Icon size={20} className="mr-0 md:mr-2" />
@@ -115,7 +115,7 @@ export default function MangaNav({ lang, intl }: MangaNavProps) {
                   "bg-pearl": isActive,
                   "bg-sand": !isActive,
                 },
-                "ml-1 md:ml-2"
+                "ml-1 md:ml-2",
               )}
             >
               {count}
