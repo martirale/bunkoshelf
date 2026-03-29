@@ -33,7 +33,7 @@ export default async function NewVols({ lang, intl, maxItems = 12 }: NewVolsProp
       lang={lang}
       intl={intl}
       header={
-        <h2 className="flex items-center text-base md:text-lg">
+        <h2 key="header" className="flex items-center text-base md:text-lg">
           <BookPlusIcon size={28} className="mr-2" />
           {intl.libraries.recentlyAdded as string}
         </h2>

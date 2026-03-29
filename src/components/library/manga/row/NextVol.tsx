@@ -66,7 +66,7 @@ export default async function NextVol({ lang, intl, maxItems = 12 }: NextVolProp
       intl={intl}
       className="mt-4"
       header={
-        <h2 className="flex items-center text-base md:text-lg">
+        <h2 key="header" className="flex items-center text-base md:text-lg">
           <BookMarkedIcon size={28} className="mr-2" />
           {intl.libraries.inProgress as string}
         </h2>
