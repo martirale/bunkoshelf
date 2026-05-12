@@ -20,7 +20,7 @@ export async function getVersionInfo(): Promise<VersionInfo> {
   if (!res.ok) {
     return {
       version: localVersion,
-      versionUrl: `https://hub.docker.com/r/itsmrtr/bunkoshelf/tags?page=1&name=${localVersion}`,
+      versionUrl: "https://bunko.am25.app",
       changelogUrl: null,
       buildDate: null,
     };
