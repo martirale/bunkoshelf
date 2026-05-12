@@ -3,9 +3,6 @@ node_modules
 .pnp
 pnp.*
 
-# Prisma
-lib/generated/
-
 # testing
 coverage
 
@@ -15,6 +12,7 @@ out/
 
 # production
 build
+dist
 
 # misc
 .DS_Store
@@ -29,12 +27,6 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 .env
-
-# SQLite database
-prisma/data/*.db
-prisma/data/*.db-journal
-prisma/data/*.db-shm
-prisma/data/*.db-wal
 
 # typescript
 *.tsbuildinfo

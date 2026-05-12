@@ -1,14 +1,30 @@
 {
   "name": "bunkoshelf",
   "version": "1.0.0",
-  "private": true,
+  "description": "Self-hosted manga library packaged for direct npm deployment.",
+  "files": [
+    "bin",
+    "dist",
+    "runtime"
+  ],
+  "bin": {
+    "bunkoshelf": "./bin/bunkoshelf.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "build:release": "node ./scripts/build-release.mjs",
     "lint": "next lint"
   },
   "dependencies": {
+    "@clack/prompts": "0.11.0",
     "@aws-sdk/client-s3": "3.995.0",
     "@aws-sdk/s3-request-presigner": "3.995.0",
     "@formatjs/intl-localematcher": "0.6.1",
@@ -16,11 +32,14 @@
     "@smithy/node-http-handler": "4.4.10",
     "adm-zip": "0.5.16",
     "bcryptjs": "3.0.2",
+    "chalk": "5.6.2",
     "clsx": "2.1.1",
     "crc": "4.3.2",
     "date-fns": "4.1.0",
     "date-fns-tz": "3.2.0",
     "dotenv": "17.2.3",
+    "execa": "9.6.0",
+    "fs-extra": "11.3.2",
     "http-proxy": "1.18.1",
     "jose": "6.0.11",
     "jsonwebtoken": "9.0.3",
@@ -31,6 +50,7 @@
     "next": "16.1.6",
     "next-devtools-mcp": "0.3.10",
     "node-unrar-js": "2.0.2",
+    "pg": "8.16.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-dropzone": "14.3.8",
@@ -42,9 +62,11 @@
     "@tailwindcss/postcss": "4.1.5",
     "@types/adm-zip": "0.5.8",
     "@types/crc": "4.0.0",
+    "@types/fs-extra": "11.0.4",
     "@types/jsonwebtoken": "9.0.10",
     "@types/negotiator": "0.6.4",
     "@types/node": "25.5.0",
+    "@types/pg": "8.15.5",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@types/xml2js": "0.4.14",
