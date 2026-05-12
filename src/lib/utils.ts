@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import prisma from "./prisma";
+import { query, queryOne } from "./db/query";
 import type { Session } from "@/lib/types";
 
 export function sortByPaddedTitle<T>(
@@ -45,18 +45,31 @@ export async function getChallengeData(user: Session | null) {
   await connection();
   const currentYear = new Date().getFullYear();
 
-  const challenge = await prisma.readingChallenge.findFirst({
-    where: { userId: user.id, year: currentYear },
-  });
-  const userVolumes = await prisma.userToVolume.findMany({
-    where: { userId: user.id, isRead: true },
-    select: { isRead: true, lastReadAt: true },
-  });
+  const challenge = await queryOne<{ goal: number }>(
+    `
+      SELECT goal
+      FROM reading_challenges
+      WHERE user_id = $1
+        AND year = $2
+      LIMIT 1
+    `,
+    [user.id, currentYear]
+  );
+
+  const userVolumes = await query<{ last_read_at: Date | null }>(
+    `
+      SELECT last_read_at
+      FROM user_to_volumes
+      WHERE user_id = $1
+        AND is_read = TRUE
+    `,
+    [user.id]
+  );
 
   const goal = challenge?.goal ?? 0;
   const progress = userVolumes.filter((vol) => {
-    if (!vol.lastReadAt) return false;
-    return new Date(vol.lastReadAt).getFullYear() === currentYear;
+    if (!vol.last_read_at) return false;
+    return new Date(vol.last_read_at).getFullYear() === currentYear;
   }).length;
   const percentage = goal === 0 ? 0 : Math.min((progress / goal) * 100, 100);
 

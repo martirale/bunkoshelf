@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { listSeriesWithVolumes } from "@/lib/db/library";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { LibraryBigIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
@@ -30,71 +30,17 @@ export default async function SeriesIndex({
   const tagList =
     typeof tagFilter === "string" ? tagFilter.split(",") : tagFilter;
 
-  const genreConditions =
-    Array.isArray(genreList) && genreList.length > 0
-      ? genreList.map((genre) => ({
-          genres: {
-            some: {
-              genre: {
-                name: genre,
-              },
-            },
-          },
-        }))
-      : [];
-
-  const tagConditions =
-    Array.isArray(tagList) && tagList.length > 0
-      ? tagList.map((tag) => ({
-          tags: {
-            some: {
-              tag: {
-                name: tag,
-              },
-            },
-          },
-        }))
-      : [];
-
-  const volumeConditions = [...genreConditions, ...tagConditions];
-
-  const where = {
-    isOneshot: false,
-    ...(volumeConditions.length
-      ? {
-          volumes: {
-            some: {
-              AND: volumeConditions,
-            },
-          },
-        }
-      : {}),
-  };
-
   const [user, series] = await Promise.all([
     verifySession(),
-    prisma.mangaSeries.findMany({
-      where,
-      include: {
-        volumes: {
-          include: {
-            metadataObj: true,
-            genres: {
-              include: { genre: true },
-            },
-            tags: {
-              include: { tag: true },
-            },
-          },
-        },
-      },
-      orderBy: {
-        title: "asc",
-      },
+    listSeriesWithVolumes({
+      genreNames: genreList,
+      tagNames: tagList,
+      includeGenres: true,
+      includeTags: true,
     }),
   ]);
 
-  const entries = series.map((entry) => {
+  const entries = series.filter((entry) => !entry.isOneshot).map((entry) => {
     const sortedVolumes = sortByPaddedTitle(entry.volumes);
 
     return {
@@ -103,16 +49,15 @@ export default async function SeriesIndex({
         sortedVolumes.length > 0
           ? `/api/library/manga/cover/${sortedVolumes[sortedVolumes.length - 1].slug}/${sortedVolumes[sortedVolumes.length - 1].coverImage}`
           : null,
-      volumes:
-        sortedVolumes.map((vol) => ({
-          ...vol,
-          coverImage: vol.coverImage
-            ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-            : null,
-          meta: vol.metadataObj || null,
-          genres: vol.genres.map((g) => g.genre.name),
-          tags: vol.tags.map((t) => t.tag.name),
-        })) ?? [],
+      volumes: sortedVolumes.map((vol) => ({
+        ...vol,
+        coverImage: vol.coverImage
+          ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
+          : null,
+        meta: vol.metadataObj || null,
+        genres: vol.genres.map((genre) => genre.name),
+        tags: vol.tags.map((tag) => tag.name),
+      })),
     };
   });
 

@@ -1,30 +1,12 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
+import {
+  listLibraryFilters,
+  listSeriesWithVolumes,
+  listVolumes,
+} from "@/lib/db/library";
 import { sortByPaddedTitle } from "@/lib/utils";
-import type { MangaSeries, MangaVolume, VolumeMetadata, UserToVolume } from "@prisma/client";
-
-interface GenreFilter {
-  id: string;
-  name: string;
-}
-
-interface TagFilter {
-  id: string;
-  name: string;
-}
-
-interface SeriesWithVolumes extends MangaSeries {
-  volumes: MangaVolume[];
-  volumeSlug?: string;
-}
-
-interface VolumeWithRelations extends MangaVolume {
-  series: MangaSeries;
-  metadataObj: VolumeMetadata | null;
-  usersProgress: UserToVolume[];
-}
 
 export async function getLibraryFilters() {
   let error: Error | null = null;
@@ -34,15 +16,7 @@ export async function getLibraryFilters() {
       return { error: "Unauthorized", status: 401 };
     }
 
-    const genres: GenreFilter[] = await prisma.genre.findMany({
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    });
-
-    const tags: TagFilter[] = await prisma.tag.findMany({
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    });
+    const { genres, tags } = await listLibraryFilters();
 
     return { genres, tags };
   } catch (e) {
@@ -63,13 +37,9 @@ export async function getMangaOverall() {
       return { error: "Unauthorized", status: 401 };
     }
 
-    const series = await prisma.mangaSeries.findMany({
-      include: {
-        volumes: true,
-      },
-    });
+    const series = await listSeriesWithVolumes();
 
-    const formatted = series.map((s: SeriesWithVolumes) => {
+    const formatted = series.map((s) => {
       if (s.isOneshot && s.volumes.length === 1) {
         return {
           ...s,
@@ -103,15 +73,7 @@ export async function getMangaSeries() {
       return { error: "Unauthorized", status: 401 };
     }
 
-    const series = await prisma.mangaSeries.findMany({
-      include: {
-        volumes: {
-          include: {
-            metadataObj: true,
-          },
-        },
-      },
-    });
+    const series = await listSeriesWithVolumes();
 
     return { success: true, data: series };
   } catch (e) {
@@ -141,16 +103,8 @@ export async function getMangaVolumes() {
       };
     }
 
-    let volumes: VolumeWithRelations[] = await prisma.mangaVolume.findMany({
-      include: {
-        series: true,
-        metadataObj: true,
-        usersProgress: {
-          where: {
-            userId: currentUser.id,
-          },
-        },
-      },
+    let volumes = await listVolumes({
+      userId: currentUser.id,
     });
 
     volumes = sortByPaddedTitle(volumes);

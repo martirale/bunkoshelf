@@ -1,7 +1,7 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
+import { query, queryOne } from "@/lib/db/query";
 
 interface GenreStat {
   genre: string;
@@ -36,43 +36,55 @@ export async function getGenresStats() {
     ];
     const ignoreSet = new Set(ignoreList.map((s) => s.toLowerCase()));
 
-    const readVolumes = await prisma.userToVolume.findMany({
-      where: {
-        userId: user.id,
-        isRead: true,
-      },
-      select: {
-        volumeId: true,
-      },
-    });
+    const readVolumes = await query<{ volume_id: string }>(
+      `
+        SELECT volume_id
+        FROM user_to_volumes
+        WHERE user_id = $1
+          AND is_read = TRUE
+      `,
+      [user.id]
+    );
 
-    const readVolumeIds = readVolumes.map((v) => v.volumeId);
+    const readVolumeIds = readVolumes.map((v) => v.volume_id);
 
     if (readVolumeIds.length === 0) {
       return { topGenres: [] as GenreStat[] };
     }
 
     const [genres, tags] = await Promise.all([
-      prisma.volumeToGenre.findMany({
-        where: {
-          volumeId: { in: readVolumeIds },
-        },
-        include: { genre: true },
-      }),
-      prisma.volumeToTag.findMany({
-        where: {
-          volumeId: { in: readVolumeIds },
-        },
-        include: { tag: true },
-      }),
+      query<{
+        volume_id: string;
+        genre_name: string;
+      }>(
+        `
+          SELECT vtg.volume_id, g.name AS genre_name
+          FROM volume_to_genres vtg
+          INNER JOIN genres g ON g.id = vtg.genre_id
+          WHERE vtg.volume_id = ANY($1::text[])
+        `,
+        [readVolumeIds]
+      ),
+      query<{
+        volume_id: string;
+        tag_name: string;
+      }>(
+        `
+          SELECT vtt.volume_id, t.name AS tag_name
+          FROM volume_to_tags vtt
+          INNER JOIN tags t ON t.id = vtt.tag_id
+          WHERE vtt.volume_id = ANY($1::text[])
+        `,
+        [readVolumeIds]
+      ),
     ]);
 
     const volumeNames = new Map<string, Set<string>>();
     const displayMap = new Map<string, string>();
 
     for (const entry of genres) {
-      const id = entry.volumeId;
-      const name = String(entry.genre.name || "").trim();
+      const id = entry.volume_id;
+      const name = String(entry.genre_name || "").trim();
       const key = name.toLowerCase();
       if (!displayMap.has(key)) displayMap.set(key, name);
       if (!volumeNames.has(id)) volumeNames.set(id, new Set());
@@ -80,8 +92,8 @@ export async function getGenresStats() {
     }
 
     for (const entry of tags) {
-      const id = entry.volumeId;
-      const name = String(entry.tag.name || "").trim();
+      const id = entry.volume_id;
+      const name = String(entry.tag_name || "").trim();
       const key = name.toLowerCase();
       if (ignoreSet.has(key)) continue;
       if (!displayMap.has(key)) displayMap.set(key, name);
@@ -137,105 +149,99 @@ export async function getReaderStats() {
     allFirstReadDates,
     currentChallenge,
   ] = await Promise.all([
-    prisma.userToVolume.findMany({
-      where: {
-        userId: user.id,
-        isRead: true,
-      },
-      select: { id: true, volumeId: true, lastReadAt: true },
-    }),
-
-    prisma.userToVolume.findMany({
-      where: {
-        userId: user.id,
-        lastReadAt: { not: null },
-      },
-      select: { lastReadAt: true },
-    }),
-
-    prisma.userToVolume.findMany({
-      where: {
-        userId: user.id,
-        isRead: true,
-      },
-      select: { id: true, volumeId: true },
-    }),
-
-    prisma.userToVolume.findMany({
-      where: {
-        userId: user.id,
-        lastReadAt: { not: null },
-      },
-      orderBy: {
-        lastReadAt: "desc",
-      },
-      select: { lastReadAt: true },
-    }),
-
-    prisma.dailyReadingLog.findMany({
-      where: {
-        userId: user.id,
-      },
-      orderBy: {
-        date: "desc",
-      },
-      select: {
-        date: true,
-      },
-    }),
-
-    prisma.mangaVolume.count(),
-
-    prisma.mangaSeries.count({
-      where: { isOneshot: false },
-    }),
-
-    prisma.mangaVolume.findMany({
-      where: {
-        usersProgress: {
-          some: {
-            userId: user.id,
-          },
-        },
-      },
-      include: {
-        usersProgress: {
-          where: {
-            userId: user.id,
-          },
-          select: {
-            isRead: true,
-          },
-        },
-      },
-    }),
-
-    prisma.userToVolume.findMany({
-      where: {
-        userId: user.id,
-        firstRead: { not: null },
-      },
-      select: {
-        firstRead: true,
-      },
-    }),
-
-    prisma.readingChallenge.findFirst({
-      where: {
-        userId: user.id,
-        year: new Date().getFullYear(),
-      },
-      select: {
-        goal: true,
-      },
-    }),
+    query<{ id: string; volume_id: string; last_read_at: Date | null }>(
+      `
+        SELECT id, volume_id, last_read_at
+        FROM user_to_volumes
+        WHERE user_id = $1
+          AND is_read = TRUE
+      `,
+      [user.id]
+    ),
+    query<{ last_read_at: Date | null }>(
+      `
+        SELECT last_read_at
+        FROM user_to_volumes
+        WHERE user_id = $1
+          AND last_read_at IS NOT NULL
+      `,
+      [user.id]
+    ),
+    query<{ id: string; volume_id: string }>(
+      `
+        SELECT id, volume_id
+        FROM user_to_volumes
+        WHERE user_id = $1
+          AND is_read = TRUE
+      `,
+      [user.id]
+    ),
+    query<{ last_read_at: Date | null }>(
+      `
+        SELECT last_read_at
+        FROM user_to_volumes
+        WHERE user_id = $1
+          AND last_read_at IS NOT NULL
+        ORDER BY last_read_at DESC
+      `,
+      [user.id]
+    ),
+    query<{ date: string }>(
+      `
+        SELECT date
+        FROM daily_reading_logs
+        WHERE user_id = $1
+        ORDER BY date DESC
+      `,
+      [user.id]
+    ),
+    queryOne<{ count: string }>(
+      `
+        SELECT COUNT(*)::text AS count
+        FROM manga_volumes
+      `
+    ),
+    queryOne<{ count: string }>(
+      `
+        SELECT COUNT(*)::text AS count
+        FROM manga_series
+        WHERE is_oneshot = FALSE
+      `
+    ),
+    query<{ is_read: boolean }>(
+      `
+        SELECT utv.is_read
+        FROM manga_volumes mv
+        INNER JOIN user_to_volumes utv
+          ON utv.volume_id = mv.id
+        WHERE utv.user_id = $1
+      `,
+      [user.id]
+    ),
+    query<{ first_read: string | null }>(
+      `
+        SELECT first_read
+        FROM user_to_volumes
+        WHERE user_id = $1
+          AND first_read IS NOT NULL
+      `,
+      [user.id]
+    ),
+    queryOne<{ goal: number }>(
+      `
+        SELECT goal
+        FROM reading_challenges
+        WHERE user_id = $1
+          AND year = $2
+        LIMIT 1
+      `,
+      [user.id, new Date().getFullYear()]
+    ),
   ]);
 
   const totalTracked = userProgressVolumes.length;
-  const totalRead = userProgressVolumes.filter(
-    (volume) => volume.usersProgress[0]?.isRead
-  ).length;
-  const totalUnread = totalVolumes - totalRead;
+  const totalRead = userProgressVolumes.filter((volume) => volume.is_read).length;
+  const totalUnread = Number(totalVolumes?.count ?? 0) - totalRead;
 
   const now = new Date();
   const monthlyReadCount = Array(12).fill(0) as number[];
@@ -279,13 +285,24 @@ export async function getReaderStats() {
   }
 
   return {
-    volumesRead,
-    readEntries,
-    allCompleted,
-    allReadDates,
+    volumesRead: volumesRead.map((entry) => ({
+      id: entry.id,
+      volumeId: entry.volume_id,
+      lastReadAt: entry.last_read_at,
+    })),
+    readEntries: readEntries.map((entry) => ({
+      lastReadAt: entry.last_read_at,
+    })),
+    allCompleted: allCompleted.map((entry) => ({
+      id: entry.id,
+      volumeId: entry.volume_id,
+    })),
+    allReadDates: allReadDates.map((entry) => ({
+      lastReadAt: entry.last_read_at,
+    })),
     dailyReading,
-    totalVolumes,
-    totalSeries,
+    totalVolumes: Number(totalVolumes?.count ?? 0),
+    totalSeries: Number(totalSeries?.count ?? 0),
     readingProgressSummary: {
       totalTracked,
       totalRead,

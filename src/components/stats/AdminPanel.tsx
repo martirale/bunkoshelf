@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import prisma from "@/lib/prisma";
+import { queryOne } from "@/lib/db/query";
 import { startOfMonth, endOfMonth } from "date-fns";
 import type { Dictionary } from "@/lib/types";
 
@@ -16,28 +16,43 @@ async function getAdminStats(): Promise<AdminStats> {
   const startMonth = startOfMonth(now);
   const endMonth = endOfMonth(now);
 
-  const totalVolumes = await prisma.mangaVolume.count();
-
-  const totalSeries = await prisma.mangaSeries.count({
-    where: { isOneshot: false },
-  });
-
-  const volumesAddedThisMonth = await prisma.mangaVolume.count({
-    where: {
-      createdAt: {
-        gte: startMonth,
-        lte: endMonth,
-      },
-    },
-  });
-
-  const totalUsers = await prisma.user.count();
+  const [totalVolumes, totalSeries, volumesAddedThisMonth, totalUsers] =
+    await Promise.all([
+      queryOne<{ count: string }>(
+        `
+          SELECT COUNT(*)::text AS count
+          FROM manga_volumes
+        `
+      ),
+      queryOne<{ count: string }>(
+        `
+          SELECT COUNT(*)::text AS count
+          FROM manga_series
+          WHERE is_oneshot = FALSE
+        `
+      ),
+      queryOne<{ count: string }>(
+        `
+          SELECT COUNT(*)::text AS count
+          FROM manga_volumes
+          WHERE created_at >= $1
+            AND created_at <= $2
+        `,
+        [startMonth, endMonth]
+      ),
+      queryOne<{ count: string }>(
+        `
+          SELECT COUNT(*)::text AS count
+          FROM users
+        `
+      ),
+    ]);
 
   return {
-    totalVolumes,
-    volumesAddedThisMonth,
-    totalSeries,
-    totalUsers,
+    totalVolumes: Number(totalVolumes?.count ?? 0),
+    volumesAddedThisMonth: Number(volumesAddedThisMonth?.count ?? 0),
+    totalSeries: Number(totalSeries?.count ?? 0),
+    totalUsers: Number(totalUsers?.count ?? 0),
   };
 }
 

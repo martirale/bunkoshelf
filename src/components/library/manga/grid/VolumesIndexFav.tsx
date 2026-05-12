@@ -1,6 +1,6 @@
 import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
+import { listFavoriteVolumeIds, listVolumes } from "@/lib/db/library";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { GhostIcon, BookCopyIcon } from "lucide-react";
 import type { Locale, Dictionary } from "@/lib/types";
@@ -14,27 +14,19 @@ export default async function VolumesIndexFav({ lang, intl }: VolumesIndexFavPro
   const user = await verifySession();
   if (!user) return null;
 
-  const favorites = await prisma.userToVolume.findMany({
-    where: {
-      userId: user.id,
-      isFavorite: true,
-    },
-    include: {
-      volume: {
-        include: {
-          series: true,
-          metadataObj: true,
-        },
-      },
-    },
-    orderBy: {
-      volume: {
-        title: "asc",
-      },
-    },
-  });
+  const favoriteVolumeIds = await listFavoriteVolumeIds(user.id);
+  if (favoriteVolumeIds.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-80 gap-4">
+        <GhostIcon size={64} />
+        <h2>{intl.misc.noVolumesFav as string}</h2>
+      </div>
+    );
+  }
 
-  const volumes = favorites.map(({ volume }) => volume);
+  const volumes = await listVolumes({
+    volumeIds: favoriteVolumeIds,
+  });
   const sortedVolumes = sortByPaddedTitle(volumes);
   const entries = sortedVolumes.map((vol) => ({
     ...vol,
@@ -44,15 +36,6 @@ export default async function VolumesIndexFav({ lang, intl }: VolumesIndexFavPro
       : null,
     meta: vol.metadataObj || null,
   }));
-
-  if (entries.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-80 gap-4">
-        <GhostIcon size={64} />
-        <h2>{intl.misc.noVolumesFav as string}</h2>
-      </div>
-    );
-  }
 
   return (
     <>

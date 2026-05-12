@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { listVolumes } from "@/lib/db/library";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { LibraryBigIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
@@ -28,58 +28,11 @@ export default async function VolumesIndex({
   const tagList =
     typeof tagFilter === "string" ? tagFilter.split(",") : tagFilter;
 
-  const where: Record<string, unknown> = {};
-
-  if (genreList.length > 0 || tagList.length > 0) {
-    const conditions: Record<string, unknown>[] = [];
-
-    if (genreList.length > 0) {
-      conditions.push(
-        ...genreList.map((genreName) => ({
-          genres: {
-            some: {
-              genre: {
-                name: genreName,
-              },
-            },
-          },
-        }))
-      );
-    }
-
-    if (tagList.length > 0) {
-      conditions.push(
-        ...tagList.map((tagName) => ({
-          tags: {
-            some: {
-              tag: {
-                name: tagName,
-              },
-            },
-          },
-        }))
-      );
-    }
-
-    where.AND = conditions;
-  }
-
-  const volumes = await prisma.mangaVolume.findMany({
-    where,
-    include: {
-      metadataObj: true,
-      genres: {
-        include: {
-          genre: true,
-        },
-      },
-      tags: {
-        include: {
-          tag: true,
-        },
-      },
-      series: true,
-    },
+  const volumes = await listVolumes({
+    includeGenres: true,
+    includeTags: true,
+    genreNames: genreList,
+    tagNames: tagList,
   });
 
   const sortedVolumes = sortByPaddedTitle(volumes);
@@ -90,8 +43,8 @@ export default async function VolumesIndex({
       ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
       : null,
     meta: vol.metadataObj || null,
-    genres: vol.genres.map((g) => g.genre.name),
-    tags: vol.tags.map((t) => t.tag.name),
+    genres: vol.genres.map((genre) => genre.name),
+    tags: vol.tags.map((tag) => tag.name),
   }));
 
   const total = entries.length;

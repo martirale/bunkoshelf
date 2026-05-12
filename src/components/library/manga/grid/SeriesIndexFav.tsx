@@ -1,6 +1,9 @@
 import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
+import {
+  listFavoriteSeriesIds,
+  listSeriesWithVolumes,
+} from "@/lib/db/library";
 import { GhostIcon, LibraryBigIcon } from "lucide-react";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { getSeriesBulkProgress } from "@/lib/reader/readingProgress";
@@ -15,30 +18,9 @@ export default async function SeriesIndexFav({ lang, intl }: SeriesIndexFavProps
   const user = await verifySession();
   if (!user) return null;
 
-  const favorites = await prisma.userToSeries.findMany({
-    where: {
-      userId: user.id,
-      isFavorite: true,
-    },
-    include: {
-      series: {
-        include: {
-          volumes: {
-            include: {
-              metadataObj: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: {
-      series: {
-        title: "asc",
-      },
-    },
-  });
+  const favoriteSeriesIds = await listFavoriteSeriesIds(user.id);
 
-  if (favorites.length === 0) {
+  if (favoriteSeriesIds.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
         <GhostIcon size={64} />
@@ -47,7 +29,11 @@ export default async function SeriesIndexFav({ lang, intl }: SeriesIndexFavProps
     );
   }
 
-  const entries = favorites.map(({ series }) => {
+  const favorites = await listSeriesWithVolumes({
+    seriesIds: favoriteSeriesIds,
+  });
+
+  const entries = favorites.map((series) => {
     const sortedVolumes = sortByPaddedTitle(series.volumes);
 
     return {

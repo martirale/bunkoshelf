@@ -2,19 +2,11 @@
 
 import MiniSearch from "minisearch";
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
-import type { MangaSeries, MangaVolume, VolumeMetadata, VolumeToGenre, VolumeToTag, Genre, Tag } from "@prisma/client";
+import { listSeries, listVolumes } from "@/lib/db/library";
 import type { SearchResult } from "@/lib/types";
 
 interface SearchParams {
   query: string;
-}
-
-interface VolumeWithRelations extends MangaVolume {
-  series: MangaSeries;
-  metadataObj: VolumeMetadata | null;
-  genres: (VolumeToGenre & { genre: Genre })[];
-  tags: (VolumeToTag & { tag: Tag })[];
 }
 
 interface SeriesDoc {
@@ -57,21 +49,9 @@ export async function searchManga({ query }: SearchParams) {
     return { success: true, data: [] };
   }
 
-  const volumes: VolumeWithRelations[] = await prisma.mangaVolume.findMany({
-    include: {
-      series: true,
-      metadataObj: true,
-      genres: {
-        include: {
-          genre: true,
-        },
-      },
-      tags: {
-        include: {
-          tag: true,
-        },
-      },
-    },
+  const volumes = await listVolumes({
+    includeGenres: true,
+    includeTags: true,
   });
 
   const writerBySeriesId = new Map<string, string>();
@@ -89,7 +69,7 @@ export async function searchManga({ query }: SearchParams) {
     }
   }
 
-  const seriesList: MangaSeries[] = await prisma.mangaSeries.findMany();
+  const seriesList = await listSeries();
 
   const seriesDocs: SeriesDoc[] = seriesList.map((s) => ({
     id: `series-${s.id}`,
@@ -129,17 +109,13 @@ export async function searchManga({ query }: SearchParams) {
   });
 
   const volumeDocs: VolumeDoc[] = volumes.map((vol) => {
-    const genreNames = Array.isArray(vol.genres)
-      ? vol.genres
-          .map((g) => (g.genre?.name ? g.genre.name.trim() : null))
-          .filter((name): name is string => Boolean(name))
-      : [];
+    const genreNames = vol.genres
+      .map((genre) => genre.name?.trim())
+      .filter((name): name is string => Boolean(name));
 
-    const tagNames = Array.isArray(vol.tags)
-      ? vol.tags
-          .map((t) => (t.tag?.name ? t.tag.name.trim() : null))
-          .filter((name): name is string => Boolean(name))
-      : [];
+    const tagNames = vol.tags
+      .map((tag) => tag.name?.trim())
+      .filter((name): name is string => Boolean(name));
 
     return {
       id: `volume-${vol.id}`,
