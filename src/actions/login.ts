@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import prisma from "@/lib/prisma";
+import { findUserByUsername } from "@/lib/db/users";
 import type { Locale } from "@/lib/types";
 
 interface LoginParams {
@@ -18,7 +18,7 @@ export async function login({ username, password, lang = "es" }: LoginParams) {
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { username } });
+    const user = await findUserByUsername(username);
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new Error("invalid");

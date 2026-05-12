@@ -1,41 +1,21 @@
 "use server";
 
 import { connection } from "next/server";
-import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import { ensureDefaultAdmin } from "@/lib/db/bootstrap";
 
 export async function initAdmin() {
   await connection();
   try {
-    const adminExists = await prisma.user.findFirst({
-      where: { isAdmin: true },
-    });
+    const created = await ensureDefaultAdmin();
 
-    if (!adminExists) {
-      const hashedPassword = await bcrypt.hash("admin123", 10);
-
-      await prisma.user.create({
-        data: {
-          username: "bunko",
-          password: hashedPassword,
-          isAdmin: true,
-          role: "ADMIN",
-          name: "Bunko",
-          lastname: "Shelf",
-        },
-      });
-
-      const message = "✅ Usuario admin creado: bunko / admin123";
-      console.info(message);
-
+    if (created) {
       return {
         created: true,
         message: "Usuario admin creado con éxito.",
       };
     }
 
-    const message = "ℹ️ Usuario admin ya existe";
-    console.info(message);
+    console.info("ℹ️ Usuario admin ya existe");
 
     return {
       created: false,

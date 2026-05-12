@@ -7,8 +7,8 @@ import {
   CalendarIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/auth/verifySession";
+import { listUsers } from "@/lib/db/users";
 import ClearLogsButton from "@/components/settings/ClearLogsButton";
 import UsersTable from "@/components/settings/UsersTable";
 import AddUserButton from "@/components/settings/AddUserButton";
@@ -41,19 +41,7 @@ async function SettingsPageContent({ params }: SettingsPageProps) {
   const logsResult = await getLogs();
   const logs = logsResult?.logs || "No se pudieron cargar los logs.";
   const versionData = await getVersionInfo();
-
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      username: true,
-      isAdmin: true,
-      role: true,
-      name: true,
-      lastname: true,
-      birthYear: true,
-    },
-    orderBy: { name: "asc" },
-  });
+  const users = await listUsers();
 
   return (
     <>

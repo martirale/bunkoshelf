@@ -1,11 +1,14 @@
-import type { User } from "@prisma/client";
-
-export type Session = Pick<
-  User,
-  "id" | "username" | "isAdmin" | "role" | "name" | "lastname" | "birthYear"
->;
-
 export type Role = "ADMIN" | "MEMBER" | "GUEST";
+
+export interface Session {
+  id: string;
+  username: string;
+  isAdmin: boolean;
+  role: Role;
+  name: string | null;
+  lastname: string | null;
+  birthYear: number | null;
+}
 
 export type Permission =
   | "users:manage"

@@ -1,10 +1,18 @@
 "use server";
 
-import { verifySession } from "@/lib/auth/verifySession";
 import { hash } from "bcryptjs";
-import prisma from "@/lib/prisma";
+import { verifySession } from "@/lib/auth/verifySession";
+import {
+  createUserRecord,
+  deleteUserRecord,
+  findUserSessionById,
+  listUsers,
+  updateUserRecord,
+  usernameExists,
+} from "@/lib/db/users";
 import { log } from "@/lib/logger";
-import type { User } from "@prisma/client";
+import type { Session } from "@/lib/types";
+import type { Role } from "@/lib/types/auth";
 
 interface CreateUserParams {
   username: string;
@@ -13,12 +21,12 @@ interface CreateUserParams {
   lastname?: string;
   birthYear?: number | null;
   isAdmin?: boolean;
-  role?: string;
+  role?: Role;
 }
 
 interface CreateUserResult {
   success?: boolean;
-  user?: User;
+  user?: Session;
   error?: string;
   status?: number;
 }
@@ -43,12 +51,12 @@ interface AdminUpdateUserParams {
   lastname?: string;
   birthYear?: number | null;
   isAdmin?: boolean;
-  role?: string;
+  role?: Role;
 }
 
 interface AdminUpdateUserResult {
   success?: boolean;
-  user?: User;
+  user?: Session;
   error?: string;
   status?: number;
 }
@@ -73,6 +81,7 @@ export async function createUser({
   role,
 }: CreateUserParams): Promise<CreateUserResult | undefined> {
   let _err: Error | null = null;
+
   try {
     const user = await verifySession();
     if (!user) {
@@ -88,26 +97,18 @@ export async function createUser({
       return { error: "Faltan campos requeridos", status: 400 };
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { username },
-    });
-
-    if (existingUser) {
+    if (await usernameExists(username)) {
       return { error: "El nombre de usuario ya existe", status: 400 };
     }
 
-    const hashedPassword = await hash(password, 10);
-
-    const newUser = await prisma.user.create({
-      data: {
-        username,
-        password: hashedPassword,
-        name: name || null,
-        lastname: lastname || null,
-        birthYear: birthYear || null,
-        isAdmin: !!isAdmin,
-        role: role || "MEMBER",
-      },
+    const newUser = await createUserRecord({
+      username,
+      password: await hash(password, 10),
+      name: name || null,
+      lastname: lastname || null,
+      birthYear: birthYear || null,
+      isAdmin: !!isAdmin,
+      role: role || "MEMBER",
     });
 
     const duration = Date.now() - start;
@@ -135,7 +136,11 @@ export async function createUser({
   }
 }
 
-export async function updateUser({ name, lastname, password }: UpdateUserParams): Promise<UpdateUserResult> {
+export async function updateUser({
+  name,
+  lastname,
+  password,
+}: UpdateUserParams): Promise<UpdateUserResult> {
   try {
     const session = await verifySession();
     if (!session) {
@@ -143,24 +148,14 @@ export async function updateUser({ name, lastname, password }: UpdateUserParams)
     }
 
     const start = Date.now();
+    const user = await findUserSessionById(session.id);
 
-    const data: { name?: string; lastname?: string; password?: string } = {
+    await updateUserRecord(session.id, {
       name,
       lastname,
-    };
-
-    if (password && password.length > 0) {
-      data.password = await hash(password, 10);
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.id },
-      select: { username: true },
-    });
-
-    await prisma.user.update({
-      where: { id: session.id },
-      data,
+      ...(password && password.length > 0
+        ? { password: await hash(password, 10) }
+        : {}),
     });
 
     const duration = Date.now() - start;
@@ -208,23 +203,25 @@ export async function adminUpdateUser({
       return { error: "Faltan campos requeridos", status: 400 };
     }
 
-    const dataToUpdate: Record<string, string | boolean | number | null> = {
+    if (await usernameExists(username, id)) {
+      return { error: "El nombre de usuario ya existe", status: 400 };
+    }
+
+    const updatedUser = await updateUserRecord(id, {
       username,
       name: name || null,
       lastname: lastname || null,
       birthYear: birthYear || null,
       isAdmin: !!isAdmin,
       role: role || "MEMBER",
-    };
-
-    if (password && password.length > 0) {
-      dataToUpdate.password = await hash(password, 10);
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id },
-      data: dataToUpdate,
+      ...(password && password.length > 0
+        ? { password: await hash(password, 10) }
+        : {}),
     });
+
+    if (!updatedUser) {
+      return { error: "Usuario no encontrado", status: 404 };
+    }
 
     const duration = Date.now() - start;
 
@@ -249,8 +246,11 @@ export async function adminUpdateUser({
   }
 }
 
-export async function deleteUser({ id }: DeleteUserParams): Promise<DeleteUserResult | undefined> {
+export async function deleteUser({
+  id,
+}: DeleteUserParams): Promise<DeleteUserResult | undefined> {
   let _err: Error | null = null;
+
   try {
     const user = await verifySession();
     if (!user) {
@@ -269,19 +269,13 @@ export async function deleteUser({ id }: DeleteUserParams): Promise<DeleteUserRe
     }
 
     const start = Date.now();
-
-    const userToDelete = await prisma.user.findUnique({
-      where: { id },
-      select: { username: true, name: true, lastname: true, isAdmin: true, role: true },
-    });
+    const userToDelete = await findUserSessionById(id);
 
     if (!userToDelete) {
       return { error: "Usuario no encontrado", status: 404 };
     }
 
-    await prisma.user.delete({
-      where: { id },
-    });
+    await deleteUserRecord(id);
 
     const duration = Date.now() - start;
 
@@ -307,4 +301,8 @@ export async function deleteUser({ id }: DeleteUserParams): Promise<DeleteUserRe
       return { error: "Error al eliminar el usuario", status: 500 };
     }
   }
+}
+
+export async function getUsers(): Promise<Session[]> {
+  return listUsers();
 }

@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import LoginForm from "./LoginForm";
 import MainLogo from "@/components/ui/MainLogo";
-import { initAdmin } from "@/actions/init-admin";
 import type { Locale } from "@/lib/types";
 
 interface LoginPageProps {
@@ -11,7 +10,6 @@ interface LoginPageProps {
 
 async function LoginContent({ params }: LoginPageProps) {
   const { lang = "es" } = await params;
-  await initAdmin();
   const intl = await getDictionary(lang as Locale);
 
   return (

@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import clsx from "clsx";
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
+import { findUserSessionById } from "@/lib/db/users";
 import type { DictionarySection } from "@/lib/types";
 
 interface UserAvatarProps {
@@ -14,16 +14,7 @@ export default async function UserAvatar({ intl }: UserAvatarProps) {
 
   if (!userSession) return null;
 
-  const user = await prisma.user.findUnique({
-    where: { id: userSession.id },
-    select: {
-      name: true,
-      lastname: true,
-      isAdmin: true,
-      role: true,
-      birthYear: true,
-    },
-  });
+  const user = await findUserSessionById(userSession.id);
 
   if (!user) return null;
 
