@@ -1,7 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createId } from "@paralleldrive/cuid2";
-import pool from "./pool.mjs";
+import { getPool } from "./pool.mjs";
 
 async function ensureMigrationsTable(client) {
   await client.query(`
@@ -22,6 +22,7 @@ async function getAppliedMigrations(client) {
 }
 
 export async function migrate({ migrationsDir }) {
+  const pool = getPool();
   const client = await pool.connect();
 
   try {

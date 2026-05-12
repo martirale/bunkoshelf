@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { PoolClient } from "pg";
 import { createId } from "@paralleldrive/cuid2";
-import pool from "./pool";
+import { getPool } from "./pool";
 
 const MIGRATIONS_DIR = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -29,6 +29,7 @@ async function getAppliedMigrations(client: PoolClient): Promise<Set<string>> {
 }
 
 export async function migrate(): Promise<void> {
+  const pool = getPool();
   const client = await pool.connect();
 
   try {

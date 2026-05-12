@@ -1,7 +1,7 @@
 {
   "name": "bunkoshelf",
   "version": "1.0.0",
-  "description": "Self-hosted manga library packaged for direct npm deployment.",
+  "description": "Self-hosted personal manga library.",
   "files": [
     "bin",
     "dist",
@@ -17,9 +17,10 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "node ./scripts/dev.mjs",
     "build": "next build",
-    "start": "next start",
+    "db:migrate": "node ./scripts/migrate.mjs",
+    "start": "node ./scripts/start.mjs",
     "build:release": "node ./scripts/build-release.mjs",
     "lint": "next lint"
   },
