@@ -1,7 +1,10 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
+import {
+  createReadingEntryRecord,
+  upsertVolumeProgress,
+} from "@/lib/db/reading";
 import { syncFirstRead } from "@/actions/readingHistory";
 
 interface UpdateReadStateParams {
@@ -54,29 +57,15 @@ export async function updateReadState({
       lastReadAt: normalizedRead ? new Date(lastReadAt || Date.now()) : null,
     };
 
-    await prisma.userToVolume.upsert({
-      where: {
-        userId_volumeId: {
-          userId: user.id,
-          volumeId: normalizedVolumeId,
-        },
-      },
-      update: updatePayload,
-      create: {
-        userId: user.id,
-        volumeId: normalizedVolumeId,
-        ...updatePayload,
-      },
+    await upsertVolumeProgress(user.id, normalizedVolumeId, {
+      isRead: updatePayload.isRead,
+      lastPage: updatePayload.lastPage,
+      totalPages: updatePayload.totalPages,
+      lastReadAt: updatePayload.lastReadAt,
     });
 
     if (normalizedRead && typeof firstRead === "string") {
-      await prisma.readingEntry.create({
-        data: {
-          userId: user.id,
-          volumeId: normalizedVolumeId,
-          readAt: firstRead,
-        },
-      });
+      await createReadingEntryRecord(user.id, normalizedVolumeId, firstRead);
 
       await syncFirstRead(user.id, normalizedVolumeId);
     }

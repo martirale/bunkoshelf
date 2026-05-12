@@ -4,8 +4,8 @@ import path from "path";
 import os from "os";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import type { LibraryVolume } from "@/lib/db/library";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
-import type { MangaVolume } from "@prisma/client";
 import type { StorageProvider } from "@/lib/types";
 
 const validImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
@@ -49,7 +49,7 @@ async function getImagePathsFromDir(tempDir: string): Promise<string[]> {
 }
 
 export async function extractImagesCbr(
-  volume: MangaVolume,
+  volume: LibraryVolume,
   slug: string,
   provider: StorageProvider,
   activeVolumes: Map<string, string>

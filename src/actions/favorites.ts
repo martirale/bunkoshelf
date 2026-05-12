@@ -1,7 +1,10 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
+import {
+  upsertSeriesFavorite,
+  upsertVolumeProgress,
+} from "@/lib/db/reading";
 
 interface ToggleSeriesFavoriteParams {
   seriesId: string | number | null | undefined;
@@ -37,22 +40,7 @@ export async function toggleSeriesFavorite({ seriesId, favorite }: ToggleSeriesF
       return { error: "Invalid payload", status: 400 };
     }
 
-    await prisma.userToSeries.upsert({
-      where: {
-        userId_seriesId: {
-          userId: user.id,
-          seriesId: normalizedSeriesId,
-        },
-      },
-      update: {
-        isFavorite: normalizedFavorite,
-      },
-      create: {
-        userId: user.id,
-        seriesId: normalizedSeriesId,
-        isFavorite: normalizedFavorite,
-      },
-    });
+    await upsertSeriesFavorite(user.id, normalizedSeriesId, normalizedFavorite);
 
     return { success: true, status: 200 };
   } catch (e) {
@@ -89,21 +77,8 @@ export async function toggleVolumeFavorite({ volumeId, favorite }: ToggleVolumeF
       return { error: "Invalid payload", status: 400 };
     }
 
-    await prisma.userToVolume.upsert({
-      where: {
-        userId_volumeId: {
-          userId: user.id,
-          volumeId: normalizedVolumeId,
-        },
-      },
-      update: {
-        isFavorite: normalizedFavorite,
-      },
-      create: {
-        userId: user.id,
-        volumeId: normalizedVolumeId,
-        isFavorite: normalizedFavorite,
-      },
+    await upsertVolumeProgress(user.id, normalizedVolumeId, {
+      isFavorite: normalizedFavorite,
     });
 
     return { success: true, status: 200 };

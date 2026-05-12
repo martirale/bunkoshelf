@@ -1,7 +1,7 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
+import { upsertVolumeProgress } from "@/lib/db/reading";
 
 interface UpdatePersonalRatingParams {
   volumeId: string | number | null | undefined;
@@ -37,21 +37,8 @@ export async function updatePersonalRating({ volumeId, rating }: UpdatePersonalR
       return { error: "Invalid rating", status: 400 };
     }
 
-    await prisma.userToVolume.upsert({
-      where: {
-        userId_volumeId: {
-          userId: user.id,
-          volumeId: normalizedVolumeId,
-        },
-      },
-      update: {
-        personalRating: normalizedRating,
-      },
-      create: {
-        userId: user.id,
-        volumeId: normalizedVolumeId,
-        personalRating: normalizedRating,
-      },
+    await upsertVolumeProgress(user.id, normalizedVolumeId, {
+      personalRating: normalizedRating,
     });
 
     return { success: true, status: 200 };

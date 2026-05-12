@@ -1,17 +1,22 @@
 import { Suspense } from "react";
 import SeriesContent from "@/components/library/manga/SeriesContent";
 import { verifySession } from "@/lib/auth/verifySession";
+import { listVolumeRatings, findSeriesFavoriteState } from "@/lib/db/reading";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import prisma from "@/lib/prisma";
+import {
+  findSeriesBySlug,
+  type LibraryVolumeMetadata,
+} from "@/lib/db/library";
 import { sortByPaddedTitle } from "@/lib/utils";
 import type { Locale } from "@/lib/types";
-import type { VolumeMetadata } from "@prisma/client";
 
 interface AggregatedMeta {
   [key: string]: string[];
 }
 
-function aggregateMetadata(volumes: { metadataObj?: VolumeMetadata | null }[]) {
+function aggregateMetadata(
+  volumes: { metadataObj?: LibraryVolumeMetadata | null }[]
+) {
   const fields = [
     "writer", "penciller", "inker", "colorist", "letterer",
     "coverArtist", "editor", "publisher", "imprint", "format",
@@ -72,17 +77,10 @@ async function SeriesMangaPageContent({
   try {
     const user = await verifySession();
 
-    const serie = await prisma.mangaSeries.findUnique({
-      where: { slug: series },
-      include: {
-        volumes: {
-          include: {
-            metadataObj: true,
-            genres: { include: { genre: true } },
-            tags: { include: { tag: true } },
-          },
-        },
-      },
+    const serie = await findSeriesBySlug({
+      slug: series,
+      includeGenres: true,
+      includeTags: true,
     });
 
     if (!serie) {
@@ -103,10 +101,14 @@ async function SeriesMangaPageContent({
           const meta = {
             ...(vol.metadataObj || null),
             genres: Array.isArray(vol.genres)
-              ? vol.genres.map((g) => (g.genre?.name ? { name: g.genre.name.trim() } : null)).filter(Boolean)
+              ? vol.genres
+                  .map((genre) => (genre.name ? { name: genre.name.trim() } : null))
+                  .filter(Boolean)
               : [],
             tags: Array.isArray(vol.tags)
-              ? vol.tags.map((t) => (t.tag?.name ? { name: t.tag.name.trim() } : null)).filter(Boolean)
+              ? vol.tags
+                  .map((tag) => (tag.name ? { name: tag.name.trim() } : null))
+                  .filter(Boolean)
               : [],
           };
           return {
@@ -126,22 +128,10 @@ async function SeriesMangaPageContent({
     let averageRating: number | null = null;
 
     if (user) {
-      const favEntry = await prisma.userToSeries.findUnique({
-        where: { userId_seriesId: { userId: user.id, seriesId: serie.id } },
-        select: { isFavorite: true },
-      });
-
-      isFavorite = favEntry?.isFavorite ?? false;
+      isFavorite = await findSeriesFavoriteState(user.id, serie.id);
 
       const volumeIds = serie.volumes.map((v) => v.id);
-      const userVolumes = await prisma.userToVolume.findMany({
-        where: { userId: user.id, volumeId: { in: volumeIds } },
-        select: { volumeId: true, personalRating: true },
-      });
-
-      const personalMap = new Map(
-        userVolumes.filter((uv) => uv.personalRating !== null).map((uv) => [uv.volumeId, uv.personalRating]),
-      );
+      const personalMap = await listVolumeRatings(user.id, volumeIds);
 
       const ratings = serie.volumes
         .map((v) => personalMap.get(v.id) ?? v.metadataObj?.communityRating)

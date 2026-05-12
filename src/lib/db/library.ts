@@ -616,6 +616,81 @@ export async function listSeries(): Promise<LibrarySeries[]> {
   );
 }
 
+export async function findSeriesBySlug(options: {
+  slug: string;
+  includeGenres?: boolean;
+  includeTags?: boolean;
+}): Promise<LibrarySeriesWithVolumes | null> {
+  const row = await queryOne<{ id: string }>(
+    `
+      SELECT id
+      FROM manga_series
+      WHERE slug = $1
+      LIMIT 1
+    `,
+    [options.slug]
+  );
+
+  if (!row) {
+    return null;
+  }
+
+  const series = await listSeriesWithVolumes({
+    seriesIds: [row.id],
+    includeGenres: options.includeGenres,
+    includeTags: options.includeTags,
+  });
+
+  return series[0] ?? null;
+}
+
+export async function findVolumeBySlug(options: {
+  slug: string;
+  userId?: string | null;
+  includeGenres?: boolean;
+  includeTags?: boolean;
+}): Promise<LibraryVolume | null> {
+  const row = await queryOne<{ id: string }>(
+    `
+      SELECT id
+      FROM manga_volumes
+      WHERE slug = $1
+      LIMIT 1
+    `,
+    [options.slug]
+  );
+
+  if (!row) {
+    return null;
+  }
+
+  const volumes = await listVolumes({
+    volumeIds: [row.id],
+    userId: options.userId,
+    includeGenres: options.includeGenres,
+    includeTags: options.includeTags,
+  });
+
+  return volumes[0] ?? null;
+}
+
+export async function findVolumePageCountById(
+  volumeId: string
+): Promise<number | null> {
+  const row = await queryOne<{ page_count: number | null }>(
+    `
+      SELECT vm.page_count
+      FROM manga_volumes mv
+      LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+      WHERE mv.id = $1
+      LIMIT 1
+    `,
+    [volumeId]
+  );
+
+  return row?.page_count ?? null;
+}
+
 export async function listFavoriteSeriesIds(userId: string): Promise<string[]> {
   const rows = await query<{ series_id: string }>(
     `

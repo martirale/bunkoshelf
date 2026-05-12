@@ -1,8 +1,12 @@
 import { Suspense } from "react";
 import VolumesContent from "@/components/library/manga/VolumesContent";
 import { verifySession } from "@/lib/auth/verifySession";
+import {
+  findVolumeProgress,
+  listReadingEntries,
+} from "@/lib/db/reading";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import prisma from "@/lib/prisma";
+import { findVolumeBySlug } from "@/lib/db/library";
 import type { Locale } from "@/lib/types";
 
 interface VolumeMangaPageProps {
@@ -32,14 +36,11 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
   try {
     const user = await verifySession();
 
-    const volumeEntry = await prisma.mangaVolume.findUnique({
-      where: { slug },
-      include: {
-        series: true,
-        metadataObj: true,
-        genres: { include: { genre: true } },
-        tags: { include: { tag: true } },
-      },
+    const volumeEntry = await findVolumeBySlug({
+      slug,
+      userId: user?.id ?? null,
+      includeGenres: true,
+      includeTags: true,
     });
 
     if (!volumeEntry) {
@@ -54,12 +55,12 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
       ...(volumeEntry.metadataObj || null),
       genres: Array.isArray(volumeEntry.genres)
         ? volumeEntry.genres
-            .map((g) => (g.genre?.name ? { name: g.genre.name.trim() } : null))
+            .map((genre) => (genre.name ? { name: genre.name.trim() } : null))
             .filter(Boolean)
         : [],
       tags: Array.isArray(volumeEntry.tags)
         ? volumeEntry.tags
-            .map((t) => (t.tag?.name ? { name: t.tag.name.trim() } : null))
+            .map((tag) => (tag.name ? { name: tag.name.trim() } : null))
             .filter(Boolean)
         : [],
     };
@@ -78,32 +79,18 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
     let personalRating: number | null = null;
 
     if (user) {
-      const userVolume = await prisma.userToVolume.findUnique({
-        where: {
-          userId_volumeId: { userId: user.id, volumeId: volumeEntry.id },
-        },
-        select: {
-          isFavorite: true,
-          isRead: true,
-          firstRead: true,
-          personalRating: true,
-        },
-      });
+      const userVolume = await findVolumeProgress(user.id, volumeEntry.id);
 
-      isFavorite = userVolume?.isFavorite ?? false;
-      isRead = userVolume?.isRead ?? false;
-      firstRead = userVolume?.firstRead ?? null;
-      personalRating = userVolume?.personalRating ?? null;
+      isFavorite = userVolume?.is_favorite ?? false;
+      isRead = userVolume?.is_read ?? false;
+      firstRead = userVolume?.first_read ?? null;
+      personalRating = userVolume?.personal_rating ?? null;
     }
 
     let readingEntries: { id: string; readAt: string | null }[] = [];
 
     if (user) {
-      readingEntries = await prisma.readingEntry.findMany({
-        where: { userId: user.id, volumeId: volumeEntry.id },
-        orderBy: { createdAt: "desc" },
-        select: { id: true, readAt: true },
-      });
+      readingEntries = await listReadingEntries(user.id, volumeEntry.id);
     }
 
     return (

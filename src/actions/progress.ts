@@ -1,8 +1,14 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
 import { syncFirstRead } from "@/actions/readingHistory";
+import {
+  createReadingEntryRecord,
+  ensureDailyReadingLog,
+  incrementChallengeCompleted,
+  upsertVolumeProgress,
+} from "@/lib/db/reading";
+import { findVolumeBySlug } from "@/lib/db/library";
 
 interface SyncProgressParams {
   volumeSlug: string;
@@ -30,9 +36,8 @@ export async function syncReadingProgress({
       return { error: "Missing fields", status: 400 };
     }
 
-    const volume = await prisma.mangaVolume.findUnique({
-      where: { slug: volumeSlug },
-      select: { id: true },
+    const volume = await findVolumeBySlug({
+      slug: volumeSlug,
     });
 
     if (!volume) {
@@ -44,78 +49,23 @@ export async function syncReadingProgress({
 
     const isNowRead = lastPage >= totalPages - 1;
 
-    await prisma.userToVolume.upsert({
-      where: {
-        userId_volumeId: {
-          userId,
-          volumeId,
-        },
-      },
-      update: {
-        lastPage,
-        totalPages,
-        lastReadAt,
-        isRead: isNowRead,
-      },
-      create: {
-        userId,
-        volumeId,
-        lastPage,
-        totalPages,
-        lastReadAt,
-        isRead: isNowRead,
-      },
+    await upsertVolumeProgress(userId, volumeId, {
+      lastPage,
+      totalPages,
+      lastReadAt: new Date(lastReadAt),
+      isRead: isNowRead,
     });
 
     if (isNowRead) {
-      await prisma.readingEntry.create({
-        data: {
-          userId,
-          volumeId,
-          readAt: date,
-        },
-      });
+      await createReadingEntryRecord(userId, volumeId, date);
 
       await syncFirstRead(userId, volumeId);
 
       const currentYear = new Date().getFullYear();
-      await prisma.readingChallenge.upsert({
-        where: {
-          userId_year: {
-            userId: user.id,
-            year: currentYear,
-          },
-        },
-        update: {
-          completed: { increment: 1 },
-        },
-        create: {
-          userId: user.id,
-          year: currentYear,
-          goal: 0,
-          completed: 1,
-          notified: false,
-        },
-      });
+      await incrementChallengeCompleted(user.id, currentYear);
     }
 
-    const existingLog = await prisma.dailyReadingLog.findUnique({
-      where: {
-        userId_date: {
-          userId,
-          date,
-        },
-      },
-    });
-
-    if (!existingLog) {
-      await prisma.dailyReadingLog.create({
-        data: {
-          userId,
-          date,
-        },
-      });
-    }
+    await ensureDailyReadingLog(userId, date);
 
     return { success: true };
   } catch (err) {

@@ -1,33 +1,31 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
+import {
+  createReadingEntryRecord,
+  deleteReadingEntryRecord,
+  findOldestReadingEntryDate,
+  findReadingEntryById,
+  findVolumeProgress,
+  listReadingEntries,
+  updateReadingEntryRecord,
+  upsertVolumeProgress,
+} from "@/lib/db/reading";
+import { findVolumePageCountById } from "@/lib/db/library";
 
 export async function syncFirstRead(userId: string, volumeId: string) {
-  const oldest = await prisma.readingEntry.findFirst({
-    where: { userId, volumeId },
-    orderBy: { readAt: "asc" },
-    select: { readAt: true },
-  });
-
+  const oldest = await findOldestReadingEntryDate(userId, volumeId);
   const hasEntries = !!oldest;
 
   let progressUpdate: { lastPage?: number; totalPages?: number } = {};
 
   if (hasEntries) {
-    const existing = await prisma.userToVolume.findUnique({
-      where: { userId_volumeId: { userId, volumeId } },
-      select: { totalPages: true },
-    });
+    const existing = await findVolumeProgress(userId, volumeId);
 
-    let totalPages = existing?.totalPages;
+    let totalPages = existing?.total_pages ?? undefined;
 
     if (!totalPages) {
-      const volume = await prisma.mangaVolume.findUnique({
-        where: { id: volumeId },
-        select: { metadataObj: { select: { pageCount: true } } },
-      });
-      totalPages = volume?.metadataObj?.pageCount ?? undefined;
+      totalPages = (await findVolumePageCountById(volumeId)) ?? undefined;
     }
 
     if (totalPages) {
@@ -37,20 +35,10 @@ export async function syncFirstRead(userId: string, volumeId: string) {
     progressUpdate = { lastPage: 0 };
   }
 
-  await prisma.userToVolume.upsert({
-    where: { userId_volumeId: { userId, volumeId } },
-    update: {
-      firstRead: oldest?.readAt ?? null,
-      isRead: hasEntries,
-      ...progressUpdate,
-    },
-    create: {
-      userId,
-      volumeId,
-      firstRead: oldest?.readAt ?? null,
-      isRead: hasEntries,
-      ...progressUpdate,
-    },
+  await upsertVolumeProgress(userId, volumeId, {
+    firstRead: oldest ?? null,
+    isRead: hasEntries,
+    ...progressUpdate,
   });
 }
 
@@ -60,17 +48,7 @@ export async function getReadingHistory({ volumeId }: { volumeId: string }) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  const entries = await prisma.readingEntry.findMany({
-    where: {
-      userId: user.id,
-      volumeId,
-    },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      readAt: true,
-    },
-  });
+  const entries = await listReadingEntries(user.id, volumeId);
 
   return { entries };
 }
@@ -87,14 +65,7 @@ export async function createReadingEntry({ volumeId, readAt }: { volumeId: strin
       return { error: "Missing fields", status: 400 };
     }
 
-    const entry = await prisma.readingEntry.create({
-      data: {
-        userId: user.id,
-        volumeId,
-        readAt,
-      },
-      select: { id: true, readAt: true },
-    });
+    const entry = await createReadingEntryRecord(user.id, volumeId, readAt);
 
     await syncFirstRead(user.id, volumeId);
 
@@ -121,22 +92,15 @@ export async function updateReadingEntry({ entryId, readAt }: { entryId: string;
       return { error: "Missing fields", status: 400 };
     }
 
-    const existing = await prisma.readingEntry.findUnique({
-      where: { id: entryId },
-      select: { userId: true, volumeId: true },
-    });
+    const existing = await findReadingEntryById(entryId);
 
-    if (!existing || existing.userId !== user.id) {
+    if (!existing || existing.user_id !== user.id) {
       return { error: "Not found", status: 404 };
     }
 
-    const entry = await prisma.readingEntry.update({
-      where: { id: entryId },
-      data: { readAt },
-      select: { id: true, readAt: true },
-    });
+    const entry = await updateReadingEntryRecord(entryId, readAt);
 
-    await syncFirstRead(user.id, existing.volumeId);
+    await syncFirstRead(user.id, existing.volume_id);
 
     return { success: true, entry };
   } catch (e) {
@@ -161,20 +125,15 @@ export async function deleteReadingEntry({ entryId }: { entryId: string }) {
       return { error: "Missing fields", status: 400 };
     }
 
-    const existing = await prisma.readingEntry.findUnique({
-      where: { id: entryId },
-      select: { userId: true, volumeId: true },
-    });
+    const existing = await findReadingEntryById(entryId);
 
-    if (!existing || existing.userId !== user.id) {
+    if (!existing || existing.user_id !== user.id) {
       return { error: "Not found", status: 404 };
     }
 
-    await prisma.readingEntry.delete({
-      where: { id: entryId },
-    });
+    await deleteReadingEntryRecord(entryId);
 
-    await syncFirstRead(user.id, existing.volumeId);
+    await syncFirstRead(user.id, existing.volume_id);
 
     return { success: true };
   } catch (e) {

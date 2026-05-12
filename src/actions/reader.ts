@@ -1,15 +1,22 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
 import path from "path";
+import {
+  findVolumeProgress,
+} from "@/lib/db/reading";
+import {
+  findSeriesBySlug,
+  findVolumeBySlug,
+  type LibraryVolume,
+} from "@/lib/db/library";
+import { queryOne } from "@/lib/db/query";
 import { extractImagesCbz } from "@/lib/reader/manga/cbz";
 import { extractImagesCbr } from "@/lib/reader/manga/cbr";
-import type { MangaVolume } from "@prisma/client";
 import type { StorageProvider } from "@/lib/types";
 
 type Extractor = (
-  volume: MangaVolume,
+  volume: LibraryVolume,
   slug: string,
   provider: StorageProvider,
   activeVolumes: Map<string, string>
@@ -45,9 +52,7 @@ export async function getMangaImages({ slug }: { slug: string }) {
       return { error: "Missing slug", status: 400 };
     }
 
-    const volume = await prisma.mangaVolume.findUnique({
-      where: { slug },
-    });
+    const volume = await findVolumeBySlug({ slug });
 
     if (!volume) {
       return { error: "Volume not found", status: 404 };
@@ -90,34 +95,23 @@ export async function getReadingProgress({ slug }: { slug: string }) {
       return { error: "Missing slug", status: 400 };
     }
 
-    const volume = await prisma.mangaVolume.findUnique({
-      where: { slug },
-      select: { id: true },
-    });
+    const volume = await findVolumeBySlug({ slug });
 
     if (!volume) {
       return { error: "Volume not found", status: 404 };
     }
 
-    const progress = await prisma.userToVolume.findUnique({
-      where: {
-        userId_volumeId: {
-          userId: user.id,
-          volumeId: volume.id,
-        },
-      },
-      select: {
-        lastPage: true,
-        totalPages: true,
-        lastReadAt: true,
-      },
-    });
+    const progress = await findVolumeProgress(user.id, volume.id);
 
     if (!progress) {
       return { lastPage: 0 };
     }
 
-    return progress;
+    return {
+      lastPage: progress.last_page,
+      totalPages: progress.total_pages,
+      lastReadAt: progress.last_read_at,
+    };
   } catch (err) {
     error = err as Error;
   } finally {
@@ -140,14 +134,8 @@ export async function getSeriesProgress({ seriesSlug }: { seriesSlug: string }) 
       return { error: "Missing seriesSlug", status: 400 };
     }
 
-    const series = await prisma.mangaSeries.findUnique({
-      where: { slug: seriesSlug },
-      select: {
-        id: true,
-        volumes: {
-          select: { id: true },
-        },
-      },
+    const series = await findSeriesBySlug({
+      slug: seriesSlug,
     });
 
     if (!series) {
@@ -163,15 +151,18 @@ export async function getSeriesProgress({ seriesSlug }: { seriesSlug: string }) 
       };
     }
 
-    const readVolumes = await prisma.userToVolume.count({
-      where: {
-        userId: user.id,
-        volumeId: {
-          in: series.volumes.map((v) => v.id),
-        },
-        isRead: true,
-      },
-    });
+    const readCount = await queryOne<{ count: string }>(
+      `
+        SELECT COUNT(*)::text AS count
+        FROM user_to_volumes
+        WHERE user_id = $1
+          AND volume_id = ANY($2::text[])
+          AND is_read = TRUE
+      `,
+      [user.id, series.volumes.map((volume) => volume.id)]
+    );
+
+    const readVolumes = Number(readCount?.count ?? "0");
 
     return {
       readVolumes,
