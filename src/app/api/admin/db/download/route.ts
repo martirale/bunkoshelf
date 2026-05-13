@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
-import fs from "fs";
-import path from "path";
+import { exportDatabaseBackup } from "@/lib/db/backup";
 
 export async function GET() {
   const user = await verifySession();
@@ -12,19 +11,14 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const dbPath = path.join(process.cwd(), "prisma", "data", "bunkoshelf.db");
+  const backup = await exportDatabaseBackup();
+  const fileName = `bunkoshelf-backup-${new Date().toISOString().slice(0, 10)}.json`;
 
-  if (!fs.existsSync(dbPath)) {
-    return new NextResponse("Database file not found", { status: 404 });
-  }
-
-  const fileStream = fs.readFileSync(dbPath);
-
-  return new NextResponse(fileStream, {
+  return new NextResponse(JSON.stringify(backup, null, 2), {
     status: 200,
     headers: {
-      "Content-Type": "application/octet-stream",
-      "Content-Disposition": 'attachment; filename="bunkoshelf.db"',
+      "Content-Type": "application/json; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${fileName}"`,
     },
   });
 }

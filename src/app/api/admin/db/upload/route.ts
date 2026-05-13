@@ -1,8 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
-import fs from "fs";
-import path from "path";
+import { restoreDatabaseBackup } from "@/lib/db/backup";
 
 export async function POST(request: NextRequest) {
   const user = await verifySession();
@@ -25,21 +23,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const SQLITE_MAGIC = Buffer.from("SQLite format 3\0");
-  if (buffer.length < 16 || !buffer.subarray(0, 16).equals(SQLITE_MAGIC)) {
+  let payload: unknown;
+  try {
+    payload = JSON.parse(await file.text());
+  } catch {
     return NextResponse.json(
-      { error: "The file is not a valid SQLite database" },
+      { error: "The file is not a valid Bunko backup" },
       { status: 400 }
     );
   }
 
-  const dbPath = path.join(process.cwd(), "prisma", "data", "bunkoshelf.db");
-
-  await prisma.$disconnect();
-
-  fs.writeFileSync(dbPath, buffer);
+  try {
+    await restoreDatabaseBackup(payload);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Could not restore the database backup",
+      },
+      { status: 400 }
+    );
+  }
 
   return NextResponse.json({ success: true });
 }

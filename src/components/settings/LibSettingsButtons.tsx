@@ -189,7 +189,7 @@ export default function LibSettingsButtons({
       url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "bunkoshelf.db";
+      a.download = "bunkoshelf-backup.json";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -316,7 +316,7 @@ export default function LibSettingsButtons({
       <input
         ref={dbFileInputRef}
         type="file"
-        accept=".db"
+        accept=".json"
         className="hidden"
         onChange={handleRestoreDB}
       />
