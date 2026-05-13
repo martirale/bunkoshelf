@@ -84,8 +84,8 @@ export default function MonthlyReads({
                   fontSize: "0.875rem",
                 }}
                 labelStyle={{ color: "#e5e0dc" }}
-                formatter={(value: number) => [
-                  `${value}`,
+                formatter={(value) => [
+                  String(value ?? 0),
                   stats.tooltip as string,
                 ]}
               />
