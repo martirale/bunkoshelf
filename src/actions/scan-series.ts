@@ -3,7 +3,6 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import path from "path";
 import fsp from "fs/promises";
-import prisma from "@/lib/prisma";
 import { extractCoverCbz } from "@/lib/jobs/scan/manga/covers/cbz";
 import { extractCoverCbr } from "@/lib/jobs/scan/manga/covers/cbr";
 import { extractMetadataCbz } from "@/lib/jobs/scan/manga/meta/cbz";
@@ -11,16 +10,19 @@ import { extractMetadataCbr } from "@/lib/jobs/scan/manga/meta/cbr";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import type { StorageProvider, ComicInfoResult } from "@/lib/types";
+import {
+  findSeriesWithVolumesById,
+  findVolumeWithSeriesPathById,
+  type IndexedVolume,
+  linkVolumeMetadata,
+  replaceVolumeGenres,
+  replaceVolumeTags,
+  upsertVolumeMetadataRecord,
+  upsertVolumeRecord,
+} from "@/lib/db/ingestion";
 
 const LIB_PROVIDER: StorageProvider = (process.env.LIB_PROVIDER as StorageProvider) || "local";
 const TEMP_PATH = path.resolve(process.cwd(), "../temp");
-
-interface VolumeInfo {
-  id: string;
-  slug: string;
-  fullPath: string;
-  metadataId: string | null;
-}
 
 interface VolumeScanResult {
   coversUpdated: number;
@@ -54,7 +56,10 @@ function getMetaExtractor(filePath: string): MetaExtractor | null {
   return null;
 }
 
-async function processVolumeScan(volume: VolumeInfo, seriesPath: string): Promise<VolumeScanResult> {
+async function processVolumeScan(
+  volume: IndexedVolume,
+  seriesPath: string
+): Promise<VolumeScanResult> {
   let coversUpdated = 0;
   let metaUpdated = 0;
   let errors = 0;
@@ -97,9 +102,15 @@ async function processVolumeScan(volume: VolumeInfo, seriesPath: string): Promis
           await fsp.rm(outputDir, { recursive: true, force: true });
         }
 
-        await prisma.mangaVolume.update({
-          where: { id: volume.id },
-          data: { coverImage: coverFilename },
+        await upsertVolumeRecord({
+          slug: volume.slug,
+          title: volume.title,
+          filename: volume.filename,
+          fullPath: volume.fullPath,
+          size: volume.size,
+          mtime: new Date(),
+          coverImage: coverFilename,
+          seriesId: volume.seriesId,
         });
 
         coversUpdated++;
@@ -121,48 +132,17 @@ async function processVolumeScan(volume: VolumeInfo, seriesPath: string): Promis
       if (result) {
         const { metadata, genres, tags } = result;
 
-        const volumeMeta = await prisma.volumeMetadata.upsert({
-          where: { filePath: volume.fullPath },
-          update: metadata,
-          create: { filePath: volume.fullPath, ...metadata },
-        });
+        const volumeMeta = await upsertVolumeMetadataRecord(
+          volume.fullPath,
+          metadata
+        );
 
         if (volume.metadataId !== volumeMeta.id) {
-          await prisma.mangaVolume.update({
-            where: { id: volume.id },
-            data: { metadataId: volumeMeta.id },
-          });
+          await linkVolumeMetadata(volume.id, volumeMeta.id);
         }
 
-        await prisma.volumeToGenre.deleteMany({
-          where: { volumeId: volume.id },
-        });
-
-        for (const genreName of genres) {
-          const genre = await prisma.genre.upsert({
-            where: { name: genreName },
-            update: {},
-            create: { name: genreName },
-          });
-          await prisma.volumeToGenre.create({
-            data: { volumeId: volume.id, genreId: genre.id },
-          });
-        }
-
-        await prisma.volumeToTag.deleteMany({
-          where: { volumeId: volume.id },
-        });
-
-        for (const tagName of tags) {
-          const tag = await prisma.tag.upsert({
-            where: { name: tagName },
-            update: {},
-            create: { name: tagName },
-          });
-          await prisma.volumeToTag.create({
-            data: { volumeId: volume.id, tagId: tag.id },
-          });
-        }
+        await replaceVolumeGenres(volume.id, genres);
+        await replaceVolumeTags(volume.id, tags);
 
         metaUpdated++;
       }
@@ -186,19 +166,7 @@ export async function scanSeries(seriesId: string): Promise<ScanResult | undefin
 
   let _err: Error | null = null;
   try {
-    const series = await prisma.mangaSeries.findUnique({
-      where: { id: seriesId },
-      include: {
-        volumes: {
-          select: {
-            id: true,
-            slug: true,
-            fullPath: true,
-            metadataId: true,
-          },
-        },
-      },
-    });
+    const series = await findSeriesWithVolumesById(seriesId);
 
     if (!series) {
       return { error: "Serie no encontrada" };
@@ -240,22 +208,13 @@ export async function scanVolume(volumeId: string): Promise<ScanResult | undefin
 
   let _err: Error | null = null;
   try {
-    const volume = await prisma.mangaVolume.findUnique({
-      where: { id: volumeId },
-      select: {
-        id: true,
-        slug: true,
-        fullPath: true,
-        metadataId: true,
-        series: { select: { path: true } },
-      },
-    });
+    const volume = await findVolumeWithSeriesPathById(volumeId);
 
     if (!volume) {
       return { error: "Volumen no encontrado" };
     }
 
-    const result = await processVolumeScan(volume, volume.series.path);
+    const result = await processVolumeScan(volume, volume.seriesPath!);
 
     return {
       success: true,

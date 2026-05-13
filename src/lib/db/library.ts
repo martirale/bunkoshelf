@@ -1,4 +1,4 @@
-import { query } from "./query";
+import { query, queryOne } from "./query";
 
 export interface GenreFilter {
   id: string;

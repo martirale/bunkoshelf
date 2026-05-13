@@ -1,12 +1,12 @@
 "use server";
 
+import { createId } from "@paralleldrive/cuid2";
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
+import { execute, query } from "@/lib/db/query";
 
 interface PushSubscriptionInput {
   endpoint: string;
-  keys: Prisma.InputJsonValue;
+  keys: Record<string, unknown>;
 }
 
 interface PushPayload {
@@ -24,6 +24,15 @@ const pushHeaders: HeadersInit = {
   ...(PUSH_API_KEY && { Authorization: `Bearer ${PUSH_API_KEY}` }),
 };
 
+interface PushSubscriptionRow {
+  id: string;
+  endpoint: string;
+  keys: Record<string, unknown>;
+  device_name: string | null;
+  created_at: Date;
+  user_id: string;
+}
+
 export async function subscribePush(subscription: PushSubscriptionInput, deviceName: string) {
   const user = await verifySession();
   if (!user) {
@@ -32,21 +41,24 @@ export async function subscribePush(subscription: PushSubscriptionInput, deviceN
 
   let error: Error | null = null;
   try {
-    await prisma.pushSubscription.upsert({
-      where: {
-        endpoint: subscription.endpoint,
-      },
-      update: {
-        keys: subscription.keys,
-        deviceName,
-      },
-      create: {
-        endpoint: subscription.endpoint,
-        keys: subscription.keys,
-        deviceName,
-        userId: user.id,
-      },
-    });
+    await execute(
+      `
+        INSERT INTO push_subscriptions (
+          id,
+          endpoint,
+          keys,
+          device_name,
+          user_id
+        )
+        VALUES ($1, $2, $3::jsonb, $4, $5)
+        ON CONFLICT (endpoint)
+        DO UPDATE SET
+          keys = EXCLUDED.keys,
+          device_name = EXCLUDED.device_name,
+          user_id = EXCLUDED.user_id
+      `,
+      [createId(), subscription.endpoint, JSON.stringify(subscription.keys), deviceName, user.id]
+    );
 
     return { success: true };
   } catch (err) {
@@ -67,10 +79,17 @@ export async function sendPush(payload: PushPayload) {
 
   let error: Error | null = null;
   try {
-    const subscriptions = await prisma.pushSubscription.findMany({
-      where: { userId: user.id },
-      select: { endpoint: true, keys: true },
-    });
+    const subscriptions = await query<{
+      endpoint: string;
+      keys: Record<string, unknown>;
+    }>(
+      `
+        SELECT endpoint, keys
+        FROM push_subscriptions
+        WHERE user_id = $1
+      `,
+      [user.id]
+    );
 
     if (!subscriptions.length) {
       return { success: true, sent: 0 };
@@ -134,13 +153,25 @@ export async function getUserSubscriptions() {
 
   let error: Error | null = null;
   try {
-    const subscriptions = await prisma.pushSubscription.findMany({
-      where: { userId: user.id },
-      select: { id: true, endpoint: true, deviceName: true, createdAt: true },
-      orderBy: { createdAt: "desc" },
-    });
+    const subscriptions = await query<PushSubscriptionRow>(
+      `
+        SELECT id, endpoint, keys, device_name, created_at, user_id
+        FROM push_subscriptions
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+      `,
+      [user.id]
+    );
 
-    return { success: true, subscriptions };
+    return {
+      success: true,
+      subscriptions: subscriptions.map((subscription) => ({
+        id: subscription.id,
+        endpoint: subscription.endpoint,
+        deviceName: subscription.device_name,
+        createdAt: subscription.created_at,
+      })),
+    };
   } catch (err) {
     error = err as Error;
   } finally {
@@ -159,9 +190,14 @@ export async function deleteSubscription(id: string) {
 
   let error: Error | null = null;
   try {
-    await prisma.pushSubscription.delete({
-      where: { id, userId: user.id },
-    });
+    await execute(
+      `
+        DELETE FROM push_subscriptions
+        WHERE id = $1
+          AND user_id = $2
+      `,
+      [id, user.id]
+    );
 
     return { success: true };
   } catch (err) {
@@ -182,9 +218,13 @@ export async function deleteAllSubscriptions() {
 
   let error: Error | null = null;
   try {
-    await prisma.pushSubscription.deleteMany({
-      where: { userId: user.id },
-    });
+    await execute(
+      `
+        DELETE FROM push_subscriptions
+        WHERE user_id = $1
+      `,
+      [user.id]
+    );
 
     return { success: true };
   } catch (err) {
@@ -205,9 +245,15 @@ export async function sendPushBroadcast(payload: PushPayload) {
 
   let error: Error | null = null;
   try {
-    const subscriptions = await prisma.pushSubscription.findMany({
-      select: { endpoint: true, keys: true },
-    });
+    const subscriptions = await query<{
+      endpoint: string;
+      keys: Record<string, unknown>;
+    }>(
+      `
+        SELECT endpoint, keys
+        FROM push_subscriptions
+      `
+    );
 
     if (!subscriptions.length) {
       return { success: true, sent: 0 };

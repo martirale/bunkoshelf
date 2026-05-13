@@ -7,6 +7,7 @@ import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { log } from "@/lib/logger";
 import crypto from "crypto";
 import { indexUploadedVolume } from "@/lib/uploadIndexer";
+import { upsertFileChecksumRecord } from "@/lib/db/ingestion";
 import type { ComicMetadata } from "@/lib/types/manga";
 
 function generateChecksum(): string {
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
           ContentType: "text/plain",
         })
       );
+      await upsertFileChecksumRecord(`/${txtKey}`, checksum);
 
       if (libraryType === "manga" && file.volumeMetadata) {
         const seriesPath = `/library/${libraryType}/${dirWithSuffix}`;

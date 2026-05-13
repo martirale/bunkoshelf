@@ -1,7 +1,7 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
-import prisma from "@/lib/prisma";
+import { queryOne } from "@/lib/db/query";
 
 interface UpdateSeriesStatusParams {
   seriesId: string | number | null | undefined;
@@ -30,10 +30,20 @@ export async function updateSeriesStatus({ seriesId, status }: UpdateSeriesStatu
       return { error: "status inválido", status: 400 };
     }
 
-    const updated = await prisma.mangaSeries.update({
-      where: { id: String(seriesId) },
-      data: { status },
-    });
+    const updated = await queryOne<{ status: string }>(
+      `
+        UPDATE manga_series
+        SET status = $2,
+            updated_at = NOW()
+        WHERE id = $1
+        RETURNING status
+      `,
+      [String(seriesId), status]
+    );
+
+    if (!updated) {
+      return { error: "no encontrado", status: 404 };
+    }
 
     return { status: updated.status, statusCode: 200 };
   } catch (err) {
@@ -58,10 +68,15 @@ export async function getSeriesStatus({ seriesId }: GetSeriesStatusParams) {
       return { error: "seriesId requerido", status: 400 };
     }
 
-    const record = await prisma.mangaSeries.findUnique({
-      where: { id: String(seriesId) },
-      select: { status: true },
-    });
+    const record = await queryOne<{ status: string | null }>(
+      `
+        SELECT status
+        FROM manga_series
+        WHERE id = $1
+        LIMIT 1
+      `,
+      [String(seriesId)]
+    );
 
     if (!record) {
       return { error: "no encontrado", status: 404 };

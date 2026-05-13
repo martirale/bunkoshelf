@@ -5,55 +5,24 @@ import { mainJob } from "@/lib/jobs/scan/manga/mainJob";
 import { log } from "@/lib/logger";
 import fs from "fs/promises";
 import path from "path";
-import prisma from "@/lib/prisma";
 import { ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import {
+  cleanupOrphanedGenresAndTags,
+  countVolumesBySeriesId,
+  deleteFileChecksumsByPaths,
+  deleteSeriesById,
+  deleteVolumeByFullPath,
+  findFileChecksumRecord,
+  listAllChecksumPaths,
+  listAllVolumePaths,
+} from "@/lib/db/ingestion";
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library/manga");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 const STATUS_PATH = path.join(process.cwd(), "tmp", "checksum-status.json");
 const SUPPORTED_EXTENSIONS = [".cbz", ".zip", ".cbr", ".rar"];
-
-async function cleanOrphanedGenresAndTags() {
-  const orphanedGenres = await prisma.genre.findMany({
-    where: {
-      volumes: {
-        none: {},
-      },
-    },
-  });
-
-  if (orphanedGenres.length > 0) {
-    await prisma.genre.deleteMany({
-      where: {
-        id: {
-          in: orphanedGenres.map((g) => g.id),
-        },
-      },
-    });
-    console.log(`Eliminados ${orphanedGenres.length} géneros huérfanos`);
-  }
-
-  const orphanedTags = await prisma.tag.findMany({
-    where: {
-      volumes: {
-        none: {},
-      },
-    },
-  });
-
-  if (orphanedTags.length > 0) {
-    await prisma.tag.deleteMany({
-      where: {
-        id: {
-          in: orphanedTags.map((t) => t.id),
-        },
-      },
-    });
-    console.log(`Eliminadas ${orphanedTags.length} etiquetas huérfanas`);
-  }
-}
 
 interface CloudFileInfo {
   volumeFiles: { name: string; fullPath: string }[];
@@ -152,9 +121,7 @@ async function checksumVerification(): Promise<number> {
             const txtContent = await txtResponse.text();
             const checksumFromFile = txtContent.trim();
 
-            const dbRecord = await prisma.fileChecksum.findUnique({
-              where: { filePath: correspondingTxt.path },
-            });
+            const dbRecord = await findFileChecksumRecord(correspondingTxt.path);
 
             if (!dbRecord || dbRecord.checksum !== checksumFromFile) {
               filesToIndex.push(volumeFile.fullPath);
@@ -164,17 +131,13 @@ async function checksumVerification(): Promise<number> {
       }
     }
 
-    const allDbVolumes = await prisma.mangaVolume.findMany({
-      select: { fullPath: true, seriesId: true },
-    });
+    const allDbVolumes = await listAllVolumePaths();
 
     const deletedSeriesIds = new Set<string>();
 
     for (const volume of allDbVolumes) {
       if (!existingVolumePaths.has(volume.fullPath)) {
-        await prisma.mangaVolume.deleteMany({
-          where: { fullPath: volume.fullPath },
-        });
+        await deleteVolumeByFullPath(volume.fullPath);
 
         if (volume.seriesId) {
           deletedSeriesIds.add(volume.seriesId);
@@ -184,33 +147,23 @@ async function checksumVerification(): Promise<number> {
           /\.(cbz|zip|cbr|rar)$/i,
           ".txt"
         );
-        await prisma.fileChecksum.deleteMany({
-          where: { filePath: txtPath },
-        });
+        await deleteFileChecksumsByPaths([txtPath]);
       }
     }
 
     for (const seriesId of deletedSeriesIds) {
-      const remainingVolumes = await prisma.mangaVolume.count({
-        where: { seriesId },
-      });
+      const remainingVolumes = await countVolumesBySeriesId(seriesId);
 
       if (remainingVolumes === 0) {
-        await prisma.mangaSeries.delete({
-          where: { id: seriesId },
-        });
+        await deleteSeriesById(seriesId);
       }
     }
 
-    const allDbChecksums = await prisma.fileChecksum.findMany({
-      select: { filePath: true },
-    });
+    const allDbChecksums = await listAllChecksumPaths();
 
     for (const record of allDbChecksums) {
-      if (record.filePath && !existingTxtPaths.has(record.filePath)) {
-        await prisma.fileChecksum.delete({
-          where: { filePath: record.filePath },
-        });
+      if (record && !existingTxtPaths.has(record)) {
+        await deleteFileChecksumsByPaths([record]);
       }
     }
   } else {
@@ -268,9 +221,7 @@ async function checksumVerification(): Promise<number> {
           const txtContent = await fs.readFile(txtPath, "utf-8");
           const checksumFromFile = txtContent.trim();
 
-          const dbRecord = await prisma.fileChecksum.findUnique({
-            where: { filePath: txtPath },
-          });
+          const dbRecord = await findFileChecksumRecord(txtPath);
 
           if (!dbRecord || dbRecord.checksum !== checksumFromFile) {
             filesToIndex.push(volumePath);
@@ -279,17 +230,13 @@ async function checksumVerification(): Promise<number> {
       }
     }
 
-    const allDbVolumes = await prisma.mangaVolume.findMany({
-      select: { fullPath: true, seriesId: true },
-    });
+    const allDbVolumes = await listAllVolumePaths();
 
     const deletedSeriesIds = new Set<string>();
 
     for (const volume of allDbVolumes) {
       if (!existingVolumePaths.has(volume.fullPath)) {
-        await prisma.mangaVolume.deleteMany({
-          where: { fullPath: volume.fullPath },
-        });
+        await deleteVolumeByFullPath(volume.fullPath);
 
         if (volume.seriesId) {
           deletedSeriesIds.add(volume.seriesId);
@@ -299,38 +246,28 @@ async function checksumVerification(): Promise<number> {
           /\.(cbz|zip|cbr|rar)$/i,
           ".txt"
         );
-        await prisma.fileChecksum.deleteMany({
-          where: { filePath: txtPath },
-        });
+        await deleteFileChecksumsByPaths([txtPath]);
       }
     }
 
     for (const seriesId of deletedSeriesIds) {
-      const remainingVolumes = await prisma.mangaVolume.count({
-        where: { seriesId },
-      });
+      const remainingVolumes = await countVolumesBySeriesId(seriesId);
 
       if (remainingVolumes === 0) {
-        await prisma.mangaSeries.delete({
-          where: { id: seriesId },
-        });
+        await deleteSeriesById(seriesId);
       }
     }
 
-    const allDbChecksums = await prisma.fileChecksum.findMany({
-      select: { filePath: true },
-    });
+    const allDbChecksums = await listAllChecksumPaths();
 
     for (const record of allDbChecksums) {
-      if (record.filePath && !existingTxtPaths.has(record.filePath)) {
-        await prisma.fileChecksum.delete({
-          where: { filePath: record.filePath },
-        });
+      if (record && !existingTxtPaths.has(record)) {
+        await deleteFileChecksumsByPaths([record]);
       }
     }
   }
 
-  await cleanOrphanedGenresAndTags();
+  await cleanupOrphanedGenresAndTags();
 
   await fs.writeFile(
     STATUS_PATH,

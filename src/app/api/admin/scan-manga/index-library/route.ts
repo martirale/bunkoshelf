@@ -4,9 +4,14 @@ import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
-import prisma from "@/lib/prisma";
 import { ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import {
+  listAllVolumePaths,
+  upsertFileChecksumRecord,
+  upsertSeriesRecord,
+  upsertVolumeRecord,
+} from "@/lib/db/ingestion";
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library/manga");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
@@ -55,9 +60,7 @@ export async function POST(request: NextRequest) {
     let filesToIndex: string[] = [];
 
     if (forceAll) {
-      const volumes = await prisma.mangaVolume.findMany({
-        select: { fullPath: true },
-      });
+      const volumes = await listAllVolumePaths();
       filesToIndex = volumes.map((v) => v.fullPath);
     } else {
       const checksumData = await fs.readFile(CHECKSUM_STATUS_PATH, "utf-8");
@@ -105,21 +108,12 @@ export async function POST(request: NextRequest) {
         const cleanTitle = seriesName.replace("[oneshot]", "").trim();
         const slug = toSlug(cleanTitle);
 
-        const mangaSeries = await prisma.mangaSeries.upsert({
-          where: { slug },
-          update: {
-            title: cleanTitle,
-            path: `/${prefix}${seriesName}`,
-            isOneshot,
-            mtime: new Date(),
-          },
-          create: {
-            title: cleanTitle,
-            slug,
-            path: `/${prefix}${seriesName}`,
-            isOneshot,
-            mtime: new Date(),
-          },
+        const mangaSeries = await upsertSeriesRecord({
+          slug,
+          title: cleanTitle,
+          path: `/${prefix}${seriesName}`,
+          isOneshot,
+          mtime: new Date(),
         });
 
         seriesCount++;
@@ -129,23 +123,15 @@ export async function POST(request: NextRequest) {
             path.basename(vol.fileName, path.extname(vol.fileName))
           );
 
-          await prisma.mangaVolume.upsert({
-            where: { slug: volSlug },
-            update: {
-              title: path.basename(vol.fileName, path.extname(vol.fileName)),
-              filename: vol.fileName,
-              fullPath: vol.fullPath,
-              mtime: new Date(),
-              seriesId: mangaSeries.id,
-            },
-            create: {
-              title: path.basename(vol.fileName, path.extname(vol.fileName)),
-              slug: volSlug,
-              filename: vol.fileName,
-              fullPath: vol.fullPath,
-              mtime: new Date(),
-              seriesId: mangaSeries.id,
-            },
+          await upsertVolumeRecord({
+            slug: volSlug,
+            title: path.basename(vol.fileName, path.extname(vol.fileName)),
+            filename: vol.fileName,
+            fullPath: vol.fullPath,
+            size: 0,
+            mtime: new Date(),
+            coverImage: null,
+            seriesId: mangaSeries.id,
           });
 
           volumeCount++;
@@ -165,11 +151,7 @@ export async function POST(request: NextRequest) {
 
           await r2Client.send(txtCommand);
 
-          await prisma.fileChecksum.upsert({
-            where: { filePath: txtPath },
-            update: { checksum },
-            create: { filePath: txtPath, checksum },
-          });
+          await upsertFileChecksumRecord(txtPath, checksum);
         }
       }
     } else {
@@ -199,21 +181,12 @@ export async function POST(request: NextRequest) {
         const cleanTitle = dirName.replace("[oneshot]", "").trim();
         const slug = toSlug(cleanTitle);
 
-        const mangaSeries = await prisma.mangaSeries.upsert({
-          where: { slug },
-          update: {
-            title: cleanTitle,
-            path: dirPath,
-            isOneshot,
-            mtime: stat.mtime,
-          },
-          create: {
-            title: cleanTitle,
-            slug,
-            path: dirPath,
-            isOneshot,
-            mtime: stat.mtime,
-          },
+        const mangaSeries = await upsertSeriesRecord({
+          slug,
+          title: cleanTitle,
+          path: dirPath,
+          isOneshot,
+          mtime: stat.mtime,
         });
 
         seriesCount++;
@@ -224,25 +197,15 @@ export async function POST(request: NextRequest) {
           );
           const volStat = await fs.stat(vol.fullPath);
 
-          await prisma.mangaVolume.upsert({
-            where: { slug: volSlug },
-            update: {
-              title: path.basename(vol.fileName, path.extname(vol.fileName)),
-              filename: vol.fileName,
-              fullPath: vol.fullPath,
-              size: volStat.size,
-              mtime: volStat.mtime,
-              seriesId: mangaSeries.id,
-            },
-            create: {
-              title: path.basename(vol.fileName, path.extname(vol.fileName)),
-              slug: volSlug,
-              filename: vol.fileName,
-              fullPath: vol.fullPath,
-              size: volStat.size,
-              mtime: volStat.mtime,
-              seriesId: mangaSeries.id,
-            },
+          await upsertVolumeRecord({
+            slug: volSlug,
+            title: path.basename(vol.fileName, path.extname(vol.fileName)),
+            filename: vol.fileName,
+            fullPath: vol.fullPath,
+            size: volStat.size,
+            mtime: volStat.mtime,
+            coverImage: null,
+            seriesId: mangaSeries.id,
           });
 
           volumeCount++;
@@ -253,11 +216,7 @@ export async function POST(request: NextRequest) {
 
           await fs.writeFile(txtPath, checksum, "utf8");
 
-          await prisma.fileChecksum.upsert({
-            where: { filePath: txtPath },
-            update: { checksum },
-            create: { filePath: txtPath, checksum },
-          });
+          await upsertFileChecksumRecord(txtPath, checksum);
         }
       }
     }

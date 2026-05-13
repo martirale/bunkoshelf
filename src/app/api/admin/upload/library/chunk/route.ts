@@ -9,6 +9,7 @@ import { log } from "@/lib/logger";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { indexUploadedVolume } from "@/lib/uploadIndexer";
+import { upsertFileChecksumRecord } from "@/lib/db/ingestion";
 import type { ComicMetadata } from "@/lib/types/manga";
 
 export const maxDuration = 300;
@@ -145,6 +146,7 @@ export async function POST(request: NextRequest) {
             ContentType: "text/plain",
           })
         );
+        await upsertFileChecksumRecord(`/${txtKey}`, checksum);
 
         if (coverData && coverFilename) {
           const coverKey = `library/${libraryType}/${dirWithSuffix}/${coverFilename}`;
@@ -208,6 +210,7 @@ export async function POST(request: NextRequest) {
 
         await fs.copyFile(tempFilePath, finalPath);
         await fs.writeFile(txtPath, checksum, "utf8");
+        await upsertFileChecksumRecord(txtPath, checksum);
 
         if (coverData && coverFilename) {
           await fs.writeFile(

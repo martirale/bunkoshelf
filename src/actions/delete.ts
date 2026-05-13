@@ -5,9 +5,19 @@ import fs from "fs/promises";
 import path from "path";
 import { ListObjectsV2Command, DeleteObjectsCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import type { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
-import prisma from "@/lib/prisma";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import type { StorageProvider } from "@/lib/types";
+import {
+  countVolumesBySeriesId,
+  deleteFileChecksumsByPaths,
+  deleteFileChecksumsByPrefix,
+  deleteSeriesById,
+  deleteVolumeById,
+  deleteVolumeMetadataByIds,
+  findSeriesBySlugBasic,
+  findVolumeBySlugBasic,
+  listVolumeMetadataIdsBySeriesId,
+} from "@/lib/db/ingestion";
 
 const LIB_PROVIDER: StorageProvider = (process.env.LIB_PROVIDER as StorageProvider) || "local";
 
@@ -33,24 +43,17 @@ export async function deleteSeries({ slug }: DeleteBySlugParams): Promise<Delete
       return { ok: false, error: "slug missing", status: 400 };
     }
 
-    const series = await prisma.mangaSeries.findUnique({ where: { slug } });
+    const series = await findSeriesBySlugBasic(slug);
     if (!series) {
       return { ok: false, error: "series not found", status: 404 };
     }
 
-    const volumes = await prisma.mangaVolume.findMany({
-      where: { seriesId: series.id },
-      select: { metadataId: true },
-    });
+    const metadataIds = await listVolumeMetadataIdsBySeriesId(series.id);
 
-    const metadataIds = volumes.map((v) => v.metadataId).filter(Boolean) as string[];
-
-    await prisma.mangaSeries.delete({ where: { id: series.id } });
+    await deleteSeriesById(series.id);
 
     if (metadataIds.length > 0) {
-      await prisma.volumeMetadata.deleteMany({
-        where: { id: { in: metadataIds } },
-      });
+      await deleteVolumeMetadataByIds(metadataIds);
     }
 
     const seriesPath = series.path;
@@ -81,17 +84,13 @@ export async function deleteSeries({ slug }: DeleteBySlugParams): Promise<Delete
           : undefined;
       } while (continuationToken);
       const normalized = `/${prefix}`;
-      await prisma.fileChecksum.deleteMany({
-        where: { filePath: { startsWith: normalized } },
-      });
+      await deleteFileChecksumsByPrefix(normalized);
     } else {
       await fs.rm(seriesPath, { recursive: true, force: true });
       const normalized = seriesPath.startsWith("/")
         ? seriesPath
         : `/${seriesPath.replace(/^\/+/, "")}`;
-      await prisma.fileChecksum.deleteMany({
-        where: { filePath: { startsWith: normalized } },
-      });
+      await deleteFileChecksumsByPrefix(normalized);
     }
 
     return { ok: true };
@@ -117,20 +116,15 @@ export async function deleteVolume({ slug }: DeleteBySlugParams): Promise<Delete
       return { ok: false, error: "slug missing", status: 400 };
     }
 
-    const volume = await prisma.mangaVolume.findUnique({
-      where: { slug },
-      include: { series: { select: { path: true } } },
-    });
+    const volume = await findVolumeBySlugBasic(slug);
     if (!volume) {
       return { ok: false, error: "volume not found", status: 404 };
     }
 
-    await prisma.mangaVolume.delete({ where: { id: volume.id } });
+    await deleteVolumeById(volume.id);
 
     if (volume.metadataId) {
-      await prisma.volumeMetadata.deleteMany({
-        where: { id: volume.metadataId },
-      });
+      await deleteVolumeMetadataByIds([volume.metadataId]);
     }
 
     const fullPath = volume.fullPath;
@@ -150,10 +144,10 @@ export async function deleteVolume({ slug }: DeleteBySlugParams): Promise<Delete
       );
 
       const txtPath = `/${txtKey}`;
-      await prisma.fileChecksum.deleteMany({ where: { filePath: txtPath } });
+      await deleteFileChecksumsByPaths([txtPath]);
 
-      if (volume.coverImage && volume.series?.path) {
-        const seriesPath = volume.series.path.replace(/^\//, "");
+      if (volume.coverImage && volume.seriesPath) {
+        const seriesPath = volume.seriesPath.replace(/^\//, "");
         const coverKey = `${seriesPath}/${volume.coverImage}`;
         await r2Client.send(
           new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: coverKey })
@@ -166,20 +160,18 @@ export async function deleteVolume({ slug }: DeleteBySlugParams): Promise<Delete
         `${path.parse(fullPath).name}.txt`
       );
       await fs.rm(txtPath, { force: true });
-      await prisma.fileChecksum.deleteMany({ where: { filePath: txtPath } });
+      await deleteFileChecksumsByPaths([txtPath]);
 
-      if (volume.coverImage && volume.series?.path) {
-        const coverPath = path.join(volume.series.path, volume.coverImage);
+      if (volume.coverImage && volume.seriesPath) {
+        const coverPath = path.join(volume.seriesPath, volume.coverImage);
         await fs.rm(coverPath, { force: true });
       }
     }
 
     if (volume.seriesId) {
-      const remaining = await prisma.mangaVolume.count({
-        where: { seriesId: volume.seriesId },
-      });
+      const remaining = await countVolumesBySeriesId(volume.seriesId);
       if (remaining === 0) {
-        await prisma.mangaSeries.delete({ where: { id: volume.seriesId } });
+        await deleteSeriesById(volume.seriesId);
       }
     }
 
