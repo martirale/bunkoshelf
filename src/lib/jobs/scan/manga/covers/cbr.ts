@@ -2,7 +2,7 @@ import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
 import { createExtractorFromData } from "node-unrar-js";
-import crc from "crc";
+import { crc32 } from "crc";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { loadUnrarWasmBinary } from "@/lib/unrar";
@@ -52,7 +52,7 @@ async function extractCoverFromR2(fullPath: string, outputDir: string): Promise<
     if (files.length > 0) {
       const fileData = files[0].extraction!;
       const ext = path.extname(firstImage.name).toLowerCase();
-      const hash = crc.crc32(Buffer.from(fileData)).toString(16);
+      const hash = crc32(Buffer.from(fileData)).toString(16);
 
       const filename = `cover-${hash}${ext}`;
       const outputPath = path.join(outputDir, filename);
@@ -116,7 +116,7 @@ async function extractCoverLocal(filePath: string, outputDir: string): Promise<s
     if (files.length > 0) {
       const fileData = files[0].extraction!;
       const ext = path.extname(firstImage.name).toLowerCase();
-      const hash = crc.crc32(Buffer.from(fileData)).toString(16);
+      const hash = crc32(Buffer.from(fileData)).toString(16);
 
       const filename = `cover-${hash}${ext}`;
       const outputPath = path.join(outputDir, filename);

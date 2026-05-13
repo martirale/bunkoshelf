@@ -2,7 +2,7 @@ import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
 import AdmZip from "adm-zip";
-import crc from "crc";
+import { crc32 } from "crc";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import type { StorageProvider } from "@/lib/types";
@@ -30,7 +30,7 @@ async function extractCoverFromR2(fullPath: string, outputDir: string): Promise<
 
         const ext = path.extname(entry.entryName).toLowerCase();
         const fileData = entry.getData();
-        const hash = crc.crc32(fileData).toString(16);
+        const hash = crc32(fileData).toString(16);
 
         const filename = `cover-${hash}${ext}`;
         const outputPath = path.join(outputDir, filename);
@@ -76,7 +76,7 @@ async function extractCoverLocal(filePath: string, outputDir: string): Promise<s
 
         const ext = path.extname(entry.entryName).toLowerCase();
         const fileData = entry.getData();
-        const hash = crc.crc32(fileData).toString(16);
+        const hash = crc32(fileData).toString(16);
 
         const filename = `cover-${hash}${ext}`;
         const outputPath = path.join(outputDir, filename);
