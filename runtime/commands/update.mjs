@@ -4,7 +4,7 @@ import { execa } from "execa";
 import fs from "fs-extra";
 import { join } from "node:path";
 
-const PACKAGE_NAME = "bunkoshelf";
+const PACKAGE_NAME = "@itsmrtr/bunkoshelf";
 
 export async function update(version = "latest") {
   intro(chalk.bold("▲ Bunko Shelf"));

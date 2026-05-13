@@ -4,17 +4,17 @@ Self-hosted manga library distributed as a compiled npm package.
 
 ## Install
 
-Create a Bunko Shelf project with the installation wizard:
+Create a Bunko Shelf project with the installation wizard (The command will perform the installation in the directory where it is executed):
 
 ```bash
-npx bunkoshelf my-bunkoshelf
+npx @itsmrtr/bunkoshelf .
 ```
 
 The wizard creates:
 
 - a local `.env`
 - a minimal `package.json`
-- the dependency on the published `bunkoshelf` package
+- the dependency on the published `@itsmrtr/bunkoshelf` package
 
 Then set your PostgreSQL connection string in `.env`:
 

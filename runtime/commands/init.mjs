@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import fs from "fs-extra";
 import { execa } from "execa";
 
-const PACKAGE_NAME = "bunkoshelf";
+const PACKAGE_NAME = "@itsmrtr/bunkoshelf";
 const packageRoot = fileURLToPath(new URL("../../package.json", import.meta.url));
 const { version: packageVersion } = await fs.readJson(packageRoot);
 
