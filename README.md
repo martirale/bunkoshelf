@@ -2,6 +2,10 @@
 
 Bunko Shelf is a free and self-hosted web app for organizing and reading manga and digital books. It is developed with Next.js and PostgreSQL. Bunko Shelf is designed to be fast, lightweight, and easy to use, with an intuitive interface and other useful features to enhance your reading experience.
 
+## License
+
+Bunko Shelf is source-available under the PolyForm Noncommercial 1.0.0 license. Commercial use is not permitted. See [LICENSE](./LICENSE) for details.
+
 ## Install
 
 Create a Bunko Shelf project with the installation wizard (The command will perform the installation in the directory where it is executed):
