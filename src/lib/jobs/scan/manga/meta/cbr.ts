@@ -1,17 +1,15 @@
 import fsp from "fs/promises";
 import fs from "fs";
-import path from "path";
 import { createExtractorFromData } from "node-unrar-js";
 import xml2js from "xml2js";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import { loadUnrarWasmBinary } from "@/lib/unrar";
 import type { StorageProvider, ComicMetadata, ComicInfoResult } from "@/lib/types";
 
 const parser = new xml2js.Parser();
 
-const wasmBinary = await fsp.readFile(
-  path.join(process.cwd(), "node_modules/node-unrar-js/esm/js/unrar.wasm")
-);
+const wasmBinary = await loadUnrarWasmBinary();
 
 async function parseXmlContent(xml: string): Promise<Record<string, string[]> | null> {
   let error: Error | null = null;

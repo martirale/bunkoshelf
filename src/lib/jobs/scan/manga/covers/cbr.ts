@@ -5,11 +5,10 @@ import { createExtractorFromData } from "node-unrar-js";
 import crc from "crc";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import { loadUnrarWasmBinary } from "@/lib/unrar";
 import type { StorageProvider } from "@/lib/types";
 
-const wasmBinary = await fsp.readFile(
-  path.join(process.cwd(), "node_modules/node-unrar-js/esm/js/unrar.wasm")
-);
+const wasmBinary = await loadUnrarWasmBinary();
 
 async function extractCoverFromR2(fullPath: string, outputDir: string): Promise<string | null> {
   let error: Error | null = null;

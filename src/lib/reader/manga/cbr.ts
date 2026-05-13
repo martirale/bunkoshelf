@@ -1,19 +1,18 @@
 import { createExtractorFromData } from "node-unrar-js";
 import fsp from "fs/promises";
-import path from "path";
 import os from "os";
+import path from "path";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { LibraryVolume } from "@/lib/db/library";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import { loadUnrarWasmBinary } from "@/lib/unrar";
 import type { StorageProvider } from "@/lib/types";
 
 const validImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
 const TEMP_DIR_LIFETIME = 14 * 24 * 60 * 60 * 1000;
 
-const wasmBinary = await fsp.readFile(
-  path.join(process.cwd(), "node_modules/node-unrar-js/esm/js/unrar.wasm")
-);
+const wasmBinary = await loadUnrarWasmBinary();
 
 async function downloadFromR2(fullPath: string): Promise<Buffer> {
   const key = fullPath.replace(/^\//, "");
