@@ -18,6 +18,10 @@ async function copyIfExists(source, target) {
   }
 }
 
+async function removeIfExists(target) {
+  await rm(target, { recursive: true, force: true });
+}
+
 await execa("pnpm", ["build"], {
   cwd: projectRoot,
   stdio: "inherit",
@@ -34,3 +38,10 @@ await copyIfExists(
   join(projectRoot, "src", "lib", "db", "migrations"),
   join(distDir, "migrations")
 );
+
+await Promise.all([
+  removeIfExists(join(distDir, ".env")),
+  removeIfExists(join(distDir, "logs")),
+  removeIfExists(join(distDir, "tmp")),
+  removeIfExists(join(distDir, "public", ".DS_Store")),
+]);
