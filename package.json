@@ -2,6 +2,28 @@
   "name": "@itsmrtr/bunkoshelf",
   "version": "1.0.0",
   "description": "Self-hosted personal manga library.",
+  "keywords": [
+    "bunko",
+    "bunkoshelf",
+    "manga",
+    "library",
+    "self-hosted",
+    "nextjs",
+    "postgres"
+  ],
+  "author": {
+    "name": "Alejandro Mártir",
+    "url": "https://alemartir.com"
+  },
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/martirale/bunkoshelf#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martirale/bunkoshelf.git"
+  },
+  "bugs": {
+    "url": "https://github.com/martirale/bunkoshelf/issues"
+  },
   "files": [
     "bin",
     "dist",
