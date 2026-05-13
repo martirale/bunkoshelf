@@ -1,9 +1,18 @@
-import { Roboto_Condensed } from "next/font/google";
 import localFont from "next/font/local";
 
-export const robotoCondensed = Roboto_Condensed({
-  weight: ["400", "700"],
-  subsets: ["latin"],
+export const robotoCondensed = localFont({
+  src: [
+    {
+      path: "../../public/fonts/RobotoCondensed-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/RobotoCondensed-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   display: "swap",
   variable: "--font-roboto-condensed",
 });
