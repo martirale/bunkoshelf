@@ -45,10 +45,14 @@ export default function FooterNav({
   user,
   versionData,
 }: FooterNavProps) {
-  const [remoteVersion, setRemoteVersion] = useState<string | null>(null);
-  const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [remoteChangelog, setRemoteChangelog] = useState<string | null>(null);
-  const localVersion = versionData?.version;
+  const [latestVersion, setLatestVersion] = useState<string | null>(
+    versionData.latestVersion
+  );
+  const [updateAvailable, setUpdateAvailable] = useState(
+    versionData.updateAvailable
+  );
+  const [changelogUrl, setChangelogUrl] = useState(versionData.changelogUrl);
+  const currentVersion = versionData.currentVersion;
 
   const params = useParams();
   const router = useRouter();
@@ -74,42 +78,13 @@ export default function FooterNav({
   const isLoggedIn = SessionStatus();
 
   useEffect(() => {
-    if (!localVersion) return;
-
-    function isRemoteVersionNewer(local: string, remote: string): boolean {
-      const localParts = String(local)
-        .split(".")
-        .map((p) => Number(p) || 0);
-      const remoteParts = String(remote)
-        .split(".")
-        .map((p) => Number(p) || 0);
-      const len = Math.max(localParts.length, remoteParts.length);
-      for (let i = 0; i < len; i++) {
-        const r = remoteParts[i] ?? 0;
-        const l = localParts[i] ?? 0;
-        if (r > l) return true;
-        if (r < l) return false;
-      }
-      return false;
-    }
-
     async function checkVersion() {
       try {
         const data = await getVersion();
         if (!data || "error" in data) return;
-
-        const remote = data.version ?? null;
-        const changelog = data.changelogUrl ?? null;
-
-        if (remote) {
-          setRemoteVersion(remote);
-          if (changelog) setRemoteChangelog(changelog);
-          if (isRemoteVersionNewer(localVersion, remote)) {
-            setUpdateAvailable(true);
-          } else {
-            setUpdateAvailable(false);
-          }
-        }
+        setLatestVersion(data.latestVersion);
+        setUpdateAvailable(data.updateAvailable);
+        setChangelogUrl(data.changelogUrl);
       } catch {
         console.warn("No se pudo verificar la versión más reciente");
       }
@@ -118,7 +93,7 @@ export default function FooterNav({
     checkVersion();
     const interval = setInterval(checkVersion, 24 * 60 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [localVersion]);
+  }, []);
 
   const buttons: FooterButton[] = [
     {
@@ -161,9 +136,9 @@ export default function FooterNav({
     <>
       {updateAvailable && (
         <div className="text-sand mb-4">
-          <a href={remoteChangelog || "#"} target="_blank" rel="noopener">
+          <a href={changelogUrl} target="_blank" rel="noopener">
             <AlertBox
-              title={`${intl.toastVersion.title as string} (${remoteVersion})`}
+              title={`${intl.toastVersion.title as string} (${latestVersion})`}
               description={intl.toastVersion.description as string}
             />
           </a>
@@ -172,12 +147,12 @@ export default function FooterNav({
 
       <div className="flex justify-between items-end">
         <a
-          href={versionData?.versionUrl}
+          href={versionData.versionUrl}
           target="_blank"
           rel="noopener"
           className="text-sm px-4 py-1 border border-stone-300 md:border-neutral-800 rounded-full hover:text-pearl transition-all duration-300 hover:border-lilah"
         >
-          {localVersion}
+          {currentVersion}
         </a>
 
         <div className="flex items-center gap-2">

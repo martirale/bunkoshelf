@@ -70,7 +70,7 @@ async function SettingsPageContent({ params }: SettingsPageProps) {
                     className="hover:underline"
                     rel="noopener noreferrer"
                   >
-                    {versionData.version}
+                    {versionData.currentVersion}
                   </a>
                 </div>
               </div>
