@@ -2,7 +2,8 @@ import { connection } from "next/server";
 import type { DictionarySection } from "@/lib/types";
 import Challenge2025 from "./Challenge2025";
 import Challenge2026 from "./Challenge2026";
-import prisma from "@/lib/prisma";
+import { query } from "@/lib/db/query";
+import type { ReadingChallengeRecord } from "@/lib/types";
 
 interface ChallengesProps {
   intl: DictionarySection;
@@ -10,7 +11,31 @@ interface ChallengesProps {
 
 export default async function Challenges({ intl }: ChallengesProps) {
   await connection();
-  const challenge = await prisma.readingChallenge.findMany();
+  const challengeRows = await query<{
+    id: string;
+    user_id: string;
+    year: number;
+    goal: number;
+    completed: number;
+    notified: boolean;
+    created_at: Date;
+    updated_at: Date;
+  }>(
+    `
+      SELECT id, user_id, year, goal, completed, notified, created_at, updated_at
+      FROM reading_challenges
+    `
+  );
+  const challenge: ReadingChallengeRecord[] = challengeRows.map((row) => ({
+    id: row.id,
+    userId: row.user_id,
+    year: row.year,
+    goal: row.goal,
+    completed: row.completed,
+    notified: row.notified,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
   const challenges = (intl.profile as DictionarySection).challenges as DictionarySection;
 
   return (

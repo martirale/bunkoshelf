@@ -1,10 +1,9 @@
-import type { ReadingChallenge } from "@prisma/client";
-import type { DictionarySection } from "@/lib/types";
+import type { DictionarySection, ReadingChallengeRecord } from "@/lib/types";
 import Medal2026 from "./Medal2026";
 
 interface Challenge2026Props {
   intl: DictionarySection;
-  challenge: ReadingChallenge[];
+  challenge: ReadingChallengeRecord[];
 }
 
 export default function Challenge2026({ intl, challenge }: Challenge2026Props) {
