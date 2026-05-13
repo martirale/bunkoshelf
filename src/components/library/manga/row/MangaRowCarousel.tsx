@@ -11,7 +11,9 @@ export interface VolEntry {
   title: string;
   isOneshot: boolean;
   coverImage: string | null;
-  meta: Record<string, unknown> | null;
+  meta: {
+    title?: string | null;
+  } | null;
 }
 
 interface MangaRowCarouselProps {

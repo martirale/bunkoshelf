@@ -8,7 +8,7 @@ export type {
   ScanStepStatus,
   ScanStatus,
 } from "./manga";
-export type { ChallengeData } from "./challenge";
+export type { ChallengeData, ReadingChallengeRecord } from "./challenge";
 export type { SearchResult } from "./search";
 export type {
   ToastVariant,

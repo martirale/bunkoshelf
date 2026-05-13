@@ -23,7 +23,9 @@ interface ReadingEntry {
   title: string;
   isOneshot: boolean;
   coverImage: string | null;
-  meta: Record<string, unknown> | null;
+  meta: {
+    title?: string | null;
+  } | null;
   lastPage: number;
   totalPages: number;
   lastReadAt: Date | null;

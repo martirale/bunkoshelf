@@ -247,7 +247,7 @@ export async function getReaderStats() {
   const monthlyReadCount = Array(12).fill(0) as number[];
 
   for (const entry of allFirstReadDates) {
-    const [yearStr, monthStr] = entry.firstRead!.split("-");
+    const [yearStr, monthStr] = entry.first_read!.split("-");
     const year = Number(yearStr);
     const month = Number(monthStr);
 
