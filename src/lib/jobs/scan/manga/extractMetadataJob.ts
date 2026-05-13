@@ -14,15 +14,13 @@ export async function extractMetadataJob(): Promise<void> {
       throw new Error("No hay token de sesión disponible");
     }
 
-    const res = await fetch(
-      "http://localhost:3000/api/admin/scan-manga/extract-meta",
-      {
-        method: "POST",
-        headers: {
-          Cookie: `yomimono_key=${token}`,
-        },
-      }
-    );
+    const baseUrl = process.env.SITE_URL ?? `http://localhost:${process.env.PORT ?? "3060"}`;
+    const res = await fetch(`${baseUrl}/api/admin/scan-manga/extract-meta`, {
+      method: "POST",
+      headers: {
+        Cookie: `yomimono_key=${token}`,
+      },
+    });
 
     if (!res.ok) {
       throw new Error(`extractMeta API responded with status ${res.status}`);

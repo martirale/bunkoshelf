@@ -7,6 +7,7 @@ import fs from "fs-extra";
 import { execa } from "execa";
 
 const PACKAGE_NAME = "@itsmrtr/bunkoshelf";
+const DEFAULT_PORT = 3060;
 const packageRoot = fileURLToPath(new URL("../../package.json", import.meta.url));
 const { version: packageVersion } = await fs.readJson(packageRoot);
 
@@ -18,8 +19,8 @@ function buildEnv(jwtSecret) {
   return [
     "DATABASE_URL=postgresql://user:password@localhost:5432/bunkoshelf",
     `JWT_SECRET=${jwtSecret}`,
-    "PORT=3000",
-    "SITE_URL=http://localhost:3000",
+    `PORT=${DEFAULT_PORT}`,
+    `SITE_URL=http://localhost:${DEFAULT_PORT}`,
     "LIB_PROVIDER=local",
     "VAPID_PUBLIC_KEY=",
     "PUSH_SERVER_URL=",

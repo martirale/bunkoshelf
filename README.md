@@ -28,6 +28,8 @@ Start the app:
 npm start
 ```
 
+By default, Bunko Shelf uses port `3060`.
+
 ## Runtime
 
 On startup Bunko Shelf:
