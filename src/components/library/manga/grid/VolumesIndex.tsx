@@ -93,9 +93,7 @@ export default async function VolumesIndex({
           <Pagination
             currentPage={page}
             totalPages={totalPages}
-            lang={lang}
             intl={intl}
-            basePath="/volumes"
           />
         </div>
       )}

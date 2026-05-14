@@ -98,9 +98,7 @@ export default async function WantToRead({
           <Pagination
             currentPage={page}
             totalPages={totalPages}
-            lang={lang}
             intl={intl}
-            basePath="/toread"
           />
         </div>
       )}

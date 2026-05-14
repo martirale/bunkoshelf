@@ -114,9 +114,7 @@ export default async function SeriesIndex({
           <Pagination
             currentPage={page}
             totalPages={totalPages}
-            lang={lang}
             intl={intl}
-            basePath="/series"
           />
         </div>
       )}
