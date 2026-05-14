@@ -11,6 +11,7 @@ function mapUser(row: UserRow): PublicUser {
     name: row.name,
     lastname: row.lastname,
     birthYear: row.birth_year,
+    profileImage: row.profile_image,
   };
 }
 
@@ -31,6 +32,7 @@ export async function findUserByUsername(
   const row = await queryOne<UserRow>(
     `
       SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year
+      , profile_image
       FROM users
       WHERE username = $1
       LIMIT 1
@@ -45,6 +47,7 @@ export async function findUserSessionById(id: string): Promise<PublicUser | null
   const row = await queryOne<UserRow>(
     `
       SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year
+      , profile_image
       FROM users
       WHERE id = $1
       LIMIT 1
@@ -58,6 +61,7 @@ export async function findUserSessionById(id: string): Promise<PublicUser | null
 export async function listUsers(): Promise<PublicUser[]> {
   const rows = await query<UserRow>(`
     SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year
+    , profile_image
     FROM users
     ORDER BY COALESCE(name, username) ASC, username ASC
   `);
@@ -119,10 +123,11 @@ export async function createUserRecord(
         role,
         name,
         lastname,
-        birth_year
+        birth_year,
+        profile_image
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING id, created_at, username, password, is_admin, role, name, lastname, birth_year
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id, created_at, username, password, is_admin, role, name, lastname, birth_year, profile_image
     `,
     [
       crypto.randomUUID(),
@@ -133,6 +138,7 @@ export async function createUserRecord(
       input.name ?? null,
       input.lastname ?? null,
       input.birthYear ?? null,
+      null,
     ]
   );
 
@@ -153,6 +159,7 @@ export async function updateUserRecord(
     birthYear?: number | null;
     isAdmin?: boolean;
     role?: Role;
+    profileImage?: string | null;
   }
 ): Promise<PublicUser | null> {
   const assignments: string[] = [];
@@ -193,6 +200,11 @@ export async function updateUserRecord(
     assignments.push(`role = $${values.length}`);
   }
 
+  if (input.profileImage !== undefined) {
+    values.push(input.profileImage);
+    assignments.push(`profile_image = $${values.length}`);
+  }
+
   if (assignments.length === 0) {
     return findUserSessionById(id);
   }
@@ -204,7 +216,7 @@ export async function updateUserRecord(
       UPDATE users
       SET ${assignments.join(", ")}
       WHERE id = $${values.length}
-      RETURNING id, created_at, username, password, is_admin, role, name, lastname, birth_year
+      RETURNING id, created_at, username, password, is_admin, role, name, lastname, birth_year, profile_image
     `,
     values
   );

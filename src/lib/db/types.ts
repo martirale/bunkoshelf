@@ -10,6 +10,7 @@ export interface UserRow {
   name: string | null;
   lastname: string | null;
   birth_year: number | null;
+  profile_image: string | null;
 }
 
 export interface PublicUser {
@@ -20,4 +21,5 @@ export interface PublicUser {
   name: string | null;
   lastname: string | null;
   birthYear: number | null;
+  profileImage: string | null;
 }

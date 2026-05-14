@@ -1,7 +1,8 @@
 import { connection } from "next/server";
-import clsx from "clsx";
 import { verifySession } from "@/lib/auth/verifySession";
 import { findUserSessionById } from "@/lib/db/users";
+import Avatar from "@/components/ui/Avatar";
+import { getProfileImageUrl } from "@/lib/profileImageUrl";
 import type { DictionarySection } from "@/lib/types";
 
 interface UserAvatarProps {
@@ -18,10 +19,6 @@ export default async function UserAvatar({ intl }: UserAvatarProps) {
 
   if (!user) return null;
 
-  const initials = `${user.name?.[0] ?? ""}${
-    user.lastname?.[0] ?? ""
-  }`.toUpperCase();
-
   const age =
     typeof user.birthYear === "number"
       ? new Date().getFullYear() - user.birthYear
@@ -32,15 +29,13 @@ export default async function UserAvatar({ intl }: UserAvatarProps) {
 
   return (
     <div className="flex flex-col items-center gap-4 text-center my-8 2xl:mb-12">
-      <div
-        className={clsx(
-          "rounded-full bg-lilah text-pearl flex items-center justify-center font-bold",
-          "text-5xl w-40 h-40",
-          "md:w-48 md:h-48 md:text-7xl"
-        )}
-      >
-        {initials}
-      </div>
+      <Avatar
+        name={user.name}
+        lastname={user.lastname}
+        imageUrl={getProfileImageUrl(user.profileImage)}
+        alt={`${user.name ?? user.username} ${user.lastname ?? ""}`.trim()}
+        className="text-5xl w-40 h-40 md:w-48 md:h-48 md:text-7xl"
+      />
 
       <div className="flex flex-col items-center justify-center mt-4">
         <h3 className="text-2xl md:text-3xl mb-2">

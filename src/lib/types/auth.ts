@@ -8,6 +8,7 @@ export interface Session {
   name: string | null;
   lastname: string | null;
   birthYear: number | null;
+  profileImage: string | null;
 }
 
 export type Permission =

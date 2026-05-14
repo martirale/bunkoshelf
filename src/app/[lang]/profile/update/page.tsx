@@ -34,7 +34,7 @@ async function UpdateProfileContent({ params }: UpdateProfilePageProps) {
         <UserRoundPenIcon size={28} className="mr-2" />
         {profile.updateProfile as string}
       </h2>
-      <ProfileForm user={user} intl={intl} />
+      <ProfileForm lang={lang} user={user} intl={intl} />
     </>
   );
 }

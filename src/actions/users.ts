@@ -31,18 +31,6 @@ interface CreateUserResult {
   status?: number;
 }
 
-interface UpdateUserParams {
-  name?: string;
-  lastname?: string;
-  password?: string;
-}
-
-interface UpdateUserResult {
-  success?: boolean;
-  error?: string;
-  status?: number;
-}
-
 interface AdminUpdateUserParams {
   id: string;
   username: string;
@@ -133,48 +121,6 @@ export async function createUser({
       console.error("Error creando usuario:", _err);
       return { error: "Error al crear el usuario", status: 500 };
     }
-  }
-}
-
-export async function updateUser({
-  name,
-  lastname,
-  password,
-}: UpdateUserParams): Promise<UpdateUserResult> {
-  try {
-    const session = await verifySession();
-    if (!session) {
-      return { error: "Unauthorized", status: 401 };
-    }
-
-    const start = Date.now();
-    const user = await findUserSessionById(session.id);
-
-    await updateUserRecord(session.id, {
-      name,
-      lastname,
-      ...(password && password.length > 0
-        ? { password: await hash(password, 10) }
-        : {}),
-    });
-
-    const duration = Date.now() - start;
-
-    log({
-      event: "User update",
-      category: "USERS",
-      duration,
-      meta: {
-        userId: session.id,
-        username: user?.username || "unknown",
-        passwordUpdated: !!password,
-      },
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error("Update error:", error);
-    return { error: "Database error", status: 500 };
   }
 }
 
