@@ -1,9 +1,30 @@
 const [, , command, ...args] = process.argv;
 
+function parseInitArgs(rawArgs) {
+  const options = {
+    cloud: false,
+  };
+  let projectName;
+
+  for (const arg of rawArgs) {
+    if (arg === "--cloud") {
+      options.cloud = true;
+      continue;
+    }
+
+    if (!projectName) {
+      projectName = arg;
+    }
+  }
+
+  return { projectName, options };
+}
+
 switch (command) {
   case "init": {
     const { init } = await import("./commands/init.mjs");
-    await init(args[0]);
+    const { projectName, options } = parseInitArgs(args);
+    await init(projectName, options);
     break;
   }
   case "start": {
@@ -19,7 +40,8 @@ switch (command) {
   default:
     if (command && !command.startsWith("-")) {
       const { init } = await import("./commands/init.mjs");
-      await init(command);
+      const { options } = parseInitArgs(args);
+      await init(command, options);
     } else {
       console.error("Usage: bunkoshelf <init|start|update> [project-name|version]");
       process.exit(1);

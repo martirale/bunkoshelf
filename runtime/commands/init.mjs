@@ -15,17 +15,25 @@ function generateSecret() {
   return randomBytes(32).toString("hex");
 }
 
-function buildEnv(jwtSecret) {
-  return [
+export function buildEnv(jwtSecret, provider = "local") {
+  const lines = [
     "DATABASE_URL=postgresql://user:password@localhost:5432/bunkoshelf",
     `JWT_SECRET=${jwtSecret}`,
     `PORT=${DEFAULT_PORT}`,
     `SITE_URL=http://localhost:${DEFAULT_PORT}`,
-    "LIB_PROVIDER=local",
-    "VAPID_PUBLIC_KEY=",
-    "PUSH_SERVER_URL=",
-    "PUSH_API_KEY=",
-  ].join("\n") + "\n";
+    `LIB_PROVIDER=${provider}`,
+  ];
+
+  if (provider === "cloud") {
+    lines.push(
+      "R2_ENDPOINT=",
+      "R2_ACCESS_KEY_ID=",
+      "R2_SECRET_ACCESS_KEY=",
+      "R2_BUCKET_NAME=bunko-shelf "
+    );
+  }
+
+  return lines.join("\n") + "\n";
 }
 
 function buildPackageJson(name) {
@@ -43,8 +51,9 @@ function buildPackageJson(name) {
   };
 }
 
-export async function init(projectName) {
+export async function init(projectName, options = {}) {
   intro(chalk.bold("▲ Bunko Shelf"));
+  const provider = options.cloud ? "cloud" : "local";
 
   const useCurrentDir = projectName === ".";
   let name = useCurrentDir ? undefined : projectName;
@@ -88,7 +97,7 @@ export async function init(projectName) {
 
   progress.start("Creating project...");
   await fs.ensureDir(projectDir);
-  await fs.writeFile(join(projectDir, ".env"), buildEnv(generateSecret()));
+  await fs.writeFile(join(projectDir, ".env"), buildEnv(generateSecret(), provider));
   await fs.writeJson(join(projectDir, "package.json"), buildPackageJson(name), {
     spaces: 2,
   });
