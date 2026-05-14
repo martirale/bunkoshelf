@@ -18,6 +18,7 @@ import {
   findVolumeBySlugBasic,
   listVolumeMetadataIdsBySeriesId,
 } from "@/lib/db/ingestion";
+import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 
 const LIB_PROVIDER: StorageProvider = (process.env.LIB_PROVIDER as StorageProvider) || "local";
 
@@ -92,6 +93,8 @@ export async function deleteSeries({ slug }: DeleteBySlugParams): Promise<Delete
         : `/${seriesPath.replace(/^\/+/, "")}`;
       await deleteFileChecksumsByPrefix(normalized);
     }
+
+    revalidateMangaLibraryCache();
 
     return { ok: true };
   } catch (error) {
@@ -174,6 +177,8 @@ export async function deleteVolume({ slug }: DeleteBySlugParams): Promise<Delete
         await deleteSeriesById(volume.seriesId);
       }
     }
+
+    revalidateMangaLibraryCache();
 
     return { ok: true };
   } catch (error) {

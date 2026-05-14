@@ -7,6 +7,7 @@ import {
 } from "@/lib/db/reading";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { findVolumeBySlug } from "@/lib/db/library";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import type { Locale } from "@/lib/types";
 
 interface VolumeMangaPageProps {
@@ -38,7 +39,6 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
 
     const volumeEntry = await findVolumeBySlug({
       slug,
-      userId: user?.id ?? null,
       includeGenres: true,
       includeTags: true,
     });
@@ -67,9 +67,7 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
 
     const normalizedVolume = {
       ...volumeEntry,
-      coverImage: volumeEntry.coverImage
-        ? `/api/library/manga/cover/${volumeEntry.slug}/${volumeEntry.coverImage}`
-        : null,
+      coverImage: getMangaCoverUrl(volumeEntry),
       meta,
     };
 

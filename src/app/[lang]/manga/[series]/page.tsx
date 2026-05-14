@@ -7,6 +7,7 @@ import {
   findSeriesBySlug,
   type LibraryVolumeMetadata,
 } from "@/lib/db/library";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { sortByPaddedTitle } from "@/lib/utils";
 import type { Locale } from "@/lib/types";
 
@@ -93,9 +94,11 @@ async function SeriesMangaPageContent({
 
     const normalizedSerie = {
       ...serie,
-      coverImage: serie.volumes?.[0]?.coverImage
-        ? `/api/library/manga/cover/${serie.volumes[0].slug}/${serie.volumes[0].coverImage}`
-        : null,
+      coverImage: getMangaCoverUrl({
+        slug: serie.volumes?.[0]?.slug ?? "",
+        coverImage: serie.volumes?.[0]?.coverImage ?? null,
+        updatedAt: serie.volumes?.[0]?.updatedAt,
+      }),
       volumes:
         serie.volumes?.map((vol) => {
           const meta = {
@@ -113,9 +116,7 @@ async function SeriesMangaPageContent({
           };
           return {
             ...vol,
-            coverImage: vol.coverImage
-              ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-              : null,
+            coverImage: getMangaCoverUrl(vol),
             meta,
           };
         }) ?? [],

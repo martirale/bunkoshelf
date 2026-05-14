@@ -12,6 +12,7 @@ import {
   upsertSeriesRecord,
   upsertVolumeRecord,
 } from "@/lib/db/ingestion";
+import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 
 const LIBRARY_PATH = path.resolve(process.cwd(), "../library/manga");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
@@ -220,6 +221,8 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    revalidateMangaLibraryCache();
 
     return NextResponse.json({
       ok: true,

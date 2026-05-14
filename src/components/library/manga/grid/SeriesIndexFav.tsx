@@ -5,6 +5,7 @@ import {
   listSeriesWithVolumes,
 } from "@/lib/db/library";
 import { GhostIcon, LibraryBigIcon } from "lucide-react";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { getSeriesBulkProgress } from "@/lib/reader/readingProgress";
 import type { Locale, Dictionary } from "@/lib/types";
@@ -40,14 +41,12 @@ export default async function SeriesIndexFav({ lang, intl }: SeriesIndexFavProps
       ...series,
       coverImage:
         sortedVolumes.length > 0
-          ? `/api/library/manga/cover/${sortedVolumes[sortedVolumes.length - 1].slug}/${sortedVolumes[sortedVolumes.length - 1].coverImage}`
+          ? getMangaCoverUrl(sortedVolumes[sortedVolumes.length - 1])
           : null,
       volumes:
         sortedVolumes.map((vol) => ({
           ...vol,
-          coverImage: vol.coverImage
-            ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-            : null,
+          coverImage: getMangaCoverUrl(vol),
           meta: vol.metadataObj || null,
         })) ?? [],
     };

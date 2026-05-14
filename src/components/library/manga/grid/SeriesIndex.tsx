@@ -5,6 +5,7 @@ import MangaCard from "@/components/ui/MangaCard";
 import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
 import { verifySession } from "@/lib/auth/verifySession";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { getSeriesBulkProgress } from "@/lib/reader/readingProgress";
 import type { Locale, Dictionary } from "@/lib/types";
 
@@ -47,13 +48,11 @@ export default async function SeriesIndex({
       ...entry,
       coverImage:
         sortedVolumes.length > 0
-          ? `/api/library/manga/cover/${sortedVolumes[sortedVolumes.length - 1].slug}/${sortedVolumes[sortedVolumes.length - 1].coverImage}`
+          ? getMangaCoverUrl(sortedVolumes[sortedVolumes.length - 1])
           : null,
       volumes: sortedVolumes.map((vol) => ({
         ...vol,
-        coverImage: vol.coverImage
-          ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-          : null,
+        coverImage: getMangaCoverUrl(vol),
         meta: vol.metadataObj || null,
         genres: vol.genres.map((genre) => genre.name),
         tags: vol.tags.map((tag) => tag.name),

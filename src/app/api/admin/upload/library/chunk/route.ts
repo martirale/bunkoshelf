@@ -10,6 +10,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { indexUploadedVolume } from "@/lib/uploadIndexer";
 import { upsertFileChecksumRecord } from "@/lib/db/ingestion";
+import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 import type { ComicMetadata } from "@/lib/types/manga";
 
 export const maxDuration = 300;
@@ -173,6 +174,7 @@ export async function POST(request: NextRequest) {
             tags: volumeMeta?.tags || [],
             fileSize: fileBuffer.length,
           });
+          revalidateMangaLibraryCache();
         }
 
         await fs.unlink(tempFilePath);
@@ -232,6 +234,7 @@ export async function POST(request: NextRequest) {
             tags: volumeMeta?.tags || [],
             fileSize: fileBuffer.length,
           });
+          revalidateMangaLibraryCache();
         }
 
         await fs.unlink(tempFilePath);

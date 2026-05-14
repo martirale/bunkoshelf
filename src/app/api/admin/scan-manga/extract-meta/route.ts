@@ -15,6 +15,7 @@ import {
   upsertVolumeMetadataRecord,
   linkVolumeMetadata,
 } from "@/lib/db/ingestion";
+import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 
 const LIB_PROVIDER = (process.env.LIB_PROVIDER || "local") as StorageProvider;
 const CHECKSUM_STATUS_PATH = path.join(
@@ -115,6 +116,7 @@ export async function POST(request: NextRequest) {
     }
 
     await cleanupOrphanedGenresAndTags();
+    revalidateMangaLibraryCache();
 
     return NextResponse.json({
       message: "Metadatos procesados correctamente.",

@@ -1,6 +1,7 @@
 import { BookMarkedIcon } from "lucide-react";
 import { getMangaVolumes } from "@/actions/library";
 import MangaRowCarousel, { type VolEntry } from "./MangaRowCarousel";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface NextVolProps {
@@ -48,9 +49,7 @@ export default async function NextVol({ lang, intl, maxItems = 12 }: NextVolProp
           slug: nextUnread.slug,
           title: nextUnread.title,
           isOneshot: nextUnread.series?.isOneshot === true,
-          coverImage: nextUnread.coverImage
-            ? `/api/library/manga/cover/${nextUnread.slug}/${nextUnread.coverImage}`
-            : null,
+          coverImage: getMangaCoverUrl(nextUnread),
           meta: nextUnread.metadataObj ?? null,
         });
       }

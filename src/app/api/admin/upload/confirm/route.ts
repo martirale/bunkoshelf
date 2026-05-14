@@ -8,6 +8,7 @@ import { log } from "@/lib/logger";
 import crypto from "crypto";
 import { indexUploadedVolume } from "@/lib/uploadIndexer";
 import { upsertFileChecksumRecord } from "@/lib/db/ingestion";
+import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 import type { ComicMetadata } from "@/lib/types/manga";
 
 function generateChecksum(): string {
@@ -91,6 +92,10 @@ export async function POST(request: NextRequest) {
           fileSize: file.fileSize || 0,
         });
       }
+    }
+
+    if (libraryType === "manga") {
+      revalidateMangaLibraryCache();
     }
 
     log({

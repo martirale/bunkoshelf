@@ -1,3 +1,5 @@
+import { cacheLife, cacheTag } from "next/cache";
+import { MANGA_LIBRARY_TAG } from "@/lib/mangaLibraryCache";
 import { query, queryOne } from "./query";
 
 export interface GenreFilter {
@@ -96,6 +98,39 @@ export interface LibraryVolume {
 
 export interface LibrarySeriesWithVolumes extends LibrarySeries {
   volumes: LibraryVolume[];
+}
+
+interface SharedVolumeQueryOptions {
+  includeGenres?: boolean;
+  includeTags?: boolean;
+  genreNames?: string[];
+  tagNames?: string[];
+  seriesIds?: string[];
+  volumeIds?: string[];
+}
+
+interface VolumeQueryOptions extends SharedVolumeQueryOptions {
+  userId?: string | null;
+  onlyUnreadForUser?: boolean;
+}
+
+interface SharedSeriesQueryOptions {
+  genreNames?: string[];
+  tagNames?: string[];
+  seriesIds?: string[];
+  includeGenres?: boolean;
+  includeTags?: boolean;
+}
+
+interface FindSeriesOptions {
+  slug: string;
+  includeGenres?: boolean;
+  includeTags?: boolean;
+}
+
+interface FindVolumeOptions extends SharedVolumeQueryOptions {
+  slug: string;
+  userId?: string | null;
 }
 
 interface VolumeRow {
@@ -406,7 +441,7 @@ function buildVolumeFilterSql(
   return conditions;
 }
 
-export async function listLibraryFilters(): Promise<{
+async function listLibraryFiltersRaw(): Promise<{
   genres: GenreFilter[];
   tags: TagFilter[];
 }> {
@@ -430,16 +465,25 @@ export async function listLibraryFilters(): Promise<{
   return { genres, tags };
 }
 
-export async function listVolumes(options?: {
-  userId?: string | null;
-  includeGenres?: boolean;
-  includeTags?: boolean;
-  genreNames?: string[];
-  tagNames?: string[];
-  seriesIds?: string[];
-  volumeIds?: string[];
-  onlyUnreadForUser?: boolean;
-}): Promise<LibraryVolume[]> {
+async function listLibraryFiltersCached() {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag(MANGA_LIBRARY_TAG);
+
+  return listLibraryFiltersRaw();
+}
+
+export async function listLibraryFilters(): Promise<{
+  genres: GenreFilter[];
+  tags: TagFilter[];
+}> {
+  return listLibraryFiltersCached();
+}
+
+async function listVolumesRaw(
+  options?: VolumeQueryOptions
+): Promise<LibraryVolume[]> {
   const params: unknown[] = [];
   const progressJoin =
     options?.userId
@@ -550,14 +594,36 @@ export async function listVolumes(options?: {
   });
 }
 
-export async function listSeriesWithVolumes(options?: {
-  genreNames?: string[];
-  tagNames?: string[];
-  seriesIds?: string[];
-  includeGenres?: boolean;
-  includeTags?: boolean;
-}): Promise<LibrarySeriesWithVolumes[]> {
-  const volumes = await listVolumes({
+async function listVolumesCached(options: SharedVolumeQueryOptions = {}) {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag(MANGA_LIBRARY_TAG);
+
+  return listVolumesRaw(options);
+}
+
+export async function listVolumes(
+  options?: VolumeQueryOptions
+): Promise<LibraryVolume[]> {
+  if (options?.userId || options?.onlyUnreadForUser) {
+    return listVolumesRaw(options);
+  }
+
+  return listVolumesCached({
+    includeGenres: options?.includeGenres,
+    includeTags: options?.includeTags,
+    genreNames: options?.genreNames,
+    tagNames: options?.tagNames,
+    seriesIds: options?.seriesIds,
+    volumeIds: options?.volumeIds,
+  });
+}
+
+async function listSeriesWithVolumesRaw(
+  options?: SharedSeriesQueryOptions
+): Promise<LibrarySeriesWithVolumes[]> {
+  const volumes = await listVolumesRaw({
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
     genreNames: options?.genreNames,
@@ -582,6 +648,29 @@ export async function listSeriesWithVolumes(options?: {
   }
 
   return [...seriesMap.values()];
+}
+
+async function listSeriesWithVolumesCached(
+  options: SharedSeriesQueryOptions = {}
+) {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag(MANGA_LIBRARY_TAG);
+
+  return listSeriesWithVolumesRaw(options);
+}
+
+export async function listSeriesWithVolumes(
+  options?: SharedSeriesQueryOptions
+): Promise<LibrarySeriesWithVolumes[]> {
+  return listSeriesWithVolumesCached({
+    genreNames: options?.genreNames,
+    tagNames: options?.tagNames,
+    seriesIds: options?.seriesIds,
+    includeGenres: options?.includeGenres,
+    includeTags: options?.includeTags,
+  });
 }
 
 export async function listSeries(): Promise<LibrarySeries[]> {
@@ -616,11 +705,9 @@ export async function listSeries(): Promise<LibrarySeries[]> {
   );
 }
 
-export async function findSeriesBySlug(options: {
-  slug: string;
-  includeGenres?: boolean;
-  includeTags?: boolean;
-}): Promise<LibrarySeriesWithVolumes | null> {
+async function findSeriesBySlugRaw(
+  options: FindSeriesOptions
+): Promise<LibrarySeriesWithVolumes | null> {
   const row = await queryOne<{ id: string }>(
     `
       SELECT id
@@ -635,7 +722,7 @@ export async function findSeriesBySlug(options: {
     return null;
   }
 
-  const series = await listSeriesWithVolumes({
+  const series = await listSeriesWithVolumesRaw({
     seriesIds: [row.id],
     includeGenres: options.includeGenres,
     includeTags: options.includeTags,
@@ -644,12 +731,24 @@ export async function findSeriesBySlug(options: {
   return series[0] ?? null;
 }
 
-export async function findVolumeBySlug(options: {
-  slug: string;
-  userId?: string | null;
-  includeGenres?: boolean;
-  includeTags?: boolean;
-}): Promise<LibraryVolume | null> {
+async function findSeriesBySlugCached(options: FindSeriesOptions) {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag(MANGA_LIBRARY_TAG);
+
+  return findSeriesBySlugRaw(options);
+}
+
+export async function findSeriesBySlug(
+  options: FindSeriesOptions
+): Promise<LibrarySeriesWithVolumes | null> {
+  return findSeriesBySlugCached(options);
+}
+
+async function findVolumeBySlugRaw(
+  options: FindVolumeOptions
+): Promise<LibraryVolume | null> {
   const row = await queryOne<{ id: string }>(
     `
       SELECT id
@@ -664,7 +763,7 @@ export async function findVolumeBySlug(options: {
     return null;
   }
 
-  const volumes = await listVolumes({
+  const volumes = await listVolumesRaw({
     volumeIds: [row.id],
     userId: options.userId,
     includeGenres: options.includeGenres,
@@ -672,6 +771,29 @@ export async function findVolumeBySlug(options: {
   });
 
   return volumes[0] ?? null;
+}
+
+async function findVolumeBySlugCached(options: FindSeriesOptions) {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag(MANGA_LIBRARY_TAG);
+
+  return findVolumeBySlugRaw(options);
+}
+
+export async function findVolumeBySlug(
+  options: FindVolumeOptions
+): Promise<LibraryVolume | null> {
+  if (options.userId) {
+    return findVolumeBySlugRaw(options);
+  }
+
+  return findVolumeBySlugCached({
+    slug: options.slug,
+    includeGenres: options.includeGenres,
+    includeTags: options.includeTags,
+  });
 }
 
 export async function findVolumePageCountById(

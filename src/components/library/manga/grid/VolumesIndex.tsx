@@ -4,6 +4,7 @@ import { LibraryBigIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import type { Locale, Dictionary } from "@/lib/types";
 
 const PAGE_SIZE = 35;
@@ -39,9 +40,7 @@ export default async function VolumesIndex({
   const entries = sortedVolumes.map((vol) => ({
     ...vol,
     isOneshot: vol.series?.isOneshot === true,
-    coverImage: vol.coverImage
-      ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-      : null,
+    coverImage: getMangaCoverUrl(vol),
     meta: vol.metadataObj || null,
     genres: vol.genres.map((genre) => genre.name),
     tags: vol.tags.map((tag) => tag.name),

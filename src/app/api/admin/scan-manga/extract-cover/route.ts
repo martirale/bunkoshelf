@@ -13,6 +13,7 @@ import {
   listVolumesForPaths,
   upsertVolumeRecord,
 } from "@/lib/db/ingestion";
+import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 
 const LIB_PROVIDER = (process.env.LIB_PROVIDER || "local") as StorageProvider;
 const TEMP_PATH = path.resolve(process.cwd(), "../temp");
@@ -152,6 +153,8 @@ export async function POST(request: NextRequest) {
         errors++;
       }
     }
+
+    revalidateMangaLibraryCache();
 
     return NextResponse.json({
       ok: true,

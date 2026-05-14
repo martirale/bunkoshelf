@@ -1,6 +1,7 @@
 import { BookCheckIcon } from "lucide-react";
 import { getMangaVolumes } from "@/actions/library";
 import MangaRowCarousel, { type VolEntry } from "./MangaRowCarousel";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface RecentlyReadProps {
@@ -20,9 +21,7 @@ export default async function RecentlyRead({ lang, intl, maxItems = 12 }: Recent
             slug: vol.slug,
             title: vol.title,
             isOneshot: vol.series?.isOneshot === true,
-            coverImage: vol.coverImage
-              ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-              : null,
+            coverImage: getMangaCoverUrl(vol),
             meta: vol.metadataObj ?? null,
             isRead: progress?.isRead ?? false,
             lastReadAt: progress?.lastReadAt ? new Date(progress.lastReadAt) : null,

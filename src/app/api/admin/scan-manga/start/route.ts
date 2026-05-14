@@ -3,6 +3,7 @@ import { verifySession } from "@/lib/auth/verifySession";
 
 import { mainJob } from "@/lib/jobs/scan/manga/mainJob";
 import { log } from "@/lib/logger";
+import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 import fs from "fs/promises";
 import path from "path";
 import { ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
@@ -309,6 +310,7 @@ export async function POST() {
     }
 
     await runBackgroundJob();
+    revalidateMangaLibraryCache();
 
     log({
       event: "Library scan completed",

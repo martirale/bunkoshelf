@@ -20,6 +20,7 @@ import {
   upsertVolumeMetadataRecord,
   upsertVolumeRecord,
 } from "@/lib/db/ingestion";
+import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 
 const LIB_PROVIDER: StorageProvider = (process.env.LIB_PROVIDER as StorageProvider) || "local";
 const TEMP_PATH = path.resolve(process.cwd(), "../temp");
@@ -183,6 +184,8 @@ export async function scanSeries(seriesId: string): Promise<ScanResult | undefin
       errors += result.errors;
     }
 
+    revalidateMangaLibraryCache();
+
     return {
       success: true,
       coversUpdated,
@@ -215,6 +218,8 @@ export async function scanVolume(volumeId: string): Promise<ScanResult | undefin
     }
 
     const result = await processVolumeScan(volume, volume.seriesPath!);
+
+    revalidateMangaLibraryCache();
 
     return {
       success: true,

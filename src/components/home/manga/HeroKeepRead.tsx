@@ -5,6 +5,7 @@ import MangaCard from "@/components/ui/MangaCard";
 import ReloadButton from "@/components/ui/ReloadButton";
 import PushButton from "@/components/ui/PushButton";
 import { getMangaVolumes } from "@/actions/library";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import type { DictionarySection, Locale } from "@/lib/types";
 
 interface HeroKeepReadProps {
@@ -27,9 +28,7 @@ export default async function HeroKeepRead({ lang, intl, vapidPublicKey }: HeroK
             title: vol.title,
             slug: vol.slug,
             isOneshot: vol.series?.isOneshot === true,
-            coverImage: vol.coverImage
-              ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-              : null,
+            coverImage: getMangaCoverUrl(vol),
             meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
             lastPage: progress?.lastPage ?? 0,
             totalPages: progress?.totalPages ?? 0,

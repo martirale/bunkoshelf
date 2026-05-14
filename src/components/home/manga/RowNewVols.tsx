@@ -1,5 +1,6 @@
 import { getMangaVolumes } from "@/actions/library";
 import RowNewVolsCarousel, { type VolumeEntry } from "./RowNewVolsCarousel";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import type { DictionarySection, Locale } from "@/lib/types";
 
 interface RowNewVolsProps {
@@ -19,9 +20,7 @@ export default async function RowNewVols({ lang, intl, maxItems = 8 }: RowNewVol
           title: vol.title,
           slug: vol.slug,
           isOneshot: vol.series?.isOneshot === true,
-          coverImage: vol.coverImage
-            ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-            : null,
+          coverImage: getMangaCoverUrl(vol),
           meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
         }))
     : [];

@@ -1,6 +1,7 @@
 import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listFavoriteVolumeIds, listVolumes } from "@/lib/db/library";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { GhostIcon, BookCopyIcon } from "lucide-react";
 import type { Locale, Dictionary } from "@/lib/types";
@@ -31,9 +32,7 @@ export default async function VolumesIndexFav({ lang, intl }: VolumesIndexFavPro
   const entries = sortedVolumes.map((vol) => ({
     ...vol,
     isOneshot: vol.series?.isOneshot === true,
-    coverImage: vol.coverImage
-      ? `/api/library/manga/cover/${vol.slug}/${vol.coverImage}`
-      : null,
+    coverImage: getMangaCoverUrl(vol),
     meta: vol.metadataObj || null,
   }));
 
