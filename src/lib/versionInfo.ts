@@ -4,7 +4,7 @@ const PACKAGE_NAME = "@itsmrtr/bunkoshelf";
 const REPOSITORY_URL = "https://github.com/martirale/bunkoshelf";
 const RELEASES_URL = `${REPOSITORY_URL}/releases`;
 const REGISTRY_URL = `https://registry.npmjs.org/${encodeURIComponent(PACKAGE_NAME)}/latest`;
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 export interface VersionInfo {
   currentVersion: string;

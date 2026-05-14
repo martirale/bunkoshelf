@@ -91,7 +91,7 @@ export default function FooterNav({
     }
 
     checkVersion();
-    const interval = setInterval(checkVersion, 24 * 60 * 60 * 1000);
+    const interval = setInterval(checkVersion, 6 * 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
