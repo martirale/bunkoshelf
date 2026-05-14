@@ -10,7 +10,7 @@ interface SecondNavProps {
 export default function SecondNav({ intl, className }: SecondNavProps) {
   const links = [
     {
-      href: "https://bunko.am25.app/guides",
+      href: "https://bunko.alemartir.com",
       icon: BookOpenIcon,
       label: intl.noauth.guide as string,
       external: true,

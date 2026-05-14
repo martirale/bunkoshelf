@@ -46,10 +46,10 @@ export default function FooterNav({
   versionData,
 }: FooterNavProps) {
   const [latestVersion, setLatestVersion] = useState<string | null>(
-    versionData.latestVersion
+    versionData.latestVersion,
   );
   const [updateAvailable, setUpdateAvailable] = useState(
-    versionData.updateAvailable
+    versionData.updateAvailable,
   );
   const [changelogUrl, setChangelogUrl] = useState(versionData.changelogUrl);
   const currentVersion = versionData.currentVersion;
@@ -99,7 +99,7 @@ export default function FooterNav({
     {
       type: "link",
       icon: BookOpenIcon,
-      href: "https://bunko.am25.app/guides/manga",
+      href: "https://bunko.alemartir.com/guides/manga",
       target: "_blank",
       title: intl.tooltip.userGuide as string,
     },
