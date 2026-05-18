@@ -3,6 +3,10 @@
 import { useRef, useState } from "react";
 import MangaCard from "@/components/ui/MangaCard";
 import { BookPlusIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import {
+  getLibraryVolumeHref,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import type { DictionarySection } from "@/lib/types";
 
 export interface VolumeEntry {
@@ -10,6 +14,7 @@ export interface VolumeEntry {
   slug: string;
   isOneshot: boolean;
   coverImage: string | null;
+  section: LibrarySection;
   meta: { title?: string | null } | null;
 }
 
@@ -102,7 +107,7 @@ export default function RowNewVolsCarousel({ entries, lang, intl }: RowNewVolsCa
           <div key={entry.slug} className="flex-shrink-0 w-1/2 md:w-2/5 2xl:w-1/4">
             <MangaCard
               title={entry.meta?.title ?? entry.title}
-              href={`/${lang}/manga/volume/${entry.slug}`}
+              href={getLibraryVolumeHref(lang, entry.section, entry.slug)}
               isSeries={false}
               isOneshot={entry.isOneshot}
               volumeCount={null}

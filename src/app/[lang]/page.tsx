@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import { getMangaVolumes } from "@/actions/library";
+import { getReaderStats } from "@/actions/stats";
 import HeroKeepRead from "@/components/home/manga/HeroKeepRead";
 import RowNewVols from "@/components/home/manga/RowNewVols";
 import ReaderStatsPanel from "@/components/stats/ReaderPanel";
@@ -8,7 +10,12 @@ import Link from "next/link";
 import clsx from "clsx";
 import ReloadButton from "@/components/ui/ReloadButton";
 import PushButton from "@/components/ui/PushButton";
+import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
+import { getLibrarySection } from "@/lib/librarySection";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import type { Locale, DictionarySection } from "@/lib/types";
+import type { HomeKeepReadingEntry } from "@/components/home/manga/HeroKeepRead";
+import type { VolumeEntry } from "@/components/home/manga/RowNewVolsCarousel";
 
 interface HomePageProps {
   params: Promise<{ lang: string }>;
@@ -51,8 +58,55 @@ function RowNewVolsSkeleton() {
 export default async function HomePage({ params }: HomePageProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
+  const volumesResult = await getMangaVolumes();
+  const statsData = await getReaderStats();
+  const othersLibraryEnabled = await isOthersLibraryEnabled();
 
   const home = intl.home as DictionarySection;
+  const volumes = volumesResult?.success && volumesResult.data
+    ? volumesResult.data
+    : [];
+
+  const keepReadingEntry: HomeKeepReadingEntry | null = volumes
+    .map((vol) => {
+      const progress = vol.usersProgress?.[0] ?? null;
+      return {
+        title: vol.title,
+        slug: vol.slug,
+        isOneshot: vol.series?.isOneshot === true,
+        coverImage: getMangaCoverUrl(vol),
+        section: getLibrarySection(
+          vol.metadataObj?.mangaStyle,
+          othersLibraryEnabled
+        ),
+        meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
+        lastPage: progress?.lastPage ?? 0,
+        totalPages: progress?.totalPages ?? 0,
+        lastReadAt: progress?.lastReadAt ? new Date(progress.lastReadAt) : null,
+      };
+    })
+    .filter((vol) => {
+      if (!vol.lastReadAt) return false;
+      const notStarted = vol.lastPage === 0;
+      const alreadyFinished = vol.lastPage >= vol.totalPages - 1;
+      return !notStarted && !alreadyFinished;
+    })
+    .sort((a, b) => (b.lastReadAt?.getTime() ?? 0) - (a.lastReadAt?.getTime() ?? 0))[0] ?? null;
+
+  const recentEntries: VolumeEntry[] = [...volumes]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 8)
+    .map((vol) => ({
+      title: vol.title,
+      slug: vol.slug,
+      isOneshot: vol.series?.isOneshot === true,
+      coverImage: getMangaCoverUrl(vol),
+      section: getLibrarySection(
+        vol.metadataObj?.mangaStyle,
+        othersLibraryEnabled
+      ),
+      meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
+    }));
 
   return (
     <>
@@ -67,7 +121,12 @@ export default async function HomePage({ params }: HomePageProps) {
         >
           <div className="w-full md:w-1/2">
             <Suspense fallback={<HeroSkeleton />}>
-              <HeroKeepRead lang={lang as Locale} intl={intl} vapidPublicKey={process.env.VAPID_PUBLIC_KEY} />
+              <HeroKeepRead
+                lang={lang as Locale}
+                intl={intl}
+                vapidPublicKey={process.env.VAPID_PUBLIC_KEY}
+                entry={keepReadingEntry}
+              />
             </Suspense>
           </div>
 
@@ -83,6 +142,7 @@ export default async function HomePage({ params }: HomePageProps) {
                   lang={lang as Locale}
                   intl={intl}
                   mdCols="md:grid-cols-3 mt-4"
+                  data={statsData}
                 />
               </Suspense>
 
@@ -101,7 +161,11 @@ export default async function HomePage({ params }: HomePageProps) {
             </div>
 
             <Suspense fallback={<RowNewVolsSkeleton />}>
-              <RowNewVols lang={lang as Locale} intl={intl} />
+              <RowNewVols
+                lang={lang as Locale}
+                intl={intl}
+                entries={recentEntries}
+              />
             </Suspense>
           </div>
         </div>

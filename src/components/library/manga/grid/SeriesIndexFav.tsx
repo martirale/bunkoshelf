@@ -6,6 +6,12 @@ import {
 } from "@/lib/db/library";
 import { GhostIcon, LibraryBigIcon } from "lucide-react";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import {
+  getLibrarySeriesHref,
+  getLibraryVolumeHref,
+  type LibraryScope,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { getSeriesBulkProgress } from "@/lib/reader/readingProgress";
 import type { Locale, Dictionary } from "@/lib/types";
@@ -13,9 +19,16 @@ import type { Locale, Dictionary } from "@/lib/types";
 interface SeriesIndexFavProps {
   lang: Locale;
   intl: Dictionary;
+  scope?: LibraryScope;
+  section?: LibrarySection;
 }
 
-export default async function SeriesIndexFav({ lang, intl }: SeriesIndexFavProps) {
+export default async function SeriesIndexFav({
+  lang,
+  intl,
+  scope = "all",
+  section = "manga",
+}: SeriesIndexFavProps) {
   const user = await verifySession();
   if (!user) return null;
 
@@ -32,6 +45,7 @@ export default async function SeriesIndexFav({ lang, intl }: SeriesIndexFavProps
 
   const favorites = await listSeriesWithVolumes({
     seriesIds: favoriteSeriesIds,
+    scope,
   });
 
   const entries = favorites.map((series) => {
@@ -74,8 +88,8 @@ export default async function SeriesIndexFav({ lang, intl }: SeriesIndexFavProps
             : 0;
 
           const href = isSeries
-            ? `/${lang}/manga/${entry.slug}`
-            : `/${lang}/manga/volume/${entry.volumes[0]?.slug}`;
+            ? getLibrarySeriesHref(lang, section, entry.slug)
+            : getLibraryVolumeHref(lang, section, entry.volumes[0]?.slug ?? "");
 
           return (
             <MangaCard

@@ -3,6 +3,10 @@
 import { useRef, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
+import {
+  getLibraryVolumeHref,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import type { Dictionary, Locale } from "@/lib/types";
 import type { MouseEvent as ReactMouseEvent, DragEvent, ReactNode } from "react";
 
@@ -11,6 +15,7 @@ export interface VolEntry {
   title: string;
   isOneshot: boolean;
   coverImage: string | null;
+  section?: LibrarySection;
   meta: {
     title?: string | null;
   } | null;
@@ -22,6 +27,7 @@ interface MangaRowCarouselProps {
   intl: Dictionary;
   header: ReactNode;
   className?: string;
+  section?: LibrarySection;
 }
 
 export default function MangaRowCarousel({
@@ -30,6 +36,7 @@ export default function MangaRowCarousel({
   intl,
   header,
   className = "mt-8",
+  section = "manga",
 }: MangaRowCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -107,7 +114,11 @@ export default function MangaRowCarousel({
           <div key={entry.slug} className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/7">
             <MangaCard
               title={(entry.meta as Record<string, string>)?.title ?? entry.title}
-              href={`/${lang}/manga/volume/${entry.slug}`}
+              href={getLibraryVolumeHref(
+                lang,
+                entry.section ?? section,
+                entry.slug
+              )}
               isSeries={false}
               isOneshot={entry.isOneshot}
               onGoing={false}

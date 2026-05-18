@@ -3,15 +3,22 @@
 import clsx from "clsx";
 import { TrashIcon } from "lucide-react";
 import { deleteSeries, deleteVolume } from "@/actions/delete";
+import type { LibrarySection } from "@/lib/librarySection";
 import type { Dictionary } from "@/lib/types";
 
 interface DeleteMangaItemProps {
   intl: Dictionary;
   type?: "volume" | "series";
   slug: string;
+  section?: LibrarySection;
 }
 
-export default function DeleteMangaItem({ intl, type = "volume", slug }: DeleteMangaItemProps) {
+export default function DeleteMangaItem({
+  intl,
+  type = "volume",
+  slug,
+  section = "manga",
+}: DeleteMangaItemProps) {
   const t = intl;
 
   async function handleDelete() {
@@ -38,8 +45,8 @@ export default function DeleteMangaItem({ intl, type = "volume", slug }: DeleteM
         const lang = parts[0] || "en";
         const target =
           type === "volume"
-            ? `/${lang}/manga/volumes`
-            : `/${lang}/manga/series`;
+            ? `/${lang}/${section}/volumes`
+            : `/${lang}/${section}/series`;
         window.location.href = target;
       }
     } catch (e) {

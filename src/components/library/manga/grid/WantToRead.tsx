@@ -6,6 +6,11 @@ import MangaCard from "@/components/ui/MangaCard";
 import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import {
+  getLibraryVolumeHref,
+  type LibraryScope,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import type { Locale, Dictionary } from "@/lib/types";
 
 const PAGE_SIZE = 35;
@@ -16,6 +21,8 @@ interface WantToReadProps {
   page?: number;
   genreFilter?: string | string[];
   tagFilter?: string | string[];
+  scope?: LibraryScope;
+  section?: LibrarySection;
 }
 
 export default async function WantToRead({
@@ -24,6 +31,8 @@ export default async function WantToRead({
   page = 1,
   genreFilter = [],
   tagFilter = [],
+  scope = "all",
+  section = "manga",
 }: WantToReadProps) {
   const user = await verifySession();
   if (!user) return null;
@@ -40,6 +49,7 @@ export default async function WantToRead({
     genreNames: genreList,
     tagNames: tagList,
     onlyUnreadForUser: true,
+    scope,
   });
 
   const sortedVolumes = sortByPaddedTitle(volumes);
@@ -69,7 +79,7 @@ export default async function WantToRead({
 
       <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">
         {paginatedEntries.map((entry) => {
-          const href = `/${lang}/manga/volume/${entry.slug}`;
+          const href = getLibraryVolumeHref(lang, section, entry.slug);
 
           return (
             <MangaCard

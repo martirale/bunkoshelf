@@ -1,23 +1,13 @@
-import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { FolderCogIcon } from "lucide-react";
 import LibSettingsButtons from "@/components/settings/LibSettingsButtons";
-import AdminStatsPanel from "@/components/stats/AdminPanel";
+import LibraryModeTile from "@/components/settings/LibraryModeTile";
 import Separator from "@/components/ui/Separator";
+import { getAppSettings } from "@/lib/db/appSettings";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface SettingsLibraryPageProps {
   params: Promise<{ lang: string }>;
-}
-
-function AdminStatsSkeleton() {
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="h-[110px] rounded-lg bg-blackamber animate-pulse" />
-      ))}
-    </div>
-  );
 }
 
 export default async function SettingsLibraryPage({
@@ -26,6 +16,7 @@ export default async function SettingsLibraryPage({
   const { lang = "es" } = await params;
   const intl: Dictionary = await getDictionary(lang as Locale);
   const libProvider = process.env.LIB_PROVIDER;
+  const settings = await getAppSettings();
 
   return (
     <>
@@ -35,9 +26,10 @@ export default async function SettingsLibraryPage({
       </h2>
 
       <div className="mb-4">
-        <Suspense fallback={<AdminStatsSkeleton />}>
-          <AdminStatsPanel intl={intl} />
-        </Suspense>
+        <LibraryModeTile
+          intl={intl}
+          initialEnabled={settings.othersLibraryEnabled}
+        />
       </div>
 
       <Separator />

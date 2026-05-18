@@ -11,12 +11,17 @@ import {
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { getReaderStats } from "@/actions/stats";
+import {
+  getLibraryRootHref,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import type { Locale, Dictionary, DictionarySection } from "@/lib/types";
 import type { LucideIcon } from "lucide-react";
 
 interface MangaNavProps {
   lang: Locale;
   intl: Dictionary;
+  section?: LibrarySection;
 }
 
 interface NavLink {
@@ -33,7 +38,11 @@ interface Stats {
   totalUnread: number | null;
 }
 
-export default function MangaNav({ lang, intl }: MangaNavProps) {
+export default function MangaNav({
+  lang,
+  intl,
+  section = "manga",
+}: MangaNavProps) {
   const pathname = usePathname();
   const [stats, setStats] = useState<Stats>({
     totalVolumes: null,
@@ -61,29 +70,29 @@ export default function MangaNav({ lang, intl }: MangaNavProps) {
   const links: NavLink[] = [
     {
       label: intl.libraries.overview,
-      href: `/${lang}/manga`,
+      href: getLibraryRootHref(lang, section),
       icon: LayoutPanelTopIcon,
-      isActive: pathname === `/${lang}/manga`,
+      isActive: pathname === getLibraryRootHref(lang, section),
     },
     {
       label: intl.libraries.series,
-      href: `/${lang}/manga/series`,
+      href: `${getLibraryRootHref(lang, section)}/series`,
       icon: LibraryBigIcon,
-      isActive: pathname === `/${lang}/manga/series`,
+      isActive: pathname === `${getLibraryRootHref(lang, section)}/series`,
       count: stats.totalSeries,
     },
     {
       label: intl.libraries.volumes,
-      href: `/${lang}/manga/volumes`,
+      href: `${getLibraryRootHref(lang, section)}/volumes`,
       icon: BookCopyIcon,
-      isActive: pathname === `/${lang}/manga/volumes`,
+      isActive: pathname === `${getLibraryRootHref(lang, section)}/volumes`,
       count: stats.totalVolumes,
     },
     {
       label: intl.libraries.toRead,
-      href: `/${lang}/manga/toread`,
+      href: `${getLibraryRootHref(lang, section)}/toread`,
       icon: BookmarkIcon,
-      isActive: pathname === `/${lang}/manga/toread`,
+      isActive: pathname === `${getLibraryRootHref(lang, section)}/toread`,
       count: stats.totalUnread,
     },
   ];

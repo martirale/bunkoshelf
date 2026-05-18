@@ -35,15 +35,21 @@ interface NavLink {
 interface MainNavProps {
   intl: Dictionary;
   user: Session;
+  isOthersEnabled: boolean;
 }
 
-export default function MainNav({ intl, user }: MainNavProps) {
+export default function MainNav({
+  intl,
+  user,
+  isOthersEnabled,
+}: MainNavProps) {
   const params = useParams();
   const currentLang = (params.lang as string) || "es";
   const pathname = usePathname();
 
   const isLibraryActive =
     pathname.startsWith(`/${currentLang}/manga`) ||
+    pathname.startsWith(`/${currentLang}/others`) ||
     pathname.startsWith(`/${currentLang}/books`);
 
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false);
@@ -58,7 +64,7 @@ export default function MainNav({ intl, user }: MainNavProps) {
       setOpenLibraryMenu(false);
       hasManuallyToggled.current = false;
     }
-  }, [pathname]);
+  }, [isLibraryActive, pathname]);
 
   const handleToggleLibrary = () => {
     setOpenLibraryMenu((prev) => !prev);
@@ -85,6 +91,15 @@ export default function MainNav({ intl, user }: MainNavProps) {
           href: `/${currentLang}/manga`,
           isActive: pathname.startsWith(`/${currentLang}/manga`),
         },
+        ...(isOthersEnabled
+          ? [
+              {
+                label: intl.sidebar.others as string,
+                href: `/${currentLang}/others`,
+                isActive: pathname.startsWith(`/${currentLang}/others`),
+              },
+            ]
+          : []),
         {
           label: intl.sidebar.books as string,
           href: `/${currentLang}/books`,

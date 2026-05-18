@@ -2,16 +2,25 @@ import { BookMarkedIcon } from "lucide-react";
 import { getMangaVolumes } from "@/actions/library";
 import MangaRowCarousel, { type VolEntry } from "./MangaRowCarousel";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import type { LibraryScope, LibrarySection } from "@/lib/librarySection";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface NextVolProps {
   lang: Locale;
   intl: Dictionary;
   maxItems?: number;
+  scope?: LibraryScope;
+  section?: LibrarySection;
 }
 
-export default async function NextVol({ lang, intl, maxItems = 12 }: NextVolProps) {
-  const result = await getMangaVolumes();
+export default async function NextVol({
+  lang,
+  intl,
+  maxItems = 12,
+  scope = "all",
+  section = "manga",
+}: NextVolProps) {
+  const result = await getMangaVolumes({ scope });
 
   const entries: VolEntry[] = (() => {
     if (!result?.success || !result.data) return [];
@@ -50,6 +59,7 @@ export default async function NextVol({ lang, intl, maxItems = 12 }: NextVolProp
           title: nextUnread.title,
           isOneshot: nextUnread.series?.isOneshot === true,
           coverImage: getMangaCoverUrl(nextUnread),
+          section,
           meta: nextUnread.metadataObj ?? null,
         });
       }
@@ -63,6 +73,7 @@ export default async function NextVol({ lang, intl, maxItems = 12 }: NextVolProp
       entries={entries}
       lang={lang}
       intl={intl}
+      section={section}
       className="mt-4"
       header={
         <h2 key="header" className="flex items-center text-base md:text-lg">

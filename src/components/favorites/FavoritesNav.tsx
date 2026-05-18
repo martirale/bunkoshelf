@@ -9,6 +9,7 @@ import type { LucideIcon } from "lucide-react";
 
 interface FavoritesNavProps {
   intl: Dictionary;
+  isOthersEnabled: boolean;
 }
 
 interface NavLink {
@@ -18,7 +19,10 @@ interface NavLink {
   isActive: boolean;
 }
 
-export default function FavoritesNav({ intl }: FavoritesNavProps) {
+export default function FavoritesNav({
+  intl,
+  isOthersEnabled,
+}: FavoritesNavProps) {
   const params = useParams<{ lang: Locale }>();
   const pathname = usePathname();
   const currentLang = params.lang || "es";
@@ -30,6 +34,16 @@ export default function FavoritesNav({ intl }: FavoritesNavProps) {
       icon: BookHeartIcon,
       isActive: pathname === `/${currentLang}/favorites`,
     },
+    ...(isOthersEnabled
+      ? [
+          {
+            label: intl.favorites.sectionOthers,
+            href: `/${currentLang}/favorites/others`,
+            icon: BookHeartIcon,
+            isActive: pathname === `/${currentLang}/favorites/others`,
+          },
+        ]
+      : []),
     {
       label: intl.favorites.sectionBooks,
       href: `/${currentLang}/favorites/books`,

@@ -19,6 +19,7 @@ interface MobNavModalProps {
   user: Session | null;
   challengeData: ChallengeData | null;
   versionData: VersionInfo;
+  isOthersEnabled: boolean;
 }
 
 export default function MobNavModal({
@@ -29,6 +30,7 @@ export default function MobNavModal({
   user,
   challengeData,
   versionData,
+  isOthersEnabled,
 }: MobNavModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -82,7 +84,13 @@ export default function MobNavModal({
 
         <div>
           {!user && <SecondNav intl={intl} />}
-          {user && <MainNav intl={intl} user={user} />}
+          {user && (
+            <MainNav
+              intl={intl}
+              user={user}
+              isOthersEnabled={isOthersEnabled}
+            />
+          )}
         </div>
 
         <div className="mt-8 mb-4">

@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import SeriesIndex from "@/components/library/manga/grid/SeriesIndex";
+import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
+import { getLibraryScope } from "@/lib/librarySection";
 import type { Locale } from "@/lib/types";
 
 interface MangaSeriesPageProps {
@@ -27,6 +29,8 @@ async function SeriesIndexContent({
   const page = parseInt(pageRaw ?? "1", 10);
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
+  const othersLibraryEnabled = await isOthersLibraryEnabled();
+  const scope = getLibraryScope("manga", othersLibraryEnabled);
 
   return (
     <SeriesIndex
@@ -35,6 +39,7 @@ async function SeriesIndexContent({
       page={page}
       genreFilter={genre}
       tagFilter={tag}
+      scope={scope}
     />
   );
 }

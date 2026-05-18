@@ -6,7 +6,12 @@ import {
   listSeriesWithVolumes,
   listVolumes,
 } from "@/lib/db/library";
+import type { LibraryScope } from "@/lib/librarySection";
 import { sortByPaddedTitle } from "@/lib/utils";
+
+interface LibraryActionOptions {
+  scope?: LibraryScope;
+}
 
 export async function getLibraryFilters() {
   let error: Error | null = null;
@@ -29,7 +34,7 @@ export async function getLibraryFilters() {
   }
 }
 
-export async function getMangaOverall() {
+export async function getMangaOverall(options?: LibraryActionOptions) {
   let error: Error | null = null;
   try {
     const user = await verifySession();
@@ -37,7 +42,9 @@ export async function getMangaOverall() {
       return { error: "Unauthorized", status: 401 };
     }
 
-    const series = await listSeriesWithVolumes();
+    const series = await listSeriesWithVolumes({
+      scope: options?.scope,
+    });
 
     const formatted = series.map((s) => {
       if (s.isOneshot && s.volumes.length === 1) {
@@ -65,7 +72,7 @@ export async function getMangaOverall() {
   }
 }
 
-export async function getMangaSeries() {
+export async function getMangaSeries(options?: LibraryActionOptions) {
   let error: Error | null = null;
   try {
     const user = await verifySession();
@@ -73,7 +80,9 @@ export async function getMangaSeries() {
       return { error: "Unauthorized", status: 401 };
     }
 
-    const series = await listSeriesWithVolumes();
+    const series = await listSeriesWithVolumes({
+      scope: options?.scope,
+    });
 
     return { success: true, data: series };
   } catch (e) {
@@ -90,7 +99,7 @@ export async function getMangaSeries() {
   }
 }
 
-export async function getMangaVolumes() {
+export async function getMangaVolumes(options?: LibraryActionOptions) {
   let error: Error | null = null;
   try {
     const currentUser = await verifySession();
@@ -105,6 +114,7 @@ export async function getMangaVolumes() {
 
     let volumes = await listVolumes({
       userId: currentUser.id,
+      scope: options?.scope,
     });
 
     volumes = sortByPaddedTitle(volumes);

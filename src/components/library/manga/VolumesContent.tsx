@@ -10,6 +10,7 @@ import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 import Tabs from "@/components/ui/Tabs";
 import VolumeRating from "./VolumeRating";
+import type { LibrarySection } from "@/lib/librarySection";
 import type { Locale, Dictionary, DictionarySection, Session } from "@/lib/types";
 
 interface ReadingEntry {
@@ -27,6 +28,7 @@ interface VolumesContentProps {
   personalRating: number | null;
   readingEntries: ReadingEntry[];
   firstRead: string | null;
+  section?: LibrarySection;
 }
 
 export default function VolumesContent({
@@ -39,6 +41,7 @@ export default function VolumesContent({
   personalRating,
   readingEntries,
   firstRead,
+  section = "manga",
 }: VolumesContentProps) {
   if (!volumeData) {
     return (
@@ -93,7 +96,7 @@ export default function VolumesContent({
           {!isOneshot && (
             <div className="py-2">
               <Link
-                href={`/${lang}/manga/${seriesSlug}`}
+                href={`/${lang}/${section}/${seriesSlug}`}
                 className="italic hover:underline"
               >
                 {intl.manga.series as string} {(meta.series as string) || seriesTitle}
@@ -113,6 +116,7 @@ export default function VolumesContent({
             mangaStyle={meta.mangaStyle as string}
             communityRating={meta.communityRating as number | null}
             initialPersonalRating={personalRating}
+            section={section}
           />
 
           <div className="mt-8">
@@ -165,7 +169,14 @@ export default function VolumesContent({
             tabs={[
               {
                 label: (intl.manga as DictionarySection).details as string,
-                content: <MetadataPanel meta={meta} lang={lang} intl={intl} />,
+                content: (
+                  <MetadataPanel
+                    meta={meta}
+                    lang={lang}
+                    intl={intl}
+                    section={section}
+                  />
+                ),
               },
               {
                 label: (intl.manga as DictionarySection).readingHistory as string,
@@ -185,7 +196,11 @@ export default function VolumesContent({
               <Separator />
               <div className="flex flex-wrap items-center gap-4">
                 <ScanSeriesButton volumeId={volume.id as string} intl={intl} />
-                <DeleteMangaItem intl={intl} slug={volume.slug as string} />
+                <DeleteMangaItem
+                  intl={intl}
+                  slug={volume.slug as string}
+                  section={section}
+                />
               </div>
             </>
           )}

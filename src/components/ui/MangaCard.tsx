@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
-import { volumeProgress } from "@/lib/reader/volumeProgress";
-import { seriesProgress } from "@/lib/reader/seriesProgress";
 import type { DictionarySection } from "@/lib/types";
 
 interface MangaCardProps {
@@ -40,31 +37,7 @@ export default function MangaCard({
   progressRatio,
 }: MangaCardProps) {
   const t = intl;
-  const [clientRatio, setClientRatio] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (progressRatio != null || !href) return;
-
-    const slug = href.split("/").pop();
-
-    const fetchRatio = async () => {
-      if (isSeries && seriesSlug) {
-        const data = await seriesProgress(seriesSlug);
-        if (data?.readVolumes && data?.totalVolumes) {
-          setClientRatio(data.readVolumes / data.totalVolumes);
-        }
-      } else if (slug) {
-        const data = await volumeProgress(slug);
-        if (data && "totalPages" in data && data.lastPage != null && data.totalPages) {
-          setClientRatio((data.lastPage + 1) / data.totalPages);
-        }
-      }
-    };
-
-    fetchRatio();
-  }, [href, isSeries, seriesSlug, progressRatio]);
-
-  const ratio = progressRatio ?? clientRatio ?? 0;
+  const ratio = progressRatio ?? 0;
 
   const manga = t.manga as DictionarySection;
 
@@ -81,6 +54,7 @@ export default function MangaCard({
           src={cover || "/placeholder.svg?=v1"}
           alt={`Cover for ${title ?? ""}`}
           fill
+          sizes="(max-width: 768px) 50vw, (max-width: 1280px) 20vw, 14vw"
           className="object-cover z-0"
         />
 

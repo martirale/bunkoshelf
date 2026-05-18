@@ -9,6 +9,7 @@ import SearchInput from "@/components/search/SearchImput";
 import SearchModal from "@/components/search/SearchModal";
 import { getChallengeData } from "@/lib/utils";
 import { getVersionInfo } from "@/lib/versionInfo";
+import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 
 import type { Locale } from "@/lib/types";
 
@@ -21,6 +22,7 @@ export default async function Sidebar({ lang }: SidebarProps) {
   const user = await verifySession();
   const challengeData = await getChallengeData(user);
   const versionData = await getVersionInfo();
+  const othersLibraryEnabled = await isOthersLibraryEnabled();
 
   return (
     <>
@@ -33,7 +35,11 @@ export default async function Sidebar({ lang }: SidebarProps) {
 
         {user && (
           <div className="flex-1">
-            <MainNav intl={intl} user={user} />
+            <MainNav
+              intl={intl}
+              user={user}
+              isOthersEnabled={othersLibraryEnabled}
+            />
 
             <div className="mt-16">
               <SearchInput intl={intl} />

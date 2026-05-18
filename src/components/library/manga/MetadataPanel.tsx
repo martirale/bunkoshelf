@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { LibrarySection } from "@/lib/librarySection";
 import type { Locale, Dictionary } from "@/lib/types";
 
 function normalize(field: unknown): string | null {
@@ -39,9 +40,16 @@ interface MetadataPanelProps {
   lang: Locale;
   intl: Dictionary;
   linkBase?: string;
+  section?: LibrarySection;
 }
 
-export default function MetadataPanel({ meta, lang, intl, linkBase = "volumes" }: MetadataPanelProps) {
+export default function MetadataPanel({
+  meta,
+  lang,
+  intl,
+  linkBase = "volumes",
+  section = "manga",
+}: MetadataPanelProps) {
   const genres = (meta.genres || []) as { name: string }[];
   const tags = (meta.tags || []) as { name: string }[];
 
@@ -69,7 +77,7 @@ export default function MetadataPanel({ meta, lang, intl, linkBase = "volumes" }
               <Link
                 key={idx}
                 href={{
-                  pathname: `/${lang}/manga/${linkBase}`,
+                  pathname: `/${lang}/${section}/${linkBase}`,
                   query: { genre: genre.name },
                 }}
                 scroll={false}
@@ -92,7 +100,7 @@ export default function MetadataPanel({ meta, lang, intl, linkBase = "volumes" }
               <Link
                 key={idx}
                 href={{
-                  pathname: `/${lang}/manga/${linkBase}`,
+                  pathname: `/${lang}/${section}/${linkBase}`,
                   query: { tag: tag.name },
                 }}
                 scroll={false}

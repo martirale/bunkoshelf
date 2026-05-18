@@ -1,17 +1,23 @@
 import Link from "next/link";
+import type { LibrarySection } from "@/lib/librarySection";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface DemographicsTilesProps {
   intl: Dictionary;
   lang: Locale;
+  section?: LibrarySection;
 }
 
-export default function DemographicsTiles({ intl, lang }: DemographicsTilesProps) {
+export default function DemographicsTiles({
+  intl,
+  lang,
+  section = "manga",
+}: DemographicsTilesProps) {
   const demographics = [
-    { id: 1, name: "Shōnen", link: "/manga/volumes?tag=shonen" },
-    { id: 2, name: "Shōjo", link: "/manga/volumes?tag=shojo" },
-    { id: 3, name: "Seinen", link: "/manga/volumes?tag=seinen" },
-    { id: 4, name: "Josei", link: "/manga/volumes?tag=josei" },
+    { id: 1, name: "Shōnen", link: `/${section}/volumes?tag=shonen` },
+    { id: 2, name: "Shōjo", link: `/${section}/volumes?tag=shojo` },
+    { id: 3, name: "Seinen", link: `/${section}/volumes?tag=seinen` },
+    { id: 4, name: "Josei", link: `/${section}/volumes?tag=josei` },
   ];
 
   return (

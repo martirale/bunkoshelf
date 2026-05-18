@@ -8,6 +8,7 @@ import DeleteMangaItem from "./DeleteMangaItem";
 import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 import SeriesRating from "./SeriesRating";
+import type { LibrarySection } from "@/lib/librarySection";
 import type { Locale, Dictionary, Session } from "@/lib/types";
 
 interface SeriesContentProps {
@@ -18,6 +19,7 @@ interface SeriesContentProps {
   aggregatedMeta: Record<string, string[]>;
   averageRating: number | null;
   user: Session | null;
+  section?: LibrarySection;
 }
 
 export default function SeriesContent({
@@ -28,6 +30,7 @@ export default function SeriesContent({
   aggregatedMeta,
   averageRating,
   user,
+  section = "manga",
 }: SeriesContentProps) {
   const volumes = serieData.volumes as Record<string, unknown>[];
   const coverImage =
@@ -119,6 +122,7 @@ export default function SeriesContent({
             lang={lang}
             intl={intl}
             linkBase="series"
+            section={section}
           />
         </div>
       </section>
@@ -133,7 +137,7 @@ export default function SeriesContent({
               <MangaCard
                 key={idx}
                 title={(volume.meta as Record<string, string>)?.title || (volume.filename as string)}
-                href={`/${lang}/manga/volume/${volume.slug as string}`}
+                href={`/${lang}/${section}/volume/${volume.slug as string}`}
                 isSeries={false}
                 isOneshot={false}
                 onGoing={false}
@@ -164,6 +168,7 @@ export default function SeriesContent({
                 intl={intl}
                 type="series"
                 slug={serieData.slug as string}
+                section={section}
               />
             </div>
           </>

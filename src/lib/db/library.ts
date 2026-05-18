@@ -1,4 +1,5 @@
 import { cacheLife, cacheTag } from "next/cache";
+import type { LibraryScope } from "@/lib/librarySection";
 import { MANGA_LIBRARY_TAG } from "@/lib/mangaLibraryCache";
 import { query, queryOne } from "./query";
 
@@ -107,6 +108,7 @@ interface SharedVolumeQueryOptions {
   tagNames?: string[];
   seriesIds?: string[];
   volumeIds?: string[];
+  scope?: LibraryScope;
 }
 
 interface VolumeQueryOptions extends SharedVolumeQueryOptions {
@@ -120,12 +122,14 @@ interface SharedSeriesQueryOptions {
   seriesIds?: string[];
   includeGenres?: boolean;
   includeTags?: boolean;
+  scope?: LibraryScope;
 }
 
 interface FindSeriesOptions {
   slug: string;
   includeGenres?: boolean;
   includeTags?: boolean;
+  scope?: LibraryScope;
 }
 
 interface FindVolumeOptions extends SharedVolumeQueryOptions {
@@ -371,10 +375,19 @@ function buildVolumeFilterSql(
     volumeIds?: string[];
     userId?: string | null;
     onlyUnreadForUser?: boolean;
+    scope?: LibraryScope;
   },
   params: unknown[]
 ): string[] {
   const conditions: string[] = [];
+
+  if (options.scope === "others") {
+    conditions.push(`vm.manga_style = 'No'`);
+  }
+
+  if (options.scope === "manga") {
+    conditions.push(`(vm.manga_style IS NULL OR vm.manga_style <> 'No')`);
+  }
 
   if (options.seriesIds && options.seriesIds.length > 0) {
     params.push(options.seriesIds);
@@ -508,6 +521,7 @@ async function listVolumesRaw(
       volumeIds: options?.volumeIds,
       userId: options?.userId,
       onlyUnreadForUser: options?.onlyUnreadForUser,
+      scope: options?.scope,
     },
     params
   );
@@ -617,6 +631,7 @@ export async function listVolumes(
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
     volumeIds: options?.volumeIds,
+    scope: options?.scope,
   });
 }
 
@@ -629,6 +644,7 @@ async function listSeriesWithVolumesRaw(
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
+    scope: options?.scope,
   });
 
   const seriesMap = new Map<string, LibrarySeriesWithVolumes>();
@@ -670,10 +686,21 @@ export async function listSeriesWithVolumes(
     seriesIds: options?.seriesIds,
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
+    scope: options?.scope,
   });
 }
 
-export async function listSeries(): Promise<LibrarySeries[]> {
+export async function listSeries(
+  options?: { scope?: LibraryScope }
+): Promise<LibrarySeries[]> {
+  const params: unknown[] = [];
+  const conditions = buildVolumeFilterSql(
+    {
+      scope: options?.scope,
+    },
+    params
+  );
+
   return query<{
     id: string;
     slug: string;
@@ -686,10 +713,23 @@ export async function listSeries(): Promise<LibrarySeries[]> {
     updated_at: Date;
   }>(
     `
-      SELECT id, slug, title, path, is_oneshot, mtime, status, created_at, updated_at
-      FROM manga_series
+      SELECT DISTINCT
+        ms.id,
+        ms.slug,
+        ms.title,
+        ms.path,
+        ms.is_oneshot,
+        ms.mtime,
+        ms.status,
+        ms.created_at,
+        ms.updated_at
+      FROM manga_series ms
+      INNER JOIN manga_volumes mv ON mv.series_id = ms.id
+      LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+      ${conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""}
       ORDER BY title ASC
-    `
+    `,
+    params
   ).then((rows) =>
     rows.map((row) => ({
       id: row.id,
@@ -726,6 +766,7 @@ async function findSeriesBySlugRaw(
     seriesIds: [row.id],
     includeGenres: options.includeGenres,
     includeTags: options.includeTags,
+    scope: options.scope,
   });
 
   return series[0] ?? null;
@@ -768,6 +809,7 @@ async function findVolumeBySlugRaw(
     userId: options.userId,
     includeGenres: options.includeGenres,
     includeTags: options.includeTags,
+    scope: options.scope,
   });
 
   return volumes[0] ?? null;
@@ -793,6 +835,7 @@ export async function findVolumeBySlug(
     slug: options.slug,
     includeGenres: options.includeGenres,
     includeTags: options.includeTags,
+    scope: options.scope,
   });
 }
 

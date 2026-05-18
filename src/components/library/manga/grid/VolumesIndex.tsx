@@ -5,6 +5,11 @@ import MangaCard from "@/components/ui/MangaCard";
 import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import {
+  getLibraryVolumeHref,
+  type LibraryScope,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import type { Locale, Dictionary } from "@/lib/types";
 
 const PAGE_SIZE = 35;
@@ -15,6 +20,8 @@ interface VolumesIndexProps {
   page?: number;
   genreFilter?: string | string[];
   tagFilter?: string | string[];
+  scope?: LibraryScope;
+  section?: LibrarySection;
 }
 
 export default async function VolumesIndex({
@@ -23,6 +30,8 @@ export default async function VolumesIndex({
   page = 1,
   genreFilter = [],
   tagFilter = [],
+  scope = "all",
+  section = "manga",
 }: VolumesIndexProps) {
   const genreList =
     typeof genreFilter === "string" ? genreFilter.split(",") : genreFilter;
@@ -34,6 +43,7 @@ export default async function VolumesIndex({
     includeTags: true,
     genreNames: genreList,
     tagNames: tagList,
+    scope,
   });
 
   const sortedVolumes = sortByPaddedTitle(volumes);
@@ -64,7 +74,7 @@ export default async function VolumesIndex({
 
       <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">
         {paginatedEntries.map((entry) => {
-          const href = `/${lang}/manga/volume/${entry.slug}`;
+          const href = getLibraryVolumeHref(lang, section, entry.slug);
 
           return (
             <MangaCard

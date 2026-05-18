@@ -6,6 +6,11 @@ import MangaCard from "@/components/ui/MangaCard";
 import MangaNav from "@/components/library/manga/MangaNav";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import {
+  getLibraryVolumeHref,
+  type LibraryScope,
+  type LibrarySection,
+} from "@/lib/librarySection";
+import {
   LibraryBigIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -17,6 +22,8 @@ import type { MouseEvent as ReactMouseEvent, DragEvent } from "react";
 interface HeroKeepReadProps {
   lang: Locale;
   intl: Dictionary;
+  section?: LibrarySection;
+  scope?: LibraryScope;
 }
 
 interface ReadingEntry {
@@ -30,9 +37,15 @@ interface ReadingEntry {
   lastPage: number;
   totalPages: number;
   lastReadAt: Date | null;
+  progressRatio: number;
 }
 
-export default function HeroKeepRead({ lang, intl }: HeroKeepReadProps) {
+export default function HeroKeepRead({
+  lang,
+  intl,
+  section = "manga",
+  scope = "all",
+}: HeroKeepReadProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [entries, setEntries] = useState<ReadingEntry[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -43,7 +56,7 @@ export default function HeroKeepRead({ lang, intl }: HeroKeepReadProps) {
 
   useEffect(() => {
     async function fetchReadingProgress() {
-      const result = await getMangaVolumes();
+      const result = await getMangaVolumes({ scope });
       if (!result || !result.success) return;
 
       const data = result.data;
@@ -63,6 +76,10 @@ export default function HeroKeepRead({ lang, intl }: HeroKeepReadProps) {
             lastReadAt: progress?.lastReadAt
               ? new Date(progress.lastReadAt)
               : null,
+            progressRatio:
+              progress?.totalPages && progress.totalPages > 0
+                ? ((progress.lastPage ?? 0) + 1) / progress.totalPages
+                : 0,
           };
         })
         .filter((vol) => {
@@ -80,7 +97,7 @@ export default function HeroKeepRead({ lang, intl }: HeroKeepReadProps) {
     }
 
     fetchReadingProgress();
-  }, [pathname]);
+  }, [pathname, scope]);
 
   const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -121,7 +138,7 @@ export default function HeroKeepRead({ lang, intl }: HeroKeepReadProps) {
   const shouldHideHero = (() => {
     const parts = pathname.split("/").filter(Boolean);
 
-    if (parts[1] !== "manga") return true;
+    if (parts[1] !== section) return true;
 
     if (parts.length === 2) return false;
 
@@ -181,7 +198,7 @@ export default function HeroKeepRead({ lang, intl }: HeroKeepReadProps) {
               }}
             >
               {entries.map((entry) => {
-                const href = `/${lang}/manga/volume/${entry.slug}`;
+                const href = getLibraryVolumeHref(lang, section, entry.slug);
                 return (
                   <div
                     key={entry.slug}
@@ -202,7 +219,7 @@ export default function HeroKeepRead({ lang, intl }: HeroKeepReadProps) {
                       intl={intl}
                       isDragging={isDragging}
                       seriesSlug={null}
-                      progressRatio={null}
+                      progressRatio={entry.progressRatio}
                       className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-xl"
                     />
                   </div>
@@ -212,7 +229,7 @@ export default function HeroKeepRead({ lang, intl }: HeroKeepReadProps) {
           </section>
 
           <div className="sticky top-0 z-10 bg-pearl p-4">
-            <MangaNav lang={lang} intl={intl} />
+            <MangaNav lang={lang} intl={intl} section={section} />
           </div>
         </>
       )}

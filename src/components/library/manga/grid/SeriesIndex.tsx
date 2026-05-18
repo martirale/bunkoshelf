@@ -6,6 +6,11 @@ import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import {
+  getLibrarySeriesHref,
+  type LibraryScope,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import { getSeriesBulkProgress } from "@/lib/reader/readingProgress";
 import type { Locale, Dictionary } from "@/lib/types";
 
@@ -17,6 +22,8 @@ interface SeriesIndexProps {
   page?: number;
   genreFilter?: string | string[];
   tagFilter?: string | string[];
+  scope?: LibraryScope;
+  section?: LibrarySection;
 }
 
 export default async function SeriesIndex({
@@ -25,6 +32,8 @@ export default async function SeriesIndex({
   page = 1,
   genreFilter = [],
   tagFilter = [],
+  scope = "all",
+  section = "manga",
 }: SeriesIndexProps) {
   const genreList =
     typeof genreFilter === "string" ? genreFilter.split(",") : genreFilter;
@@ -38,6 +47,7 @@ export default async function SeriesIndex({
       tagNames: tagList,
       includeGenres: true,
       includeTags: true,
+      scope,
     }),
   ]);
 
@@ -91,7 +101,7 @@ export default async function SeriesIndex({
             <MangaCard
               key={entry.title}
               title={entry.volumes?.[0]?.meta?.series ?? entry.title}
-              href={`/${lang}/manga/${entry.slug}`}
+              href={getLibrarySeriesHref(lang, section, entry.slug)}
               isSeries={true}
               isOneshot={false}
               onGoing={entry.status === "ONGOING"}

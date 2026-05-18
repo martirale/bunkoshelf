@@ -2,16 +2,25 @@ import { BookCheckIcon } from "lucide-react";
 import { getMangaVolumes } from "@/actions/library";
 import MangaRowCarousel, { type VolEntry } from "./MangaRowCarousel";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import type { LibraryScope, LibrarySection } from "@/lib/librarySection";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface RecentlyReadProps {
   lang: Locale;
   intl: Dictionary;
   maxItems?: number;
+  scope?: LibraryScope;
+  section?: LibrarySection;
 }
 
-export default async function RecentlyRead({ lang, intl, maxItems = 12 }: RecentlyReadProps) {
-  const result = await getMangaVolumes();
+export default async function RecentlyRead({
+  lang,
+  intl,
+  maxItems = 12,
+  scope = "all",
+  section = "manga",
+}: RecentlyReadProps) {
+  const result = await getMangaVolumes({ scope });
 
   const entries: VolEntry[] = result?.success && result.data
     ? result.data
@@ -22,6 +31,7 @@ export default async function RecentlyRead({ lang, intl, maxItems = 12 }: Recent
             title: vol.title,
             isOneshot: vol.series?.isOneshot === true,
             coverImage: getMangaCoverUrl(vol),
+            section,
             meta: vol.metadataObj ?? null,
             isRead: progress?.isRead ?? false,
             lastReadAt: progress?.lastReadAt ? new Date(progress.lastReadAt) : null,
@@ -37,6 +47,7 @@ export default async function RecentlyRead({ lang, intl, maxItems = 12 }: Recent
       entries={entries}
       lang={lang}
       intl={intl}
+      section={section}
       header={
         <h2 key="header" className="flex items-center text-base md:text-lg">
           <BookCheckIcon size={28} className="mr-2" />

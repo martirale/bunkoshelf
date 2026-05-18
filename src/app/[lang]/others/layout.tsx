@@ -1,0 +1,41 @@
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import HeroKeepRead from "@/components/library/manga/row/HeroKeepRead";
+import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
+import { getDictionary } from "@/lib/i18n/Dictionary";
+import type { Locale } from "@/lib/types";
+import type { ReactNode } from "react";
+
+interface OthersLayoutProps {
+  children: ReactNode;
+  params: Promise<{ lang: string }>;
+}
+
+export default async function OthersLayout({
+  children,
+  params,
+}: OthersLayoutProps) {
+  const { lang = "es" } = await params;
+  const othersLibraryEnabled = await isOthersLibraryEnabled();
+
+  if (!othersLibraryEnabled) {
+    notFound();
+  }
+
+  const intl = await getDictionary(lang as Locale);
+
+  return (
+    <>
+      <Suspense fallback={null}>
+        <HeroKeepRead
+          lang={lang as Locale}
+          intl={intl}
+          scope="others"
+          section="others"
+        />
+      </Suspense>
+
+      <div className="mb-24 md:mb-4">{children}</div>
+    </>
+  );
+}

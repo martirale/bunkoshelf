@@ -3,7 +3,9 @@ import NextVol from "@/components/library/manga/row/NextVol";
 import NewVols from "@/components/library/manga/row/NewVols";
 import DemographicsTiles from "@/components/library/manga/Demographics";
 import RecentlyRead from "@/components/library/manga/row/RecentlyRead";
+import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getDictionary } from "@/lib/i18n/Dictionary";
+import { getLibraryScope } from "@/lib/librarySection";
 import type { Locale } from "@/lib/types";
 
 interface MangaPageProps {
@@ -26,21 +28,23 @@ function MangaRowSkeleton() {
 export default async function MangaPage({ params }: MangaPageProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
+  const othersLibraryEnabled = await isOthersLibraryEnabled();
+  const scope = getLibraryScope("manga", othersLibraryEnabled);
 
   return (
     <div className="p-4">
       <Suspense fallback={<MangaRowSkeleton />}>
-        <NextVol lang={lang as Locale} intl={intl} />
+        <NextVol lang={lang as Locale} intl={intl} scope={scope} />
       </Suspense>
 
       <DemographicsTiles intl={intl} lang={lang as Locale} />
 
       <Suspense fallback={<MangaRowSkeleton />}>
-        <NewVols lang={lang as Locale} intl={intl} />
+        <NewVols lang={lang as Locale} intl={intl} scope={scope} />
       </Suspense>
 
       <Suspense fallback={<MangaRowSkeleton />}>
-        <RecentlyRead lang={lang as Locale} intl={intl} />
+        <RecentlyRead lang={lang as Locale} intl={intl} scope={scope} />
       </Suspense>
     </div>
   );

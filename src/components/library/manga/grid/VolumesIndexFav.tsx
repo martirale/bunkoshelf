@@ -2,6 +2,11 @@ import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listFavoriteVolumeIds, listVolumes } from "@/lib/db/library";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import {
+  getLibraryVolumeHref,
+  type LibraryScope,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { GhostIcon, BookCopyIcon } from "lucide-react";
 import type { Locale, Dictionary } from "@/lib/types";
@@ -9,9 +14,16 @@ import type { Locale, Dictionary } from "@/lib/types";
 interface VolumesIndexFavProps {
   lang: Locale;
   intl: Dictionary;
+  scope?: LibraryScope;
+  section?: LibrarySection;
 }
 
-export default async function VolumesIndexFav({ lang, intl }: VolumesIndexFavProps) {
+export default async function VolumesIndexFav({
+  lang,
+  intl,
+  scope = "all",
+  section = "manga",
+}: VolumesIndexFavProps) {
   const user = await verifySession();
   if (!user) return null;
 
@@ -27,6 +39,7 @@ export default async function VolumesIndexFav({ lang, intl }: VolumesIndexFavPro
 
   const volumes = await listVolumes({
     volumeIds: favoriteVolumeIds,
+    scope,
   });
   const sortedVolumes = sortByPaddedTitle(volumes);
   const entries = sortedVolumes.map((vol) => ({
@@ -45,7 +58,7 @@ export default async function VolumesIndexFav({ lang, intl }: VolumesIndexFavPro
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         {entries.map((entry) => {
-          const href = `/${lang}/manga/volume/${entry.slug}`;
+          const href = getLibraryVolumeHref(lang, section, entry.slug);
           const coverImage = entry.coverImage;
 
           return (

@@ -1,12 +1,18 @@
 import { Suspense } from "react";
 import SeriesContent from "@/components/library/manga/SeriesContent";
+import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listVolumeRatings, findSeriesFavoriteState } from "@/lib/db/reading";
+import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import {
   findSeriesBySlug,
   type LibraryVolumeMetadata,
 } from "@/lib/db/library";
+import {
+  getLibrarySection,
+  getLibrarySeriesHref,
+} from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { sortByPaddedTitle } from "@/lib/utils";
 import type { Locale } from "@/lib/types";
@@ -74,6 +80,7 @@ async function SeriesMangaPageContent({
 }: SeriesMangaPageProps) {
   const { lang = "es", series } = await params;
   const intl = await getDictionary(lang as Locale);
+  const othersLibraryEnabled = await isOthersLibraryEnabled();
 
   try {
     const user = await verifySession();
@@ -90,6 +97,15 @@ async function SeriesMangaPageContent({
           {(intl?.errors?.notFound as string) || "Serie no encontrada."}
         </div>
       );
+    }
+
+    const targetSection = getLibrarySection(
+      serie.volumes[0]?.metadataObj?.mangaStyle,
+      othersLibraryEnabled
+    );
+
+    if (targetSection !== "manga") {
+      redirect(getLibrarySeriesHref(lang, targetSection, serie.slug));
     }
 
     const normalizedSerie = {
@@ -153,6 +169,7 @@ async function SeriesMangaPageContent({
         aggregatedMeta={aggregatedMeta}
         averageRating={averageRating}
         user={user}
+        section="manga"
       />
     );
   } catch (error) {

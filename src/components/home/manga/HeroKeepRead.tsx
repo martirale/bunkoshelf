@@ -4,53 +4,42 @@ import { LibraryBigIcon, ChevronRightIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import ReloadButton from "@/components/ui/ReloadButton";
 import PushButton from "@/components/ui/PushButton";
-import { getMangaVolumes } from "@/actions/library";
-import { getMangaCoverUrl } from "@/lib/mangaCover";
+import {
+  getLibraryRootHref,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import type { DictionarySection, Locale } from "@/lib/types";
+
+export interface HomeKeepReadingEntry {
+  title: string;
+  slug: string;
+  isOneshot: boolean;
+  coverImage: string | null;
+  section: LibrarySection;
+  meta: { title?: string | null } | null;
+  lastPage: number;
+  totalPages: number;
+}
 
 interface HeroKeepReadProps {
   lang: Locale;
   intl: DictionarySection;
   vapidPublicKey?: string;
+  entry: HomeKeepReadingEntry | null;
 }
 
-export default async function HeroKeepRead({ lang, intl, vapidPublicKey }: HeroKeepReadProps) {
-  const result = await getMangaVolumes();
-
-  const entry = (() => {
-    if (!result?.success || !result.data) return null;
-
-    return (
-      result.data
-        .map((vol) => {
-          const progress = vol.usersProgress?.[0] ?? null;
-          return {
-            title: vol.title,
-            slug: vol.slug,
-            isOneshot: vol.series?.isOneshot === true,
-            coverImage: getMangaCoverUrl(vol),
-            meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
-            lastPage: progress?.lastPage ?? 0,
-            totalPages: progress?.totalPages ?? 0,
-            lastReadAt: progress?.lastReadAt ? new Date(progress.lastReadAt) : null,
-          };
-        })
-        .filter((vol) => {
-          if (!vol.lastReadAt) return false;
-          const notStarted = vol.lastPage === 0;
-          const alreadyFinished = vol.lastPage >= vol.totalPages - 1;
-          return !notStarted && !alreadyFinished;
-        })
-        .sort((a, b) => (b.lastReadAt?.getTime() ?? 0) - (a.lastReadAt?.getTime() ?? 0))[0] ?? null
-    );
-  })();
-
+export default async function HeroKeepRead({
+  lang,
+  intl,
+  vapidPublicKey,
+  entry,
+}: HeroKeepReadProps) {
   const libraries = intl.libraries as DictionarySection;
 
   return (
     <div className="flex-shrink-0 w-full md:w-1/1 2xl:w-3/5">
       <div className="flex justify-between items-center mb-4">
-        <Link href={`/${lang}/manga`}>
+        <Link href={getLibraryRootHref(lang, entry?.section ?? "manga")}>
           <h2 className="text-onix flex items-center text-base md:text-lg">
             <LibraryBigIcon size={28} className="mr-2" />
             {libraries.keepReading as string}
@@ -71,11 +60,14 @@ export default async function HeroKeepRead({ lang, intl, vapidPublicKey }: HeroK
         {entry ? (
           <MangaCard
             title={entry.meta?.title ?? entry.title}
-            href={`/${lang}/manga/volume/${entry.slug}`}
+            href={`/${lang}/${entry.section}/volume/${entry.slug}`}
             isSeries={false}
             isOneshot={entry.isOneshot}
             volumeCount={null}
             cover={entry.coverImage}
+            progressRatio={
+              entry.totalPages > 0 ? (entry.lastPage + 1) / entry.totalPages : 0
+            }
             intl={intl}
             isDragging={false}
             className="font-roboto font-bold leading-5 2xl:leading-6 text-xl 2xl:text-2xl"

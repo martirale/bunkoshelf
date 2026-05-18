@@ -16,6 +16,7 @@ type ReaderStatsPanelProps = {
   bgColor?: string;
   textColor?: string;
   mdCols?: string;
+  data?: Awaited<ReturnType<typeof getReaderStats>>;
 };
 
 export default async function ReaderStatsPanel({
@@ -24,10 +25,11 @@ export default async function ReaderStatsPanel({
   bgColor = "bg-sand",
   textColor = "text-onix",
   mdCols,
+  data: initialData,
 }: ReaderStatsPanelProps) {
   await connection();
   const stats = intl.stats as DictionarySection;
-  const data = await getReaderStats();
+  const data = initialData ?? await getReaderStats();
 
   const now = new Date();
   const thisMonth = now.getMonth() + 1;

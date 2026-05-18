@@ -137,107 +137,93 @@ export async function getReaderStats() {
     return { error: "Unauthorized", status: 401 };
   }
 
-  const [
-    volumesRead,
-    readEntries,
-    allCompleted,
-    allReadDates,
-    dailyReading,
-    totalVolumes,
-    totalSeries,
-    userProgressVolumes,
-    allFirstReadDates,
-    currentChallenge,
-  ] = await Promise.all([
-    query<{ id: string; volume_id: string; last_read_at: Date | null }>(
-      `
-        SELECT id, volume_id, last_read_at
-        FROM user_to_volumes
-        WHERE user_id = $1
-          AND is_read = TRUE
-      `,
-      [user.id]
-    ),
-    query<{ last_read_at: Date | null }>(
-      `
-        SELECT last_read_at
-        FROM user_to_volumes
-        WHERE user_id = $1
-          AND last_read_at IS NOT NULL
-      `,
-      [user.id]
-    ),
-    query<{ id: string; volume_id: string }>(
-      `
-        SELECT id, volume_id
-        FROM user_to_volumes
-        WHERE user_id = $1
-          AND is_read = TRUE
-      `,
-      [user.id]
-    ),
-    query<{ last_read_at: Date | null }>(
-      `
-        SELECT last_read_at
-        FROM user_to_volumes
-        WHERE user_id = $1
-          AND last_read_at IS NOT NULL
-        ORDER BY last_read_at DESC
-      `,
-      [user.id]
-    ),
-    query<{ date: string }>(
-      `
-        SELECT date
-        FROM daily_reading_logs
-        WHERE user_id = $1
-        ORDER BY date DESC
-      `,
-      [user.id]
-    ),
-    queryOne<{ count: string }>(
-      `
-        SELECT COUNT(*)::text AS count
-        FROM manga_volumes
-      `
-    ),
-    queryOne<{ count: string }>(
-      `
-        SELECT COUNT(*)::text AS count
-        FROM manga_series
-        WHERE is_oneshot = FALSE
-      `
-    ),
-    query<{ is_read: boolean }>(
-      `
-        SELECT utv.is_read
-        FROM manga_volumes mv
-        INNER JOIN user_to_volumes utv
-          ON utv.volume_id = mv.id
-        WHERE utv.user_id = $1
-      `,
-      [user.id]
-    ),
-    query<{ first_read: string | null }>(
-      `
-        SELECT first_read
-        FROM user_to_volumes
-        WHERE user_id = $1
-          AND first_read IS NOT NULL
-      `,
-      [user.id]
-    ),
-    queryOne<{ goal: number }>(
-      `
-        SELECT goal
-        FROM reading_challenges
-        WHERE user_id = $1
-          AND year = $2
-        LIMIT 1
-      `,
-      [user.id, new Date().getFullYear()]
-    ),
-  ]);
+  const volumesRead = await query<{
+    id: string;
+    volume_id: string;
+    last_read_at: Date | null;
+  }>(
+    `
+      SELECT id, volume_id, last_read_at
+      FROM user_to_volumes
+      WHERE user_id = $1
+        AND is_read = TRUE
+    `,
+    [user.id]
+  );
+
+  const allReadDates = await query<{ last_read_at: Date | null }>(
+    `
+      SELECT last_read_at
+      FROM user_to_volumes
+      WHERE user_id = $1
+        AND last_read_at IS NOT NULL
+      ORDER BY last_read_at DESC
+    `,
+    [user.id]
+  );
+
+  const dailyReading = await query<{ date: string }>(
+    `
+      SELECT date
+      FROM daily_reading_logs
+      WHERE user_id = $1
+      ORDER BY date DESC
+    `,
+    [user.id]
+  );
+
+  const totalVolumes = await queryOne<{ count: string }>(
+    `
+      SELECT COUNT(*)::text AS count
+      FROM manga_volumes
+    `
+  );
+
+  const totalSeries = await queryOne<{ count: string }>(
+    `
+      SELECT COUNT(*)::text AS count
+      FROM manga_series
+      WHERE is_oneshot = FALSE
+    `
+  );
+
+  const userProgressVolumes = await query<{ is_read: boolean }>(
+    `
+      SELECT utv.is_read
+      FROM manga_volumes mv
+      INNER JOIN user_to_volumes utv
+        ON utv.volume_id = mv.id
+      WHERE utv.user_id = $1
+    `,
+    [user.id]
+  );
+
+  const allFirstReadDates = await query<{ first_read: string | null }>(
+    `
+      SELECT first_read
+      FROM user_to_volumes
+      WHERE user_id = $1
+        AND first_read IS NOT NULL
+    `,
+    [user.id]
+  );
+
+  const currentChallenge = await queryOne<{ goal: number }>(
+    `
+      SELECT goal
+      FROM reading_challenges
+      WHERE user_id = $1
+        AND year = $2
+      LIMIT 1
+    `,
+    [user.id, new Date().getFullYear()]
+  );
+
+  const readEntries = allReadDates;
+  const allCompleted = volumesRead.map(({ id, volume_id }) => ({
+    id,
+    volume_id,
+  }));
 
   const totalTracked = userProgressVolumes.length;
   const totalRead = userProgressVolumes.filter((volume) => volume.is_read).length;

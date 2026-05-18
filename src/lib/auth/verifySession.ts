@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cache } from "react";
 import { findUserSessionById } from "@/lib/db/users";
 import type { Session } from "@/lib/types";
 
@@ -11,20 +12,22 @@ function isInvalidJwtError(error: unknown): boolean {
   return false;
 }
 
+const resolveSession = cache(async (token: string): Promise<Session | null> => {
+  const { payload } = await jwtVerify(
+    token,
+    new TextEncoder().encode(process.env.JWT_SECRET)
+  );
+
+  return findUserSessionById(payload.id as string);
+});
+
 export async function verifySession(): Promise<Session | null> {
   try {
     const cookiesInstance = await cookies();
     const token = cookiesInstance.get("yomimono_key")?.value;
     if (!token) return null;
 
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(process.env.JWT_SECRET)
-    );
-
-    const user = await findUserSessionById(payload.id as string);
-
-    return user;
+    return resolveSession(token);
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) {
       throw error;

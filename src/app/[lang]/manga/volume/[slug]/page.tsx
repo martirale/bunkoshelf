@@ -1,12 +1,18 @@
 import { Suspense } from "react";
 import VolumesContent from "@/components/library/manga/VolumesContent";
+import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/verifySession";
 import {
   findVolumeProgress,
   listReadingEntries,
 } from "@/lib/db/reading";
+import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { findVolumeBySlug } from "@/lib/db/library";
+import {
+  getLibrarySection,
+  getLibraryVolumeHref,
+} from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import type { Locale } from "@/lib/types";
 
@@ -33,6 +39,7 @@ function VolumeSkeleton() {
 async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
   const { lang = "es", slug } = await params;
   const intl = await getDictionary(lang as Locale);
+  const othersLibraryEnabled = await isOthersLibraryEnabled();
 
   try {
     const user = await verifySession();
@@ -49,6 +56,15 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
           {(intl?.errors?.notFound as string) || "Volumen no encontrado."}
         </div>
       );
+    }
+
+    const targetSection = getLibrarySection(
+      volumeEntry.metadataObj?.mangaStyle,
+      othersLibraryEnabled
+    );
+
+    if (targetSection !== "manga") {
+      redirect(getLibraryVolumeHref(lang, targetSection, volumeEntry.slug));
     }
 
     const meta = {
@@ -102,6 +118,7 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
         personalRating={personalRating}
         readingEntries={readingEntries}
         firstRead={firstRead}
+        section="manga"
       />
     );
   } catch (error) {

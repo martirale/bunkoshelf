@@ -15,6 +15,10 @@ import { toggleVolumeFavorite } from "@/actions/favorites";
 import { updateReadState } from "@/actions/read";
 import { syncReadingProgress } from "@/actions/progress";
 import { sendPush } from "@/actions/web-push";
+import {
+  getLibraryRootHref,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface ReadButtonsVolumeProps {
@@ -29,6 +33,7 @@ interface ReadButtonsVolumeProps {
   mangaStyle: string;
   communityRating: number | null;
   initialPersonalRating: number | null;
+  section?: LibrarySection;
 }
 
 export default function ReadButtonsVolume({
@@ -43,6 +48,7 @@ export default function ReadButtonsVolume({
   mangaStyle,
   communityRating,
   initialPersonalRating,
+  section = "manga",
 }: ReadButtonsVolumeProps) {
   const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(initFavorite);
@@ -186,7 +192,7 @@ export default function ReadButtonsVolume({
             await sendPush({
               title: intl.push.ttFirstRead as string,
               body: (intl.push.bodyFirstRead as string).replace("{title}", volumeTitle),
-              url: `/${lang}/manga`,
+              url: getLibraryRootHref(lang, section),
             });
           } catch (pushErr) {
             console.error("Error al enviar notificación push:", pushErr);
