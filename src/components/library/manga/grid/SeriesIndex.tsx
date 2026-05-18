@@ -88,7 +88,7 @@ export default async function SeriesIndex({
           {intl.manga.allSeries as string}
         </h2>
 
-        <FiltersDrawer intl={intl} />
+        <FiltersDrawer intl={intl} scope={scope} />
       </div>
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">

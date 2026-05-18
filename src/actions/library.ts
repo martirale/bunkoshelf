@@ -13,7 +13,7 @@ interface LibraryActionOptions {
   scope?: LibraryScope;
 }
 
-export async function getLibraryFilters() {
+export async function getLibraryFilters(options?: LibraryActionOptions) {
   let error: Error | null = null;
   try {
     const user = await verifySession();
@@ -21,7 +21,7 @@ export async function getLibraryFilters() {
       return { error: "Unauthorized", status: 401 };
     }
 
-    const { genres, tags } = await listLibraryFilters();
+    const { genres, tags } = await listLibraryFilters(options?.scope);
 
     return { genres, tags };
   } catch (e) {

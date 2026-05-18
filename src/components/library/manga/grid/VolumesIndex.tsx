@@ -69,7 +69,7 @@ export default async function VolumesIndex({
           {intl.manga.allVolumes as string}
         </h2>
 
-        <FiltersDrawer intl={intl} />
+        <FiltersDrawer intl={intl} scope={scope} />
       </div>
 
       <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">

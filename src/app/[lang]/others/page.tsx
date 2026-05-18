@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import NextVol from "@/components/library/manga/row/NextVol";
 import NewVols from "@/components/library/manga/row/NewVols";
-import DemographicsTiles from "@/components/library/manga/Demographics";
 import RecentlyRead from "@/components/library/manga/row/RecentlyRead";
 import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getDictionary } from "@/lib/i18n/Dictionary";
@@ -45,12 +44,6 @@ export default async function OthersPage({ params }: OthersPageProps) {
           section="others"
         />
       </Suspense>
-
-      <DemographicsTiles
-        intl={intl}
-        lang={lang as Locale}
-        section="others"
-      />
 
       <Suspense fallback={<MangaRowSkeleton />}>
         <NewVols

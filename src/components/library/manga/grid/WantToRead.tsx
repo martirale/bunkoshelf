@@ -74,7 +74,7 @@ export default async function WantToRead({
           <LibraryBigIcon size={28} className="mr-2" />
           {intl.manga.wantToRead as string}
         </h2>
-        <FiltersDrawer intl={intl} />
+        <FiltersDrawer intl={intl} scope={scope} />
       </div>
 
       <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">

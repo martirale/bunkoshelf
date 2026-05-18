@@ -454,44 +454,79 @@ function buildVolumeFilterSql(
   return conditions;
 }
 
-async function listLibraryFiltersRaw(): Promise<{
+function buildLibraryFilterScopeConditions(
+  params: unknown[],
+  scope?: LibraryScope
+): string {
+  if (scope === "others") {
+    return `
+      WHERE vm.manga_style = $${params.push("No")}
+    `;
+  }
+
+  if (scope === "manga") {
+    return `
+      WHERE vm.manga_style IS NULL
+         OR vm.manga_style <> $${params.push("No")}
+    `;
+  }
+
+  return "";
+}
+
+async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
   genres: GenreFilter[];
   tags: TagFilter[];
 }> {
+  const genreParams: unknown[] = [];
+  const tagParams: unknown[] = [];
+  const genreScopeWhere = buildLibraryFilterScopeConditions(genreParams, scope);
+  const tagScopeWhere = buildLibraryFilterScopeConditions(tagParams, scope);
+
   const [genres, tags] = await Promise.all([
     query<GenreFilter>(
       `
-        SELECT id, name
-        FROM genres
-        ORDER BY name ASC
-      `
+        SELECT DISTINCT g.id, g.name
+        FROM genres g
+        INNER JOIN volume_to_genres vtg ON vtg.genre_id = g.id
+        INNER JOIN manga_volumes mv ON mv.id = vtg.volume_id
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        ${genreScopeWhere}
+        ORDER BY g.name ASC
+      `,
+      genreParams
     ),
     query<TagFilter>(
       `
-        SELECT id, name
-        FROM tags
-        ORDER BY name ASC
-      `
+        SELECT DISTINCT t.id, t.name
+        FROM tags t
+        INNER JOIN volume_to_tags vtt ON vtt.tag_id = t.id
+        INNER JOIN manga_volumes mv ON mv.id = vtt.volume_id
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        ${tagScopeWhere}
+        ORDER BY t.name ASC
+      `,
+      tagParams
     ),
   ]);
 
   return { genres, tags };
 }
 
-async function listLibraryFiltersCached() {
+async function listLibraryFiltersCached(scope?: LibraryScope) {
   "use cache";
 
   cacheLife("max");
   cacheTag(MANGA_LIBRARY_TAG);
 
-  return listLibraryFiltersRaw();
+  return listLibraryFiltersRaw(scope);
 }
 
-export async function listLibraryFilters(): Promise<{
+export async function listLibraryFilters(scope?: LibraryScope): Promise<{
   genres: GenreFilter[];
   tags: TagFilter[];
 }> {
-  return listLibraryFiltersCached();
+  return listLibraryFiltersCached(scope);
 }
 
 async function listVolumesRaw(

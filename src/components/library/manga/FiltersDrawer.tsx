@@ -6,6 +6,7 @@ import { ChevronRightIcon } from "lucide-react";
 import Accordion from "@/components/ui/Accordion";
 import clsx from "clsx";
 import { getLibraryFilters } from "@/actions/library";
+import type { LibraryScope } from "@/lib/librarySection";
 import type { DictionarySection } from "@/lib/types";
 
 interface FilterItem {
@@ -15,9 +16,13 @@ interface FilterItem {
 
 interface FiltersDrawerProps {
   intl: DictionarySection;
+  scope?: LibraryScope;
 }
 
-export default function FiltersDrawer({ intl }: FiltersDrawerProps) {
+export default function FiltersDrawer({
+  intl,
+  scope = "all",
+}: FiltersDrawerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -40,7 +45,7 @@ export default function FiltersDrawer({ intl }: FiltersDrawerProps) {
   useEffect(() => {
     async function fetchFilters() {
       try {
-        const data = await getLibraryFilters();
+        const data = await getLibraryFilters({ scope });
         if (!data || "error" in data) throw new Error("Error fetching filters");
         setGenres(data.genres);
         setTags(data.tags);
@@ -49,7 +54,7 @@ export default function FiltersDrawer({ intl }: FiltersDrawerProps) {
       }
     }
     fetchFilters();
-  }, []);
+  }, [scope]);
 
   function toggleGenre(genreName: string) {
     setSelectedGenres((prev) =>
