@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { connection } from "next/server";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { FolderCogIcon } from "lucide-react";
@@ -11,7 +12,18 @@ interface SettingsLibraryPageProps {
   params: Promise<{ lang: string }>;
 }
 
-export default async function SettingsLibraryPage({
+function SettingsLibrarySkeleton() {
+  return (
+    <>
+      <div className="h-8 w-48 rounded bg-sand animate-pulse mb-4" />
+      <div className="h-32 rounded-lg bg-sand animate-pulse mb-4" />
+      <div className="h-px bg-sand mb-4" />
+      <div className="h-40 rounded-lg bg-sand animate-pulse" />
+    </>
+  );
+}
+
+async function SettingsLibraryPageContent({
   params,
 }: SettingsLibraryPageProps) {
   await connection();
@@ -38,5 +50,13 @@ export default async function SettingsLibraryPage({
       <Separator />
       <LibSettingsButtons lang={lang as Locale} intl={intl} libProvider={libProvider} />
     </>
+  );
+}
+
+export default function SettingsLibraryPage(params: SettingsLibraryPageProps) {
+  return (
+    <Suspense fallback={<SettingsLibrarySkeleton />}>
+      <SettingsLibraryPageContent {...params} />
+    </Suspense>
   );
 }
