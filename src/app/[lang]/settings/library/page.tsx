@@ -36,8 +36,11 @@ async function SettingsLibraryPageContent({
         {intl.settings.library as string}
       </h2>
 
-      <Separator />
-      <LibSettingsButtons lang={lang as Locale} intl={intl} libProvider={libProvider} />
+      <LibSettingsButtons
+        lang={lang as Locale}
+        intl={intl}
+        libProvider={libProvider}
+      />
     </>
   );
 }
