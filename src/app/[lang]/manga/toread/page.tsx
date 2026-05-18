@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import WantToRead from "@/components/library/manga/grid/WantToRead";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getLibraryScope } from "@/lib/librarySection";
 import type { Locale } from "@/lib/types";
 
@@ -29,8 +28,7 @@ async function WantToReadContent({
   const page = parseInt(pageRaw ?? "1", 10);
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-  const scope = getLibraryScope("manga", othersLibraryEnabled);
+  const scope = getLibraryScope("manga");
 
   return (
     <WantToRead

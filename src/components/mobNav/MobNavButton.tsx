@@ -13,7 +13,6 @@ interface MobNavButtonProps {
   user: Session | null;
   challengeData: ChallengeData | null;
   versionData: VersionInfo;
-  isOthersEnabled: boolean;
 }
 
 export default function MobNavButton({
@@ -22,7 +21,6 @@ export default function MobNavButton({
   user,
   challengeData,
   versionData,
-  isOthersEnabled,
 }: MobNavButtonProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -50,7 +48,6 @@ export default function MobNavButton({
         user={user}
         challengeData={challengeData}
         versionData={versionData}
-        isOthersEnabled={isOthersEnabled}
       />
     </>
   );

@@ -35,13 +35,11 @@ interface NavLink {
 interface MainNavProps {
   intl: Dictionary;
   user: Session;
-  isOthersEnabled: boolean;
 }
 
 export default function MainNav({
   intl,
   user,
-  isOthersEnabled,
 }: MainNavProps) {
   const params = useParams();
   const currentLang = (params.lang as string) || "es";
@@ -91,15 +89,11 @@ export default function MainNav({
           href: `/${currentLang}/manga`,
           isActive: pathname.startsWith(`/${currentLang}/manga`),
         },
-        ...(isOthersEnabled
-          ? [
-              {
-                label: intl.sidebar.others as string,
-                href: `/${currentLang}/others`,
-                isActive: pathname.startsWith(`/${currentLang}/others`),
-              },
-            ]
-          : []),
+        {
+          label: intl.sidebar.others as string,
+          href: `/${currentLang}/others`,
+          isActive: pathname.startsWith(`/${currentLang}/others`),
+        },
         {
           label: intl.sidebar.books as string,
           href: `/${currentLang}/books`,

@@ -6,7 +6,6 @@ import {
   findVolumeProgress,
   listReadingEntries,
 } from "@/lib/db/reading";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { findVolumeBySlug } from "@/lib/db/library";
 import {
@@ -39,7 +38,6 @@ function VolumeSkeleton() {
 async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
   const { lang = "es", slug } = await params;
   const intl = await getDictionary(lang as Locale);
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
 
   try {
     const user = await verifySession();
@@ -58,10 +56,7 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
       );
     }
 
-    const targetSection = getLibrarySection(
-      volumeEntry.metadataObj?.mangaStyle,
-      othersLibraryEnabled
-    );
+    const targetSection = getLibrarySection(volumeEntry.metadataObj?.mangaStyle);
 
     if (targetSection !== "manga") {
       redirect(getLibraryVolumeHref(lang, targetSection, volumeEntry.slug));

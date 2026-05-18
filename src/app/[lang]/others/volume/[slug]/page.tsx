@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import VolumesContent from "@/components/library/manga/VolumesContent";
 import { verifySession } from "@/lib/auth/verifySession";
 import {
@@ -13,7 +13,6 @@ import {
   getLibraryVolumeHref,
 } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import type { Locale } from "@/lib/types";
 
 interface OthersVolumePageProps {
@@ -39,7 +38,6 @@ function VolumeSkeleton() {
 async function OthersVolumePageContent({ params }: OthersVolumePageProps) {
   const { lang = "es", slug } = await params;
   const intl = await getDictionary(lang as Locale);
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
 
   try {
     const user = await verifySession();
@@ -58,10 +56,7 @@ async function OthersVolumePageContent({ params }: OthersVolumePageProps) {
       );
     }
 
-    const targetSection = getLibrarySection(
-      volumeEntry.metadataObj?.mangaStyle,
-      othersLibraryEnabled
-    );
+    const targetSection = getLibrarySection(volumeEntry.metadataObj?.mangaStyle);
 
     if (targetSection !== "others") {
       redirect(getLibraryVolumeHref(lang, targetSection, volumeEntry.slug));
@@ -134,26 +129,10 @@ async function OthersVolumePageContent({ params }: OthersVolumePageProps) {
   }
 }
 
-async function OthersVolumePageGate({
-  params,
-}: OthersVolumePageProps) {
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-
-  if (!othersLibraryEnabled) {
-    notFound();
-  }
-
+export default function OthersVolumePage({ params }: OthersVolumePageProps) {
   return (
     <Suspense fallback={<VolumeSkeleton />}>
       <OthersVolumePageContent params={params} />
-    </Suspense>
-  );
-}
-
-export default function OthersVolumePage(props: OthersVolumePageProps) {
-  return (
-    <Suspense fallback={<VolumeSkeleton />}>
-      <OthersVolumePageGate {...props} />
     </Suspense>
   );
 }

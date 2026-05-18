@@ -1,8 +1,6 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import SeriesIndex from "@/components/library/manga/grid/SeriesIndex";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import type { Locale } from "@/lib/types";
 
 interface OthersSeriesPageProps {
@@ -43,29 +41,15 @@ async function SeriesIndexContent({
   );
 }
 
-async function OthersSeriesPageGate({
+export default function OthersSeriesPage({
   searchParams,
   params,
 }: OthersSeriesPageProps) {
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-
-  if (!othersLibraryEnabled) {
-    notFound();
-  }
-
   return (
     <section className="p-4 mt-4">
       <Suspense fallback={<GridSkeleton />}>
         <SeriesIndexContent searchParams={searchParams} params={params} />
       </Suspense>
     </section>
-  );
-}
-
-export default function OthersSeriesPage(props: OthersSeriesPageProps) {
-  return (
-    <Suspense fallback={<GridSkeleton />}>
-      <OthersSeriesPageGate {...props} />
-    </Suspense>
   );
 }

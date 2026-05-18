@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import HeroKeepRead from "@/components/library/manga/row/HeroKeepRead";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { getLibraryScope } from "@/lib/librarySection";
 import type { Locale } from "@/lib/types";
@@ -14,8 +13,7 @@ interface MangaLayoutProps {
 async function MangaLayoutContent({ children, params }: MangaLayoutProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-  const scope = getLibraryScope("manga", othersLibraryEnabled);
+  const scope = getLibraryScope("manga");
 
   return (
     <>

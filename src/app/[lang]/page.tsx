@@ -10,9 +10,9 @@ import Link from "next/link";
 import clsx from "clsx";
 import ReloadButton from "@/components/ui/ReloadButton";
 import PushButton from "@/components/ui/PushButton";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getLibrarySection } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import type { Locale, DictionarySection } from "@/lib/types";
 import type { HomeKeepReadingEntry } from "@/components/home/manga/HeroKeepRead";
 import type { VolumeEntry } from "@/components/home/manga/RowNewVolsCarousel";
@@ -91,7 +91,6 @@ async function HomeContent({
 }) {
   const volumesResult = await getMangaVolumes();
   const statsData = await getReaderStats();
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
 
   const home = intl.home as DictionarySection;
   const volumes = volumesResult?.success && volumesResult.data
@@ -106,10 +105,7 @@ async function HomeContent({
         slug: vol.slug,
         isOneshot: vol.series?.isOneshot === true,
         coverImage: getMangaCoverUrl(vol),
-        section: getLibrarySection(
-          vol.metadataObj?.mangaStyle,
-          othersLibraryEnabled
-        ),
+        section: getLibrarySection(vol.metadataObj?.mangaStyle),
         meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
         lastPage: progress?.lastPage ?? 0,
         totalPages: progress?.totalPages ?? 0,
@@ -128,14 +124,12 @@ async function HomeContent({
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 8)
     .map((vol) => ({
+      progressRatio: getVolumeProgressRatio(vol.usersProgress?.[0] ?? null),
       title: vol.title,
       slug: vol.slug,
       isOneshot: vol.series?.isOneshot === true,
       coverImage: getMangaCoverUrl(vol),
-      section: getLibrarySection(
-        vol.metadataObj?.mangaStyle,
-        othersLibraryEnabled
-      ),
+      section: getLibrarySection(vol.metadataObj?.mangaStyle),
       meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
     }));
 

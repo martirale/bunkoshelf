@@ -16,6 +16,7 @@ export interface VolumeEntry {
   coverImage: string | null;
   section: LibrarySection;
   meta: { title?: string | null } | null;
+  progressRatio?: number | null;
 }
 
 interface RowNewVolsCarouselProps {
@@ -112,6 +113,7 @@ export default function RowNewVolsCarousel({ entries, lang, intl }: RowNewVolsCa
               isOneshot={entry.isOneshot}
               volumeCount={null}
               cover={entry.coverImage}
+              progressRatio={entry.progressRatio ?? null}
               intl={intl}
               isDragging={isDragging}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"

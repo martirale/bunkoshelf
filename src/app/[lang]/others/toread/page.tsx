@@ -1,8 +1,6 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import WantToRead from "@/components/library/manga/grid/WantToRead";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import type { Locale } from "@/lib/types";
 
 interface OthersToReadPageProps {
@@ -43,29 +41,15 @@ async function WantToReadContent({
   );
 }
 
-async function OthersToReadPageGate({
+export default function OthersToReadPage({
   searchParams,
   params,
 }: OthersToReadPageProps) {
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-
-  if (!othersLibraryEnabled) {
-    notFound();
-  }
-
   return (
     <section className="p-4 mt-4">
       <Suspense fallback={<GridSkeleton />}>
         <WantToReadContent searchParams={searchParams} params={params} />
       </Suspense>
     </section>
-  );
-}
-
-export default function OthersToReadPage(props: OthersToReadPageProps) {
-  return (
-    <Suspense fallback={<GridSkeleton />}>
-      <OthersToReadPageGate {...props} />
-    </Suspense>
   );
 }

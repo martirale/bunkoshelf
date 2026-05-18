@@ -1,7 +1,5 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import HeroKeepRead from "@/components/library/manga/row/HeroKeepRead";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import type { Locale } from "@/lib/types";
 import type { ReactNode } from "react";
@@ -27,12 +25,6 @@ async function OthersLayoutContent({
   params,
 }: OthersLayoutProps) {
   const { lang = "es" } = await params;
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-
-  if (!othersLibraryEnabled) {
-    notFound();
-  }
-
   const intl = await getDictionary(lang as Locale);
 
   return (

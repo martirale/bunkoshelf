@@ -3,7 +3,6 @@ import SeriesContent from "@/components/library/manga/SeriesContent";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listVolumeRatings, findSeriesFavoriteState } from "@/lib/db/reading";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import {
   findSeriesBySlug,
@@ -80,7 +79,6 @@ async function SeriesMangaPageContent({
 }: SeriesMangaPageProps) {
   const { lang = "es", series } = await params;
   const intl = await getDictionary(lang as Locale);
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
 
   try {
     const user = await verifySession();
@@ -100,10 +98,7 @@ async function SeriesMangaPageContent({
       );
     }
 
-    const targetSection = getLibrarySection(
-      serie.volumes[0]?.metadataObj?.mangaStyle,
-      othersLibraryEnabled
-    );
+    const targetSection = getLibrarySection(serie.volumes[0]?.metadataObj?.mangaStyle);
 
     if (targetSection !== "manga") {
       redirect(getLibrarySeriesHref(lang, targetSection, serie.slug));

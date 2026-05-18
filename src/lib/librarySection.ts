@@ -5,22 +5,18 @@ export function isOthersLibraryItem(mangaStyle: string | null | undefined) {
   return mangaStyle === "No";
 }
 
-export function getLibraryScope(
-  section: LibrarySection,
-  isOthersEnabled: boolean
-): LibraryScope {
+export function getLibraryScope(section: LibrarySection): LibraryScope {
   if (section === "others") {
     return "others";
   }
 
-  return isOthersEnabled ? "manga" : "all";
+  return "manga";
 }
 
 export function getLibrarySection(
-  mangaStyle: string | null | undefined,
-  isOthersEnabled: boolean
+  mangaStyle: string | null | undefined
 ): LibrarySection {
-  if (isOthersEnabled && isOthersLibraryItem(mangaStyle)) {
+  if (isOthersLibraryItem(mangaStyle)) {
     return "others";
   }
 

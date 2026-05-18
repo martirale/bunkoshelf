@@ -1,9 +1,7 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import NextVol from "@/components/library/manga/row/NextVol";
 import NewVols from "@/components/library/manga/row/NewVols";
 import RecentlyRead from "@/components/library/manga/row/RecentlyRead";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import type { Locale } from "@/lib/types";
 
@@ -26,12 +24,6 @@ function MangaRowSkeleton() {
 
 async function OthersPageContent({ params }: OthersPageProps) {
   const { lang = "es" } = await params;
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-
-  if (!othersLibraryEnabled) {
-    notFound();
-  }
-
   const intl = await getDictionary(lang as Locale);
 
   return (

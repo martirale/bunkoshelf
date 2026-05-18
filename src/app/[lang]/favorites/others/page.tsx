@@ -1,10 +1,8 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import SeriesIndexFav from "@/components/library/manga/grid/SeriesIndexFav";
 import VolumesIndexFav from "@/components/library/manga/grid/VolumesIndexFav";
 import Separator from "@/components/ui/Separator";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import type { Locale } from "@/lib/types";
 
 interface FavoritesOthersPageProps {
@@ -50,15 +48,9 @@ async function FavoritesVolumes({ params }: { params: Promise<{ lang: string }> 
   );
 }
 
-async function FavoritesOthersPageContent({
+export default function FavoritesOthersPage({
   params,
 }: FavoritesOthersPageProps) {
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-
-  if (!othersLibraryEnabled) {
-    notFound();
-  }
-
   return (
     <>
       <Suspense fallback={<GridSkeleton />}>
@@ -69,13 +61,5 @@ async function FavoritesOthersPageContent({
         <FavoritesVolumes params={params} />
       </Suspense>
     </>
-  );
-}
-
-export default function FavoritesOthersPage(props: FavoritesOthersPageProps) {
-  return (
-    <Suspense fallback={<GridSkeleton />}>
-      <FavoritesOthersPageContent {...props} />
-    </Suspense>
   );
 }

@@ -3,7 +3,6 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import SidebarMisc from "@/components/ui/SidebarMisc";
 import FavoritesNav from "@/components/favorites/FavoritesNav";
 import { HeartIcon } from "lucide-react";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import type { Locale } from "@/lib/types";
 import type { ReactNode } from "react";
 
@@ -18,7 +17,6 @@ async function FavoritesLayoutContent({
 }: FavoritesLayoutProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
 
   return (
     <div className="flex flex-col md:flex-row md:h-screen overflow-hidden">
@@ -30,7 +28,6 @@ async function FavoritesLayoutContent({
 
         <FavoritesNav
           intl={intl}
-          isOthersEnabled={othersLibraryEnabled}
         />
       </SidebarMisc>
 

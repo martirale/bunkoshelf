@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import SeriesContent from "@/components/library/manga/SeriesContent";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listVolumeRatings, findSeriesFavoriteState } from "@/lib/db/reading";
@@ -14,7 +14,6 @@ import {
 } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { sortByPaddedTitle } from "@/lib/utils";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import type { Locale } from "@/lib/types";
 
 interface AggregatedMeta {
@@ -80,7 +79,6 @@ async function OthersSeriesPageContent({
 }: OthersSeriesPageProps) {
   const { lang = "es", series } = await params;
   const intl = await getDictionary(lang as Locale);
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
 
   try {
     const user = await verifySession();
@@ -100,10 +98,7 @@ async function OthersSeriesPageContent({
       );
     }
 
-    const targetSection = getLibrarySection(
-      serie.volumes[0]?.metadataObj?.mangaStyle,
-      othersLibraryEnabled
-    );
+    const targetSection = getLibrarySection(serie.volumes[0]?.metadataObj?.mangaStyle);
 
     if (targetSection !== "others") {
       redirect(getLibrarySeriesHref(lang, targetSection, serie.slug));
@@ -186,26 +181,10 @@ async function OthersSeriesPageContent({
   }
 }
 
-async function OthersSeriesPageGate({
-  params,
-}: OthersSeriesPageProps) {
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-
-  if (!othersLibraryEnabled) {
-    notFound();
-  }
-
+export default function OthersSeriesPage({ params }: OthersSeriesPageProps) {
   return (
     <Suspense fallback={<SeriesSkeleton />}>
       <OthersSeriesPageContent params={params} />
-    </Suspense>
-  );
-}
-
-export default function OthersSeriesPage(props: OthersSeriesPageProps) {
-  return (
-    <Suspense fallback={<SeriesSkeleton />}>
-      <OthersSeriesPageGate {...props} />
     </Suspense>
   );
 }

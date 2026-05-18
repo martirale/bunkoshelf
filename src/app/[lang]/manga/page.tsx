@@ -3,7 +3,6 @@ import NextVol from "@/components/library/manga/row/NextVol";
 import NewVols from "@/components/library/manga/row/NewVols";
 import DemographicsTiles from "@/components/library/manga/Demographics";
 import RecentlyRead from "@/components/library/manga/row/RecentlyRead";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { getLibraryScope } from "@/lib/librarySection";
 import type { Locale } from "@/lib/types";
@@ -28,8 +27,7 @@ function MangaRowSkeleton() {
 async function MangaPageContent({ params }: MangaPageProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-  const scope = getLibraryScope("manga", othersLibraryEnabled);
+  const scope = getLibraryScope("manga");
 
   return (
     <div className="p-4">

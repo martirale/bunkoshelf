@@ -1,8 +1,6 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import VolumesIndex from "@/components/library/manga/grid/VolumesIndex";
-import { isOthersLibraryEnabled } from "@/lib/db/appSettings";
 import type { Locale } from "@/lib/types";
 
 interface OthersVolumesPageProps {
@@ -43,29 +41,15 @@ async function VolumesIndexContent({
   );
 }
 
-async function OthersVolumesPageGate({
+export default function OthersVolumesPage({
   searchParams,
   params,
 }: OthersVolumesPageProps) {
-  const othersLibraryEnabled = await isOthersLibraryEnabled();
-
-  if (!othersLibraryEnabled) {
-    notFound();
-  }
-
   return (
     <section className="p-4 mt-4">
       <Suspense fallback={<GridSkeleton />}>
         <VolumesIndexContent searchParams={searchParams} params={params} />
       </Suspense>
     </section>
-  );
-}
-
-export default function OthersVolumesPage(props: OthersVolumesPageProps) {
-  return (
-    <Suspense fallback={<GridSkeleton />}>
-      <OthersVolumesPageGate {...props} />
-    </Suspense>
   );
 }
