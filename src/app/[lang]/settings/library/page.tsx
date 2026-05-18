@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { FolderCogIcon } from "lucide-react";
 import LibSettingsButtons from "@/components/settings/LibSettingsButtons";
@@ -13,6 +14,8 @@ interface SettingsLibraryPageProps {
 export default async function SettingsLibraryPage({
   params,
 }: SettingsLibraryPageProps) {
+  await connection();
+
   const { lang = "es" } = await params;
   const intl: Dictionary = await getDictionary(lang as Locale);
   const libProvider = process.env.LIB_PROVIDER;
