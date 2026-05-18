@@ -165,7 +165,10 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
     last_read_at: Date | null;
   }>(
     `
-      SELECT id, volume_id, last_read_at
+      SELECT
+        utv.id,
+        utv.volume_id,
+        utv.last_read_at
       FROM user_to_volumes utv
       INNER JOIN manga_volumes mv
         ON mv.id = utv.volume_id
