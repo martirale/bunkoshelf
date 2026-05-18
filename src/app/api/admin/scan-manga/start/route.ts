@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, connection } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
 import { mainJob } from "@/lib/jobs/scan/manga/mainJob";
@@ -301,6 +301,8 @@ async function runBackgroundJob() {
 export async function POST() {
   let _err: Error | undefined;
   try {
+    await connection();
+
     const user = await verifySession();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

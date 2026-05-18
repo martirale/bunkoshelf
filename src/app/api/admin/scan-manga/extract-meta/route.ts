@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, connection } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import fsp from "fs/promises";
@@ -46,6 +46,8 @@ function getExtractorForFile(filePath: string): MetaExtractor | null {
 export async function POST(request: NextRequest) {
   let error: Error | null = null;
   try {
+    await connection();
+
     const user = await verifySession();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

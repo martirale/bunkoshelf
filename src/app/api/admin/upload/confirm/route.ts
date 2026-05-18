@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, connection } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
@@ -42,6 +42,8 @@ interface ConfirmBody {
 export async function POST(request: NextRequest) {
   let _err: Error | undefined;
   try {
+    await connection();
+
     const user = await verifySession();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

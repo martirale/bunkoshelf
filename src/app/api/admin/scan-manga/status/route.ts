@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, connection } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
@@ -7,6 +7,8 @@ const STATUS_PATH = path.join(process.cwd(), "tmp", "scan-status.json");
 
 export async function GET() {
   try {
+    await connection();
+
     const user = await verifySession();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

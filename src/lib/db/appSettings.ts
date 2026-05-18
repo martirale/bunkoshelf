@@ -8,7 +8,15 @@ export interface AppSettings {
   othersLibraryEnabled: boolean;
 }
 
+function hasDatabaseUrl() {
+  return Boolean(process.env.DATABASE_URL);
+}
+
 async function ensureAppSettingsRow() {
+  if (!hasDatabaseUrl()) {
+    return;
+  }
+
   await execute(
     `
       INSERT INTO app_settings (id, others_library_enabled)
@@ -20,6 +28,12 @@ async function ensureAppSettingsRow() {
 }
 
 async function getAppSettingsRaw(): Promise<AppSettings> {
+  if (!hasDatabaseUrl()) {
+    return {
+      othersLibraryEnabled: false,
+    };
+  }
+
   await ensureAppSettingsRow();
 
   const row = await queryOne<{ others_library_enabled: boolean }>(
