@@ -98,7 +98,9 @@ export default function SeriesContent({
               </span>
             ) : null}
             <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1">
-              {isWesternReading ? (intl.manga.readingEn as string) : (intl.manga.readingJp as string)}
+              {isWesternReading
+                ? (intl.manga.readingEn as string)
+                : (intl.manga.readingJp as string)}
             </span>
           </div>
 
@@ -136,35 +138,42 @@ export default function SeriesContent({
           {volumes && volumes.length > 0 ? (
             volumes.map((volume, idx) => {
               const progress =
-                (volume.usersProgress as Array<{
-                  isRead: boolean;
-                  lastPage: number | null;
-                  totalPages: number | null;
-                }> | undefined)?.[0] ?? null;
+                (
+                  volume.usersProgress as
+                    | Array<{
+                        isRead: boolean;
+                        lastPage: number | null;
+                        totalPages: number | null;
+                      }>
+                    | undefined
+                )?.[0] ?? null;
 
               return (
-              <MangaCard
-                key={idx}
-                title={(volume.meta as Record<string, string>)?.title || (volume.filename as string)}
-                href={`/${lang}/${section}/volume/${volume.slug as string}`}
-                isSeries={false}
-                isOneshot={false}
-                onGoing={false}
-                onPause={false}
-                volumeCount={null}
-                cover={(volume.coverImage as string) ?? null}
-                isDragging={false}
-                seriesSlug={null}
-                progressRatio={getVolumeProgressRatio(progress)}
-                intl={intl}
-                className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
-              />
+                <MangaCard
+                  key={idx}
+                  title={
+                    (volume.meta as Record<string, string>)?.title ||
+                    (volume.filename as string)
+                  }
+                  href={`/${lang}/${section}/volume/${volume.slug as string}`}
+                  isSeries={false}
+                  isOneshot={false}
+                  onGoing={false}
+                  onPause={false}
+                  volumeCount={null}
+                  cover={(volume.coverImage as string) ?? null}
+                  isDragging={false}
+                  seriesSlug={null}
+                  progressRatio={getVolumeProgressRatio(progress)}
+                  intl={intl}
+                  className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
+                />
               );
             })
           ) : (
             <div>
               {(intl?.library?.noVolumes as string) ||
-                "No hay volúmenes disponibles para esta serie."}
+                "No hay Tomos disponibles para esta serie."}
             </div>
           )}
         </div>

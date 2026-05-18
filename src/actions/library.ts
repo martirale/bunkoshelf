@@ -127,7 +127,7 @@ export async function getMangaVolumes(options?: LibraryActionOptions) {
     error = e as Error;
   } finally {
     if (error) {
-      console.error("Error al obtener volúmenes:", error);
+      console.error("Error al obtener tomos:", error);
       return {
         success: false,
         error: "Error al consultar la base de datos",
