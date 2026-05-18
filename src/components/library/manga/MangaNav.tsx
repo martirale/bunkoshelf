@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { getReaderStats } from "@/actions/stats";
 import {
   getLibraryRootHref,
+  type LibraryScope,
   type LibrarySection,
 } from "@/lib/librarySection";
 import type { Locale, Dictionary, DictionarySection } from "@/lib/types";
@@ -22,6 +23,7 @@ interface MangaNavProps {
   lang: Locale;
   intl: Dictionary;
   section?: LibrarySection;
+  scope?: LibraryScope;
 }
 
 interface NavLink {
@@ -42,6 +44,7 @@ export default function MangaNav({
   lang,
   intl,
   section = "manga",
+  scope = "all",
 }: MangaNavProps) {
   const pathname = usePathname();
   const [stats, setStats] = useState<Stats>({
@@ -53,7 +56,9 @@ export default function MangaNav({
   useEffect(() => {
     async function fetchStats() {
       try {
-        const data = await getReaderStats();
+        const data = await getReaderStats({
+          scope,
+        });
         setStats({
           totalVolumes: data.totalVolumes ?? null,
           totalSeries: data.totalSeries ?? null,

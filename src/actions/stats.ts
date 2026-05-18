@@ -1,6 +1,7 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
+import type { LibraryScope } from "@/lib/librarySection";
 import { query, queryOne } from "@/lib/db/query";
 
 interface GenreStat {
@@ -11,6 +12,25 @@ interface GenreStat {
 interface MonthlyRead {
   month: number;
   count: number;
+}
+
+interface ReaderStatsOptions {
+  scope?: LibraryScope;
+}
+
+function buildScopeCondition(
+  scope: LibraryScope | undefined,
+  alias = "vm"
+): string {
+  if (scope === "others") {
+    return `${alias}.manga_style = 'No'`;
+  }
+
+  if (scope === "manga") {
+    return `(${alias}.manga_style IS NULL OR ${alias}.manga_style <> 'No')`;
+  }
+
+  return "TRUE";
 }
 
 export async function getGenresStats() {
@@ -131,11 +151,13 @@ export async function getGenresStats() {
   }
 }
 
-export async function getReaderStats() {
+export async function getReaderStats(options?: ReaderStatsOptions) {
   const user = await verifySession();
   if (!user) {
     return { error: "Unauthorized", status: 401 };
   }
+
+  const scopeCondition = buildScopeCondition(options?.scope);
 
   const volumesRead = await query<{
     id: string;
@@ -144,9 +166,14 @@ export async function getReaderStats() {
   }>(
     `
       SELECT id, volume_id, last_read_at
-      FROM user_to_volumes
-      WHERE user_id = $1
-        AND is_read = TRUE
+      FROM user_to_volumes utv
+      INNER JOIN manga_volumes mv
+        ON mv.id = utv.volume_id
+      LEFT JOIN volume_metadata vm
+        ON vm.id = mv.metadata_id
+      WHERE utv.user_id = $1
+        AND utv.is_read = TRUE
+        AND ${scopeCondition}
     `,
     [user.id]
   );
@@ -154,10 +181,15 @@ export async function getReaderStats() {
   const allReadDates = await query<{ last_read_at: Date | null }>(
     `
       SELECT last_read_at
-      FROM user_to_volumes
-      WHERE user_id = $1
-        AND last_read_at IS NOT NULL
-      ORDER BY last_read_at DESC
+      FROM user_to_volumes utv
+      INNER JOIN manga_volumes mv
+        ON mv.id = utv.volume_id
+      LEFT JOIN volume_metadata vm
+        ON vm.id = mv.metadata_id
+      WHERE utv.user_id = $1
+        AND utv.last_read_at IS NOT NULL
+        AND ${scopeCondition}
+      ORDER BY utv.last_read_at DESC
     `,
     [user.id]
   );
@@ -175,15 +207,23 @@ export async function getReaderStats() {
   const totalVolumes = await queryOne<{ count: string }>(
     `
       SELECT COUNT(*)::text AS count
-      FROM manga_volumes
+      FROM manga_volumes mv
+      LEFT JOIN volume_metadata vm
+        ON vm.id = mv.metadata_id
+      WHERE ${scopeCondition}
     `
   );
 
   const totalSeries = await queryOne<{ count: string }>(
     `
-      SELECT COUNT(*)::text AS count
-      FROM manga_series
-      WHERE is_oneshot = FALSE
+      SELECT COUNT(DISTINCT ms.id)::text AS count
+      FROM manga_series ms
+      INNER JOIN manga_volumes mv
+        ON mv.series_id = ms.id
+      LEFT JOIN volume_metadata vm
+        ON vm.id = mv.metadata_id
+      WHERE ms.is_oneshot = FALSE
+        AND ${scopeCondition}
     `
   );
 
@@ -193,7 +233,10 @@ export async function getReaderStats() {
       FROM manga_volumes mv
       INNER JOIN user_to_volumes utv
         ON utv.volume_id = mv.id
+      LEFT JOIN volume_metadata vm
+        ON vm.id = mv.metadata_id
       WHERE utv.user_id = $1
+        AND ${scopeCondition}
     `,
     [user.id]
   );
@@ -201,9 +244,14 @@ export async function getReaderStats() {
   const allFirstReadDates = await query<{ first_read: string | null }>(
     `
       SELECT first_read
-      FROM user_to_volumes
-      WHERE user_id = $1
-        AND first_read IS NOT NULL
+      FROM user_to_volumes utv
+      INNER JOIN manga_volumes mv
+        ON mv.id = utv.volume_id
+      LEFT JOIN volume_metadata vm
+        ON vm.id = mv.metadata_id
+      WHERE utv.user_id = $1
+        AND utv.first_read IS NOT NULL
+        AND ${scopeCondition}
     `,
     [user.id]
   );

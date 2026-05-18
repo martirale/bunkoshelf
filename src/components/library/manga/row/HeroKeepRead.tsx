@@ -229,7 +229,7 @@ export default function HeroKeepRead({
           </section>
 
           <div className="sticky top-0 z-10 bg-pearl p-4">
-            <MangaNav lang={lang} intl={intl} section={section} />
+            <MangaNav lang={lang} intl={intl} section={section} scope={scope} />
           </div>
         </>
       )}
