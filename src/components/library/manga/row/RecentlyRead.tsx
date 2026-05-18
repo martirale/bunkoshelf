@@ -3,6 +3,7 @@ import { getMangaVolumes } from "@/actions/library";
 import MangaRowCarousel, { type VolEntry } from "./MangaRowCarousel";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import type { LibraryScope, LibrarySection } from "@/lib/librarySection";
+import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface RecentlyReadProps {
@@ -35,6 +36,7 @@ export default async function RecentlyRead({
             meta: vol.metadataObj ?? null,
             isRead: progress?.isRead ?? false,
             lastReadAt: progress?.lastReadAt ? new Date(progress.lastReadAt) : null,
+            progressRatio: getVolumeProgressRatio(progress),
           };
         })
         .filter((vol) => vol.isRead && vol.lastReadAt)

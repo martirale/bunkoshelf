@@ -9,6 +9,7 @@ import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 import SeriesRating from "./SeriesRating";
 import type { LibrarySection } from "@/lib/librarySection";
+import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import type { Locale, Dictionary, Session } from "@/lib/types";
 
 interface SeriesContentProps {
@@ -133,7 +134,15 @@ export default function SeriesContent({
 
         <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
           {volumes && volumes.length > 0 ? (
-            volumes.map((volume, idx) => (
+            volumes.map((volume, idx) => {
+              const progress =
+                (volume.usersProgress as Array<{
+                  isRead: boolean;
+                  lastPage: number | null;
+                  totalPages: number | null;
+                }> | undefined)?.[0] ?? null;
+
+              return (
               <MangaCard
                 key={idx}
                 title={(volume.meta as Record<string, string>)?.title || (volume.filename as string)}
@@ -146,11 +155,12 @@ export default function SeriesContent({
                 cover={(volume.coverImage as string) ?? null}
                 isDragging={false}
                 seriesSlug={null}
-                progressRatio={null}
+                progressRatio={getVolumeProgressRatio(progress)}
                 intl={intl}
                 className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
               />
-            ))
+              );
+            })
           ) : (
             <div>
               {(intl?.library?.noVolumes as string) ||

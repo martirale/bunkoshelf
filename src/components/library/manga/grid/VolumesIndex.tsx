@@ -4,12 +4,14 @@ import { LibraryBigIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
+import { verifySession } from "@/lib/auth/verifySession";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import {
   getLibraryVolumeHref,
   type LibraryScope,
   type LibrarySection,
 } from "@/lib/librarySection";
+import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import type { Locale, Dictionary } from "@/lib/types";
 
 const PAGE_SIZE = 35;
@@ -33,12 +35,14 @@ export default async function VolumesIndex({
   scope = "all",
   section = "manga",
 }: VolumesIndexProps) {
+  const user = await verifySession();
   const genreList =
     typeof genreFilter === "string" ? genreFilter.split(",") : genreFilter;
   const tagList =
     typeof tagFilter === "string" ? tagFilter.split(",") : tagFilter;
 
   const volumes = await listVolumes({
+    userId: user?.id ?? null,
     includeGenres: true,
     includeTags: true,
     genreNames: genreList,
@@ -75,6 +79,7 @@ export default async function VolumesIndex({
       <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">
         {paginatedEntries.map((entry) => {
           const href = getLibraryVolumeHref(lang, section, entry.slug);
+          const progress = entry.usersProgress?.[0] ?? null;
 
           return (
             <MangaCard
@@ -89,7 +94,7 @@ export default async function VolumesIndex({
               cover={entry.coverImage}
               isDragging={false}
               seriesSlug={null}
-              progressRatio={null}
+              progressRatio={getVolumeProgressRatio(progress)}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />

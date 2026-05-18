@@ -19,6 +19,7 @@ export interface VolEntry {
   meta: {
     title?: string | null;
   } | null;
+  progressRatio?: number | null;
 }
 
 interface MangaRowCarouselProps {
@@ -128,7 +129,7 @@ export default function MangaRowCarousel({
               intl={intl}
               isDragging={isDragging}
               seriesSlug={null}
-              progressRatio={null}
+              progressRatio={entry.progressRatio ?? null}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />
           </div>

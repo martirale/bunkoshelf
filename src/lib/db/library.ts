@@ -117,6 +117,7 @@ interface VolumeQueryOptions extends SharedVolumeQueryOptions {
 }
 
 interface SharedSeriesQueryOptions {
+  userId?: string | null;
   genreNames?: string[];
   tagNames?: string[];
   seriesIds?: string[];
@@ -127,6 +128,7 @@ interface SharedSeriesQueryOptions {
 
 interface FindSeriesOptions {
   slug: string;
+  userId?: string | null;
   includeGenres?: boolean;
   includeTags?: boolean;
   scope?: LibraryScope;
@@ -674,6 +676,7 @@ async function listSeriesWithVolumesRaw(
   options?: SharedSeriesQueryOptions
 ): Promise<LibrarySeriesWithVolumes[]> {
   const volumes = await listVolumesRaw({
+    userId: options?.userId,
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
     genreNames: options?.genreNames,
@@ -798,6 +801,7 @@ async function findSeriesBySlugRaw(
   }
 
   const series = await listSeriesWithVolumesRaw({
+    userId: options.userId,
     seriesIds: [row.id],
     includeGenres: options.includeGenres,
     includeTags: options.includeTags,
@@ -819,6 +823,10 @@ async function findSeriesBySlugCached(options: FindSeriesOptions) {
 export async function findSeriesBySlug(
   options: FindSeriesOptions
 ): Promise<LibrarySeriesWithVolumes | null> {
+  if (options.userId) {
+    return findSeriesBySlugRaw(options);
+  }
+
   return findSeriesBySlugCached(options);
 }
 

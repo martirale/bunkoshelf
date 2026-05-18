@@ -87,6 +87,7 @@ async function SeriesMangaPageContent({
 
     const serie = await findSeriesBySlug({
       slug: series,
+      userId: user?.id ?? null,
       includeGenres: true,
       includeTags: true,
     });

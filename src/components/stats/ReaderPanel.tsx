@@ -19,6 +19,31 @@ type ReaderStatsPanelProps = {
   data?: Awaited<ReturnType<typeof getReaderStats>>;
 };
 
+function formatLoggedDate(
+  value: string,
+  lang: string | undefined,
+  currentYear: number
+) {
+  const [yearRaw, monthRaw, dayRaw] = value.split("-");
+  const year = Number(yearRaw);
+  const month = Number(monthRaw);
+  const day = Number(dayRaw);
+
+  if (!year || !month || !day) {
+    return "—";
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  const options: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    ...(year !== currentYear ? { year: "numeric" } : {}),
+    timeZone: "UTC",
+  };
+
+  return new Intl.DateTimeFormat(lang, options).format(date);
+}
+
 export default async function ReaderStatsPanel({
   lang,
   intl,
@@ -57,7 +82,9 @@ export default async function ReaderStatsPanel({
   }
 
   let lastRead = "—";
-  if (allReadDates.length > 0 && allReadDates[0].lastReadAt) {
+  if (dailyReading.length > 0) {
+    lastRead = formatLoggedDate(dailyReading[0].date, lang, thisYear);
+  } else if (allReadDates.length > 0 && allReadDates[0].lastReadAt) {
     const date = new Date(allReadDates[0].lastReadAt);
     if (!isNaN(date.getTime())) {
       const options: Intl.DateTimeFormatOptions = {

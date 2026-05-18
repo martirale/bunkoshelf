@@ -7,6 +7,7 @@ import {
   type LibraryScope,
   type LibrarySection,
 } from "@/lib/librarySection";
+import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { GhostIcon, BookCopyIcon } from "lucide-react";
 import type { Locale, Dictionary } from "@/lib/types";
@@ -60,6 +61,7 @@ export default async function VolumesIndexFav({
         {entries.map((entry) => {
           const href = getLibraryVolumeHref(lang, section, entry.slug);
           const coverImage = entry.coverImage;
+          const progress = entry.usersProgress?.[0] ?? null;
 
           return (
             <MangaCard
@@ -72,7 +74,7 @@ export default async function VolumesIndexFav({
               onPause={false}
               volumeCount={null}
               cover={coverImage}
-              progressRatio={null}
+              progressRatio={getVolumeProgressRatio(progress)}
               isDragging={false}
               seriesSlug={null}
               intl={intl}
