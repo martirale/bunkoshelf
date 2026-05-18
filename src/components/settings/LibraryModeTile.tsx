@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { LibraryBigIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { setOthersLibraryMode } from "@/actions/app-settings";
 import clsx from "clsx";
 import type { Dictionary } from "@/lib/types";
@@ -16,7 +15,6 @@ export default function LibraryModeTile({
   intl,
   initialEnabled,
 }: LibraryModeTileProps) {
-  const router = useRouter();
   const [enabled, setEnabled] = useState(initialEnabled);
   const [isPending, startTransition] = useTransition();
 
@@ -31,7 +29,7 @@ export default function LibraryModeTile({
         return;
       }
 
-      router.refresh();
+      window.location.reload();
     });
   };
 
