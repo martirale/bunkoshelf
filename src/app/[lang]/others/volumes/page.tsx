@@ -43,7 +43,7 @@ async function VolumesIndexContent({
   );
 }
 
-export default async function OthersVolumesPage({
+async function OthersVolumesPageGate({
   searchParams,
   params,
 }: OthersVolumesPageProps) {
@@ -59,5 +59,13 @@ export default async function OthersVolumesPage({
         <VolumesIndexContent searchParams={searchParams} params={params} />
       </Suspense>
     </section>
+  );
+}
+
+export default function OthersVolumesPage(props: OthersVolumesPageProps) {
+  return (
+    <Suspense fallback={<GridSkeleton />}>
+      <OthersVolumesPageGate {...props} />
+    </Suspense>
   );
 }

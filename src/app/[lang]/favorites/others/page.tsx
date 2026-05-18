@@ -50,7 +50,7 @@ async function FavoritesVolumes({ params }: { params: Promise<{ lang: string }> 
   );
 }
 
-export default async function FavoritesOthersPage({
+async function FavoritesOthersPageContent({
   params,
 }: FavoritesOthersPageProps) {
   const othersLibraryEnabled = await isOthersLibraryEnabled();
@@ -69,5 +69,13 @@ export default async function FavoritesOthersPage({
         <FavoritesVolumes params={params} />
       </Suspense>
     </>
+  );
+}
+
+export default function FavoritesOthersPage(props: FavoritesOthersPageProps) {
+  return (
+    <Suspense fallback={<GridSkeleton />}>
+      <FavoritesOthersPageContent {...props} />
+    </Suspense>
   );
 }

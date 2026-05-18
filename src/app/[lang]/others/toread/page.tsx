@@ -43,7 +43,7 @@ async function WantToReadContent({
   );
 }
 
-export default async function OthersToReadPage({
+async function OthersToReadPageGate({
   searchParams,
   params,
 }: OthersToReadPageProps) {
@@ -59,5 +59,13 @@ export default async function OthersToReadPage({
         <WantToReadContent searchParams={searchParams} params={params} />
       </Suspense>
     </section>
+  );
+}
+
+export default function OthersToReadPage(props: OthersToReadPageProps) {
+  return (
+    <Suspense fallback={<GridSkeleton />}>
+      <OthersToReadPageGate {...props} />
+    </Suspense>
   );
 }

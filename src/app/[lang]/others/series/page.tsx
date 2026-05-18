@@ -43,7 +43,7 @@ async function SeriesIndexContent({
   );
 }
 
-export default async function OthersSeriesPage({
+async function OthersSeriesPageGate({
   searchParams,
   params,
 }: OthersSeriesPageProps) {
@@ -59,5 +59,13 @@ export default async function OthersSeriesPage({
         <SeriesIndexContent searchParams={searchParams} params={params} />
       </Suspense>
     </section>
+  );
+}
+
+export default function OthersSeriesPage(props: OthersSeriesPageProps) {
+  return (
+    <Suspense fallback={<GridSkeleton />}>
+      <OthersSeriesPageGate {...props} />
+    </Suspense>
   );
 }

@@ -24,7 +24,7 @@ function MangaRowSkeleton() {
   );
 }
 
-export default async function OthersPage({ params }: OthersPageProps) {
+async function OthersPageContent({ params }: OthersPageProps) {
   const { lang = "es" } = await params;
   const othersLibraryEnabled = await isOthersLibraryEnabled();
 
@@ -63,5 +63,13 @@ export default async function OthersPage({ params }: OthersPageProps) {
         />
       </Suspense>
     </div>
+  );
+}
+
+export default function OthersPage(props: OthersPageProps) {
+  return (
+    <Suspense fallback={<MangaRowSkeleton />}>
+      <OthersPageContent {...props} />
+    </Suspense>
   );
 }

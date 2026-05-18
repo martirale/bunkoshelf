@@ -15,6 +15,17 @@ export default async function OthersLayout({
   children,
   params,
 }: OthersLayoutProps) {
+  return (
+    <Suspense fallback={null}>
+      <OthersLayoutContent children={children} params={params} />
+    </Suspense>
+  );
+}
+
+async function OthersLayoutContent({
+  children,
+  params,
+}: OthersLayoutProps) {
   const { lang = "es" } = await params;
   const othersLibraryEnabled = await isOthersLibraryEnabled();
 

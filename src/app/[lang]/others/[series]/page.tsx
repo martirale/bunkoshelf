@@ -185,7 +185,7 @@ async function OthersSeriesPageContent({
   }
 }
 
-export default async function OthersSeriesPage({
+async function OthersSeriesPageGate({
   params,
 }: OthersSeriesPageProps) {
   const othersLibraryEnabled = await isOthersLibraryEnabled();
@@ -197,6 +197,14 @@ export default async function OthersSeriesPage({
   return (
     <Suspense fallback={<SeriesSkeleton />}>
       <OthersSeriesPageContent params={params} />
+    </Suspense>
+  );
+}
+
+export default function OthersSeriesPage(props: OthersSeriesPageProps) {
+  return (
+    <Suspense fallback={<SeriesSkeleton />}>
+      <OthersSeriesPageGate {...props} />
     </Suspense>
   );
 }

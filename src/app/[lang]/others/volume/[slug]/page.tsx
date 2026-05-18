@@ -134,7 +134,7 @@ async function OthersVolumePageContent({ params }: OthersVolumePageProps) {
   }
 }
 
-export default async function OthersVolumePage({
+async function OthersVolumePageGate({
   params,
 }: OthersVolumePageProps) {
   const othersLibraryEnabled = await isOthersLibraryEnabled();
@@ -146,6 +146,14 @@ export default async function OthersVolumePage({
   return (
     <Suspense fallback={<VolumeSkeleton />}>
       <OthersVolumePageContent params={params} />
+    </Suspense>
+  );
+}
+
+export default function OthersVolumePage(props: OthersVolumePageProps) {
+  return (
+    <Suspense fallback={<VolumeSkeleton />}>
+      <OthersVolumePageGate {...props} />
     </Suspense>
   );
 }
