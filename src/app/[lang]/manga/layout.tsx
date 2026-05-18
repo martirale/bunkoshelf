@@ -11,7 +11,7 @@ interface MangaLayoutProps {
   params: Promise<{ lang: string }>;
 }
 
-export default async function MangaLayout({ children, params }: MangaLayoutProps) {
+async function MangaLayoutContent({ children, params }: MangaLayoutProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
   const othersLibraryEnabled = await isOthersLibraryEnabled();
@@ -29,5 +29,13 @@ export default async function MangaLayout({ children, params }: MangaLayoutProps
 
       <div className="mb-24 md:mb-4">{children}</div>
     </>
+  );
+}
+
+export default function MangaLayout(props: MangaLayoutProps) {
+  return (
+    <Suspense fallback={null}>
+      <MangaLayoutContent {...props} />
+    </Suspense>
   );
 }

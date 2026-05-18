@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import SidebarMisc from "@/components/ui/SidebarMisc";
 import FavoritesNav from "@/components/favorites/FavoritesNav";
@@ -11,7 +12,10 @@ interface FavoritesLayoutProps {
   params: Promise<{ lang: string }>;
 }
 
-export default async function FavoritesLayout({ children, params }: FavoritesLayoutProps) {
+async function FavoritesLayoutContent({
+  children,
+  params,
+}: FavoritesLayoutProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
   const othersLibraryEnabled = await isOthersLibraryEnabled();
@@ -34,5 +38,13 @@ export default async function FavoritesLayout({ children, params }: FavoritesLay
         <div className="mb-24 md:mb-4">{children}</div>
       </div>
     </div>
+  );
+}
+
+export default function FavoritesLayout(props: FavoritesLayoutProps) {
+  return (
+    <Suspense fallback={null}>
+      <FavoritesLayoutContent {...props} />
+    </Suspense>
   );
 }

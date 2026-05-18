@@ -5,7 +5,7 @@ import { FolderCogIcon } from "lucide-react";
 import LibSettingsButtons from "@/components/settings/LibSettingsButtons";
 import LibraryModeTile from "@/components/settings/LibraryModeTile";
 import Separator from "@/components/ui/Separator";
-import { getAppSettings } from "@/lib/db/appSettings";
+import { getAppSettingsLive } from "@/lib/db/appSettings";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface SettingsLibraryPageProps {
@@ -31,7 +31,7 @@ async function SettingsLibraryPageContent({
   const { lang = "es" } = await params;
   const intl: Dictionary = await getDictionary(lang as Locale);
   const libProvider = process.env.LIB_PROVIDER;
-  const settings = await getAppSettings();
+  const settings = await getAppSettingsLive();
 
   return (
     <>

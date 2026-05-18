@@ -1,4 +1,5 @@
 import { cacheLife, cacheTag } from "next/cache";
+import { cache } from "react";
 import { execute, queryOne } from "./query";
 
 export const APP_SETTINGS_TAG = "app-settings";
@@ -51,6 +52,8 @@ async function getAppSettingsRaw(): Promise<AppSettings> {
   };
 }
 
+export const getAppSettingsLive = cache(getAppSettingsRaw);
+
 async function getAppSettingsCached() {
   "use cache";
 
@@ -78,6 +81,6 @@ export async function updateOthersLibraryEnabled(enabled: boolean) {
 }
 
 export async function isOthersLibraryEnabled() {
-  const settings = await getAppSettings();
+  const settings = await getAppSettingsLive();
   return settings.othersLibraryEnabled;
 }

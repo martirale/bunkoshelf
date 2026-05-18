@@ -25,7 +25,7 @@ function MangaRowSkeleton() {
   );
 }
 
-export default async function MangaPage({ params }: MangaPageProps) {
+async function MangaPageContent({ params }: MangaPageProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
   const othersLibraryEnabled = await isOthersLibraryEnabled();
@@ -47,5 +47,13 @@ export default async function MangaPage({ params }: MangaPageProps) {
         <RecentlyRead lang={lang as Locale} intl={intl} scope={scope} />
       </Suspense>
     </div>
+  );
+}
+
+export default function MangaPage(props: MangaPageProps) {
+  return (
+    <Suspense fallback={<MangaRowSkeleton />}>
+      <MangaPageContent {...props} />
+    </Suspense>
   );
 }
