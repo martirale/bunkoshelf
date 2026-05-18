@@ -1,12 +1,28 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { hasPermission } from "@/lib/auth/roles";
 import { verifySession } from "@/lib/auth/verifySession";
 import {
   APP_SETTINGS_TAG,
   updateOthersLibraryEnabled,
 } from "@/lib/db/appSettings";
+
+const SUPPORTED_LOCALES = ["es", "en"] as const;
+
+function revalidateLibraryModePaths() {
+  for (const lang of SUPPORTED_LOCALES) {
+    revalidatePath(`/${lang}`, "layout");
+    revalidatePath(`/${lang}/manga`, "layout");
+    revalidatePath(`/${lang}/favorites`, "layout");
+    revalidatePath(`/${lang}/settings/library`);
+    revalidatePath(`/${lang}/others`);
+    revalidatePath(`/${lang}/others/series`);
+    revalidatePath(`/${lang}/others/volumes`);
+    revalidatePath(`/${lang}/others/toread`);
+    revalidatePath(`/${lang}/favorites/others`);
+  }
+}
 
 export async function setOthersLibraryMode(enabled: boolean) {
   let error: Error | null = null;
@@ -20,6 +36,7 @@ export async function setOthersLibraryMode(enabled: boolean) {
 
     await updateOthersLibraryEnabled(enabled);
     revalidateTag(APP_SETTINGS_TAG, "max");
+    revalidateLibraryModePaths();
 
     return { success: true, status: 200 };
   } catch (e) {
