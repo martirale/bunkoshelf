@@ -59,6 +59,7 @@ export default function FavoritesNav({
           <Link
             key={index}
             href={href}
+            prefetch={false}
             className={clsx(
               "flex flex-col md:flex-row justify-center md:justify-start w-full items-center p-4 rounded-lg leading-none text-onix transition-all duration-300",
               isActive ? "bg-sand" : "hover:bg-sand"

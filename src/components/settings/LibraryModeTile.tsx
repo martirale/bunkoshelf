@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { LibraryBigIcon } from "lucide-react";
 import { setOthersLibraryMode } from "@/actions/app-settings";
 import clsx from "clsx";
@@ -16,21 +16,25 @@ export default function LibraryModeTile({
   initialEnabled,
 }: LibraryModeTileProps) {
   const [enabled, setEnabled] = useState(initialEnabled);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
 
-  const handleChange = (nextValue: boolean) => {
+  const handleChange = async (nextValue: boolean) => {
+    if (isPending) return;
+
     setEnabled(nextValue);
+    setIsPending(true);
 
-    startTransition(async () => {
-      const result = await setOthersLibraryMode(nextValue);
+    const result = await setOthersLibraryMode(nextValue);
 
-      if (result?.error) {
-        setEnabled(!nextValue);
-        return;
-      }
+    if (result?.error) {
+      setEnabled(!nextValue);
+      setIsPending(false);
+      return;
+    }
 
-      window.location.reload();
-    });
+    const url = new URL(window.location.href);
+    url.searchParams.set("_libraryMode", String(Date.now()));
+    window.location.assign(url.toString());
   };
 
   return (

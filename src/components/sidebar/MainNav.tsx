@@ -155,6 +155,7 @@ export default function MainNav({
                     <Link
                       key={subItem.href}
                       href={subItem.href}
+                      prefetch={false}
                       className={clsx(
                         "block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300",
                         subItem.isActive
@@ -175,6 +176,7 @@ export default function MainNav({
           <Link
             key={link.href}
             href={link.href!}
+            prefetch={false}
             className={clsx(
               "flex items-center p-4 rounded-lg leading-none border transition-all duration-300",
               link.isActive
