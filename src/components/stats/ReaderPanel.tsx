@@ -27,7 +27,9 @@ export default async function ReaderStatsPanel({
   mdCols,
   data: initialData,
 }: ReaderStatsPanelProps) {
-  await connection();
+  if (!initialData) {
+    await connection();
+  }
   const stats = intl.stats as DictionarySection;
   const data = initialData ?? await getReaderStats();
 

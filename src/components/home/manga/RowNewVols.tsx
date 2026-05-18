@@ -7,6 +7,6 @@ interface RowNewVolsProps {
   entries: VolumeEntry[];
 }
 
-export default async function RowNewVols({ lang, intl, entries }: RowNewVolsProps) {
+export default function RowNewVols({ lang, intl, entries }: RowNewVolsProps) {
   return <RowNewVolsCarousel entries={entries} lang={lang} intl={intl} />;
 }

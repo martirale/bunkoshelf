@@ -28,7 +28,7 @@ interface HeroKeepReadProps {
   entry: HomeKeepReadingEntry | null;
 }
 
-export default async function HeroKeepRead({
+export default function HeroKeepRead({
   lang,
   intl,
   vapidPublicKey,
