@@ -31,7 +31,7 @@ export default function MobNavButton({
     if (open) {
       setOpen(false);
     }
-  }, [open, pathname]);
+  }, [pathname]);
 
   return (
     <>
