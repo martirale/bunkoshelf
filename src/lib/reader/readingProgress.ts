@@ -1,4 +1,5 @@
 import { query } from "@/lib/db/query";
+import type { UserVolumeProgress } from "@/lib/db/library";
 
 export async function getSeriesBulkProgress(
   userId: string | null,
@@ -23,4 +24,22 @@ export async function getSeriesBulkProgress(
     acc[record.series_id] = Number(record.read_count);
     return acc;
   }, {});
+}
+
+export function getVolumeProgressRatio(
+  progress: Pick<UserVolumeProgress, "isRead" | "lastPage" | "totalPages"> | null | undefined
+): number {
+  if (!progress) {
+    return 0;
+  }
+
+  if (progress.isRead) {
+    return 1;
+  }
+
+  if (!progress.totalPages || progress.totalPages <= 0) {
+    return 0;
+  }
+
+  return Math.min(1, Math.max(0, ((progress.lastPage ?? 0) + 1) / progress.totalPages));
 }
