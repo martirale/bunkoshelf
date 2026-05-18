@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import SeriesContent from "@/components/library/manga/SeriesContent";
+import DetailSkeleton from "@/components/library/manga/DetailSkeleton";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listVolumeRatings, findSeriesFavoriteState } from "@/lib/db/reading";
@@ -56,22 +57,6 @@ function aggregateMetadata(
 
 interface SeriesMangaPageProps {
   params: Promise<{ lang: string; series: string }>;
-}
-
-function SeriesSkeleton() {
-  return (
-    <div className="p-4">
-      <div className="h-8 w-64 rounded bg-sand animate-pulse mb-6" />
-      <div className="flex gap-6">
-        <div className="w-48 aspect-[3/5] rounded-lg bg-sand animate-pulse flex-shrink-0" />
-        <div className="flex-1 flex flex-col gap-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-4 rounded bg-sand animate-pulse" style={{ width: `${70 + i * 5}%` }} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 async function SeriesMangaPageContent({
@@ -183,7 +168,7 @@ async function SeriesMangaPageContent({
 
 export default function SeriesMangaPage({ params }: SeriesMangaPageProps) {
   return (
-    <Suspense fallback={<SeriesSkeleton />}>
+    <Suspense fallback={<DetailSkeleton kind="series" />}>
       <SeriesMangaPageContent params={params} />
     </Suspense>
   );

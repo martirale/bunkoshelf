@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import VolumesContent from "@/components/library/manga/VolumesContent";
+import DetailSkeleton from "@/components/library/manga/DetailSkeleton";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/verifySession";
 import {
@@ -17,22 +18,6 @@ import type { Locale } from "@/lib/types";
 
 interface VolumeMangaPageProps {
   params: Promise<{ lang: string; slug: string }>;
-}
-
-function VolumeSkeleton() {
-  return (
-    <div className="p-4">
-      <div className="h-8 w-48 rounded bg-sand animate-pulse mb-4" />
-      <div className="flex gap-4">
-        <div className="w-40 aspect-[3/5] rounded-lg bg-sand animate-pulse flex-shrink-0" />
-        <div className="flex-1 flex flex-col gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-4 rounded bg-sand animate-pulse" />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
@@ -131,7 +116,7 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
 
 export default function VolumeMangaPage({ params }: VolumeMangaPageProps) {
   return (
-    <Suspense fallback={<VolumeSkeleton />}>
+    <Suspense fallback={<DetailSkeleton kind="volume" />}>
       <VolumeMangaPageContent params={params} />
     </Suspense>
   );
