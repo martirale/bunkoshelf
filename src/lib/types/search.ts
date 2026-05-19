@@ -1,5 +1,6 @@
 export interface SearchResult {
   id: string;
+  section: "manga" | "others";
   type: "series" | "volume";
   title: string;
   slug: string;

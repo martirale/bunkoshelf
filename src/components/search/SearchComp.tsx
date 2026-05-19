@@ -118,8 +118,8 @@ export default function SearchComp({ lang, intl }: SearchCompProps) {
           {filteredResults.map((res) => {
             const isSeries = res.type === "series";
             const href = isSeries
-              ? `/${lang}/manga/${res.slug}`
-              : `/${lang}/manga/volume/${res.slug}`;
+              ? `/${lang}/${res.section}/${res.slug}`
+              : `/${lang}/${res.section}/volume/${res.slug}`;
 
             let genres = res.genres || "";
             let tags = res.tags || "";

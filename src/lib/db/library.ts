@@ -1080,6 +1080,7 @@ export async function listSeries(
   return query<{
     id: string;
     slug: string;
+    sort_title: string;
     title: string;
     path: string;
     is_oneshot: boolean;
@@ -1092,6 +1093,7 @@ export async function listSeries(
       SELECT DISTINCT
         ms.id,
         ms.slug,
+        ms.sort_title,
         ms.title,
         ms.path,
         ms.is_oneshot,

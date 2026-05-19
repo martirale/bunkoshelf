@@ -3,6 +3,7 @@
 import MiniSearch from "minisearch";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listSeries, listVolumes } from "@/lib/db/library";
+import { getLibrarySection } from "@/lib/librarySection";
 import type { SearchResult } from "@/lib/types";
 
 interface SearchParams {
@@ -14,6 +15,7 @@ interface SeriesDoc {
   title: string;
   slug: string;
   isOneshot: boolean;
+  section: "manga" | "others";
   writer: string;
   series: string;
 }
@@ -25,6 +27,7 @@ interface VolumeDoc {
   series: string;
   slug: string;
   isOneshot: boolean;
+  section: "manga" | "others";
   genres: string;
   tags: string;
 }
@@ -56,6 +59,7 @@ export async function searchManga({ query }: SearchParams) {
 
   const writerBySeriesId = new Map<string, string>();
   const seriesNameById = new Map<string, string>();
+  const sectionBySeriesId = new Map<string, "manga" | "others">();
 
   for (const vol of volumes) {
     const writer = vol.metadataObj?.writer?.trim();
@@ -67,6 +71,12 @@ export async function searchManga({ query }: SearchParams) {
     if (seriesName && !seriesNameById.has(vol.seriesId)) {
       seriesNameById.set(vol.seriesId, seriesName);
     }
+    if (!sectionBySeriesId.has(vol.seriesId)) {
+      sectionBySeriesId.set(
+        vol.seriesId,
+        getLibrarySection(vol.metadataObj?.mangaStyle)
+      );
+    }
   }
 
   const seriesList = await listSeries();
@@ -76,6 +86,7 @@ export async function searchManga({ query }: SearchParams) {
     title: s.title,
     slug: s.slug,
     isOneshot: s.isOneshot,
+    section: sectionBySeriesId.get(s.id) ?? "manga",
     writer: writerBySeriesId.get(s.id) || "",
     series: seriesNameById.get(s.id) || s.title,
   }));
@@ -98,6 +109,7 @@ export async function searchManga({ query }: SearchParams) {
     const doc = seriesMap.get(res.id as string)!;
     return {
       id: doc.id,
+      section: doc.section,
       type: "series",
       title: doc.title,
       slug: doc.slug,
@@ -124,6 +136,7 @@ export async function searchManga({ query }: SearchParams) {
       series: vol.metadataObj?.series || "",
       slug: vol.slug,
       isOneshot: vol.series?.isOneshot ?? false,
+      section: getLibrarySection(vol.metadataObj?.mangaStyle),
       genres: genreNames.join(", "),
       tags: tagNames.join(", "),
     };
@@ -147,6 +160,7 @@ export async function searchManga({ query }: SearchParams) {
     const doc = volumesMap.get(res.id as string)!;
     return {
       id: doc.id,
+      section: doc.section,
       type: "volume",
       title: doc.title,
       writer: doc.writer,
