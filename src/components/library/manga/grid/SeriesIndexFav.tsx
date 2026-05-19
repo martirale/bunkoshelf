@@ -55,7 +55,7 @@ export default async function SeriesIndexFav({
       ...series,
       coverImage:
         sortedVolumes.length > 0
-          ? getMangaCoverUrl(sortedVolumes[sortedVolumes.length - 1])
+          ? getMangaCoverUrl(sortedVolumes[0])
           : null,
       volumes:
         sortedVolumes.map((vol) => ({
