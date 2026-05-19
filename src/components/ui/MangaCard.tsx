@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
+import { useRef } from "react";
 import type { DictionarySection } from "@/lib/types";
 
 interface MangaCardProps {
@@ -38,6 +39,8 @@ export default function MangaCard({
 }: MangaCardProps) {
   const t = intl;
   const ratio = progressRatio ?? 0;
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const hasTouchMoved = useRef(false);
 
   const manga = t.manga as DictionarySection;
 
@@ -48,6 +51,40 @@ export default function MangaCard({
         "group flex flex-col overflow-hidden rounded-t-lg transition-all duration-300",
         isDragging ? "cursor-grabbing" : "cursor-pointer"
       )}
+      onTouchStart={(e) => {
+        const touch = e.touches[0];
+        if (!touch) return;
+        touchStart.current = { x: touch.clientX, y: touch.clientY };
+        hasTouchMoved.current = false;
+      }}
+      onTouchMove={(e) => {
+        const touch = e.touches[0];
+        const start = touchStart.current;
+        if (!touch || !start) return;
+
+        const deltaX = Math.abs(touch.clientX - start.x);
+        const deltaY = Math.abs(touch.clientY - start.y);
+
+        if (deltaX > 12 || deltaY > 12) {
+          hasTouchMoved.current = true;
+        }
+      }}
+      onTouchEnd={() => {
+        touchStart.current = null;
+        setTimeout(() => {
+          hasTouchMoved.current = false;
+        }, 0);
+      }}
+      onTouchCancel={() => {
+        touchStart.current = null;
+        hasTouchMoved.current = false;
+      }}
+      onClickCapture={(e) => {
+        if (isDragging || hasTouchMoved.current) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
     >
       <div className="relative aspect-[7/10.5] w-full flex-shrink-0">
         <Image
