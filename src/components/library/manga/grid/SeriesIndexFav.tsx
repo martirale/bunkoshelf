@@ -35,6 +35,10 @@ export default async function SeriesIndexFav({
 }: SeriesIndexFavProps) {
   const user = await verifySession();
   if (!user) return null;
+  const heading =
+    section === "others"
+      ? intl.favorites.ttSeriesOthers
+      : intl.favorites.ttSeriesManga;
 
   const favoriteSeriesIds = await listFavoriteSeriesIds(user.id);
 
@@ -81,7 +85,7 @@ export default async function SeriesIndexFav({
     <>
       <h2 className="flex items-center mb-4">
         <LibraryBigIcon size={28} className="mr-2" />
-        {intl.favorites.ttSeries as string}
+        {heading as string}
       </h2>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">

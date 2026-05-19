@@ -34,6 +34,10 @@ export default async function VolumesIndexFav({
 }: VolumesIndexFavProps) {
   const user = await verifySession();
   if (!user) return null;
+  const heading =
+    section === "others"
+      ? intl.favorites.ttVolumesOthers
+      : intl.favorites.ttVolumesManga;
 
   const favoriteVolumeIds = await listFavoriteVolumeIds(user.id);
   if (favoriteVolumeIds.length === 0) {
@@ -67,7 +71,7 @@ export default async function VolumesIndexFav({
     <>
       <h2 className="flex items-center mb-4">
         <BookCopyIcon size={28} className="mr-2" />
-        {intl.favorites.ttVolumes as string}
+        {heading as string}
       </h2>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
