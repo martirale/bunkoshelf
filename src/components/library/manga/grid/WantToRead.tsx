@@ -1,10 +1,10 @@
 import { verifySession } from "@/lib/auth/verifySession";
-import { listVolumes } from "@/lib/db/library";
-import { sortByPaddedTitle } from "@/lib/utils";
+import { listPagedVolumes, listVolumeProgressByIds } from "@/lib/db/library";
 import { LibraryBigIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
+import { LIBRARY_PAGE_SIZE } from "@/lib/libraryPagination";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import {
   getLibraryVolumeHref,
@@ -13,8 +13,6 @@ import {
 } from "@/lib/librarySection";
 import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import type { Locale, Dictionary } from "@/lib/types";
-
-const PAGE_SIZE = 35;
 
 interface WantToReadProps {
   lang: Locale;
@@ -43,8 +41,10 @@ export default async function WantToRead({
   const tagList =
     typeof tagFilter === "string" ? tagFilter.split(",") : tagFilter;
 
-  const volumes = await listVolumes({
+  const paginated = await listPagedVolumes({
     userId: user.id,
+    page,
+    pageSize: LIBRARY_PAGE_SIZE,
     includeGenres: true,
     includeTags: true,
     genreNames: genreList,
@@ -53,20 +53,17 @@ export default async function WantToRead({
     scope,
   });
 
-  const sortedVolumes = sortByPaddedTitle(volumes);
-  const entries = sortedVolumes.map((vol) => ({
+  const progressById = await listVolumeProgressByIds(
+    user.id,
+    paginated.items.map((volume) => volume.id)
+  );
+
+  const entries = paginated.items.map((vol) => ({
     ...vol,
     isOneshot: vol.series?.isOneshot === true,
     coverImage: getMangaCoverUrl(vol),
     meta: vol.metadataObj || null,
-    genres: vol.genres.map((genre) => genre.name),
-    tags: vol.tags.map((tag) => tag.name),
   }));
-
-  const total = entries.length;
-  const totalPages = Math.ceil(total / PAGE_SIZE);
-  const start = (page - 1) * PAGE_SIZE;
-  const paginatedEntries = entries.slice(start, start + PAGE_SIZE);
 
   return (
     <>
@@ -79,9 +76,9 @@ export default async function WantToRead({
       </div>
 
       <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">
-        {paginatedEntries.map((entry) => {
+        {entries.map((entry) => {
           const href = getLibraryVolumeHref(lang, section, entry.slug);
-          const progress = entry.usersProgress?.[0] ?? null;
+          const progress = progressById[entry.id] ?? null;
 
           return (
             <MangaCard
@@ -104,11 +101,11 @@ export default async function WantToRead({
         })}
       </section>
 
-      {total > PAGE_SIZE && (
+      {paginated.total > LIBRARY_PAGE_SIZE && (
         <div className="mt-8">
           <Pagination
             currentPage={page}
-            totalPages={totalPages}
+            totalPages={paginated.totalPages}
             intl={intl}
           />
         </div>

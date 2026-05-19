@@ -1,17 +1,15 @@
 import { connection } from "next/server";
 import { query, queryOne } from "./db/query";
+import { buildNaturalSortKey } from "./naturalSort";
 import type { Session } from "@/lib/types";
 
 export function sortByPaddedTitle<T>(
   items: T[],
   getValue: (item: T) => string = (item) => (item as { title: string }).title
 ): T[] {
-  const padNumbers = (str: string) =>
-    str.replace(/\d+/g, (num) => num.padStart(5, "0")).toLowerCase();
-
   return items.slice().sort((a, b) => {
-    const aStr = padNumbers(getValue(a));
-    const bStr = padNumbers(getValue(b));
+    const aStr = buildNaturalSortKey(getValue(a));
+    const bStr = buildNaturalSortKey(getValue(b));
     return aStr.localeCompare(bStr);
   });
 }

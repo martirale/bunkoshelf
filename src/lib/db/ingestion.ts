@@ -1,5 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { execute, query, queryOne } from "./query";
+import { buildNaturalSortKey } from "@/lib/naturalSort";
 import type { ComicMetadata } from "@/lib/types";
 
 export interface IndexedSeries {
@@ -82,14 +83,16 @@ export async function upsertSeriesRecord(input: {
         id,
         slug,
         title,
+        sort_title,
         path,
         is_oneshot,
         mtime
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT (slug)
       DO UPDATE SET
         title = EXCLUDED.title,
+        sort_title = EXCLUDED.sort_title,
         path = EXCLUDED.path,
         is_oneshot = EXCLUDED.is_oneshot,
         mtime = EXCLUDED.mtime,
@@ -100,6 +103,7 @@ export async function upsertSeriesRecord(input: {
       createId(),
       input.slug,
       input.title,
+      buildNaturalSortKey(input.title),
       input.path,
       input.isOneshot,
       input.mtime,
@@ -129,6 +133,7 @@ export async function upsertVolumeRecord(input: {
         id,
         slug,
         title,
+        sort_title,
         filename,
         full_path,
         size,
@@ -136,10 +141,11 @@ export async function upsertVolumeRecord(input: {
         cover_image,
         series_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       ON CONFLICT (slug)
       DO UPDATE SET
         title = EXCLUDED.title,
+        sort_title = EXCLUDED.sort_title,
         filename = EXCLUDED.filename,
         full_path = EXCLUDED.full_path,
         size = EXCLUDED.size,
@@ -153,6 +159,7 @@ export async function upsertVolumeRecord(input: {
       createId(),
       input.slug,
       input.title,
+      buildNaturalSortKey(input.title),
       input.filename,
       input.fullPath,
       input.size,
@@ -514,7 +521,7 @@ export async function findSeriesWithVolumesById(
       SELECT id, slug, title, filename, full_path, size, cover_image, metadata_id, series_id
       FROM manga_volumes
       WHERE series_id = $1
-      ORDER BY title ASC
+      ORDER BY sort_title ASC, id ASC
     `,
     [seriesId]
   );

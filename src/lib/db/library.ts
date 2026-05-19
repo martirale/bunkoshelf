@@ -139,6 +139,19 @@ interface FindVolumeOptions extends SharedVolumeQueryOptions {
   userId?: string | null;
 }
 
+interface PagedQueryOptions {
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 interface VolumeRow {
   volume_id: string;
   volume_slug: string;
@@ -476,6 +489,35 @@ function buildLibraryFilterScopeConditions(
   return "";
 }
 
+function buildPagination(options?: PagedQueryOptions) {
+  const pageSize = Math.max(1, options?.pageSize ?? 1);
+  const page = Math.max(1, options?.page ?? 1);
+
+  return {
+    page,
+    pageSize,
+    offset: (page - 1) * pageSize,
+  };
+}
+
+function mapPaginatedResult<T>(
+  items: T[],
+  total: number,
+  pagination: ReturnType<typeof buildPagination>
+): PaginatedResult<T> {
+  return {
+    items,
+    total,
+    page: pagination.page,
+    pageSize: pagination.pageSize,
+    totalPages: Math.ceil(total / pagination.pageSize),
+  };
+}
+
+function parseCount(value: string | number): number {
+  return typeof value === "number" ? value : Number(value);
+}
+
 async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
   genres: GenreFilter[];
   tags: TagFilter[];
@@ -633,7 +675,7 @@ async function listVolumesRaw(
       LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
       ${progressJoin}
       ${conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""}
-      ORDER BY ms.title ASC, mv.title ASC
+      ORDER BY ms.sort_title ASC, mv.sort_title ASC, mv.id ASC
     `,
     params
   );
@@ -670,6 +712,174 @@ export async function listVolumes(
     volumeIds: options?.volumeIds,
     scope: options?.scope,
   });
+}
+
+async function listPagedVolumeIdsRaw(
+  options?: VolumeQueryOptions & PagedQueryOptions
+): Promise<PaginatedResult<string>> {
+  const pagination = buildPagination(options);
+  const countParams: unknown[] = [];
+  const countConditions = buildVolumeFilterSql(
+    {
+      genreNames: options?.genreNames,
+      tagNames: options?.tagNames,
+      seriesIds: options?.seriesIds,
+      volumeIds: options?.volumeIds,
+      userId: options?.userId,
+      onlyUnreadForUser: options?.onlyUnreadForUser,
+      scope: options?.scope,
+    },
+    countParams
+  );
+  const rowsParams = [...countParams];
+
+  const [countRow, rows] = await Promise.all([
+    queryOne<{ total: string }>(
+      `
+        SELECT COUNT(*)::text AS total
+        FROM manga_volumes mv
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        ${countConditions.length > 0 ? `WHERE ${countConditions.join(" AND ")}` : ""}
+      `,
+      countParams
+    ),
+    query<{ id: string }>(
+      `
+        SELECT mv.id
+        FROM manga_volumes mv
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        ${countConditions.length > 0 ? `WHERE ${countConditions.join(" AND ")}` : ""}
+        ORDER BY mv.sort_title ASC, mv.id ASC
+        LIMIT $${rowsParams.push(pagination.pageSize)}
+        OFFSET $${rowsParams.push(pagination.offset)}
+      `,
+      rowsParams
+    ),
+  ]);
+
+  return mapPaginatedResult(
+    rows.map((row) => row.id),
+    parseCount(countRow?.total ?? 0),
+    pagination
+  );
+}
+
+async function listPagedVolumeIdsCached(
+  options: SharedVolumeQueryOptions & PagedQueryOptions = {}
+) {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag(MANGA_LIBRARY_TAG);
+
+  return listPagedVolumeIdsRaw(options);
+}
+
+export async function listPagedVolumes(
+  options?: VolumeQueryOptions &
+    PagedQueryOptions & {
+      includeGenres?: boolean;
+      includeTags?: boolean;
+    }
+): Promise<PaginatedResult<LibraryVolume>> {
+  const pagedIds = options?.userId || options?.onlyUnreadForUser
+    ? await listPagedVolumeIdsRaw(options)
+    : await listPagedVolumeIdsCached({
+        includeGenres: options?.includeGenres,
+        includeTags: options?.includeTags,
+        genreNames: options?.genreNames,
+        tagNames: options?.tagNames,
+        seriesIds: options?.seriesIds,
+        volumeIds: options?.volumeIds,
+        scope: options?.scope,
+        page: options?.page,
+        pageSize: options?.pageSize,
+      });
+
+  if (pagedIds.items.length === 0) {
+    return {
+      ...pagedIds,
+      items: [],
+    };
+  }
+
+  const volumes = await listVolumes({
+    volumeIds: pagedIds.items,
+    includeGenres: options?.includeGenres,
+    includeTags: options?.includeTags,
+    scope: options?.scope,
+  });
+
+  const volumeMap = new Map(volumes.map((volume) => [volume.id, volume]));
+
+  return {
+    ...pagedIds,
+    items: pagedIds.items
+      .map((id) => volumeMap.get(id))
+      .filter((volume): volume is LibraryVolume => Boolean(volume)),
+  };
+}
+
+export async function listVolumeProgressByIds(
+  userId: string,
+  volumeIds: string[]
+): Promise<Record<string, UserVolumeProgress>> {
+  if (!userId || volumeIds.length === 0) {
+    return {};
+  }
+
+  const rows = await query<{
+    id: string;
+    user_id: string;
+    volume_id: string;
+    is_read: boolean;
+    is_favorite: boolean;
+    personal_rating: number | null;
+    last_page: number | null;
+    total_pages: number | null;
+    last_read_at: Date | null;
+    first_read: string | null;
+    created_at: Date;
+    updated_at: Date;
+  }>(
+    `
+      SELECT
+        id,
+        user_id,
+        volume_id,
+        is_read,
+        is_favorite,
+        personal_rating,
+        last_page,
+        total_pages,
+        last_read_at,
+        first_read,
+        created_at,
+        updated_at
+      FROM user_to_volumes
+      WHERE user_id = $1
+        AND volume_id = ANY($2::text[])
+    `,
+    [userId, volumeIds]
+  );
+
+  return rows.reduce<Record<string, UserVolumeProgress>>((acc, row) => {
+    acc[row.volume_id] = {
+      id: row.id,
+      userId: row.user_id,
+      volumeId: row.volume_id,
+      isRead: row.is_read,
+      isFavorite: row.is_favorite,
+      personalRating: row.personal_rating,
+      lastPage: row.last_page,
+      totalPages: row.total_pages,
+      lastReadAt: row.last_read_at,
+      firstRead: row.first_read,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+    return acc;
+  }, {});
 }
 
 async function listSeriesWithVolumesRaw(
@@ -728,6 +938,119 @@ export async function listSeriesWithVolumes(
   });
 }
 
+async function listPagedSeriesIdsRaw(
+  options?: SharedSeriesQueryOptions &
+    PagedQueryOptions & {
+      excludeOneshots?: boolean;
+    }
+): Promise<PaginatedResult<string>> {
+  const pagination = buildPagination(options);
+  const countParams: unknown[] = [];
+  const countConditions = buildVolumeFilterSql(
+    {
+      genreNames: options?.genreNames,
+      tagNames: options?.tagNames,
+      seriesIds: options?.seriesIds,
+      scope: options?.scope,
+    },
+    countParams
+  );
+
+  if (options?.excludeOneshots) {
+    countConditions.push("ms.is_oneshot = FALSE");
+  }
+
+  const rowsParams = [...countParams];
+  const [countRow, rows] = await Promise.all([
+    queryOne<{ total: string }>(
+      `
+        SELECT COUNT(DISTINCT ms.id)::text AS total
+        FROM manga_series ms
+        INNER JOIN manga_volumes mv ON mv.series_id = ms.id
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        ${countConditions.length > 0 ? `WHERE ${countConditions.join(" AND ")}` : ""}
+      `,
+      countParams
+    ),
+    query<{ id: string }>(
+      `
+        SELECT ms.id
+        FROM manga_series ms
+        INNER JOIN manga_volumes mv ON mv.series_id = ms.id
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        ${countConditions.length > 0 ? `WHERE ${countConditions.join(" AND ")}` : ""}
+        GROUP BY ms.id, ms.sort_title
+        ORDER BY ms.sort_title ASC, ms.id ASC
+        LIMIT $${rowsParams.push(pagination.pageSize)}
+        OFFSET $${rowsParams.push(pagination.offset)}
+      `,
+      rowsParams
+    ),
+  ]);
+
+  return mapPaginatedResult(
+    rows.map((row) => row.id),
+    parseCount(countRow?.total ?? 0),
+    pagination
+  );
+}
+
+async function listPagedSeriesIdsCached(
+  options: SharedSeriesQueryOptions &
+    PagedQueryOptions & {
+      excludeOneshots?: boolean;
+    } = {}
+) {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag(MANGA_LIBRARY_TAG);
+
+  return listPagedSeriesIdsRaw(options);
+}
+
+export async function listPagedSeriesWithVolumes(
+  options?: SharedSeriesQueryOptions &
+    PagedQueryOptions & {
+      excludeOneshots?: boolean;
+    }
+): Promise<PaginatedResult<LibrarySeriesWithVolumes>> {
+  const pagedIds = await listPagedSeriesIdsCached({
+    genreNames: options?.genreNames,
+    tagNames: options?.tagNames,
+    seriesIds: options?.seriesIds,
+    includeGenres: options?.includeGenres,
+    includeTags: options?.includeTags,
+    scope: options?.scope,
+    page: options?.page,
+    pageSize: options?.pageSize,
+    excludeOneshots: options?.excludeOneshots,
+  });
+
+  if (pagedIds.items.length === 0) {
+    return {
+      ...pagedIds,
+      items: [],
+    };
+  }
+
+  const series = await listSeriesWithVolumes({
+    seriesIds: pagedIds.items,
+    includeGenres: options?.includeGenres,
+    includeTags: options?.includeTags,
+    scope: options?.scope,
+  });
+
+  const seriesMap = new Map(series.map((entry) => [entry.id, entry]));
+
+  return {
+    ...pagedIds,
+    items: pagedIds.items
+      .map((id) => seriesMap.get(id))
+      .filter((entry): entry is LibrarySeriesWithVolumes => Boolean(entry)),
+  };
+}
+
 export async function listSeries(
   options?: { scope?: LibraryScope }
 ): Promise<LibrarySeries[]> {
@@ -765,7 +1088,7 @@ export async function listSeries(
       INNER JOIN manga_volumes mv ON mv.series_id = ms.id
       LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
       ${conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""}
-      ORDER BY title ASC
+      ORDER BY ms.sort_title ASC, ms.id ASC
     `,
     params
   ).then((rows) =>

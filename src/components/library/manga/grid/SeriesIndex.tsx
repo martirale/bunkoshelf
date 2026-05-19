@@ -1,10 +1,11 @@
-import { listSeriesWithVolumes } from "@/lib/db/library";
+import { listPagedSeriesWithVolumes } from "@/lib/db/library";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { LibraryBigIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
 import { verifySession } from "@/lib/auth/verifySession";
+import { LIBRARY_PAGE_SIZE } from "@/lib/libraryPagination";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import {
   getLibrarySeriesHref,
@@ -13,8 +14,6 @@ import {
 } from "@/lib/librarySection";
 import { getSeriesBulkProgress } from "@/lib/reader/readingProgress";
 import type { Locale, Dictionary } from "@/lib/types";
-
-const PAGE_SIZE = 35;
 
 interface SeriesIndexProps {
   lang: Locale;
@@ -40,18 +39,21 @@ export default async function SeriesIndex({
   const tagList =
     typeof tagFilter === "string" ? tagFilter.split(",") : tagFilter;
 
-  const [user, series] = await Promise.all([
+  const [user, paginated] = await Promise.all([
     verifySession(),
-    listSeriesWithVolumes({
+    listPagedSeriesWithVolumes({
+      page,
+      pageSize: LIBRARY_PAGE_SIZE,
       genreNames: genreList,
       tagNames: tagList,
       includeGenres: true,
       includeTags: true,
       scope,
+      excludeOneshots: true,
     }),
   ]);
 
-  const entries = series.filter((entry) => !entry.isOneshot).map((entry) => {
+  const entries = paginated.items.map((entry) => {
     const sortedVolumes = sortByPaddedTitle(entry.volumes);
 
     return {
@@ -70,14 +72,9 @@ export default async function SeriesIndex({
     };
   });
 
-  const total = entries.length;
-  const totalPages = Math.ceil(total / PAGE_SIZE);
-  const start = (page - 1) * PAGE_SIZE;
-  const paginatedEntries = entries.slice(start, start + PAGE_SIZE);
-
   const readCountMap = await getSeriesBulkProgress(
     user?.id ?? null,
-    paginatedEntries.map((e) => e.id)
+    entries.map((e) => e.id)
   );
 
   return (
@@ -92,7 +89,7 @@ export default async function SeriesIndex({
       </div>
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
-        {paginatedEntries.map((entry) => {
+        {entries.map((entry) => {
           const totalVolumes = entry.volumes.length;
           const readVolumes = readCountMap[entry.id] ?? 0;
           const progressRatio = totalVolumes > 0 ? readVolumes / totalVolumes : 0;
@@ -118,11 +115,11 @@ export default async function SeriesIndex({
         })}
       </section>
 
-      {total > PAGE_SIZE && (
+      {paginated.total > LIBRARY_PAGE_SIZE && (
         <div className="mt-12">
           <Pagination
             currentPage={page}
-            totalPages={totalPages}
+            totalPages={paginated.totalPages}
             intl={intl}
           />
         </div>
