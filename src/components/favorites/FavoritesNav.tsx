@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
-import { BookHeartIcon } from "lucide-react";
+import { BookCopyIcon, BookHeartIcon, LibraryBigIcon } from "lucide-react";
 import clsx from "clsx";
 import type { Dictionary, DictionarySection, Locale } from "@/lib/types";
 import type { LucideIcon } from "lucide-react";
@@ -16,6 +16,7 @@ interface NavLink {
   href: string;
   icon: LucideIcon;
   isActive: boolean;
+  badge?: string;
 }
 
 export default function FavoritesNav({
@@ -29,26 +30,30 @@ export default function FavoritesNav({
     {
       label: intl.favorites.sectionMangaSeries,
       href: `/${currentLang}/favorites/manga`,
-      icon: BookHeartIcon,
+      icon: LibraryBigIcon,
       isActive: pathname === `/${currentLang}/favorites/manga`,
+      badge: "M",
     },
     {
       label: intl.favorites.sectionMangaVolumes,
       href: `/${currentLang}/favorites/manga/volumes`,
-      icon: BookHeartIcon,
+      icon: BookCopyIcon,
       isActive: pathname === `/${currentLang}/favorites/manga/volumes`,
+      badge: "M",
     },
     {
       label: intl.favorites.sectionOthersSeries,
       href: `/${currentLang}/favorites/others`,
-      icon: BookHeartIcon,
+      icon: LibraryBigIcon,
       isActive: pathname === `/${currentLang}/favorites/others`,
+      badge: "C",
     },
     {
       label: intl.favorites.sectionOthersVolumes,
       href: `/${currentLang}/favorites/others/volumes`,
-      icon: BookHeartIcon,
+      icon: BookCopyIcon,
       isActive: pathname === `/${currentLang}/favorites/others/volumes`,
+      badge: "C",
     },
     {
       label: intl.favorites.sectionBooks,
@@ -60,24 +65,43 @@ export default function FavoritesNav({
 
   return (
     <div className="mt-4 md:mt-16">
-      <div className={clsx("md:space-y-2", "flex md:block gap-2")}>
-        {links.map(({ href, icon: Icon, label, isActive }, index) => (
+      <nav className="flex justify-center gap-2 md:flex-col md:gap-4">
+        {links.map(({ href, icon: Icon, label, isActive, badge }, index) => (
           <Link
             key={index}
             href={href}
             prefetch={false}
             className={clsx(
-              "flex flex-col md:flex-row justify-center md:justify-start w-full items-center p-4 rounded-lg leading-none text-onix transition-all duration-300",
-              isActive ? "bg-sand" : "hover:bg-sand"
+              "flex flex-1 items-center justify-center md:justify-start",
+              "text-onix leading-none uppercase px-2 py-4 rounded-lg",
+              {
+                "bg-sand": isActive,
+                "hover:bg-sand": !isActive,
+              },
+              "transition-all duration-300 group"
             )}
+            aria-label={label as string}
           >
-            <span className="flex">
-              <Icon size={20} className="mr-1 md:mr-2" />
-              {label as string}
-            </span>
+            <Icon size={20} className="mr-0 md:mr-2" />
+            <span className="hidden md:inline">{label as string}</span>
+            {badge && (
+              <span
+                className={clsx(
+                  "text-xs px-2 py-0.5 rounded-sm md:hidden",
+                  "group-hover:bg-pearl transition-all duration-300",
+                  {
+                    "bg-pearl": isActive,
+                    "bg-sand": !isActive,
+                  },
+                  "ml-1"
+                )}
+              >
+                {badge}
+              </span>
+            )}
           </Link>
         ))}
-      </div>
+      </nav>
     </div>
   );
 }

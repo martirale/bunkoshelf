@@ -65,7 +65,7 @@ export default async function VolumesIndexFav({
 
   return (
     <>
-      <h2 className="flex items-center mt-8 mb-4">
+      <h2 className="flex items-center mb-4">
         <BookCopyIcon size={28} className="mr-2" />
         {intl.favorites.ttVolumes as string}
       </h2>
