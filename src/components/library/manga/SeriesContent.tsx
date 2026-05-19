@@ -8,6 +8,7 @@ import DeleteMangaItem from "./DeleteMangaItem";
 import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 import SeriesRating from "./SeriesRating";
+import Pagination from "@/components/ui/Pagination";
 import type { LibrarySection } from "@/lib/librarySection";
 import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import type { Locale, Dictionary, Session } from "@/lib/types";
@@ -17,9 +18,12 @@ interface SeriesContentProps {
   lang: Locale;
   intl: Dictionary;
   isFavorite: boolean;
-  aggregatedMeta: Record<string, string[]>;
+  aggregatedMeta: Record<string, unknown>;
   averageRating: number | null;
   user: Session | null;
+  currentPage?: number;
+  totalPages?: number;
+  totalVolumes?: number;
   section?: LibrarySection;
 }
 
@@ -31,12 +35,15 @@ export default function SeriesContent({
   aggregatedMeta,
   averageRating,
   user,
+  currentPage = 1,
+  totalPages = 1,
+  totalVolumes,
   section = "manga",
 }: SeriesContentProps) {
   const volumes = serieData.volumes as Record<string, unknown>[];
-  const coverImage =
-    (volumes?.[volumes.length - 1]?.coverImage as string) ?? null;
-  const meta = (volumes?.[0]?.meta || {}) as Record<string, unknown>;
+  const volumeCount = totalVolumes ?? volumes.length;
+  const coverImage = (serieData.coverImage as string) ?? null;
+  const meta = (serieData.meta || {}) as Record<string, unknown>;
 
   const ageMin = ageRatingMap(meta.ageRating as string);
   const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-2 ${
@@ -105,7 +112,7 @@ export default function SeriesContent({
           </div>
 
           <p className="mt-4">
-            {meta.year ? (meta.year as number) : null} &bull; {volumes.length}{" "}
+            {meta.year ? (meta.year as number) : null} &bull; {volumeCount}{" "}
             {intl.manga.volumes as string}
           </p>
 
@@ -121,7 +128,7 @@ export default function SeriesContent({
           <Separator />
 
           <MetadataPanel
-            meta={{ ...aggregatedMeta, genres: meta.genres, tags: meta.tags }}
+            meta={aggregatedMeta}
             lang={lang}
             intl={intl}
             linkBase="series"
@@ -177,6 +184,16 @@ export default function SeriesContent({
             </div>
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              intl={intl}
+            />
+          </div>
+        )}
 
         {user?.isAdmin && (
           <>

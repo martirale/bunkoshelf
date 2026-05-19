@@ -134,6 +134,21 @@ interface FindSeriesOptions {
   scope?: LibraryScope;
 }
 
+export interface SeriesVolumeAggregate {
+  communityRating: number | null;
+  format: string | null;
+  id: string;
+  writer: string | null;
+  penciller: string | null;
+  inker: string | null;
+  colorist: string | null;
+  letterer: string | null;
+  coverArtist: string | null;
+  editor: string | null;
+  publisher: string | null;
+  imprint: string | null;
+}
+
 interface FindVolumeOptions extends SharedVolumeQueryOptions {
   slug: string;
   userId?: string | null;
@@ -1102,6 +1117,110 @@ export async function listSeries(
       status: row.status,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+    }))
+  );
+}
+
+export async function findSeriesBySlugBasic(
+  slug: string
+): Promise<LibrarySeries | null> {
+  const row = await queryOne<{
+    id: string;
+    slug: string;
+    title: string;
+    path: string;
+    is_oneshot: boolean;
+    mtime: Date;
+    status: string;
+    created_at: Date;
+    updated_at: Date;
+  }>(
+    `
+      SELECT
+        id,
+        slug,
+        title,
+        path,
+        is_oneshot,
+        mtime,
+        status,
+        created_at,
+        updated_at
+      FROM manga_series
+      WHERE slug = $1
+      LIMIT 1
+    `,
+    [slug]
+  );
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    path: row.path,
+    isOneshot: row.is_oneshot,
+    mtime: row.mtime,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function listSeriesVolumeAggregates(
+  seriesId: string
+): Promise<SeriesVolumeAggregate[]> {
+  return query<{
+    volume_id: string;
+    community_rating: number | null;
+    writer: string | null;
+    penciller: string | null;
+    inker: string | null;
+    colorist: string | null;
+    letterer: string | null;
+    cover_artist: string | null;
+    editor: string | null;
+    publisher: string | null;
+    imprint: string | null;
+    format: string | null;
+  }>(
+    `
+      SELECT
+        mv.id AS volume_id,
+        vm.community_rating,
+        vm.writer,
+        vm.penciller,
+        vm.inker,
+        vm.colorist,
+        vm.letterer,
+        vm.cover_artist,
+        vm.editor,
+        vm.publisher,
+        vm.imprint,
+        vm.format
+      FROM manga_volumes mv
+      LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+      WHERE mv.series_id = $1
+      ORDER BY mv.sort_title ASC, mv.id ASC
+    `,
+    [seriesId]
+  ).then((rows) =>
+    rows.map((row) => ({
+      id: row.volume_id,
+      communityRating: row.community_rating,
+      writer: row.writer,
+      penciller: row.penciller,
+      inker: row.inker,
+      colorist: row.colorist,
+      letterer: row.letterer,
+      coverArtist: row.cover_artist,
+      editor: row.editor,
+      publisher: row.publisher,
+      imprint: row.imprint,
+      format: row.format,
     }))
   );
 }
