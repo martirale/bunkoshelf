@@ -4,6 +4,7 @@ import { verifySession } from "@/lib/auth/verifySession";
 import {
   createReadingEntryRecord,
   deleteReadingEntryRecord,
+  ensureDailyReadingLog,
   findOldestReadingEntryDate,
   findReadingEntryById,
   findVolumeProgress,
@@ -66,6 +67,7 @@ export async function createReadingEntry({ volumeId, readAt }: { volumeId: strin
     }
 
     const entry = await createReadingEntryRecord(user.id, volumeId, readAt);
+    await ensureDailyReadingLog(user.id, readAt);
 
     await syncFirstRead(user.id, volumeId);
 
@@ -99,6 +101,7 @@ export async function updateReadingEntry({ entryId, readAt }: { entryId: string;
     }
 
     const entry = await updateReadingEntryRecord(entryId, readAt);
+    await ensureDailyReadingLog(user.id, readAt);
 
     await syncFirstRead(user.id, existing.volume_id);
 

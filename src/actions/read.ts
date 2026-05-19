@@ -3,6 +3,7 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import {
   createReadingEntryRecord,
+  ensureDailyReadingLog,
   upsertVolumeProgress,
 } from "@/lib/db/reading";
 import { syncFirstRead } from "@/actions/readingHistory";
@@ -66,6 +67,7 @@ export async function updateReadState({
 
     if (normalizedRead && typeof firstRead === "string") {
       await createReadingEntryRecord(user.id, normalizedVolumeId, firstRead);
+      await ensureDailyReadingLog(user.id, firstRead);
 
       await syncFirstRead(user.id, normalizedVolumeId);
     }
