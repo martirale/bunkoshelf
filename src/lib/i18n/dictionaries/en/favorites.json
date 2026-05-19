@@ -5,7 +5,11 @@
     "ttSeries": "Favorite Series",
     "ttVolumes": "Favorite Volumes",
     "sectionManga": "Manga",
+    "sectionMangaSeries": "Manga - Series",
+    "sectionMangaVolumes": "Manga - Volumes",
     "sectionOthers": "Comic/Others",
+    "sectionOthersSeries": "Comic/Others - Series",
+    "sectionOthersVolumes": "Comic/Others - Volumes",
     "sectionBooks": "Books"
   }
 }

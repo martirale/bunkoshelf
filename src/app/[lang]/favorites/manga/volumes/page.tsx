@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import SeriesIndexFav from "@/components/library/manga/grid/SeriesIndexFav";
+import VolumesIndexFav from "@/components/library/manga/grid/VolumesIndexFav";
+import { getLibraryScope } from "@/lib/librarySection";
 import type { Locale } from "@/lib/types";
 
-interface FavoritesOthersPageProps {
+interface FavoritesMangaVolumesPageProps {
   params: Promise<{ lang: string }>;
   searchParams: Promise<Record<string, string | undefined>>;
 }
@@ -21,31 +22,33 @@ function GridSkeleton() {
   );
 }
 
-async function FavoritesOthersContent({
+async function FavoritesMangaVolumesContent({
   params,
   searchParams,
-}: FavoritesOthersPageProps) {
+}: FavoritesMangaVolumesPageProps) {
   const { lang = "es" } = await params;
   const resolvedSearchParams = await searchParams;
   const pageRaw = resolvedSearchParams.page ?? "1";
   const page = Number.parseInt(pageRaw, 10) || 1;
   const intl = await getDictionary(lang as Locale);
+  const scope = getLibraryScope("manga");
 
   return (
-    <SeriesIndexFav
+    <VolumesIndexFav
       lang={lang as Locale}
       intl={intl}
       page={page}
-      scope="others"
-      section="others"
+      scope={scope}
     />
   );
 }
 
-export default function FavoritesOthersPage(props: FavoritesOthersPageProps) {
+export default function FavoritesMangaVolumesPage(
+  props: FavoritesMangaVolumesPageProps
+) {
   return (
     <Suspense fallback={<GridSkeleton />}>
-      <FavoritesOthersContent {...props} />
+      <FavoritesMangaVolumesContent {...props} />
     </Suspense>
   );
 }

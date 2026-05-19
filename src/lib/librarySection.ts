@@ -46,5 +46,5 @@ export function getLibraryVolumeHref(
 export function getFavoritesHref(lang: string, section: LibrarySection) {
   return section === "others"
     ? `/${lang}/favorites/others`
-    : `/${lang}/favorites`;
+    : `/${lang}/favorites/manga`;
 }

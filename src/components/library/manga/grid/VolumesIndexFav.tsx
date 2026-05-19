@@ -1,6 +1,12 @@
 import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
-import { listFavoriteVolumeIds, listVolumes } from "@/lib/db/library";
+import {
+  listFavoriteVolumeIds,
+  listPagedVolumes,
+  listVolumeProgressByIds,
+} from "@/lib/db/library";
+import Pagination from "@/components/ui/Pagination";
+import { LIBRARY_PAGE_SIZE } from "@/lib/libraryPagination";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import {
   getLibraryVolumeHref,
@@ -8,13 +14,13 @@ import {
   type LibrarySection,
 } from "@/lib/librarySection";
 import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
-import { sortByPaddedTitle } from "@/lib/utils";
 import { GhostIcon, BookCopyIcon } from "lucide-react";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface VolumesIndexFavProps {
   lang: Locale;
   intl: Dictionary;
+  page?: number;
   scope?: LibraryScope;
   section?: LibrarySection;
 }
@@ -22,6 +28,7 @@ interface VolumesIndexFavProps {
 export default async function VolumesIndexFav({
   lang,
   intl,
+  page = 1,
   scope = "all",
   section = "manga",
 }: VolumesIndexFavProps) {
@@ -38,12 +45,18 @@ export default async function VolumesIndexFav({
     );
   }
 
-  const volumes = await listVolumes({
+  const paginated = await listPagedVolumes({
+    page,
+    pageSize: LIBRARY_PAGE_SIZE,
     volumeIds: favoriteVolumeIds,
     scope,
   });
-  const sortedVolumes = sortByPaddedTitle(volumes);
-  const entries = sortedVolumes.map((vol) => ({
+  const progressById = await listVolumeProgressByIds(
+    user.id,
+    paginated.items.map((volume) => volume.id)
+  );
+
+  const entries = paginated.items.map((vol) => ({
     ...vol,
     isOneshot: vol.series?.isOneshot === true,
     coverImage: getMangaCoverUrl(vol),
@@ -61,7 +74,7 @@ export default async function VolumesIndexFav({
         {entries.map((entry) => {
           const href = getLibraryVolumeHref(lang, section, entry.slug);
           const coverImage = entry.coverImage;
-          const progress = entry.usersProgress?.[0] ?? null;
+          const progress = progressById[entry.id] ?? null;
 
           return (
             <MangaCard
@@ -83,6 +96,16 @@ export default async function VolumesIndexFav({
           );
         })}
       </div>
+
+      {paginated.total > LIBRARY_PAGE_SIZE && (
+        <div className="mt-8">
+          <Pagination
+            currentPage={page}
+            totalPages={paginated.totalPages}
+            intl={intl}
+          />
+        </div>
+      )}
     </>
   );
 }

@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import SeriesIndexFav from "@/components/library/manga/grid/SeriesIndexFav";
+import VolumesIndexFav from "@/components/library/manga/grid/VolumesIndexFav";
 import type { Locale } from "@/lib/types";
 
-interface FavoritesOthersPageProps {
+interface FavoritesOthersVolumesPageProps {
   params: Promise<{ lang: string }>;
   searchParams: Promise<Record<string, string | undefined>>;
 }
@@ -21,10 +21,10 @@ function GridSkeleton() {
   );
 }
 
-async function FavoritesOthersContent({
+async function FavoritesOthersVolumesContent({
   params,
   searchParams,
-}: FavoritesOthersPageProps) {
+}: FavoritesOthersVolumesPageProps) {
   const { lang = "es" } = await params;
   const resolvedSearchParams = await searchParams;
   const pageRaw = resolvedSearchParams.page ?? "1";
@@ -32,7 +32,7 @@ async function FavoritesOthersContent({
   const intl = await getDictionary(lang as Locale);
 
   return (
-    <SeriesIndexFav
+    <VolumesIndexFav
       lang={lang as Locale}
       intl={intl}
       page={page}
@@ -42,10 +42,12 @@ async function FavoritesOthersContent({
   );
 }
 
-export default function FavoritesOthersPage(props: FavoritesOthersPageProps) {
+export default function FavoritesOthersVolumesPage(
+  props: FavoritesOthersVolumesPageProps
+) {
   return (
     <Suspense fallback={<GridSkeleton />}>
-      <FavoritesOthersContent {...props} />
+      <FavoritesOthersVolumesContent {...props} />
     </Suspense>
   );
 }

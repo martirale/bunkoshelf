@@ -2,9 +2,11 @@ import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import {
   listFavoriteSeriesIds,
-  listSeriesWithVolumes,
+  listPagedSeriesWithVolumes,
 } from "@/lib/db/library";
 import { GhostIcon, LibraryBigIcon } from "lucide-react";
+import Pagination from "@/components/ui/Pagination";
+import { LIBRARY_PAGE_SIZE } from "@/lib/libraryPagination";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import {
   getLibrarySeriesHref,
@@ -19,6 +21,7 @@ import type { Locale, Dictionary } from "@/lib/types";
 interface SeriesIndexFavProps {
   lang: Locale;
   intl: Dictionary;
+  page?: number;
   scope?: LibraryScope;
   section?: LibrarySection;
 }
@@ -26,6 +29,7 @@ interface SeriesIndexFavProps {
 export default async function SeriesIndexFav({
   lang,
   intl,
+  page = 1,
   scope = "all",
   section = "manga",
 }: SeriesIndexFavProps) {
@@ -43,12 +47,14 @@ export default async function SeriesIndexFav({
     );
   }
 
-  const favorites = await listSeriesWithVolumes({
+  const favorites = await listPagedSeriesWithVolumes({
+    page,
+    pageSize: LIBRARY_PAGE_SIZE,
     seriesIds: favoriteSeriesIds,
     scope,
   });
 
-  const entries = favorites.map((series) => {
+  const entries = favorites.items.map((series) => {
     const sortedVolumes = sortByPaddedTitle(series.volumes);
 
     return {
@@ -111,6 +117,16 @@ export default async function SeriesIndexFav({
           );
         })}
       </div>
+
+      {favorites.total > LIBRARY_PAGE_SIZE && (
+        <div className="mt-8">
+          <Pagination
+            currentPage={page}
+            totalPages={favorites.totalPages}
+            intl={intl}
+          />
+        </div>
+      )}
     </>
   );
 }

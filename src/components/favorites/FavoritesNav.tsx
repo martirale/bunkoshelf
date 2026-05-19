@@ -27,16 +27,28 @@ export default function FavoritesNav({
 
   const links: NavLink[] = [
     {
-      label: intl.favorites.sectionManga,
-      href: `/${currentLang}/favorites`,
+      label: intl.favorites.sectionMangaSeries,
+      href: `/${currentLang}/favorites/manga`,
       icon: BookHeartIcon,
-      isActive: pathname === `/${currentLang}/favorites`,
+      isActive: pathname === `/${currentLang}/favorites/manga`,
     },
     {
-      label: intl.favorites.sectionOthers,
+      label: intl.favorites.sectionMangaVolumes,
+      href: `/${currentLang}/favorites/manga/volumes`,
+      icon: BookHeartIcon,
+      isActive: pathname === `/${currentLang}/favorites/manga/volumes`,
+    },
+    {
+      label: intl.favorites.sectionOthersSeries,
       href: `/${currentLang}/favorites/others`,
       icon: BookHeartIcon,
       isActive: pathname === `/${currentLang}/favorites/others`,
+    },
+    {
+      label: intl.favorites.sectionOthersVolumes,
+      href: `/${currentLang}/favorites/others/volumes`,
+      icon: BookHeartIcon,
+      isActive: pathname === `/${currentLang}/favorites/others/volumes`,
     },
     {
       label: intl.favorites.sectionBooks,
