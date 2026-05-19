@@ -65,20 +65,19 @@ export default function FavoritesNav({
 
   return (
     <div className="mt-4 md:mt-16">
-      <nav className="flex justify-center gap-2 md:flex-col md:gap-4">
+      <nav className="md:space-y-2 md:block flex gap-1">
         {links.map(({ href, icon: Icon, label, isActive, badge }, index) => (
           <Link
             key={index}
             href={href}
             prefetch={false}
             className={clsx(
-              "flex flex-1 items-center justify-center md:justify-start",
-              "text-onix leading-none uppercase px-2 py-4 rounded-lg",
+              "flex items-center p-4 rounded-lg leading-none text-onix md:w-full justify-center md:justify-start flex-1 transition-all duration-300",
               {
                 "bg-sand": isActive,
                 "hover:bg-sand": !isActive,
               },
-              "transition-all duration-300 group"
+              "group"
             )}
             aria-label={label as string}
           >
