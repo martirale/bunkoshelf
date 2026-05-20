@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { cache } from "react";
 import { query, queryOne } from "./db/query";
 import { buildNaturalSortKey } from "./naturalSort";
 import type { Session } from "@/lib/types";
@@ -38,10 +39,20 @@ export function ageRatingMap(ageRating: string | null | undefined): number | nul
   return mapping[ageRating] ?? null;
 }
 
-export async function getChallengeData(user: Session | null) {
-  if (!user) return null;
+function isTransientDatabaseConnectionError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+
+  const message = error.message.toLowerCase();
+
+  return (
+    message.includes("timeout exceeded when trying to connect") ||
+    message.includes("connect econnrefused") ||
+    message.includes("the database system is starting up")
+  );
+}
+
+const resolveChallengeData = cache(async (userId: string, currentYear: number) => {
   await connection();
-  const currentYear = new Date().getFullYear();
 
   const challenge = await queryOne<{ goal: number }>(
     `
@@ -51,7 +62,7 @@ export async function getChallengeData(user: Session | null) {
         AND year = $2
       LIMIT 1
     `,
-    [user.id, currentYear]
+    [userId, currentYear]
   );
 
   const userVolumes = await query<{ last_read_at: Date | null }>(
@@ -61,7 +72,7 @@ export async function getChallengeData(user: Session | null) {
       WHERE user_id = $1
         AND is_read = TRUE
     `,
-    [user.id]
+    [userId]
   );
 
   const goal = challenge?.goal ?? 0;
@@ -72,4 +83,24 @@ export async function getChallengeData(user: Session | null) {
   const percentage = goal === 0 ? 0 : Math.min((progress / goal) * 100, 100);
 
   return { goal, progress, percentage };
+});
+
+export async function getChallengeData(user: Session | null) {
+  if (!user) return null;
+
+  const currentYear = new Date().getFullYear();
+
+  try {
+    return await resolveChallengeData(user.id, currentYear);
+  } catch (error) {
+    if (isTransientDatabaseConnectionError(error)) {
+      console.warn(
+        "[bunko/db] Challenge data unavailable:",
+        error instanceof Error ? error.message : String(error)
+      );
+      return null;
+    }
+
+    throw error;
+  }
 }
