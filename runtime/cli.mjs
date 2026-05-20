@@ -27,6 +27,7 @@ switch (command) {
     await init(projectName, options);
     break;
   }
+  case "shelf":
   case "start": {
     const { start } = await import("./commands/start.mjs");
     await start();
@@ -43,7 +44,9 @@ switch (command) {
       const { options } = parseInitArgs(args);
       await init(command, options);
     } else {
-      console.error("Usage: bunkoshelf <init|start|update> [project-name|version]");
+      console.error(
+        "Usage: bunko <init|shelf|start|update> [project-name|version]"
+      );
       process.exit(1);
     }
 }

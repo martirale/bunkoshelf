@@ -5,6 +5,13 @@ import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "fs-extra";
 import { execa } from "execa";
+import {
+  detectPackageManager,
+  getInstallCommand,
+  getPackageManagerVersion,
+  getStartCommand,
+  getUpdateCommand,
+} from "../package-manager.mjs";
 
 const PACKAGE_NAME = "@itsmrtr/bunkoshelf";
 const DEFAULT_PORT = 3060;
@@ -36,14 +43,20 @@ export function buildEnv(jwtSecret, provider = "local") {
   return lines.join("\n") + "\n";
 }
 
-function buildPackageJson(name) {
+function buildPackageJson(name, packageManager, packageManagerVersion) {
   return {
     name,
     version: "0.1.0",
     private: true,
+    ...(packageManager === "pnpm" && packageManagerVersion
+      ? {
+          packageManager: `pnpm@${packageManagerVersion}`,
+        }
+      : {}),
     scripts: {
-      start: "bunkoshelf start",
-      update: "bunkoshelf update",
+      bunko: "bunko",
+      start: "bunko shelf",
+      update: "bunko update",
     },
     dependencies: {
       [PACKAGE_NAME]: packageVersion,
@@ -54,6 +67,11 @@ function buildPackageJson(name) {
 export async function init(projectName, options = {}) {
   intro(chalk.bold("▲ Bunko Shelf"));
   const provider = options.cloud ? "cloud" : "local";
+  const packageManager = await detectPackageManager(process.cwd());
+  const packageManagerVersion = getPackageManagerVersion(packageManager);
+  const installCommand = getInstallCommand(packageManager);
+  const startCommand = getStartCommand(packageManager);
+  const updateCommand = getUpdateCommand(packageManager);
 
   const useCurrentDir = projectName === ".";
   let name = useCurrentDir ? undefined : projectName;
@@ -98,14 +116,21 @@ export async function init(projectName, options = {}) {
   progress.start("Creating project...");
   await fs.ensureDir(projectDir);
   await fs.writeFile(join(projectDir, ".env"), buildEnv(generateSecret(), provider));
-  await fs.writeJson(join(projectDir, "package.json"), buildPackageJson(name), {
-    spaces: 2,
-  });
+  await fs.writeJson(
+    join(projectDir, "package.json"),
+    buildPackageJson(name, packageManager, packageManagerVersion),
+    {
+      spaces: 2,
+    }
+  );
   await fs.writeFile(join(projectDir, ".gitignore"), ".env\nnode_modules\n");
   progress.stop("Project created");
 
   progress.start("Installing dependencies...");
-  await execa("npm", ["install"], { cwd: projectDir, stdio: "inherit" });
+  await execa(installCommand.command, installCommand.args, {
+    cwd: projectDir,
+    stdio: "inherit",
+  });
   progress.stop("Dependencies installed");
 
   note(
@@ -118,13 +143,13 @@ export async function init(projectName, options = {}) {
       "",
       "Then start Bunko Shelf:",
       "",
-      `  ${chalk.cyan("npm start")}`,
+      `  ${chalk.cyan(startCommand)}`,
       "",
       `Keep ${chalk.cyan("JWT_SECRET")} configured in production.`,
       "",
       "To update Bunko Shelf later:",
       "",
-      `  ${chalk.cyan("npm run update")}`,
+      `  ${chalk.cyan(updateCommand)}`,
     ].join("\n"),
     "Next steps"
   );

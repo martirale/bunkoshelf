@@ -30,7 +30,7 @@
     "runtime"
   ],
   "bin": {
-    "bunkoshelf": "./bin/bunkoshelf.mjs"
+    "bunko": "./bin/bunkoshelf.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -40,10 +40,12 @@
     "provenance": true
   },
   "scripts": {
+    "bunko": "node ./runtime/cli.mjs",
     "dev": "node ./scripts/dev.mjs",
     "build": "next build",
     "db:migrate": "node ./scripts/migrate.mjs",
     "start": "node ./scripts/start.mjs",
+    "update": "node ./runtime/cli.mjs update",
     "build:release": "node ./scripts/build-release.mjs",
     "lint": "eslint ."
   },

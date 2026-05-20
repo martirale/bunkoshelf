@@ -3,6 +3,10 @@ import chalk from "chalk";
 import { execa } from "execa";
 import fs from "fs-extra";
 import { join } from "node:path";
+import {
+  detectPackageManager,
+  getUpdateDependencyCommand,
+} from "../package-manager.mjs";
 
 const PACKAGE_NAME = "@itsmrtr/bunkoshelf";
 const REPOSITORY_NAME = "martirale/bunkoshelf";
@@ -70,11 +74,13 @@ export async function update(version = "latest") {
 
   const progress = spinner();
   const target = `${PACKAGE_NAME}@${version}`;
+  const packageManager = await detectPackageManager(process.cwd());
+  const updateCommand = getUpdateDependencyCommand(packageManager, target);
 
   progress.start(`Updating ${PACKAGE_NAME} to ${chalk.cyan(version)}...`);
 
   try {
-    await execa("npm", ["install", "--save-exact", target], {
+    await execa(updateCommand.command, updateCommand.args, {
       cwd: process.cwd(),
       stdio: "inherit",
     });
@@ -91,7 +97,12 @@ export async function update(version = "latest") {
     );
 
     try {
-      await execa("npm", ["install", "--save-exact", fallbackTarget], {
+      const fallbackCommand = getUpdateDependencyCommand(
+        packageManager,
+        fallbackTarget
+      );
+
+      await execa(fallbackCommand.command, fallbackCommand.args, {
         cwd: process.cwd(),
         stdio: "inherit",
       });
