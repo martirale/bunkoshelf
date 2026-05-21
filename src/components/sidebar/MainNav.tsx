@@ -68,7 +68,7 @@ export default function MainNav({ intl, user }: MainNavProps) {
               </button>
 
               {openLibraryMenu && (
-                <div>
+                <div className="mt-1 md:mt-2 md:space-y-2">
                   {link.subItems?.map((subItem) => (
                     <Link
                       key={subItem.href}
