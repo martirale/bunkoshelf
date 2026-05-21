@@ -21,37 +21,39 @@ export function getFavoritesNavLinks({
   lang,
   pathname,
 }: GetFavoritesNavLinksParams): FavoritesNavLink[] {
+  const favorites = intl.favorites as DictionarySection;
+
   return [
     {
-      label: intl.favorites.sectionMangaSeries,
+      label: favorites.sectionManga,
       href: `/${lang}/favorites/manga`,
       icon: LibraryBigIcon,
       isActive: pathname === `/${lang}/favorites/manga`,
-      badge: "M",
+      badge: favorites.badgeSeries as string,
     },
     {
-      label: intl.favorites.sectionMangaVolumes,
+      label: favorites.sectionManga,
       href: `/${lang}/favorites/manga/volumes`,
       icon: BookCopyIcon,
       isActive: pathname === `/${lang}/favorites/manga/volumes`,
-      badge: "M",
+      badge: favorites.badgeVolumes as string,
     },
     {
-      label: intl.favorites.sectionOthersSeries,
+      label: favorites.sectionOthers,
       href: `/${lang}/favorites/others`,
       icon: LibraryBigIcon,
       isActive: pathname === `/${lang}/favorites/others`,
-      badge: "C",
+      badge: favorites.badgeSeries as string,
     },
     {
-      label: intl.favorites.sectionOthersVolumes,
+      label: favorites.sectionOthers,
       href: `/${lang}/favorites/others/volumes`,
       icon: BookCopyIcon,
       isActive: pathname === `/${lang}/favorites/others/volumes`,
-      badge: "C",
+      badge: favorites.badgeVolumes as string,
     },
     {
-      label: intl.favorites.sectionBooks,
+      label: favorites.sectionBooks,
       href: `/${lang}/favorites/books`,
       icon: BookHeartIcon,
       isActive: pathname === `/${lang}/favorites/books`,

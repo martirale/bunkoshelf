@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
+import MobileSecondaryNav from "@/components/ui/MobileSecondaryNav";
 import { getSettingsNavLinks } from "@/lib/nav/settingsNav";
 import type { Dictionary } from "@/lib/types";
 
@@ -32,21 +33,23 @@ export default function SettingsNav({ intl }: SettingsNavProps) {
 
   return (
     <div className="mt-4 md:mt-16">
-      <div className="md:space-y-2 md:block flex gap-1">
+      <MobileSecondaryNav items={links} />
+
+      <div className="hidden md:space-y-2 md:block">
         {links.map(({ label, href, icon: Icon, isActive }) => (
           <Link
             key={href}
             href={href}
             className={clsx(
-              "flex items-center p-4 rounded-lg leading-none text-onix md:w-full justify-center md:justify-start flex-1 transition-all duration-300",
+              "flex items-center p-4 rounded-lg leading-none text-onix w-full justify-start transition-all duration-300",
               {
                 "bg-sand": isActive,
                 "hover:bg-sand": !isActive,
               }
             )}
           >
-            <Icon size={20} className="mr-0 md:mr-2" />
-            <span className="hidden md:inline">{label}</span>
+            <Icon size={20} className="mr-2" />
+            <span>{label}</span>
           </Link>
         ))}
       </div>
