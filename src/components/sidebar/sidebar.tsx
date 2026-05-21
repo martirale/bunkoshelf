@@ -34,14 +34,11 @@ export default function Sidebar({
 
         {user && (
           <div className="flex-1">
-            <MainNav
-              intl={intl}
-              user={user}
-            />
+            <MainNav intl={intl} user={user} />
 
-            <div className="mt-16">
+            {/* <div className="mt-16">
               <SearchInput intl={intl} />
-            </div>
+            </div> */}
           </div>
         )}
 
