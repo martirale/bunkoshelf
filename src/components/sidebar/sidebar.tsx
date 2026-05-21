@@ -1,27 +1,28 @@
-import { getDictionary } from "@/lib/i18n/Dictionary";
 import SidebarLogo from "./siebarLogo";
 import SecondNav from "./SecondNav";
 import MainNav from "./MainNav";
 import ChallengeProg from "./ChallengeProg";
 import FooterNav from "./FooterNav";
-import { verifySession } from "@/lib/auth/verifySession";
 import SearchInput from "@/components/search/SearchImput";
 import SearchModal from "@/components/search/SearchModal";
-import { getChallengeData } from "@/lib/utils";
-import { getVersionInfo } from "@/lib/versionInfo";
-
-import type { Locale } from "@/lib/types";
+import type { ChallengeData, Dictionary, Locale, Session } from "@/lib/types";
+import type { VersionInfo } from "@/lib/versionInfo";
 
 interface SidebarProps {
   lang: Locale;
+  intl: Dictionary;
+  user: Session | null;
+  challengeData: ChallengeData | null;
+  versionData: VersionInfo;
 }
 
-export default async function Sidebar({ lang }: SidebarProps) {
-  const intl = await getDictionary(lang);
-  const user = await verifySession();
-  const challengeData = await getChallengeData(user);
-  const versionData = await getVersionInfo();
-
+export default function Sidebar({
+  lang,
+  intl,
+  user,
+  challengeData,
+  versionData,
+}: SidebarProps) {
   return (
     <>
       <aside className="hidden md:flex md:w-[35%] lg:w-[25%] xl:w-[21%] 2xl:w-[17%] bg-blackamber flex-col justify-between p-4">
