@@ -12,6 +12,7 @@
     "booksColumn": "Books",
     "totalColumn": "Total",
     "authorColumn": "Author",
+    "unknownAuthor": "Unknown",
     "worksColumn": "Works",
     "avgRatingColumn": "Avg",
     "progressColumn": "Progress",

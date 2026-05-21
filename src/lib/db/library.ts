@@ -664,15 +664,15 @@ export async function listPagedCatalogAuthors(
       `
         SELECT COUNT(*) AS total
         FROM (
-          SELECT vm.writer
+          SELECT COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__') AS author
           FROM manga_volumes mv
           LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
-          GROUP BY vm.writer
+          GROUP BY COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__')
         ) AS authors
       `
     ),
     query<{
-      author: string | null;
+      author: string;
       works: string | number;
       avg_rating: number | null;
       read_count: string | number;
@@ -681,19 +681,28 @@ export async function listPagedCatalogAuthors(
     }>(
       `
         SELECT
-          vm.writer AS author,
-          COUNT(mv.id) AS works,
-          ROUND(AVG(utv.personal_rating)::numeric, 1)::float8 AS avg_rating,
-          COUNT(*) FILTER (WHERE utv.is_read = TRUE) AS read_count,
-          BOOL_OR(vm.manga_style IS DISTINCT FROM 'No') AS has_manga,
-          BOOL_OR(vm.manga_style = 'No') AS has_others
-        FROM manga_volumes mv
-        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
-        LEFT JOIN user_to_volumes utv
-          ON utv.volume_id = mv.id
-         AND utv.user_id = $1
-        GROUP BY vm.writer
-        ORDER BY COALESCE(vm.writer, '') ASC
+          grouped.author,
+          grouped.works,
+          grouped.avg_rating,
+          grouped.read_count,
+          grouped.has_manga,
+          grouped.has_others
+        FROM (
+          SELECT
+            COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__') AS author,
+            COUNT(mv.id) AS works,
+            ROUND(AVG(utv.personal_rating)::numeric, 1)::float8 AS avg_rating,
+            COUNT(*) FILTER (WHERE utv.is_read = TRUE) AS read_count,
+            BOOL_OR(vm.manga_style IS DISTINCT FROM 'No') AS has_manga,
+            BOOL_OR(vm.manga_style = 'No') AS has_others
+          FROM manga_volumes mv
+          LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+          LEFT JOIN user_to_volumes utv
+            ON utv.volume_id = mv.id
+           AND utv.user_id = $1
+          GROUP BY COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__')
+        ) AS grouped
+        ORDER BY grouped.author ASC
         LIMIT $2
         OFFSET $3
       `,
@@ -705,7 +714,7 @@ export async function listPagedCatalogAuthors(
 
   return mapPaginatedResult(
     rows.map((row) => ({
-      author: row.author,
+      author: row.author === "__unknown__" ? null : row.author,
       works: parseCount(row.works),
       avgRating: row.avg_rating,
       readCount: parseCount(row.read_count),

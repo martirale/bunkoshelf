@@ -92,7 +92,7 @@ export default function UsersTable({
                       type="button"
                       onClick={() => handleEdit(user)}
                       title={intl.settings.edit as string}
-                      className="border border-stone-300 md:border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
+                      className="border border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
                     >
                       <UserRoundPenIcon size={16} />
                     </button>

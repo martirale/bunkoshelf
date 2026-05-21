@@ -106,7 +106,7 @@ export default function CatalogLibraryActions({
         disabled={isScanning || isDeleting}
         title={intl.manga.scanVolume as string}
         className={clsx(
-          "border border-stone-300 md:border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah",
+          "border border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah",
           "disabled:opacity-50 disabled:cursor-not-allowed"
         )}
       >
@@ -123,7 +123,7 @@ export default function CatalogLibraryActions({
         disabled={isScanning || isDeleting}
         title={(intl.libraries.deleteItem as Record<string, string>).volume}
         className={clsx(
-          "border border-stone-300 md:border-neutral-800 hover:text-danger-alt rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-danger-alt",
+          "border border-neutral-800 hover:text-danger-alt rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-danger-alt",
           "disabled:opacity-50 disabled:cursor-not-allowed"
         )}
       >

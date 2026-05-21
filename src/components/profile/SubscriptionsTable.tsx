@@ -131,7 +131,7 @@ export default function SubscriptionsTable({ subscriptions: initial, intl }: Sub
                       onClick={() => !isLoading && handleDelete(sub.id, sub.endpoint)}
                       disabled={isLoading}
                       title={profile.unsubscribe as string}
-                      className="border border-stone-300 md:border-neutral-800 hover:text-danger-alt rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-danger-alt disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="border border-neutral-800 hover:text-danger-alt rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-danger-alt disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2Icon size={16} />
                     </button>

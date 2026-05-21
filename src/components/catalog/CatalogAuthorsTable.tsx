@@ -53,6 +53,9 @@ export default function CatalogAuthorsTable({
   data,
   intl,
 }: CatalogAuthorsTableProps) {
+  const unknownAuthorLabel =
+    (intl.catalog.unknownAuthor as string | undefined) || "Unknown";
+
   return (
     <>
       <div className="bg-blackamber p-4 rounded-lg">
@@ -82,7 +85,7 @@ export default function CatalogAuthorsTable({
                 <tr key={`${author.author ?? "unknown"}-${index}`}>
                   <td className="p-4">
                     <div className="max-w-[18rem] whitespace-normal break-words leading-snug line-clamp-2">
-                      {renderValue(author.author)}
+                      {author.author ? author.author : unknownAuthorLabel}
                     </div>
                   </td>
                   <td className="p-4 text-center whitespace-nowrap">
