@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpenIcon } from "lucide-react";
+import { getSecondNavLinks } from "@/lib/nav/secondNav";
 import type { Dictionary } from "@/lib/types";
 
 interface SecondNavProps {
@@ -8,14 +8,7 @@ interface SecondNavProps {
 }
 
 export default function SecondNav({ intl, className }: SecondNavProps) {
-  const links = [
-    {
-      href: "https://bunko.alemartir.com",
-      icon: BookOpenIcon,
-      label: intl.noauth.guide as string,
-      external: true,
-    },
-  ];
+  const links = getSecondNavLinks(intl);
 
   return (
     <div className={`mt-8 md:space-y-2 ${className}`}>

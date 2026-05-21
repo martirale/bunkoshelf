@@ -1,36 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
-import {
-  HomeIcon as House,
-  LibraryBigIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  HeartIcon,
-  UserRoundIcon,
-} from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { usePathname, useParams } from "next/navigation";
 import clsx from "clsx";
-import { requireRole, ROLES } from "@/lib/auth/roles";
-import type { Dictionary, Session, Role } from "@/lib/types";
-
-interface SubItem {
-  label: string;
-  href: string;
-  isActive: boolean;
-}
-
-interface NavLink {
-  label: string;
-  href?: string;
-  icon: LucideIcon;
-  isActive: boolean;
-  minRole: Role;
-  isDropdown?: boolean;
-  subItems?: SubItem[];
-}
+import { getMainNavLinks } from "@/lib/nav/mainNav";
+import type { Dictionary, Session } from "@/lib/types";
 
 interface MainNavProps {
   intl: Dictionary;
@@ -41,11 +17,8 @@ export default function MainNav({ intl, user }: MainNavProps) {
   const params = useParams();
   const currentLang = (params.lang as string) || "es";
   const pathname = usePathname();
-
-  const isLibraryActive =
-    pathname.startsWith(`/${currentLang}/manga`) ||
-    pathname.startsWith(`/${currentLang}/others`) ||
-    pathname.startsWith(`/${currentLang}/books`);
+  const links = getMainNavLinks({ intl, user, lang: currentLang, pathname });
+  const isLibraryActive = links.some((link) => link.isDropdown && link.isActive);
 
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false);
   const hasManuallyToggled = useRef(false);
@@ -65,54 +38,6 @@ export default function MainNav({ intl, user }: MainNavProps) {
     setOpenLibraryMenu((prev) => !prev);
     hasManuallyToggled.current = true;
   };
-
-  const links: NavLink[] = [
-    {
-      label: intl.sidebar.home as string,
-      href: `/${currentLang}`,
-      icon: House,
-      isActive: pathname === `/${currentLang}`,
-      minRole: ROLES.MEMBER,
-    },
-    {
-      label: intl.sidebar.library as string,
-      icon: LibraryBigIcon,
-      isDropdown: true,
-      isActive: isLibraryActive,
-      minRole: ROLES.MEMBER,
-      subItems: [
-        {
-          label: intl.sidebar.manga as string,
-          href: `/${currentLang}/manga`,
-          isActive: pathname.startsWith(`/${currentLang}/manga`),
-        },
-        {
-          label: intl.sidebar.others as string,
-          href: `/${currentLang}/others`,
-          isActive: pathname.startsWith(`/${currentLang}/others`),
-        },
-        {
-          label: intl.sidebar.books as string,
-          href: `/${currentLang}/books`,
-          isActive: pathname.startsWith(`/${currentLang}/books`),
-        },
-      ],
-    },
-    {
-      label: intl.sidebar.favorites as string,
-      href: `/${currentLang}/favorites`,
-      icon: HeartIcon,
-      isActive: pathname.startsWith(`/${currentLang}/favorites`),
-      minRole: ROLES.MEMBER,
-    },
-    {
-      label: intl.sidebar.profile as string,
-      href: `/${currentLang}/profile`,
-      icon: UserRoundIcon,
-      isActive: pathname.startsWith(`/${currentLang}/profile`),
-      minRole: ROLES.MEMBER,
-    },
-  ].filter((link) => requireRole(user, link.minRole));
 
   return (
     <nav className="mt-8 md:space-y-2">
