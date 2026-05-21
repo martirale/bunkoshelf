@@ -66,21 +66,6 @@ export default async function ReaderStatsPanel({
   const monthlyReads = data?.monthlyReads ?? [];
   const allReadDates = data?.allReadDates ?? [];
 
-  const readDaySet = new Set(dailyReading.map(({ date }) => date));
-  let currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  let streak = 0;
-  while (true) {
-    const y = currentDate.getFullYear();
-    const m = String(currentDate.getMonth() + 1).padStart(2, "0");
-    const d = String(currentDate.getDate()).padStart(2, "0");
-    if (readDaySet.has(`${y}-${m}-${d}`)) {
-      streak++;
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-
   let lastRead = "—";
   if (dailyReading.length > 0) {
     lastRead = formatLoggedDate(dailyReading[0].date, lang, thisYear);
@@ -130,7 +115,7 @@ export default async function ReaderStatsPanel({
     <section className={`grid grid-cols-2 ${mdCols} w-full gap-4`}>
       <TileStreak
         title={stats.streak as string}
-        streak={streak}
+        dailyReadingDates={dailyReading.map(({ date }) => date)}
         daysLabel={stats.days as string}
         bgColor={bgColor}
         textColor={textColor}
