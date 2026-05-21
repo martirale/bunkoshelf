@@ -188,6 +188,24 @@ export interface CatalogLibraryVolume {
   isFavorite: boolean;
 }
 
+export interface CatalogAuthorStats {
+  author: string | null;
+  works: number;
+  avgRating: number | null;
+  readCount: number;
+  hasManga: boolean;
+  hasOthers: boolean;
+  hasBooks: boolean;
+}
+
+export interface CatalogRelationStats {
+  name: string;
+  hasManga: boolean;
+  hasOthers: boolean;
+  hasBooks: boolean;
+  total: number;
+}
+
 interface VolumeRow {
   volume_id: string;
   volume_slug: string;
@@ -630,6 +648,186 @@ export async function listPagedCatalogLibraryVolumes(
       gtin: row.gtin,
       isRead: row.is_read === true,
       isFavorite: row.is_favorite === true,
+    })),
+    total,
+    pagination
+  );
+}
+
+export async function listPagedCatalogAuthors(
+  options?: PagedQueryOptions & { userId?: string | null }
+): Promise<PaginatedResult<CatalogAuthorStats>> {
+  const pagination = buildPagination(options);
+
+  const [countRow, rows] = await Promise.all([
+    queryOne<{ total: string | number }>(
+      `
+        SELECT COUNT(*) AS total
+        FROM (
+          SELECT vm.writer
+          FROM manga_volumes mv
+          LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+          GROUP BY vm.writer
+        ) AS authors
+      `
+    ),
+    query<{
+      author: string | null;
+      works: string | number;
+      avg_rating: number | null;
+      read_count: string | number;
+      has_manga: boolean | null;
+      has_others: boolean | null;
+    }>(
+      `
+        SELECT
+          vm.writer AS author,
+          COUNT(mv.id) AS works,
+          ROUND(AVG(utv.personal_rating)::numeric, 1)::float8 AS avg_rating,
+          COUNT(*) FILTER (WHERE utv.is_read = TRUE) AS read_count,
+          BOOL_OR(vm.manga_style IS DISTINCT FROM 'No') AS has_manga,
+          BOOL_OR(vm.manga_style = 'No') AS has_others
+        FROM manga_volumes mv
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        LEFT JOIN user_to_volumes utv
+          ON utv.volume_id = mv.id
+         AND utv.user_id = $1
+        GROUP BY vm.writer
+        ORDER BY COALESCE(vm.writer, '') ASC
+        LIMIT $2
+        OFFSET $3
+      `,
+      [options?.userId ?? null, pagination.pageSize, pagination.offset]
+    ),
+  ]);
+
+  const total = parseCount(countRow?.total ?? 0);
+
+  return mapPaginatedResult(
+    rows.map((row) => ({
+      author: row.author,
+      works: parseCount(row.works),
+      avgRating: row.avg_rating,
+      readCount: parseCount(row.read_count),
+      hasManga: row.has_manga === true,
+      hasOthers: row.has_others === true,
+      hasBooks: false,
+    })),
+    total,
+    pagination
+  );
+}
+
+export async function listPagedCatalogGenres(
+  options?: PagedQueryOptions
+): Promise<PaginatedResult<CatalogRelationStats>> {
+  const pagination = buildPagination(options);
+
+  const [countRow, rows] = await Promise.all([
+    queryOne<{ total: string | number }>(
+      `
+        SELECT COUNT(*) AS total
+        FROM (
+          SELECT g.id
+          FROM genres g
+          INNER JOIN volume_to_genres vtg ON vtg.genre_id = g.id
+          INNER JOIN manga_volumes mv ON mv.id = vtg.volume_id
+          GROUP BY g.id
+        ) AS genres
+      `
+    ),
+    query<{
+      name: string;
+      has_manga: boolean | null;
+      has_others: boolean | null;
+      total: string | number;
+    }>(
+      `
+        SELECT
+          g.name,
+          BOOL_OR(vm.manga_style IS DISTINCT FROM 'No') AS has_manga,
+          BOOL_OR(vm.manga_style = 'No') AS has_others,
+          COUNT(mv.id) AS total
+        FROM genres g
+        INNER JOIN volume_to_genres vtg ON vtg.genre_id = g.id
+        INNER JOIN manga_volumes mv ON mv.id = vtg.volume_id
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        GROUP BY g.id, g.name
+        ORDER BY g.name ASC
+        LIMIT $1
+        OFFSET $2
+      `,
+      [pagination.pageSize, pagination.offset]
+    ),
+  ]);
+
+  const total = parseCount(countRow?.total ?? 0);
+
+  return mapPaginatedResult(
+    rows.map((row) => ({
+      name: row.name,
+      hasManga: row.has_manga === true,
+      hasOthers: row.has_others === true,
+      hasBooks: false,
+      total: parseCount(row.total),
+    })),
+    total,
+    pagination
+  );
+}
+
+export async function listPagedCatalogTags(
+  options?: PagedQueryOptions
+): Promise<PaginatedResult<CatalogRelationStats>> {
+  const pagination = buildPagination(options);
+
+  const [countRow, rows] = await Promise.all([
+    queryOne<{ total: string | number }>(
+      `
+        SELECT COUNT(*) AS total
+        FROM (
+          SELECT t.id
+          FROM tags t
+          INNER JOIN volume_to_tags vtt ON vtt.tag_id = t.id
+          INNER JOIN manga_volumes mv ON mv.id = vtt.volume_id
+          GROUP BY t.id
+        ) AS tags
+      `
+    ),
+    query<{
+      name: string;
+      has_manga: boolean | null;
+      has_others: boolean | null;
+      total: string | number;
+    }>(
+      `
+        SELECT
+          t.name,
+          BOOL_OR(vm.manga_style IS DISTINCT FROM 'No') AS has_manga,
+          BOOL_OR(vm.manga_style = 'No') AS has_others,
+          COUNT(mv.id) AS total
+        FROM tags t
+        INNER JOIN volume_to_tags vtt ON vtt.tag_id = t.id
+        INNER JOIN manga_volumes mv ON mv.id = vtt.volume_id
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        GROUP BY t.id, t.name
+        ORDER BY t.name ASC
+        LIMIT $1
+        OFFSET $2
+      `,
+      [pagination.pageSize, pagination.offset]
+    ),
+  ]);
+
+  const total = parseCount(countRow?.total ?? 0);
+
+  return mapPaginatedResult(
+    rows.map((row) => ({
+      name: row.name,
+      hasManga: row.has_manga === true,
+      hasOthers: row.has_others === true,
+      hasBooks: false,
+      total: parseCount(row.total),
     })),
     total,
     pagination
