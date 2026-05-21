@@ -52,6 +52,19 @@ function isRegistryTarballNotFound(error) {
   );
 }
 
+async function runPackageManagerCommand(command, args, cwd) {
+  const subprocess = execa(command, args, {
+    cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+
+  subprocess.stdout?.pipe(process.stdout);
+  subprocess.stderr?.pipe(process.stderr);
+
+  return subprocess;
+}
+
 export async function update(version = "latest") {
   intro(chalk.bold("▲ Bunko Shelf"));
 
@@ -80,10 +93,11 @@ export async function update(version = "latest") {
   progress.start(`Updating ${PACKAGE_NAME} to ${chalk.cyan(version)}...`);
 
   try {
-    await execa(updateCommand.command, updateCommand.args, {
-      cwd: process.cwd(),
-      stdio: "inherit",
-    });
+    await runPackageManagerCommand(
+      updateCommand.command,
+      updateCommand.args,
+      process.cwd()
+    );
   } catch (error) {
     if (!isRegistryTarballNotFound(error)) {
       progress.stop(chalk.red("Update failed"));
@@ -102,10 +116,11 @@ export async function update(version = "latest") {
         fallbackTarget
       );
 
-      await execa(fallbackCommand.command, fallbackCommand.args, {
-        cwd: process.cwd(),
-        stdio: "inherit",
-      });
+      await runPackageManagerCommand(
+        fallbackCommand.command,
+        fallbackCommand.args,
+        process.cwd()
+      );
     } catch (fallbackError) {
       progress.stop(chalk.red("Update failed"));
       throw fallbackError;
