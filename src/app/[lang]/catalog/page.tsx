@@ -1,9 +1,11 @@
+import { redirect } from "next/navigation";
+
 interface CatalogPageProps {
   params: Promise<{ lang: string }>;
 }
 
 export default async function CatalogPage({ params }: CatalogPageProps) {
-  await params;
+  const { lang = "es" } = await params;
 
-  return <div />;
+  redirect(`/${lang}/catalog/library`);
 }

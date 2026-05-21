@@ -1,0 +1,9 @@
+{
+  "catalog": {
+    "title": "Catálogo",
+    "library": "Biblioteca",
+    "authors": "Autores",
+    "genres": "Géneros",
+    "tags": "Etiquetas"
+  }
+}

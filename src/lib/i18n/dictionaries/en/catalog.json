@@ -1,0 +1,9 @@
+{
+  "catalog": {
+    "title": "Catalog",
+    "library": "Library",
+    "authors": "Authors",
+    "genres": "Genres",
+    "tags": "Tags"
+  }
+}
