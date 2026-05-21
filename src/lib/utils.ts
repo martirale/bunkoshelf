@@ -39,6 +39,31 @@ export function ageRatingMap(ageRating: string | null | undefined): number | nul
   return mapping[ageRating] ?? null;
 }
 
+export function normalizeCommaSeparatedText(
+  value: string | string[] | null | undefined
+): string | null {
+  if (!value) return null;
+
+  if (Array.isArray(value)) {
+    const parts = value
+      .map((entry) => String(entry).trim())
+      .filter(Boolean);
+
+    return parts.length > 0 ? parts.join(", ") : null;
+  }
+
+  if (typeof value === "string") {
+    const parts = value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+    return parts.length > 0 ? parts.join(", ") : null;
+  }
+
+  return null;
+}
+
 function isTransientDatabaseConnectionError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
 

@@ -1,20 +1,15 @@
 import Link from "next/link";
 import type { LibrarySection } from "@/lib/librarySection";
+import { normalizeCommaSeparatedText } from "@/lib/utils";
 import type { Locale, Dictionary } from "@/lib/types";
 
 function normalize(field: unknown): string | null {
   if (!field) return null;
   if (Array.isArray(field)) {
-    if (field.length === 0) return null;
-    return field.join(", ");
+    return normalizeCommaSeparatedText(field);
   }
   if (typeof field === "string") {
-    const parts = field
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (parts.length === 0) return null;
-    return parts.join(", ");
+    return normalizeCommaSeparatedText(field);
   }
   return String(field);
 }

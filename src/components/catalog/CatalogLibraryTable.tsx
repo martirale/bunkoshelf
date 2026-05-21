@@ -3,7 +3,7 @@ import { CheckIcon, HeartIcon } from "lucide-react";
 import Pagination from "@/components/ui/Pagination";
 import CatalogLibraryActions from "@/components/catalog/CatalogLibraryActions";
 import { getLibraryVolumeHref } from "@/lib/librarySection";
-import { ageRatingMap } from "@/lib/utils";
+import { ageRatingMap, normalizeCommaSeparatedText } from "@/lib/utils";
 import type { CatalogLibraryVolume, PaginatedResult } from "@/lib/db/library";
 import type { Dictionary, Locale } from "@/lib/types";
 
@@ -41,6 +41,10 @@ function renderAgeRating(value: string | null | undefined) {
 
   const mapped = ageRatingMap(value);
   return mapped !== null ? `${mapped}+` : value;
+}
+
+function renderWriter(value: string | null | undefined) {
+  return normalizeCommaSeparatedText(value) ?? "—";
 }
 
 export default function CatalogLibraryTable({
@@ -87,25 +91,25 @@ export default function CatalogLibraryTable({
                   <td className="p-4">
                     <Link
                       href={getLibraryVolumeHref(lang, volume.section, volume.slug)}
-                      className="block max-w-[20rem] whitespace-normal break-words leading-snug line-clamp-2 hover:underline"
+                      className="block max-w-[20rem] whitespace-normal break-words leading-snug hover:underline"
                     >
                       {renderValue(volume.title)}
                     </Link>
                   </td>
                   <td className="p-4">
-                    <div className="max-w-[18rem] whitespace-normal break-words leading-snug line-clamp-2">
+                    <div className="max-w-[18rem] whitespace-normal break-words leading-snug">
                       {renderValue(volume.series)}
                     </div>
                   </td>
                   <td className="p-4 text-center whitespace-nowrap">{renderValue(volume.number)}</td>
                   <td className="p-4 text-center whitespace-nowrap">{renderValue(volume.year)}</td>
                   <td className="p-4 text-center">
-                    <div className="max-w-[14rem] whitespace-normal break-words leading-snug line-clamp-2">
-                      {renderValue(volume.writer)}
+                    <div className="max-w-[14rem] whitespace-normal break-words leading-snug">
+                      {renderWriter(volume.writer)}
                     </div>
                   </td>
                   <td className="p-4 text-center">
-                    <div className="max-w-[14rem] whitespace-normal break-words leading-snug line-clamp-2">
+                    <div className="max-w-[14rem] whitespace-normal break-words leading-snug">
                       {renderValue(volume.publisher)}
                     </div>
                   </td>
@@ -115,12 +119,12 @@ export default function CatalogLibraryTable({
                     </div>
                   </td>
                   <td className="p-4 text-center">
-                    <div className="max-w-[10rem] whitespace-normal break-words leading-snug line-clamp-2">
+                    <div className="max-w-[10rem] whitespace-normal break-words leading-snug">
                       {renderAgeRating(volume.ageRating)}
                     </div>
                   </td>
                   <td className="p-4 text-center">
-                    <div className="max-w-[11rem] whitespace-normal break-words leading-snug line-clamp-2">
+                    <div className="max-w-[11rem] whitespace-normal break-words leading-snug">
                       {renderValue(volume.gtin)}
                     </div>
                   </td>

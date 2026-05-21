@@ -1,4 +1,5 @@
 import Pagination from "@/components/ui/Pagination";
+import { normalizeCommaSeparatedText } from "@/lib/utils";
 import type { CatalogAuthorStats, PaginatedResult } from "@/lib/db/library";
 import type { Dictionary } from "@/lib/types";
 
@@ -21,6 +22,13 @@ function renderAvgRating(value: number | null) {
   }
 
   return Number(value).toFixed(1);
+}
+
+function renderAuthorName(
+  value: string | null | undefined,
+  unknownAuthorLabel: string
+) {
+  return normalizeCommaSeparatedText(value) ?? unknownAuthorLabel;
 }
 
 function renderLibraries(
@@ -84,8 +92,8 @@ export default function CatalogAuthorsTable({
               {data.items.map((author, index) => (
                 <tr key={`${author.author ?? "unknown"}-${index}`}>
                   <td className="p-4">
-                    <div className="max-w-[18rem] whitespace-normal break-words leading-snug line-clamp-2">
-                      {author.author ? author.author : unknownAuthorLabel}
+                    <div className="max-w-[18rem] whitespace-normal break-words leading-snug">
+                      {renderAuthorName(author.author, unknownAuthorLabel)}
                     </div>
                   </td>
                   <td className="p-4 text-center whitespace-nowrap">
