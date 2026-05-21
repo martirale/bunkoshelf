@@ -18,7 +18,7 @@ export default function SecondNav({ intl, className }: SecondNavProps) {
   ];
 
   return (
-    <div className={`mt-8 space-y-2 ${className}`}>
+    <div className={`mt-8 md:space-y-2 ${className}`}>
       {links.map(({ href, icon: Icon, label, external }, index) => (
         <Link
           key={index}

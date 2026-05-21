@@ -66,7 +66,7 @@ export default function MobNavModal({
       className="fixed inset-0 z-50 bg-pearl text-onix flex p-4 pointer-events-auto transition-opacity duration-200 ease-in-out opacity-100"
     >
       <div
-        className="flex flex-col justify-between w-full max-w-5xl space-y-4 relative"
+        className="flex flex-col justify-between w-full max-w-5xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-row items-center justify-between">
@@ -81,12 +81,7 @@ export default function MobNavModal({
 
         <div>
           {!user && <SecondNav intl={intl} />}
-          {user && (
-            <MainNav
-              intl={intl}
-              user={user}
-            />
-          )}
+          {user && <MainNav intl={intl} user={user} />}
         </div>
 
         <div className="mt-8 mb-4">

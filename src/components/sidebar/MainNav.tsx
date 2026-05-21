@@ -37,10 +37,7 @@ interface MainNavProps {
   user: Session;
 }
 
-export default function MainNav({
-  intl,
-  user,
-}: MainNavProps) {
+export default function MainNav({ intl, user }: MainNavProps) {
   const params = useParams();
   const currentLang = (params.lang as string) || "es";
   const pathname = usePathname();
@@ -118,7 +115,7 @@ export default function MainNav({
   ].filter((link) => requireRole(user, link.minRole));
 
   return (
-    <nav className="mt-8 space-y-2">
+    <nav className="mt-8 md:space-y-2">
       {links.map((link) => {
         if (link.isDropdown) {
           return (
@@ -129,7 +126,7 @@ export default function MainNav({
                   "w-full flex items-center justify-between p-4 rounded-lg leading-none cursor-pointer border hover:border-lilah transition-all duration-300",
                   link.isActive
                     ? "text-onix bg-sand md:text-sand md:bg-onix md:border-pearl"
-                    : "border-pearl md:border-blackamber hover:text-pearl hover:border-lilah"
+                    : "border-pearl md:border-blackamber hover:text-pearl hover:border-lilah",
                 )}
               >
                 <span className="flex items-center">
@@ -154,7 +151,7 @@ export default function MainNav({
                         "block pl-12 pr-4 py-4 rounded-lg leading-none transition-all duration-300",
                         subItem.isActive
                           ? "bg-sand text-onix md:bg-onix md:text-sand"
-                          : "hover:bg-onix hover:text-pearl"
+                          : "hover:bg-onix hover:text-pearl",
                       )}
                     >
                       {subItem.label}
@@ -175,7 +172,7 @@ export default function MainNav({
               "flex items-center p-4 rounded-lg leading-none border transition-all duration-300",
               link.isActive
                 ? "border-onix bg-sand text-onix md:border-sand md:bg-onix md:text-sand hover:border-lilah"
-                : "border-pearl md:border-blackamber hover:text-pearl hover:border-lilah"
+                : "border-pearl md:border-blackamber hover:text-pearl hover:border-lilah",
             )}
           >
             <link.icon size={20} className="mr-2" />
