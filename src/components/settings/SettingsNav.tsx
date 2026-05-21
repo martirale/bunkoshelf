@@ -3,23 +3,12 @@
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  LayoutPanelTopIcon,
-  FolderCogIcon,
-} from "lucide-react";
 import clsx from "clsx";
+import { getSettingsNavLinks } from "@/lib/nav/settingsNav";
 import type { Dictionary } from "@/lib/types";
-import type { LucideIcon } from "lucide-react";
 
 interface SettingsNavProps {
   intl: Dictionary;
-}
-
-interface NavLink {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-  isActive: boolean;
 }
 
 export default function SettingsNav({ intl }: SettingsNavProps) {
@@ -39,23 +28,7 @@ export default function SettingsNav({ intl }: SettingsNavProps) {
 
     return () => window.removeEventListener("hashchange", updateHash);
   }, []);
-
-  const links: NavLink[] = [
-    {
-      label: intl.settings.overview as string,
-      href: `/${currentLang}/settings#overview`,
-      icon: LayoutPanelTopIcon,
-      isActive:
-        pathname === `/${currentLang}/settings` &&
-        (hash === "#overview" || hash === ""),
-    },
-    {
-      label: intl.settings.library as string,
-      href: `/${currentLang}/settings/library`,
-      icon: FolderCogIcon,
-      isActive: pathname.startsWith(`/${currentLang}/settings/library`),
-    },
-  ];
+  const links = getSettingsNavLinks({ intl, lang: currentLang, pathname, hash });
 
   return (
     <div className="mt-4 md:mt-16">

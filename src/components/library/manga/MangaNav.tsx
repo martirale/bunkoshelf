@@ -2,36 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutPanelTopIcon,
-  LibraryBigIcon,
-  BookCopyIcon,
-  BookmarkIcon,
-} from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { getReaderStats } from "@/actions/stats";
 import {
-  getLibraryRootHref,
   type LibraryScope,
   type LibrarySection,
 } from "@/lib/librarySection";
-import type { Locale, Dictionary, DictionarySection } from "@/lib/types";
-import type { LucideIcon } from "lucide-react";
+import { getMangaNavLinks } from "@/lib/nav/mangaNav";
+import type { Locale, Dictionary } from "@/lib/types";
 
 interface MangaNavProps {
   lang: Locale;
   intl: Dictionary;
   section?: LibrarySection;
   scope?: LibraryScope;
-}
-
-interface NavLink {
-  label: string | DictionarySection;
-  href: string;
-  icon: LucideIcon;
-  isActive: boolean;
-  count?: number | null;
 }
 
 interface Stats {
@@ -71,36 +56,7 @@ export default function MangaNav({
 
     fetchStats();
   }, []);
-
-  const links: NavLink[] = [
-    {
-      label: intl.libraries.overview,
-      href: getLibraryRootHref(lang, section),
-      icon: LayoutPanelTopIcon,
-      isActive: pathname === getLibraryRootHref(lang, section),
-    },
-    {
-      label: intl.libraries.series,
-      href: `${getLibraryRootHref(lang, section)}/series`,
-      icon: LibraryBigIcon,
-      isActive: pathname === `${getLibraryRootHref(lang, section)}/series`,
-      count: stats.totalSeries,
-    },
-    {
-      label: intl.libraries.volumes,
-      href: `${getLibraryRootHref(lang, section)}/volumes`,
-      icon: BookCopyIcon,
-      isActive: pathname === `${getLibraryRootHref(lang, section)}/volumes`,
-      count: stats.totalVolumes,
-    },
-    {
-      label: intl.libraries.toRead,
-      href: `${getLibraryRootHref(lang, section)}/toread`,
-      icon: BookmarkIcon,
-      isActive: pathname === `${getLibraryRootHref(lang, section)}/toread`,
-      count: stats.totalUnread,
-    },
-  ];
+  const links = getMangaNavLinks({ lang, intl, section, pathname, stats });
 
   return (
     <nav className="flex justify-center gap-2 md:gap-4">

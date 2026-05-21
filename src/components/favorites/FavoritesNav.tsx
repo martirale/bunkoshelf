@@ -2,21 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
-import { BookCopyIcon, BookHeartIcon, LibraryBigIcon } from "lucide-react";
 import clsx from "clsx";
-import type { Dictionary, DictionarySection, Locale } from "@/lib/types";
-import type { LucideIcon } from "lucide-react";
+import { getFavoritesNavLinks } from "@/lib/nav/favoritesNav";
+import type { Dictionary, Locale } from "@/lib/types";
 
 interface FavoritesNavProps {
   intl: Dictionary;
-}
-
-interface NavLink {
-  label: string | DictionarySection;
-  href: string;
-  icon: LucideIcon;
-  isActive: boolean;
-  badge?: string;
 }
 
 export default function FavoritesNav({
@@ -25,43 +16,7 @@ export default function FavoritesNav({
   const params = useParams<{ lang: Locale }>();
   const pathname = usePathname();
   const currentLang = params.lang || "es";
-
-  const links: NavLink[] = [
-    {
-      label: intl.favorites.sectionMangaSeries,
-      href: `/${currentLang}/favorites/manga`,
-      icon: LibraryBigIcon,
-      isActive: pathname === `/${currentLang}/favorites/manga`,
-      badge: "M",
-    },
-    {
-      label: intl.favorites.sectionMangaVolumes,
-      href: `/${currentLang}/favorites/manga/volumes`,
-      icon: BookCopyIcon,
-      isActive: pathname === `/${currentLang}/favorites/manga/volumes`,
-      badge: "M",
-    },
-    {
-      label: intl.favorites.sectionOthersSeries,
-      href: `/${currentLang}/favorites/others`,
-      icon: LibraryBigIcon,
-      isActive: pathname === `/${currentLang}/favorites/others`,
-      badge: "C",
-    },
-    {
-      label: intl.favorites.sectionOthersVolumes,
-      href: `/${currentLang}/favorites/others/volumes`,
-      icon: BookCopyIcon,
-      isActive: pathname === `/${currentLang}/favorites/others/volumes`,
-      badge: "C",
-    },
-    {
-      label: intl.favorites.sectionBooks,
-      href: `/${currentLang}/favorites/books`,
-      icon: BookHeartIcon,
-      isActive: pathname === `/${currentLang}/favorites/books`,
-    },
-  ];
+  const links = getFavoritesNavLinks({ intl, lang: currentLang, pathname });
 
   return (
     <div className="mt-4 md:mt-16">

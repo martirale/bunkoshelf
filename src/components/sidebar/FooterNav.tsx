@@ -1,19 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
-import {
-  LanguagesIcon,
-  LogOutIcon,
-  BookOpenIcon,
-  Settings2Icon,
-} from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import SessionStatus from "@/hooks/SessionStatus";
 import AlertBox from "@/components/ui/AlertBox";
 import { logout } from "@/actions/logout";
 import { getVersion } from "@/actions/version";
+import { getFooterButtons } from "@/lib/nav/footerNav";
 import type { Dictionary, Session } from "@/lib/types";
 import type { VersionInfo } from "@/lib/versionInfo";
 
@@ -23,21 +17,6 @@ interface FooterNavProps {
   user: Session | null;
   versionData: VersionInfo;
 }
-
-type FooterButton =
-  | {
-      type: "link";
-      icon: LucideIcon;
-      href: string;
-      target: string;
-      title: string;
-    }
-  | {
-      type: "button";
-      icon: LucideIcon;
-      title: string;
-      onClick: () => void;
-    };
 
 export default function FooterNav({
   lang,
@@ -94,43 +73,14 @@ export default function FooterNav({
     const interval = setInterval(checkVersion, 6 * 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
-
-  const buttons: FooterButton[] = [
-    {
-      type: "link",
-      icon: BookOpenIcon,
-      href: "https://bunko.alemartir.com/guides/manga",
-      target: "_blank",
-      title: intl.tooltip.userGuide as string,
-    },
-    {
-      type: "button",
-      icon: LanguagesIcon,
-      title: intl.tooltip.switchLang as string,
-      onClick: toggleLang,
-    },
-    ...(user?.isAdmin
-      ? [
-          {
-            type: "link" as const,
-            icon: Settings2Icon,
-            href: `/${lang}/settings`,
-            target: "_self",
-            title: intl.tooltip.settings as string,
-          },
-        ]
-      : []),
-    ...(isLoggedIn
-      ? [
-          {
-            type: "button" as const,
-            icon: LogOutIcon,
-            title: intl.tooltip.logout as string,
-            onClick: handleLogout,
-          },
-        ]
-      : []),
-  ];
+  const buttons = getFooterButtons({
+    intl,
+    lang,
+    user,
+    isLoggedIn,
+    onToggleLang: toggleLang,
+    onLogout: handleLogout,
+  });
 
   return (
     <>
