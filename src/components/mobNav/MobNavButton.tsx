@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { MenuIcon } from "lucide-react";
+import Link from "next/link";
+import { MenuIcon, SearchIcon } from "lucide-react";
 import MobNavModal from "./MobNavModal";
 import type { Dictionary, Session, ChallengeData } from "@/lib/types";
 import type { VersionInfo } from "@/lib/versionInfo";
@@ -32,10 +33,19 @@ export default function MobNavButton({
   }, [pathname]);
 
   return (
-    <>
+    <div className="flex items-center gap-3">
+      <Link
+        href={`/${lang}/search`}
+        className="bg-pearl border border-stone-300 rounded-full p-3"
+        aria-label="Search"
+      >
+        <SearchIcon size={28} className="text-onix" />
+      </Link>
+
       <button
         onClick={() => setOpen(true)}
         className="bg-pearl border border-stone-300 rounded-full p-3"
+        aria-label="Open menu"
       >
         <MenuIcon size={28} className="text-onix" />
       </button>
@@ -49,6 +59,6 @@ export default function MobNavButton({
         challengeData={challengeData}
         versionData={versionData}
       />
-    </>
+    </div>
   );
 }

@@ -7,7 +7,6 @@ import MainNav from "@/components/sidebar/MainNav";
 import SecondNav from "@/components/sidebar/SecondNav";
 import ChallengeProg from "@/components/sidebar/ChallengeProg";
 import FooterNav from "@/components/sidebar/FooterNav";
-import SearchInputMob from "@/components/search/SearchInputMob";
 import type { Dictionary, Session, ChallengeData } from "@/lib/types";
 import type { VersionInfo } from "@/lib/versionInfo";
 
@@ -91,9 +90,6 @@ export default function MobNavModal({
         </div>
 
         <div className="mt-8 mb-4">
-          <div className="mb-8">
-            <SearchInputMob intl={intl} />
-          </div>
           <ChallengeProg lang={lang} intl={intl} data={challengeData} />
           <FooterNav
             lang={lang}
