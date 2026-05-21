@@ -18,7 +18,9 @@ export default function MainNav({ intl, user }: MainNavProps) {
   const currentLang = (params.lang as string) || "es";
   const pathname = usePathname();
   const links = getMainNavLinks({ intl, user, lang: currentLang, pathname });
-  const isLibraryActive = links.some((link) => link.isDropdown && link.isActive);
+  const isLibraryActive = links.some(
+    (link) => link.isDropdown && link.isActive,
+  );
 
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false);
   const hasManuallyToggled = useRef(false);
@@ -66,7 +68,7 @@ export default function MainNav({ intl, user }: MainNavProps) {
               </button>
 
               {openLibraryMenu && (
-                <div className="mt-2 space-y-2">
+                <div>
                   {link.subItems?.map((subItem) => (
                     <Link
                       key={subItem.href}
