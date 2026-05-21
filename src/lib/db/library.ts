@@ -17,6 +17,11 @@ export interface TagFilter {
   name: string;
 }
 
+export interface AuthorFilter {
+  id: string;
+  name: string;
+}
+
 export interface LibrarySeries {
   id: string;
   slug: string;
@@ -108,6 +113,7 @@ export interface LibrarySeriesWithVolumes extends LibrarySeries {
 interface SharedVolumeQueryOptions {
   includeGenres?: boolean;
   includeTags?: boolean;
+  authorNames?: string[];
   genreNames?: string[];
   tagNames?: string[];
   seriesIds?: string[];
@@ -122,6 +128,7 @@ interface VolumeQueryOptions extends SharedVolumeQueryOptions {
 
 interface SharedSeriesQueryOptions {
   userId?: string | null;
+  authorNames?: string[];
   genreNames?: string[];
   tagNames?: string[];
   seriesIds?: string[];
@@ -438,6 +445,7 @@ async function attachVolumeRelations(
 
 function buildVolumeFilterSql(
   options: {
+    authorNames?: string[];
     genreNames?: string[];
     tagNames?: string[];
     seriesIds?: string[];
@@ -466,6 +474,13 @@ function buildVolumeFilterSql(
   if (options.volumeIds && options.volumeIds.length > 0) {
     params.push(options.volumeIds);
     conditions.push(`mv.id = ANY($${params.length}::text[])`);
+  }
+
+  if (options.authorNames && options.authorNames.length > 0) {
+    params.push(options.authorNames);
+    conditions.push(`
+      COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__') = ANY($${params.length}::text[])
+    `);
   }
 
   if (options.genreNames && options.genreNames.length > 0) {
@@ -844,15 +859,30 @@ export async function listPagedCatalogTags(
 }
 
 async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
+  authors: AuthorFilter[];
   genres: GenreFilter[];
   tags: TagFilter[];
 }> {
+  const authorParams: unknown[] = [];
   const genreParams: unknown[] = [];
   const tagParams: unknown[] = [];
+  const authorScopeWhere = buildLibraryFilterScopeConditions(authorParams, scope);
   const genreScopeWhere = buildLibraryFilterScopeConditions(genreParams, scope);
   const tagScopeWhere = buildLibraryFilterScopeConditions(tagParams, scope);
 
-  const [genres, tags] = await Promise.all([
+  const [authors, genres, tags] = await Promise.all([
+    query<AuthorFilter>(
+      `
+        SELECT DISTINCT
+          COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__') AS id,
+          COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__') AS name
+        FROM manga_volumes mv
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        ${authorScopeWhere}
+        ORDER BY name ASC
+      `,
+      authorParams
+    ),
     query<GenreFilter>(
       `
         SELECT DISTINCT g.id, g.name
@@ -879,7 +909,7 @@ async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
     ),
   ]);
 
-  return { genres, tags };
+  return { authors, genres, tags };
 }
 
 async function listLibraryFiltersCached(scope?: LibraryScope) {
@@ -892,6 +922,7 @@ async function listLibraryFiltersCached(scope?: LibraryScope) {
 }
 
 export async function listLibraryFilters(scope?: LibraryScope): Promise<{
+  authors: AuthorFilter[];
   genres: GenreFilter[];
   tags: TagFilter[];
 }> {
@@ -919,6 +950,7 @@ async function listVolumesRaw(
 
   const conditions = buildVolumeFilterSql(
     {
+      authorNames: options?.authorNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1031,6 +1063,7 @@ export async function listVolumes(
   return listVolumesCached({
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
+    authorNames: options?.authorNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1046,6 +1079,7 @@ async function listPagedVolumeIdsRaw(
   const countParams: unknown[] = [];
   const countConditions = buildVolumeFilterSql(
     {
+      authorNames: options?.authorNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1112,6 +1146,7 @@ export async function listPagedVolumes(
     : await listPagedVolumeIdsCached({
         includeGenres: options?.includeGenres,
         includeTags: options?.includeTags,
+        authorNames: options?.authorNames,
         genreNames: options?.genreNames,
         tagNames: options?.tagNames,
         seriesIds: options?.seriesIds,
@@ -1132,6 +1167,7 @@ export async function listPagedVolumes(
     volumeIds: pagedIds.items,
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
+    authorNames: options?.authorNames,
     scope: options?.scope,
   });
 
@@ -1214,6 +1250,7 @@ async function listSeriesWithVolumesRaw(
     userId: options?.userId,
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
+    authorNames: options?.authorNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1254,6 +1291,7 @@ export async function listSeriesWithVolumes(
   options?: SharedSeriesQueryOptions
 ): Promise<LibrarySeriesWithVolumes[]> {
   return listSeriesWithVolumesCached({
+    authorNames: options?.authorNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1273,6 +1311,7 @@ async function listPagedSeriesIdsRaw(
   const countParams: unknown[] = [];
   const countConditions = buildVolumeFilterSql(
     {
+      authorNames: options?.authorNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1341,6 +1380,7 @@ export async function listPagedSeriesWithVolumes(
     }
 ): Promise<PaginatedResult<LibrarySeriesWithVolumes>> {
   const pagedIds = await listPagedSeriesIdsCached({
+    authorNames: options?.authorNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1363,6 +1403,7 @@ export async function listPagedSeriesWithVolumes(
     seriesIds: pagedIds.items,
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
+    authorNames: options?.authorNames,
     scope: options?.scope,
   });
 

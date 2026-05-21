@@ -19,6 +19,7 @@ interface SeriesIndexProps {
   lang: Locale;
   intl: Dictionary;
   page?: number;
+  authorFilter?: string | string[];
   genreFilter?: string | string[];
   tagFilter?: string | string[];
   scope?: LibraryScope;
@@ -29,11 +30,14 @@ export default async function SeriesIndex({
   lang,
   intl,
   page = 1,
+  authorFilter = [],
   genreFilter = [],
   tagFilter = [],
   scope = "all",
   section = "manga",
 }: SeriesIndexProps) {
+  const authorList =
+    typeof authorFilter === "string" ? authorFilter.split(",") : authorFilter;
   const genreList =
     typeof genreFilter === "string" ? genreFilter.split(",") : genreFilter;
   const tagList =
@@ -44,6 +48,7 @@ export default async function SeriesIndex({
     listPagedSeriesWithVolumes({
       page,
       pageSize: LIBRARY_PAGE_SIZE,
+      authorNames: authorList,
       genreNames: genreList,
       tagNames: tagList,
       includeGenres: true,

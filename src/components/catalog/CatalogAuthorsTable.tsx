@@ -1,11 +1,13 @@
+import Link from "next/link";
 import Pagination from "@/components/ui/Pagination";
 import { normalizeCommaSeparatedText } from "@/lib/utils";
 import type { CatalogAuthorStats, PaginatedResult } from "@/lib/db/library";
-import type { Dictionary } from "@/lib/types";
+import type { Dictionary, Locale } from "@/lib/types";
 
 interface CatalogAuthorsTableProps {
   data: PaginatedResult<CatalogAuthorStats>;
   intl: Dictionary;
+  lang: Locale;
 }
 
 function renderValue(value: number | string | null | undefined) {
@@ -32,21 +34,36 @@ function renderAuthorName(
 }
 
 function renderLibraries(
+  lang: Locale,
+  author: string | null,
   hasManga: boolean,
   hasOthers: boolean,
   hasBooks: boolean
 ) {
+  const authorParam = author?.trim() ? author.trim() : "__unknown__";
+
+  function buildHref(section: "manga" | "others") {
+    const params = new URLSearchParams({ author: authorParam });
+    return `/${lang}/${section}/volumes?${params.toString()}`;
+  }
+
   return (
     <div className="flex items-center justify-center gap-1 flex-wrap">
       {hasManga && (
-        <span className="bg-pearl text-onix px-2 rounded-full text-xs uppercase">
+        <Link
+          href={buildHref("manga")}
+          className="bg-pearl text-onix px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+        >
           Manga
-        </span>
+        </Link>
       )}
       {hasOthers && (
-        <span className="bg-neutral-700 px-2 rounded-full text-xs uppercase">
+        <Link
+          href={buildHref("others")}
+          className="bg-neutral-700 px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+        >
           Cómic
-        </span>
+        </Link>
       )}
       {hasBooks && (
         <span className="border border-pearl px-2 rounded-full text-xs uppercase">
@@ -60,6 +77,7 @@ function renderLibraries(
 export default function CatalogAuthorsTable({
   data,
   intl,
+  lang,
 }: CatalogAuthorsTableProps) {
   const unknownAuthorLabel =
     (intl.catalog.unknownAuthor as string | undefined) || "Unknown";
@@ -104,6 +122,8 @@ export default function CatalogAuthorsTable({
                   </td>
                   <td className="p-4 text-center">
                     {renderLibraries(
+                      lang,
+                      author.author,
                       author.hasManga,
                       author.hasOthers,
                       author.hasBooks

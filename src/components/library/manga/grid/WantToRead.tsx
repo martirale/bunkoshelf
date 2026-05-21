@@ -18,6 +18,7 @@ interface WantToReadProps {
   lang: Locale;
   intl: Dictionary;
   page?: number;
+  authorFilter?: string | string[];
   genreFilter?: string | string[];
   tagFilter?: string | string[];
   scope?: LibraryScope;
@@ -28,6 +29,7 @@ export default async function WantToRead({
   lang,
   intl,
   page = 1,
+  authorFilter = [],
   genreFilter = [],
   tagFilter = [],
   scope = "all",
@@ -36,6 +38,8 @@ export default async function WantToRead({
   const user = await verifySession();
   if (!user) return null;
 
+  const authorList =
+    typeof authorFilter === "string" ? authorFilter.split(",") : authorFilter;
   const genreList =
     typeof genreFilter === "string" ? genreFilter.split(",") : genreFilter;
   const tagList =
@@ -47,6 +51,7 @@ export default async function WantToRead({
     pageSize: LIBRARY_PAGE_SIZE,
     includeGenres: true,
     includeTags: true,
+    authorNames: authorList,
     genreNames: genreList,
     tagNames: tagList,
     onlyUnreadForUser: true,

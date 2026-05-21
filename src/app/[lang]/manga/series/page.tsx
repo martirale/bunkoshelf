@@ -27,7 +27,7 @@ async function SeriesIndexContent({
   params,
 }: MangaSeriesPageProps) {
   const resolvedSearchParams = await searchParams;
-  const { page: pageRaw = "1", genre, tag } = resolvedSearchParams;
+  const { page: pageRaw = "1", author, genre, tag } = resolvedSearchParams;
   const page = parseInt(pageRaw ?? "1", 10);
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
@@ -38,6 +38,7 @@ async function SeriesIndexContent({
       lang={lang as Locale}
       intl={intl}
       page={page}
+      authorFilter={author}
       genreFilter={genre}
       tagFilter={tag}
       scope={scope}

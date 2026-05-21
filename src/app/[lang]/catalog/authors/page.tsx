@@ -43,7 +43,7 @@ async function CatalogAuthorsPageContent({
         {intl.catalog.authors as string}
       </h2>
 
-      <CatalogAuthorsTable data={authors} intl={intl} />
+      <CatalogAuthorsTable data={authors} intl={intl} lang={lang as Locale} />
     </>
   );
 }

@@ -18,6 +18,7 @@ interface VolumesIndexProps {
   lang: Locale;
   intl: Dictionary;
   page?: number;
+  authorFilter?: string | string[];
   genreFilter?: string | string[];
   tagFilter?: string | string[];
   scope?: LibraryScope;
@@ -28,12 +29,15 @@ export default async function VolumesIndex({
   lang,
   intl,
   page = 1,
+  authorFilter = [],
   genreFilter = [],
   tagFilter = [],
   scope = "all",
   section = "manga",
 }: VolumesIndexProps) {
   const user = await verifySession();
+  const authorList =
+    typeof authorFilter === "string" ? authorFilter.split(",") : authorFilter;
   const genreList =
     typeof genreFilter === "string" ? genreFilter.split(",") : genreFilter;
   const tagList =
@@ -44,6 +48,7 @@ export default async function VolumesIndex({
     pageSize: LIBRARY_PAGE_SIZE,
     includeGenres: true,
     includeTags: true,
+    authorNames: authorList,
     genreNames: genreList,
     tagNames: tagList,
     scope,

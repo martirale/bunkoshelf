@@ -14,6 +14,17 @@ interface FilterItem {
   name: string;
 }
 
+const UNKNOWN_AUTHOR_ID = "__unknown__";
+
+function splitFilterParam(value: string | null) {
+  if (!value) return [];
+
+  return value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
 interface FiltersDrawerProps {
   intl: DictionarySection;
   scope?: LibraryScope;
@@ -27,19 +38,26 @@ export default function FiltersDrawer({
   const searchParams = useSearchParams();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [authors, setAuthors] = useState<FilterItem[]>([]);
   const [genres, setGenres] = useState<FilterItem[]>([]);
   const [tags, setTags] = useState<FilterItem[]>([]);
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const filters = intl.filters as DictionarySection;
+  const catalog = intl.catalog as DictionarySection | undefined;
+  const unknownAuthorLabel =
+    (catalog?.unknownAuthor as string | undefined) || "Unknown";
 
   useEffect(() => {
+    const authorParam = searchParams.get("author");
     const genreParam = searchParams.get("genre");
     const tagParam = searchParams.get("tag");
 
-    setSelectedGenres(genreParam ? genreParam.split(",") : []);
-    setSelectedTags(tagParam ? tagParam.split(",") : []);
+    setSelectedAuthors(splitFilterParam(authorParam));
+    setSelectedGenres(splitFilterParam(genreParam));
+    setSelectedTags(splitFilterParam(tagParam));
   }, [searchParams]);
 
   useEffect(() => {
@@ -47,6 +65,7 @@ export default function FiltersDrawer({
       try {
         const data = await getLibraryFilters({ scope });
         if (!data || "error" in data) throw new Error("Error fetching filters");
+        setAuthors(data.authors);
         setGenres(data.genres);
         setTags(data.tags);
       } catch (e) {
@@ -64,6 +83,14 @@ export default function FiltersDrawer({
     );
   }
 
+  function toggleAuthor(authorName: string) {
+    setSelectedAuthors((prev) =>
+      prev.includes(authorName)
+        ? prev.filter((author) => author !== authorName)
+        : [...prev, authorName]
+    );
+  }
+
   function toggleTag(tagName: string) {
     setSelectedTags((prev) =>
       prev.includes(tagName)
@@ -75,6 +102,7 @@ export default function FiltersDrawer({
   function applyFilters() {
     const params = new URLSearchParams();
 
+    if (selectedAuthors.length) params.set("author", selectedAuthors.join(","));
     if (selectedGenres.length) params.set("genre", selectedGenres.join(","));
     if (selectedTags.length) params.set("tag", selectedTags.join(","));
     params.set("page", "1");
@@ -84,13 +112,15 @@ export default function FiltersDrawer({
   }
 
   function clearFilters() {
+    setSelectedAuthors([]);
     setSelectedGenres([]);
     setSelectedTags([]);
     router.push(`?page=1`);
     setIsOpen(false);
   }
 
-  const totalFilters = selectedGenres.length + selectedTags.length;
+  const totalFilters =
+    selectedAuthors.length + selectedGenres.length + selectedTags.length;
   const isFiltering = totalFilters > 0;
 
   return (
@@ -140,6 +170,27 @@ export default function FiltersDrawer({
         </header>
 
         <div className="p-4 flex flex-col gap-4 flex-grow overflow-hidden">
+          <Accordion title={filters.authors as string}>
+            <ul className="space-y-1 max-h-44 md:max-h-64 overflow-auto pr-2">
+              {authors.map((author) => (
+                <li key={author.id}>
+                  <label className="inline-flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedAuthors.includes(author.name)}
+                      onChange={() => toggleAuthor(author.name)}
+                    />
+                    <span className="capitalize">
+                      {author.name === UNKNOWN_AUTHOR_ID
+                        ? unknownAuthorLabel
+                        : author.name}
+                    </span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </Accordion>
+
           <Accordion title={filters.genres as string}>
             <ul className="space-y-1 max-h-44 md:max-h-64 overflow-auto pr-2">
               {genres.map((genre) => (
