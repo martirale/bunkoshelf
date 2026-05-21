@@ -1,8 +1,8 @@
 import { Suspense } from "react";
+import { TagsIcon } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { listPagedCatalogTags } from "@/lib/db/library";
 import CatalogRelationsTable from "@/components/catalog/CatalogRelationsTable";
-import { BookCopyIcon } from "lucide-react";
 import type { Locale } from "@/lib/types";
 
 interface CatalogTagsPageProps {
@@ -36,7 +36,7 @@ async function CatalogTagsPageContent({
   return (
     <>
       <h2 className="flex items-center mb-4">
-        <BookCopyIcon size={28} className="mr-2" />
+        <TagsIcon size={28} className="mr-2" />
         {intl.catalog.tags as string}
       </h2>
 

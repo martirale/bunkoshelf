@@ -1,5 +1,10 @@
 import type { LucideIcon } from "lucide-react";
-import { BookCopyIcon } from "lucide-react";
+import {
+  DramaIcon,
+  LibraryBigIcon,
+  TagsIcon,
+  UserRoundPenIcon,
+} from "lucide-react";
 import type { Dictionary } from "@/lib/types";
 
 export interface CatalogNavLink {
@@ -24,25 +29,25 @@ export function getCatalogNavLinks({
     {
       label: intl.catalog.library as string,
       href: `/${lang}/catalog/library`,
-      icon: BookCopyIcon,
+      icon: LibraryBigIcon,
       isActive: pathname === `/${lang}/catalog/library`,
     },
     {
       label: intl.catalog.authors as string,
       href: `/${lang}/catalog/authors`,
-      icon: BookCopyIcon,
+      icon: UserRoundPenIcon,
       isActive: pathname === `/${lang}/catalog/authors`,
     },
     {
       label: intl.catalog.genres as string,
       href: `/${lang}/catalog/genres`,
-      icon: BookCopyIcon,
+      icon: DramaIcon,
       isActive: pathname === `/${lang}/catalog/genres`,
     },
     {
       label: intl.catalog.tags as string,
       href: `/${lang}/catalog/tags`,
-      icon: BookCopyIcon,
+      icon: TagsIcon,
       isActive: pathname === `/${lang}/catalog/tags`,
     },
   ];

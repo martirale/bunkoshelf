@@ -1,9 +1,9 @@
 import { Suspense } from "react";
+import { LibraryBigIcon } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { listPagedCatalogLibraryVolumes } from "@/lib/db/library";
 import { verifySession } from "@/lib/auth/verifySession";
 import CatalogLibraryTable from "@/components/catalog/CatalogLibraryTable";
-import { BookCopyIcon } from "lucide-react";
 import type { Locale } from "@/lib/types";
 
 interface CatalogLibraryPageProps {
@@ -39,7 +39,7 @@ async function CatalogLibraryPageContent({
   return (
     <>
       <h2 className="flex items-center mb-4">
-        <BookCopyIcon size={28} className="mr-2" />
+        <LibraryBigIcon size={28} className="mr-2" />
         {intl.catalog.library as string}
       </h2>
 

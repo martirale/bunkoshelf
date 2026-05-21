@@ -1,9 +1,9 @@
 import { Suspense } from "react";
+import { UserRoundPenIcon } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listPagedCatalogAuthors } from "@/lib/db/library";
 import CatalogAuthorsTable from "@/components/catalog/CatalogAuthorsTable";
-import { BookCopyIcon } from "lucide-react";
 import type { Locale } from "@/lib/types";
 
 interface CatalogAuthorsPageProps {
@@ -39,7 +39,7 @@ async function CatalogAuthorsPageContent({
   return (
     <>
       <h2 className="flex items-center mb-4">
-        <BookCopyIcon size={28} className="mr-2" />
+        <UserRoundPenIcon size={28} className="mr-2" />
         {intl.catalog.authors as string}
       </h2>
 
