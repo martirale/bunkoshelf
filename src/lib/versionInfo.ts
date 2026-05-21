@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import pkg from "../../package.json";
 
 const PACKAGE_NAME = "@itsmrtr/bunkoshelf";
@@ -55,6 +56,8 @@ function getChangelogUrl(version: string | null): string {
 }
 
 export async function getVersionInfo(): Promise<VersionInfo> {
+  await connection();
+
   if (cachedVersionInfo && cachedVersionInfo.expiresAt > Date.now()) {
     return cachedVersionInfo.data;
   }
