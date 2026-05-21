@@ -24,9 +24,12 @@ export default function TopGenres({
   bgColor,
   textColor,
 }: TopGenresProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [data, setData] = useState<GenreStatEntry[]>([]);
 
   useEffect(() => {
+    setIsMounted(true);
+
     async function fetchGenres() {
       try {
         const result = await getGenresStats();
@@ -49,40 +52,42 @@ export default function TopGenres({
     >
       <h3 className="text-base mb-4">{stats.ttGenres as string}</h3>
       <div className="w-full h-72">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={data}>
-            <PolarGrid stroke="#333" />
-            <PolarAngleAxis
-              dataKey="genre"
-              tick={{ fill: "currentColor", fontSize: 12 }}
-            />
-            <PolarRadiusAxis
-              tick={{ fill: "currentColor", fontSize: 10 }}
-              stroke="#444"
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#151515",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "0.875rem",
-              }}
-              labelStyle={{ color: "#e5e0dc" }}
-              formatter={(value) => [
-                String(value ?? 0),
-                stats.tooltip as string,
-              ]}
-            />
-            <Radar
-              name="Lecturas"
-              dataKey="user"
-              fill="#8a6fdc"
-              fillOpacity={0.6}
-            />
-          </RadarChart>
-        </ResponsiveContainer>
+        {isMounted ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart data={data}>
+              <PolarGrid stroke="#333" />
+              <PolarAngleAxis
+                dataKey="genre"
+                tick={{ fill: "currentColor", fontSize: 12 }}
+              />
+              <PolarRadiusAxis
+                tick={{ fill: "currentColor", fontSize: 10 }}
+                stroke="#444"
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#151515",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "0.875rem",
+                }}
+                labelStyle={{ color: "#e5e0dc" }}
+                formatter={(value) => [
+                  String(value ?? 0),
+                  stats.tooltip as string,
+                ]}
+              />
+              <Radar
+                name="Lecturas"
+                dataKey="user"
+                fill="#8a6fdc"
+                fillOpacity={0.6}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
+        ) : null}
       </div>
     </div>
   );
