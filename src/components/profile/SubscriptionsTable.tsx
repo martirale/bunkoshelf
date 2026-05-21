@@ -95,7 +95,7 @@ export default function SubscriptionsTable({ subscriptions: initial, intl }: Sub
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <div className="min-w-[600px] xl:min-w-full h-72 overflow-y-auto">
+            <div className="min-w-[600px] xl:min-w-full">
               <div className="flex sticky top-0 z-10">
                 <div className="grid grid-cols-2 flex-1 font-bold uppercase bg-onix rounded-l-md">
                   <div className="p-4 text-left">
@@ -126,11 +126,15 @@ export default function SubscriptionsTable({ subscriptions: initial, intl }: Sub
                     </div>
                   </div>
                   <div className="w-24 shrink-0 sticky right-0 bg-blackamber p-4 flex items-center justify-center">
-                    <Trash2Icon
+                    <button
+                      type="button"
                       onClick={() => !isLoading && handleDelete(sub.id, sub.endpoint)}
-                      size={20}
-                      className="cursor-pointer hover:text-red-400 transition-colors duration-300"
-                    />
+                      disabled={isLoading}
+                      title={profile.unsubscribe as string}
+                      className="border border-stone-300 md:border-neutral-800 hover:text-danger-alt rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-danger-alt disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Trash2Icon size={16} />
+                    </button>
                   </div>
                 </div>
               ))}
