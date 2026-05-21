@@ -4,6 +4,18 @@
     "library": "Biblioteca",
     "authors": "Autores",
     "genres": "Géneros",
-    "tags": "Etiquetas"
+    "tags": "Etiquetas",
+    "titleColumn": "Título",
+    "seriesColumn": "Serie",
+    "numberColumn": "Número",
+    "yearColumn": "Año",
+    "writerColumn": "Autor",
+    "publisherColumn": "Editorial",
+    "statusColumn": "Estd",
+    "languageColumn": "Idioma",
+    "ageRatingColumn": "Clasf",
+    "gtinColumn": "ISBN",
+    "favoriteColumn": "Fav",
+    "actionsColumn": "Acc"
   }
 }

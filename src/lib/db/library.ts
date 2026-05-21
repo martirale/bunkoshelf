@@ -1,5 +1,9 @@
 import { cacheLife, cacheTag } from "next/cache";
-import type { LibraryScope } from "@/lib/librarySection";
+import {
+  getLibrarySection,
+  type LibraryScope,
+  type LibrarySection,
+} from "@/lib/librarySection";
 import { MANGA_LIBRARY_TAG } from "@/lib/mangaLibraryCache";
 import { query, queryOne } from "./query";
 
@@ -165,6 +169,23 @@ export interface PaginatedResult<T> {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+export interface CatalogLibraryVolume {
+  id: string;
+  slug: string;
+  section: LibrarySection;
+  title: string | null;
+  series: string | null;
+  number: number | null;
+  year: number | null;
+  writer: string | null;
+  publisher: string | null;
+  languageISO: string | null;
+  ageRating: string | null;
+  gtin: string | null;
+  isRead: boolean;
+  isFavorite: boolean;
 }
 
 interface VolumeRow {
@@ -531,6 +552,88 @@ function mapPaginatedResult<T>(
 
 function parseCount(value: string | number): number {
   return typeof value === "number" ? value : Number(value);
+}
+
+export async function listPagedCatalogLibraryVolumes(
+  options?: PagedQueryOptions & { userId?: string | null }
+): Promise<PaginatedResult<CatalogLibraryVolume>> {
+  const pagination = buildPagination(options);
+
+  const [countRow, rows] = await Promise.all([
+    queryOne<{ total: string | number }>(
+      `
+        SELECT COUNT(*) AS total
+        FROM manga_volumes mv
+      `
+    ),
+    query<{
+      id: string;
+      slug: string;
+      title: string | null;
+      series: string | null;
+      number: number | null;
+      year: number | null;
+      writer: string | null;
+      publisher: string | null;
+      language_iso: string | null;
+      age_rating: string | null;
+      gtin: string | null;
+      manga_style: string | null;
+      is_read: boolean | null;
+      is_favorite: boolean | null;
+    }>(
+      `
+        SELECT
+          mv.id,
+          mv.slug,
+          vm.title,
+          ms.title AS series,
+          vm.number,
+          vm.year,
+          vm.writer,
+          vm.publisher,
+          vm.language_iso,
+          vm.age_rating,
+          vm.gtin,
+          vm.manga_style,
+          utv.is_read,
+          utv.is_favorite
+        FROM manga_volumes mv
+        INNER JOIN manga_series ms ON ms.id = mv.series_id
+        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        LEFT JOIN user_to_volumes utv
+          ON utv.volume_id = mv.id
+         AND utv.user_id = $1
+        ORDER BY ms.sort_title ASC, mv.sort_title ASC, mv.id ASC
+        LIMIT $2
+        OFFSET $3
+      `,
+      [options?.userId ?? null, pagination.pageSize, pagination.offset]
+    ),
+  ]);
+
+  const total = parseCount(countRow?.total ?? 0);
+
+  return mapPaginatedResult(
+    rows.map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      section: getLibrarySection(row.manga_style),
+      title: row.title,
+      series: row.series,
+      number: row.number,
+      year: row.year,
+      writer: row.writer,
+      publisher: row.publisher,
+      languageISO: row.language_iso,
+      ageRating: row.age_rating,
+      gtin: row.gtin,
+      isRead: row.is_read === true,
+      isFavorite: row.is_favorite === true,
+    })),
+    total,
+    pagination
+  );
 }
 
 async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{

@@ -4,6 +4,18 @@
     "library": "Library",
     "authors": "Authors",
     "genres": "Genres",
-    "tags": "Tags"
+    "tags": "Tags",
+    "titleColumn": "Title",
+    "seriesColumn": "Series",
+    "numberColumn": "Number",
+    "yearColumn": "Year",
+    "writerColumn": "Writer",
+    "publisherColumn": "Publisher",
+    "statusColumn": "Stat",
+    "languageColumn": "Language",
+    "ageRatingColumn": "Age",
+    "gtinColumn": "ISBN",
+    "favoriteColumn": "Fav",
+    "actionsColumn": "Act"
   }
 }
