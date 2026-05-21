@@ -60,15 +60,6 @@ h6 {
   font-family: var(--font-display);
 }
 
-/* Hidden scrollbars */
-.scrollbar-none {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -95,4 +86,35 @@ h6 {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3E%3Cdefs%3E%3CradialGradient id='grad' cx='50%25' cy='50%25' r='50%25' fx='50%25' fy='50%25'%3E%3Cstop offset='9%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='10%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='19%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='20%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='29%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='30%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='39%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='40%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='49%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='50%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='59%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='60%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='69%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='70%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='79%25' stop-color='%23e5e0dc' /%3E%3Cstop offset='80%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='89%25' stop-color='%23f7f2ec' /%3E%3Cstop offset='90%25' stop-color='%23e5e0dc' /%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle fill='url(%23grad)' cy='27' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='100' cy='27' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='50' cy='57' r='57' /%3E%3Ccircle fill='url(%23grad)' cy='87' r='57' /%3E%3Ccircle fill='url(%23grad)' cx='100' cy='87' r='57' /%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 48px;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #404040;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555555;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #404040 transparent;
+}
+
+/* Auto-hide nativo para macOS */
+body {
+  scrollbar-gutter: stable both-edges;
+  overflow: overlay;
 }
