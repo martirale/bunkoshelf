@@ -11,9 +11,12 @@ interface MangaSeriesPageProps {
 
 function GridSkeleton() {
   return (
-    <div className="grid grid-cols-3 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
+    <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
       {Array.from({ length: 14 }).map((_, i) => (
-        <div key={i} className="aspect-[3/5] rounded-lg bg-sand animate-pulse" />
+        <div
+          key={i}
+          className="aspect-[3/5] rounded-lg bg-sand animate-pulse"
+        />
       ))}
     </div>
   );
@@ -42,7 +45,10 @@ async function SeriesIndexContent({
   );
 }
 
-export default function MangaSeriesPage({ searchParams, params }: MangaSeriesPageProps) {
+export default function MangaSeriesPage({
+  searchParams,
+  params,
+}: MangaSeriesPageProps) {
   return (
     <section className="p-4 mt-4">
       <Suspense fallback={<GridSkeleton />}>

@@ -11,18 +11,18 @@ interface ToReadPageProps {
 
 function GridSkeleton() {
   return (
-    <div className="grid grid-cols-3 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
+    <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
       {Array.from({ length: 14 }).map((_, i) => (
-        <div key={i} className="aspect-[3/5] rounded-lg bg-sand animate-pulse" />
+        <div
+          key={i}
+          className="aspect-[3/5] rounded-lg bg-sand animate-pulse"
+        />
       ))}
     </div>
   );
 }
 
-async function WantToReadContent({
-  searchParams,
-  params,
-}: ToReadPageProps) {
+async function WantToReadContent({ searchParams, params }: ToReadPageProps) {
   const resolvedSearchParams = await searchParams;
   const { page: pageRaw = "1", genre, tag } = resolvedSearchParams;
   const page = parseInt(pageRaw ?? "1", 10);
