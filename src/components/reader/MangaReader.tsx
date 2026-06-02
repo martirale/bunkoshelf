@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import Loader from "@/components/ui/Loader";
 import VolumeRating from "@/components/library/manga/VolumeRating";
-import { getMangaImages, getReadingProgress } from "@/actions/reader";
 import type { DictionarySection } from "@/lib/types";
 
 interface MangaReaderProps {
@@ -59,7 +58,7 @@ export default function MangaReader({
   const reader = intl.reader as DictionarySection;
 
   useEffect(() => {
-    if (!slug) return;
+    if (!isOpen || !slug) return;
 
     async function fetchPages() {
       let error: unknown = null;
@@ -67,13 +66,18 @@ export default function MangaReader({
       setLoading(true);
       setShowFinishScreen(false);
       try {
-        const data = await getMangaImages({ slug });
+        const response = await fetch("/api/reader/manga", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug, includeProgress: !isYoureiMode }),
+        });
+        const data = await response.json();
 
-        if (data && "images" in data && data.images?.length) {
+        if (response.ok && data.images?.length) {
           setImages(data.images);
 
           if (!isYoureiMode) {
-            const progress = await getReadingProgress({ slug });
+            const progress = data.progress;
 
             let startIndex = 0;
 
@@ -105,7 +109,7 @@ export default function MangaReader({
     }
 
     fetchPages();
-  }, [slug, isYoureiMode, isRTL]);
+  }, [isOpen, slug, isYoureiMode, isRTL]);
 
   useEffect(() => {
     if (!isYoureiMode && images.length > 0) {

@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getMangaImages } from "@/actions/reader";
+import { getMangaImages, getReadingProgress } from "@/actions/reader";
 
 export async function POST(req: NextRequest) {
   try {
-    const { slug } = (await req.json()) as { slug?: string };
+    const { slug, includeProgress } = (await req.json()) as {
+      slug?: string;
+      includeProgress?: boolean;
+    };
 
     if (!slug) {
       return NextResponse.json({ error: "Missing slug" }, { status: 400 });
@@ -19,7 +22,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(result);
+    const progress = includeProgress
+      ? await getReadingProgress({ slug })
+      : undefined;
+
+    return NextResponse.json({ ...result, progress });
   } catch (err) {
     console.error("Reader API error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
