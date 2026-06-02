@@ -30,6 +30,40 @@ function MetaField({ field, label }: MetaFieldProps) {
   );
 }
 
+interface AuthorFieldProps extends MetaFieldProps {
+  href: string;
+}
+
+function AuthorField({ field, label, href }: AuthorFieldProps) {
+  const value = normalize(field);
+  if (!value) return null;
+
+  const authors = value.split(",").map((author) => author.trim());
+
+  return (
+    <div className="flex flex-row items-baseline max-w-3xl">
+      <p className="text-sm uppercase w-1/3 md:w-1/5">{label as string}</p>
+      <p className="w-2/3 md:w-4/5">
+        {authors.map((author, idx) => (
+          <span key={`${author}-${idx}`}>
+            {idx > 0 && ", "}
+            <Link
+              href={{
+                pathname: href,
+                query: { author },
+              }}
+              scroll={false}
+              className="hover:text-lilah transition-all duration-300"
+            >
+              {author}
+            </Link>
+          </span>
+        ))}
+      </p>
+    </div>
+  );
+}
+
 interface MetadataPanelProps {
   meta: Record<string, unknown>;
   lang: Locale;
@@ -47,10 +81,11 @@ export default function MetadataPanel({
 }: MetadataPanelProps) {
   const genres = (meta.genres || []) as { name: string }[];
   const tags = (meta.tags || []) as { name: string }[];
+  const href = `/${lang}/${section}/${linkBase}`;
 
   return (
     <>
-      <MetaField field={meta.writer} label={intl.manga.author} />
+      <AuthorField field={meta.writer} label={intl.manga.author} href={href} />
       <MetaField field={meta.penciller} label={intl.manga.penciller} />
       <MetaField field={meta.inker} label={intl.manga.inker} />
       <MetaField field={meta.colorist} label={intl.manga.colorist} />
@@ -72,7 +107,7 @@ export default function MetadataPanel({
               <Link
                 key={idx}
                 href={{
-                  pathname: `/${lang}/${section}/${linkBase}`,
+                  pathname: href,
                   query: { genre: genre.name },
                 }}
                 scroll={false}
@@ -95,7 +130,7 @@ export default function MetadataPanel({
               <Link
                 key={idx}
                 href={{
-                  pathname: `/${lang}/${section}/${linkBase}`,
+                  pathname: href,
                   query: { tag: tag.name },
                 }}
                 scroll={false}
