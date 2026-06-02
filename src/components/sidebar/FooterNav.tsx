@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import AlertBox from "@/components/ui/AlertBox";
+import { setLanguage } from "@/actions/language";
 import { logout } from "@/actions/logout";
 import { getFooterButtons } from "@/lib/nav/footerNav";
 import type { Dictionary, Session } from "@/lib/types";
@@ -26,17 +27,17 @@ export default function FooterNav({
   const pathname = usePathname();
   const currentLang = (params.lang as string) || "es";
 
-  const toggleLang = () => {
+  const toggleLang = async () => {
     const newLang = currentLang === "es" ? "en" : "es";
     const pathWithoutLang = pathname.replace(`/${currentLang}`, "");
-    document.cookie = `lang=${newLang}; path=/`;
+    await setLanguage(newLang);
     router.push(`/${newLang}${pathWithoutLang}`);
   };
 
   const handleLogout = async () => {
     try {
       await logout();
-      window.location.href = `/${currentLang}/`;
+      window.location.assign(`/${currentLang}/`);
     } catch (err) {
       console.error("Logout failed", err);
     }
