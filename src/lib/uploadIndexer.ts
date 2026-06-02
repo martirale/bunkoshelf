@@ -47,12 +47,13 @@ export async function indexUploadedVolume({
 }: IndexUploadParams) {
   const cleanTitle = dirName.replace(/\[oneshot\]/gi, "").trim();
   const seriesSlug = toSlug(cleanTitle);
+  const resolvedIsOneshot = isOneshot || /\[oneshot\]/i.test(dirName);
 
   const mangaSeries = await upsertSeriesRecord({
     slug: seriesSlug,
     title: cleanTitle,
     path: seriesPath,
-    isOneshot: !!isOneshot,
+    isOneshot: resolvedIsOneshot,
     mtime: new Date(),
   });
 

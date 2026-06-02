@@ -66,7 +66,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
     (selectedDirectory === "new" && isOneshot) ||
     (selectedDirectory !== "new" &&
       selectedDirectory !== "" &&
-      selectedDirectory.includes("[oneshot]"));
+      /\[oneshot\]/i.test(selectedDirectory));
 
   useEffect(() => {
     const fetchDirectories = async () => {
@@ -289,7 +289,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
         type: isManga ? "manga" : "books",
         isNew: selectedDirectory === "new",
         newDirectoryName: selectedDirectory === "new" ? newDirectoryName : null,
-        isOneshot: selectedDirectory === "new" ? isOneshot : false,
+        isOneshot: isOneshotMode,
         existingDirectory:
           selectedDirectory !== "new" ? selectedDirectory : null,
       };
