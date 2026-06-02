@@ -15,7 +15,7 @@ export default async function OthersLayout({
 }: OthersLayoutProps) {
   return (
     <Suspense fallback={null}>
-      <OthersLayoutContent children={children} params={params} />
+      <OthersLayoutContent params={params}>{children}</OthersLayoutContent>
     </Suspense>
   );
 }
