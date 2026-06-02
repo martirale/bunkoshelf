@@ -479,7 +479,14 @@ function buildVolumeFilterSql(
   if (options.authorNames && options.authorNames.length > 0) {
     params.push(options.authorNames);
     conditions.push(`
-      COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__') = ANY($${params.length}::text[])
+      EXISTS (
+        SELECT 1
+        FROM regexp_split_to_table(
+          COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__'),
+          ','
+        ) AS split_author(value)
+        WHERE BTRIM(split_author.value) = ANY($${params.length}::text[])
+      )
     `);
   }
 
@@ -679,10 +686,18 @@ export async function listPagedCatalogAuthors(
       `
         SELECT COUNT(*) AS total
         FROM (
-          SELECT COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__') AS author
+          SELECT author.name
           FROM manga_volumes mv
           LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
-          GROUP BY COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__')
+          CROSS JOIN LATERAL (
+            SELECT DISTINCT BTRIM(split_author.value) AS name
+            FROM regexp_split_to_table(
+              COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__'),
+              ','
+            ) AS split_author(value)
+            WHERE BTRIM(split_author.value) <> ''
+          ) AS author
+          GROUP BY author.name
         ) AS authors
       `
     ),
@@ -704,7 +719,7 @@ export async function listPagedCatalogAuthors(
           grouped.has_others
         FROM (
           SELECT
-            COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__') AS author,
+            author.name AS author,
             COUNT(mv.id) AS works,
             ROUND(AVG(utv.personal_rating)::numeric, 1)::float8 AS avg_rating,
             COUNT(*) FILTER (WHERE utv.is_read = TRUE) AS read_count,
@@ -712,10 +727,18 @@ export async function listPagedCatalogAuthors(
             BOOL_OR(vm.manga_style = 'No') AS has_others
           FROM manga_volumes mv
           LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+          CROSS JOIN LATERAL (
+            SELECT DISTINCT BTRIM(split_author.value) AS name
+            FROM regexp_split_to_table(
+              COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__'),
+              ','
+            ) AS split_author(value)
+            WHERE BTRIM(split_author.value) <> ''
+          ) AS author
           LEFT JOIN user_to_volumes utv
             ON utv.volume_id = mv.id
            AND utv.user_id = $1
-          GROUP BY COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__')
+          GROUP BY author.name
         ) AS grouped
         ORDER BY grouped.author ASC
         LIMIT $2
@@ -874,10 +897,18 @@ async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
     query<AuthorFilter>(
       `
         SELECT DISTINCT
-          COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__') AS id,
-          COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__') AS name
+          author.name AS id,
+          author.name
         FROM manga_volumes mv
         LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        CROSS JOIN LATERAL (
+          SELECT DISTINCT BTRIM(split_author.value) AS name
+          FROM regexp_split_to_table(
+            COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__'),
+            ','
+          ) AS split_author(value)
+          WHERE BTRIM(split_author.value) <> ''
+        ) AS author
         ${authorScopeWhere}
         ORDER BY name ASC
       `,
