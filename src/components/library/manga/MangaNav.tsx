@@ -6,6 +6,8 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import MobileSecondaryNav from "@/components/ui/MobileSecondaryNav";
 import { getReaderStats } from "@/actions/stats";
+import { getReadyVolumes } from "@/lib/client/offlineLibrary";
+import { usePwa } from "@/components/pwa/PwaProvider";
 import {
   type LibraryScope,
   type LibrarySection,
@@ -18,6 +20,7 @@ interface MangaNavProps {
   intl: Dictionary;
   section?: LibrarySection;
   scope?: LibraryScope;
+  offlineUserId?: string;
 }
 
 interface Stats {
@@ -31,6 +34,7 @@ export default function MangaNav({
   intl,
   section = "manga",
   scope = "all",
+  offlineUserId,
 }: MangaNavProps) {
   const pathname = usePathname();
   const [stats, setStats] = useState<Stats>({
@@ -38,10 +42,22 @@ export default function MangaNav({
     totalSeries: null,
     totalUnread: null,
   });
+  const { online } = usePwa();
 
   useEffect(() => {
     async function fetchStats() {
       try {
+        if (!online && offlineUserId) {
+          const volumes = await getReadyVolumes(offlineUserId, section);
+          const series = new Set(volumes.filter((volume) => !volume.isOneshot).map((volume) => volume.seriesId));
+          setStats({
+            totalVolumes: volumes.length,
+            totalSeries: series.size,
+            totalUnread: volumes.filter((volume) => !volume.isRead).length,
+          });
+          return;
+        }
+
         const data = await getReaderStats({
           scope,
         });
@@ -56,7 +72,7 @@ export default function MangaNav({
     }
 
     fetchStats();
-  }, []);
+  }, [offlineUserId, online, scope, section]);
   const links = getMangaNavLinks({ lang, intl, section, pathname, stats });
 
   return (

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { LibraryBigIcon, ChevronRightIcon } from "lucide-react";
@@ -11,6 +13,7 @@ import {
 import type { DictionarySection, Locale } from "@/lib/types";
 
 export interface HomeKeepReadingEntry {
+  id?: string;
   title: string;
   slug: string;
   isOneshot: boolean;
@@ -68,6 +71,7 @@ export default function HeroKeepRead({
             progressRatio={
               entry.totalPages > 0 ? (entry.lastPage + 1) / entry.totalPages : 0
             }
+            offlineVolumeId={entry.id}
             intl={intl}
             isDragging={false}
             className="font-roboto font-bold leading-5 2xl:leading-6 text-xl 2xl:text-2xl"

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { LibrarySection } from "@/lib/librarySection";
-import { normalizeCommaSeparatedText } from "@/lib/utils";
+import { normalizeCommaSeparatedText } from "@/lib/mangaMetadata";
 import type { Locale, Dictionary } from "@/lib/types";
 
 function normalize(field: unknown): string | null {

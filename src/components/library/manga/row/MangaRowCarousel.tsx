@@ -11,6 +11,7 @@ import type { Dictionary, Locale } from "@/lib/types";
 import type { MouseEvent as ReactMouseEvent, DragEvent, ReactNode } from "react";
 
 export interface VolEntry {
+  id?: string;
   slug: string;
   title: string;
   isOneshot: boolean;
@@ -130,6 +131,7 @@ export default function MangaRowCarousel({
               isDragging={isDragging}
               seriesSlug={null}
               progressRatio={entry.progressRatio ?? null}
+              offlineVolumeId={entry.id}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />
           </div>

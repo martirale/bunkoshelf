@@ -41,6 +41,7 @@ export async function GET(
         slug: volume.series.slug,
         title: volume.series.title,
         isOneshot: volume.series.isOneshot,
+        status: volume.series.status,
       },
       mangaStyle: volume.metadataObj?.mangaStyle ?? null,
       metadata: {

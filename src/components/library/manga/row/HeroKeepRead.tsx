@@ -16,6 +16,8 @@ import {
   ChevronRightIcon,
 } from "lucide-react";
 import { getMangaVolumes } from "@/actions/library";
+import { getReadyVolumes, offlinePageUrl } from "@/lib/client/offlineLibrary";
+import { usePwa } from "@/components/pwa/PwaProvider";
 import type { Locale, Dictionary } from "@/lib/types";
 import type { MouseEvent as ReactMouseEvent, DragEvent } from "react";
 
@@ -24,6 +26,7 @@ interface HeroKeepReadProps {
   intl: Dictionary;
   section?: LibrarySection;
   scope?: LibraryScope;
+  offlineUserId?: string;
 }
 
 interface ReadingEntry {
@@ -45,6 +48,7 @@ export default function HeroKeepRead({
   intl,
   section = "manga",
   scope = "all",
+  offlineUserId,
 }: HeroKeepReadProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [entries, setEntries] = useState<ReadingEntry[]>([]);
@@ -53,9 +57,31 @@ export default function HeroKeepRead({
   const scrollStart = useRef(0);
   const hasDragged = useRef(false);
   const pathname = usePathname();
+  const { online } = usePwa();
 
   useEffect(() => {
     async function fetchReadingProgress() {
+      if (!online && offlineUserId) {
+        const data = await getReadyVolumes(offlineUserId, section);
+        const localEntries = data
+          .filter((volume) => volume.lastPage > 0 && volume.lastPage < volume.totalPages - 1)
+          .map((volume) => ({
+            id: volume.id,
+            slug: volume.slug,
+            title: volume.title,
+            isOneshot: volume.isOneshot,
+            coverImage: offlinePageUrl(offlineUserId, volume.id, -1),
+            meta: { title: volume.title },
+            lastPage: volume.lastPage,
+            totalPages: volume.totalPages,
+            lastReadAt: volume.downloadedAt ? new Date(volume.downloadedAt) : null,
+            progressRatio: volume.totalPages > 0 ? (volume.lastPage + 1) / volume.totalPages : 0,
+          }))
+          .sort((a, b) => (b.lastReadAt?.getTime() ?? 0) - (a.lastReadAt?.getTime() ?? 0));
+        setEntries(localEntries);
+        return;
+      }
+
       const result = await getMangaVolumes({ scope });
       if (!result || !result.success) return;
 
@@ -97,7 +123,7 @@ export default function HeroKeepRead({
     }
 
     fetchReadingProgress();
-  }, [pathname, scope]);
+  }, [offlineUserId, online, pathname, scope, section]);
 
   const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -229,7 +255,7 @@ export default function HeroKeepRead({
           </section>
 
           <div className="sticky top-0 z-10 bg-pearl p-4">
-            <MangaNav lang={lang} intl={intl} section={section} scope={scope} />
+            <MangaNav lang={lang} intl={intl} section={section} scope={scope} offlineUserId={offlineUserId} />
           </div>
         </>
       )}

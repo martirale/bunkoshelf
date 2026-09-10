@@ -34,7 +34,7 @@ export async function GET(
         slug: volume.slug,
         section,
         title: source?.title || volume.title,
-        series: { id: series.id, slug: series.slug, title: series.title, isOneshot: series.isOneshot },
+        series: { id: series.id, slug: series.slug, title: series.title, isOneshot: series.isOneshot, status: series.status },
         mangaStyle: source?.mangaStyle ?? null,
         metadata: { ...metadata, genres: volume.genres.map((genre) => genre.name), tags: volume.tags.map((tag) => tag.name) },
         coverUrl: getMangaCoverUrl(volume),

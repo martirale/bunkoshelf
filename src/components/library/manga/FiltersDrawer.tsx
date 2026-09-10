@@ -6,6 +6,8 @@ import { ChevronRightIcon } from "lucide-react";
 import Accordion from "@/components/ui/Accordion";
 import clsx from "clsx";
 import { getLibraryFilters } from "@/actions/library";
+import { usePwa } from "@/components/pwa/PwaProvider";
+import type { OfflineVolume } from "@/lib/client/offlineLibrary";
 import type { LibraryScope } from "@/lib/librarySection";
 import type { DictionarySection } from "@/lib/types";
 
@@ -28,11 +30,13 @@ function splitFilterParam(value: string | null) {
 interface FiltersDrawerProps {
   intl: DictionarySection;
   scope?: LibraryScope;
+  offlineVolumes?: OfflineVolume[];
 }
 
 export default function FiltersDrawer({
   intl,
   scope = "all",
+  offlineVolumes,
 }: FiltersDrawerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,6 +48,7 @@ export default function FiltersDrawer({
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { online } = usePwa();
 
   const filters = intl.filters as DictionarySection;
   const catalog = intl.catalog as DictionarySection | undefined;
@@ -62,6 +67,28 @@ export default function FiltersDrawer({
 
   useEffect(() => {
     async function fetchFilters() {
+      if (!online && offlineVolumes) {
+        const authors = new Set<string>();
+        const genres = new Set<string>();
+        const tags = new Set<string>();
+
+        offlineVolumes.forEach((volume) => {
+          const writer = volume.metadata.writer;
+          if (typeof writer === "string") {
+            writer.split(",").map((item) => item.trim()).filter(Boolean).forEach((item) => authors.add(item));
+          }
+          const volumeGenres = volume.metadata.genres;
+          if (Array.isArray(volumeGenres)) volumeGenres.forEach((item) => genres.add(String(item)));
+          const volumeTags = volume.metadata.tags;
+          if (Array.isArray(volumeTags)) volumeTags.forEach((item) => tags.add(String(item)));
+        });
+
+        setAuthors(Array.from(authors).sort().map((name) => ({ id: name, name })));
+        setGenres(Array.from(genres).sort().map((name) => ({ id: name, name })));
+        setTags(Array.from(tags).sort().map((name) => ({ id: name, name })));
+        return;
+      }
+
       try {
         const data = await getLibraryFilters({ scope });
         if (!data || "error" in data) throw new Error("Error fetching filters");
@@ -73,7 +100,17 @@ export default function FiltersDrawer({
       }
     }
     fetchFilters();
-  }, [scope]);
+  }, [offlineVolumes, online, scope]);
+
+  function navigate(params: URLSearchParams) {
+    const href = `?${params.toString()}`;
+    if (!online) {
+      window.history.pushState({}, "", href);
+      window.dispatchEvent(new Event("bunko:offline-navigate"));
+      return;
+    }
+    router.push(href);
+  }
 
   function toggleGenre(genreName: string) {
     setSelectedGenres((prev) =>
@@ -107,7 +144,7 @@ export default function FiltersDrawer({
     if (selectedTags.length) params.set("tag", selectedTags.join(","));
     params.set("page", "1");
 
-    router.push(`?${params.toString()}`);
+    navigate(params);
     setIsOpen(false);
   }
 
@@ -115,7 +152,7 @@ export default function FiltersDrawer({
     setSelectedAuthors([]);
     setSelectedGenres([]);
     setSelectedTags([]);
-    router.push(`?page=1`);
+    navigate(new URLSearchParams({ page: "1" }));
     setIsOpen(false);
   }
 

@@ -6,6 +6,7 @@ import { flushOfflineOperations, getReadyVolumes, resumeOfflineDownloads } from 
 
 interface PwaContextValue {
   online: boolean;
+  userId?: string;
   offlineSlugs: Set<string>;
   offlineVolumeIds: Set<string>;
   offlineSeriesIds: Set<string>;
@@ -13,6 +14,7 @@ interface PwaContextValue {
 
 const PwaContext = createContext<PwaContextValue>({
   online: true,
+  userId: undefined,
   offlineSlugs: new Set(),
   offlineVolumeIds: new Set(),
   offlineSeriesIds: new Set(),
@@ -110,8 +112,8 @@ export default function PwaProvider({ userId, children }: { userId?: string; chi
   }, []);
 
   const value = useMemo(
-    () => ({ online, offlineSlugs, offlineVolumeIds, offlineSeriesIds }),
-    [offlineSeriesIds, offlineSlugs, offlineVolumeIds, online],
+    () => ({ online, userId, offlineSlugs, offlineVolumeIds, offlineSeriesIds }),
+    [offlineSeriesIds, offlineSlugs, offlineVolumeIds, online, userId],
   );
   return <PwaContext.Provider value={value}>{children}</PwaContext.Provider>;
 }

@@ -21,6 +21,7 @@ export interface OfflineVolume {
   seriesId: string;
   seriesSlug: string;
   seriesTitle: string;
+  seriesStatus?: string;
   isOneshot: boolean;
   mangaStyle: string | null;
   metadata: Record<string, unknown>;
@@ -70,6 +71,7 @@ interface OfflineVolumeManifest {
     slug: string;
     title: string;
     isOneshot: boolean;
+    status?: string;
   };
   mangaStyle: string | null;
   metadata: Record<string, unknown>;
@@ -207,6 +209,7 @@ async function saveManifest(userId: string, manifest: OfflineVolumeManifest) {
     seriesId: manifest.series.id,
     seriesSlug: manifest.series.slug,
     seriesTitle: manifest.series.title,
+    seriesStatus: manifest.series.status,
     isOneshot: manifest.series.isOneshot,
     mangaStyle: manifest.mangaStyle,
     metadata: manifest.metadata,

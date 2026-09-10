@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePwa } from "@/components/pwa/PwaProvider";
 import type { DictionarySection } from "@/lib/types";
 
 interface PaginationProps {
@@ -20,6 +21,7 @@ export default function Pagination({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const { online } = usePwa();
 
   const goToPage = (page: number) => {
     if (isPending || page === currentPage || page < 1 || page > totalPages) {
@@ -30,9 +32,13 @@ export default function Pagination({
     params.set("page", String(page));
     const href = `${pathname}?${params.toString()}`;
 
-    startTransition(() => {
-      router.replace(href);
-    });
+    if (!online) {
+      window.history.replaceState({}, "", href);
+      window.dispatchEvent(new Event("bunko:offline-navigate"));
+      return;
+    }
+
+    startTransition(() => router.replace(href));
   };
 
   return (

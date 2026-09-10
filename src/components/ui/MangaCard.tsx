@@ -51,6 +51,7 @@ export default function MangaCard({
 
   const manga = t.manga as DictionarySection;
   const volumeSlug = href.split("?")[0].split("/").pop();
+  const isOfflineCover = cover?.startsWith("/offline/") ?? false;
   const isOfflineAvailable = isSeries
     ? !!offlineSeriesId && offlineSeriesIds.has(offlineSeriesId)
     : !!offlineVolumeId && offlineVolumeIds.has(offlineVolumeId)
@@ -100,13 +101,23 @@ export default function MangaCard({
       }}
     >
       <div className="relative aspect-[7/10.5] w-full flex-shrink-0">
-        <Image
-          src={cover || "/placeholder.svg?=v1"}
-          alt={`Cover for ${title ?? ""}`}
-          fill
-          sizes="(max-width: 768px) 50vw, (max-width: 1280px) 20vw, 14vw"
-          className="object-cover z-0"
-        />
+        {isOfflineCover ? (
+          // IndexedDB pages are served by the service worker and cannot use Next's image optimizer.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={cover ?? undefined}
+            alt={`Cover for ${title ?? ""}`}
+            className="absolute inset-0 h-full w-full object-cover z-0"
+          />
+        ) : (
+          <Image
+            src={cover || "/placeholder.svg?=v1"}
+            alt={`Cover for ${title ?? ""}`}
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 20vw, 14vw"
+            className="object-cover z-0"
+          />
+        )}
 
         <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
           {isSeries && volumeCount != null && (

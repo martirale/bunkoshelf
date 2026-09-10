@@ -1,10 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import ReadButtonsVolume from "./ReadButtonsVolume";
 import ReadingHistory from "./ReadingHistory";
 import MetadataPanel from "./MetadataPanel";
 import MangaSummary from "./MangaSummary";
-import { ageRatingMap } from "@/lib/utils";
+import { ageRatingMap } from "@/lib/mangaMetadata";
 import DeleteMangaItem from "./DeleteMangaItem";
 import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
@@ -70,21 +72,28 @@ export default function VolumesContent({
 
   const isWesternReading =
     meta.mangaStyle === "YesLTR" || meta.mangaStyle === "No";
+  const coverImage = volume.coverImage as string | undefined;
+  const isOfflineCover = coverImage?.startsWith("/offline/") ?? false;
 
   return (
     <div className="p-4">
       <section className="flex flex-col md:flex-row">
         <div className="w-full md:w-5/12 2xl:w-1/3">
-          {(volume.coverImage as string) && (
+          {coverImage && (
             <div className="mb-8 md:mb-0 md:mr-4 px-16 md:px-0 md:sticky md:top-4 md:self-start">
-              <Image
-                src={(volume.coverImage as string) || "/placeholder.svg?=v1"}
-                alt={`Cover for ${(volume.title as string) || (volume.filename as string)}`}
-                width={0}
-                height={0}
-                sizes="100vw"
-                className="w-full h-auto object-contain rounded-lg"
-              />
+              {isOfflineCover ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={coverImage} alt={`Cover for ${(volume.title as string) || (volume.filename as string)}`} className="w-full h-auto object-contain rounded-lg" />
+              ) : (
+                <Image
+                  src={coverImage || "/placeholder.svg?=v1"}
+                  alt={`Cover for ${(volume.title as string) || (volume.filename as string)}`}
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  className="w-full h-auto object-contain rounded-lg"
+                />
+              )}
             </div>
           )}
         </div>

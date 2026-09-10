@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { searchManga } from "@/actions/search";
+import { getReadyVolumes } from "@/lib/client/offlineLibrary";
+import { usePwa } from "@/components/pwa/PwaProvider";
 import type { Locale, Dictionary, SearchResult } from "@/lib/types";
 import {
   ChevronLeftIcon,
@@ -25,6 +27,7 @@ export default function SearchComp({ lang, intl }: SearchCompProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const { online, userId } = usePwa();
 
   function getGenresAndTagsForSeries(seriesSlug: string) {
     const relatedVolumes = results.filter(
@@ -66,6 +69,31 @@ export default function SearchComp({ lang, intl }: SearchCompProps) {
 
     const performSearch = async () => {
       try {
+        if (!online && userId) {
+          const term = query.trim().toLocaleLowerCase();
+          const volumes = await getReadyVolumes(userId);
+          const localResults = volumes
+            .filter((volume) => [volume.title, volume.seriesTitle, volume.metadata.writer]
+              .filter((value): value is string => typeof value === "string")
+              .some((value) => value.toLocaleLowerCase().includes(term)))
+            .map((volume) => ({
+              id: volume.id,
+              section: volume.section,
+              type: "volume" as const,
+              title: volume.title,
+              slug: volume.slug,
+              isOneshot: volume.isOneshot,
+              writer: typeof volume.metadata.writer === "string" ? volume.metadata.writer : "",
+              series: volume.seriesSlug,
+              score: 1,
+              genres: Array.isArray(volume.metadata.genres) ? volume.metadata.genres.join(", ") : "",
+              tags: Array.isArray(volume.metadata.tags) ? volume.metadata.tags.join(", ") : "",
+            }));
+          setResults(localResults);
+          setLoading(false);
+          return;
+        }
+
         const result = await searchManga({ query });
         if ("data" in result && result.data) {
           setResults(result.data);
@@ -80,7 +108,7 @@ export default function SearchComp({ lang, intl }: SearchCompProps) {
     performSearch();
 
     return () => controller.abort();
-  }, [query]);
+  }, [online, query, userId]);
 
   const filteredResults = results.filter(
     (res) => !(res.type === "series" && res.isOneshot === true)

@@ -69,7 +69,7 @@ async function AppShell({
       <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
         <PwaProvider userId={user?.id}>
           <ToastProvider>
-            <OfflineGate lang={lang} intl={intl} userId={user?.id}>
+            <OfflineGate lang={lang} intl={intl} user={user}>
               {children}
             </OfflineGate>
           </ToastProvider>
