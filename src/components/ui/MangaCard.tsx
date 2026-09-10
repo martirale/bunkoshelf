@@ -22,6 +22,8 @@ interface MangaCardProps {
   className?: string;
   seriesSlug?: string | null;
   progressRatio?: number | null;
+  offlineVolumeId?: string | null;
+  offlineSeriesId?: string | null;
 }
 
 export default function MangaCard({
@@ -38,16 +40,22 @@ export default function MangaCard({
   className,
   seriesSlug,
   progressRatio,
+  offlineVolumeId,
+  offlineSeriesId,
 }: MangaCardProps) {
   const t = intl;
   const ratio = progressRatio ?? 0;
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const hasTouchMoved = useRef(false);
-  const { offlineSlugs } = usePwa();
+  const { offlineSlugs, offlineVolumeIds, offlineSeriesIds } = usePwa();
 
   const manga = t.manga as DictionarySection;
   const volumeSlug = href.split("?")[0].split("/").pop();
-  const isOfflineAvailable = !isSeries && !!volumeSlug && offlineSlugs.has(volumeSlug);
+  const isOfflineAvailable = isSeries
+    ? !!offlineSeriesId && offlineSeriesIds.has(offlineSeriesId)
+    : !!offlineVolumeId && offlineVolumeIds.has(offlineVolumeId)
+      ? true
+      : !!volumeSlug && offlineSlugs.has(volumeSlug);
 
   return (
     <Link
@@ -100,6 +108,39 @@ export default function MangaCard({
           className="object-cover z-0"
         />
 
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+          {isSeries && volumeCount != null && (
+            <span className="bg-neutral-700 text-[10px] leading-none uppercase py-1 px-1.5 rounded">
+              {volumeCount} {manga.volumes as string}
+            </span>
+          )}
+          {isSeries && onGoing && (
+            <span className="bg-cyan-500 text-white text-[10px] leading-none uppercase py-1 px-1.5 rounded">
+              {manga.onGoing as string}
+            </span>
+          )}
+          {isSeries && onPause && (
+            <span className="bg-yellow-500 text-onix text-[10px] leading-none uppercase py-1 px-1.5 rounded">
+              {manga.hiatus as string}
+            </span>
+          )}
+          {isSeries && isOfflineAvailable && (
+            <span className="bg-neutral-700 p-1 rounded" title="Offline">
+              <CloudIcon size={12} />
+            </span>
+          )}
+          {!isSeries && isOneshot && (
+            <span className="bg-neutral-700 text-[10px] leading-none uppercase py-1 px-1.5 rounded">
+              Oneshot
+            </span>
+          )}
+          {!isSeries && isOfflineAvailable && (
+            <span className="bg-neutral-700 p-1 rounded" title="Offline">
+              <CloudIcon size={12} />
+            </span>
+          )}
+        </div>
+
         {ratio > 0 && (
           <div className="absolute bottom-0 left-0 w-full h-1.5 bg-blackamber/50">
             <div
@@ -110,49 +151,16 @@ export default function MangaCard({
         )}
       </div>
 
-      <div className="flex flex-col justify-between p-3 h-24 rounded-b-lg border border-blackamber bg-onix group-hover:bg-blackamber">
+      <div className="flex items-center p-2.5 h-14 rounded-b-lg border border-blackamber bg-onix group-hover:bg-blackamber">
         <h3
+          title={title ?? ""}
           className={clsx(
-            "line-clamp-3 group-hover:text-lilah transition-all duration-300",
+            "min-w-0 w-full truncate group-hover:text-lilah transition-all duration-300",
             className
           )}
         >
           {title}
         </h3>
-
-        <div className="relative flex items-end justify-between gap-1">
-          {isSeries && volumeCount != null && (
-            <>
-              <p className="mt-2 text-xs uppercase text-neutral-500">
-                {volumeCount} {manga.volumes as string}
-              </p>
-              {onGoing && (
-                <span className="bg-cyan-500 text-white text-xs uppercase py-0.5 px-1 rounded">
-                  {manga.onGoing as string}
-                </span>
-              )}
-              {onPause && (
-                <span className="bg-yellow-500 text-onix text-xs uppercase py-0.5 px-1 rounded">
-                  {manga.hiatus as string}
-                </span>
-              )}
-            </>
-          )}
-          {!isSeries && (isOneshot || isOfflineAvailable) && (
-            <div className="flex items-center gap-1">
-              {isOneshot && (
-                <span className="bg-neutral-700 text-xs uppercase py-0.5 px-1 rounded">
-                  Oneshot
-                </span>
-              )}
-              {isOfflineAvailable && (
-                <span className="bg-neutral-700 p-1 rounded" title="Offline">
-                  <CloudIcon size={14} />
-                </span>
-              )}
-            </div>
-          )}
-        </div>
       </div>
     </Link>
   );

@@ -114,7 +114,7 @@ function OfflineGrid({ volumes, lang, intl, userId, section, title, series = fal
     <section className="p-4 mt-4">
       <h2 className="flex items-center text-base md:text-lg mb-4"><LibraryBigIcon size={28} className="mr-2" />{title}</h2>
       <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">
-        {volumes.map((volume) => <MangaCard key={volume.id} title={series ? volume.seriesTitle : volume.title} href={series ? `/${lang}/${section}/${volume.seriesSlug}` : `/${lang}/${section}/volume/${volume.slug}`} isSeries={series} isOneshot={volume.isOneshot} volumeCount={series ? volumes.filter((item) => item.seriesId === volume.seriesId).length : null} cover={offlinePageUrl(userId, volume.id, -1)} isDragging={false} seriesSlug={series ? volume.seriesSlug : null} intl={intl} />)}
+        {volumes.map((volume) => <MangaCard key={volume.id} title={series ? volume.seriesTitle : volume.title} href={series ? `/${lang}/${section}/${volume.seriesSlug}` : `/${lang}/${section}/volume/${volume.slug}`} isSeries={series} isOneshot={volume.isOneshot} volumeCount={series ? volumes.filter((item) => item.seriesId === volume.seriesId).length : null} cover={offlinePageUrl(userId, volume.id, -1)} isDragging={false} seriesSlug={series ? volume.seriesSlug : null} offlineSeriesId={series ? volume.seriesId : null} offlineVolumeId={series ? null : volume.id} intl={intl} />)}
       </div>
     </section>
   );

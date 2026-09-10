@@ -113,6 +113,7 @@ export default async function SeriesIndex({
               progressRatio={progressRatio}
               isDragging={false}
               seriesSlug={entry.slug}
+              offlineSeriesId={entry.id}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />

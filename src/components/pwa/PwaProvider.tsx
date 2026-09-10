@@ -7,9 +7,16 @@ import { flushOfflineOperations, getReadyVolumes, resumeOfflineDownloads } from 
 interface PwaContextValue {
   online: boolean;
   offlineSlugs: Set<string>;
+  offlineVolumeIds: Set<string>;
+  offlineSeriesIds: Set<string>;
 }
 
-const PwaContext = createContext<PwaContextValue>({ online: true, offlineSlugs: new Set() });
+const PwaContext = createContext<PwaContextValue>({
+  online: true,
+  offlineSlugs: new Set(),
+  offlineVolumeIds: new Set(),
+  offlineSeriesIds: new Set(),
+});
 const RELOAD_KEY = "bunko-sw-reload";
 
 function subscribe(callback: () => void) {
@@ -25,6 +32,8 @@ export default function PwaProvider({ userId, children }: { userId?: string; chi
   const online = useSyncExternalStore(subscribe, () => navigator.onLine, () => true);
   const router = useRouter();
   const [offlineSlugs, setOfflineSlugs] = useState<Set<string>>(new Set());
+  const [offlineVolumeIds, setOfflineVolumeIds] = useState<Set<string>>(new Set());
+  const [offlineSeriesIds, setOfflineSeriesIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
@@ -61,11 +70,15 @@ export default function PwaProvider({ userId, children }: { userId?: string; chi
   useEffect(() => {
     if (!userId) {
       setOfflineSlugs(new Set());
+      setOfflineVolumeIds(new Set());
+      setOfflineSeriesIds(new Set());
       return;
     }
     const load = () => {
       void getReadyVolumes(userId).then((volumes) => {
         setOfflineSlugs(new Set(volumes.map((volume) => volume.slug)));
+        setOfflineVolumeIds(new Set(volumes.map((volume) => volume.id)));
+        setOfflineSeriesIds(new Set(volumes.map((volume) => volume.seriesId)));
       });
     };
     load();
@@ -93,7 +106,10 @@ export default function PwaProvider({ userId, children }: { userId?: string; chi
     return () => document.removeEventListener("click", intercept, true);
   }, []);
 
-  const value = useMemo(() => ({ online, offlineSlugs }), [offlineSlugs, online]);
+  const value = useMemo(
+    () => ({ online, offlineSlugs, offlineVolumeIds, offlineSeriesIds }),
+    [offlineSeriesIds, offlineSlugs, offlineVolumeIds, online],
+  );
   return <PwaContext.Provider value={value}>{children}</PwaContext.Provider>;
 }
 
