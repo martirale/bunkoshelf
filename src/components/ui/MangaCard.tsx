@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
 import { useRef } from "react";
+import { CloudIcon } from "lucide-react";
+import { usePwa } from "@/components/pwa/PwaProvider";
 import type { DictionarySection } from "@/lib/types";
 
 interface MangaCardProps {
@@ -41,8 +43,11 @@ export default function MangaCard({
   const ratio = progressRatio ?? 0;
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const hasTouchMoved = useRef(false);
+  const { offlineSlugs } = usePwa();
 
   const manga = t.manga as DictionarySection;
+  const volumeSlug = href.split("?")[0].split("/").pop();
+  const isOfflineAvailable = !isSeries && !!volumeSlug && offlineSlugs.has(volumeSlug);
 
   return (
     <Link
@@ -133,10 +138,19 @@ export default function MangaCard({
               )}
             </>
           )}
-          {isOneshot && (
-            <span className="bg-lilah text-xs uppercase py-0.5 px-1 rounded">
-              Oneshot
-            </span>
+          {!isSeries && (isOneshot || isOfflineAvailable) && (
+            <div className="flex items-center gap-1">
+              {isOneshot && (
+                <span className="bg-neutral-700 text-xs uppercase py-0.5 px-1 rounded">
+                  Oneshot
+                </span>
+              )}
+              {isOfflineAvailable && (
+                <span className="bg-neutral-700 p-1 rounded" title="Offline">
+                  <CloudIcon size={14} />
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -1,14 +1,15 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { flushOfflineOperations, resumeOfflineDownloads } from "@/lib/client/offlineLibrary";
+import { flushOfflineOperations, getReadyVolumes, resumeOfflineDownloads } from "@/lib/client/offlineLibrary";
 
 interface PwaContextValue {
   online: boolean;
+  offlineSlugs: Set<string>;
 }
 
-const PwaContext = createContext<PwaContextValue>({ online: true });
+const PwaContext = createContext<PwaContextValue>({ online: true, offlineSlugs: new Set() });
 const RELOAD_KEY = "bunko-sw-reload";
 
 function subscribe(callback: () => void) {
@@ -23,6 +24,7 @@ function subscribe(callback: () => void) {
 export default function PwaProvider({ userId, children }: { userId?: string; children: React.ReactNode }) {
   const online = useSyncExternalStore(subscribe, () => navigator.onLine, () => true);
   const router = useRouter();
+  const [offlineSlugs, setOfflineSlugs] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
@@ -57,6 +59,21 @@ export default function PwaProvider({ userId, children }: { userId?: string; chi
   }, [online, router, userId]);
 
   useEffect(() => {
+    if (!userId) {
+      setOfflineSlugs(new Set());
+      return;
+    }
+    const load = () => {
+      void getReadyVolumes(userId).then((volumes) => {
+        setOfflineSlugs(new Set(volumes.map((volume) => volume.slug)));
+      });
+    };
+    load();
+    window.addEventListener("bunko:offline-change", load);
+    return () => window.removeEventListener("bunko:offline-change", load);
+  }, [userId]);
+
+  useEffect(() => {
     document.documentElement.dataset.offline = online ? "false" : "true";
   }, [online]);
 
@@ -76,7 +93,7 @@ export default function PwaProvider({ userId, children }: { userId?: string; chi
     return () => document.removeEventListener("click", intercept, true);
   }, []);
 
-  const value = useMemo(() => ({ online }), [online]);
+  const value = useMemo(() => ({ online, offlineSlugs }), [offlineSlugs, online]);
   return <PwaContext.Provider value={value}>{children}</PwaContext.Provider>;
 }
 
