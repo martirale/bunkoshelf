@@ -117,6 +117,7 @@ export default function VolumesContent({
             communityRating={meta.communityRating as number | null}
             initialPersonalRating={personalRating}
             section={section}
+            userId={user?.id}
           />
 
           <div className="mt-8">

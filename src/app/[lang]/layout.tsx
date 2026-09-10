@@ -5,6 +5,8 @@ import "../globals.css";
 import Sidebar from "@/components/sidebar/sidebar";
 import MobNav from "@/components/mobNav/MobNav";
 import { ToastProvider } from "@/components/ToastProvider";
+import PwaProvider from "@/components/pwa/PwaProvider";
+import OfflineGate from "@/components/pwa/OfflineGate";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { getChallengeData } from "@/lib/utils";
@@ -20,9 +22,9 @@ export const metadata: Metadata = {
   description: "Self-hosted server for managing-reading manga & ebooks.",
   icons: {
     icon: "/favicon.png",
-    apple: "/pwa/bunkoshelf-icon-192.png",
+    apple: "/icons/bunkoshelf-icon-any.png",
   },
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
 };
 
 export async function generateStaticParams() {
@@ -62,6 +64,26 @@ async function AppChrome({ lang }: { lang: Locale }) {
   );
 }
 
+async function AppContent({
+  children,
+  lang,
+}: {
+  children: ReactNode;
+  lang: Locale;
+}) {
+  const [intl, user] = await Promise.all([getDictionary(lang), verifySession()]);
+
+  return (
+    <PwaProvider userId={user?.id}>
+      <ToastProvider>
+        <OfflineGate lang={lang} intl={intl} userId={user?.id}>
+          {children}
+        </OfflineGate>
+      </ToastProvider>
+    </PwaProvider>
+  );
+}
+
 export default async function RootLayout({ children, params }: RootLayoutProps) {
   const { lang: rawLang } = await params;
 
@@ -87,7 +109,9 @@ export default async function RootLayout({ children, params }: RootLayoutProps) 
         </Suspense>
 
         <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
-          <ToastProvider>{children}</ToastProvider>
+          <Suspense fallback={<div className="min-h-full" />}>
+            <AppContent lang={lang}>{children}</AppContent>
+          </Suspense>
         </main>
       </body>
     </html>

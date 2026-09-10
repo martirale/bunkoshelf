@@ -15,6 +15,8 @@ import { toggleVolumeFavorite } from "@/actions/favorites";
 import { updateReadState } from "@/actions/read";
 import { syncReadingProgress } from "@/actions/progress";
 import { sendPush } from "@/actions/web-push";
+import OfflineDownloadButton from "@/components/pwa/OfflineDownloadButton";
+import { enqueueOfflineOperation, getOfflineImages, updateOfflineVolume } from "@/lib/client/offlineLibrary";
 import {
   getLibraryRootHref,
   type LibrarySection,
@@ -34,6 +36,7 @@ interface ReadButtonsVolumeProps {
   communityRating: number | null;
   initialPersonalRating: number | null;
   section?: LibrarySection;
+  userId?: string;
 }
 
 export default function ReadButtonsVolume({
@@ -49,6 +52,7 @@ export default function ReadButtonsVolume({
   communityRating,
   initialPersonalRating,
   section = "manga",
+  userId,
 }: ReadButtonsVolumeProps) {
   const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(initFavorite);
@@ -56,11 +60,16 @@ export default function ReadButtonsVolume({
   const [isLoading, setIsLoading] = useState(false);
   const [isReaderOpen, setIsReaderOpen] = useState(false);
   const [isYoureiMode, setIsYoureiMode] = useState(false);
+  const [offlineImages, setOfflineImages] = useState<string[] | undefined>();
 
   const readingDirection =
     mangaStyle === "YesLTR" || mangaStyle === "No" ? "ltr" : "rtl";
 
-  const openNormalReader = () => {
+  const openNormalReader = async () => {
+    if (userId) {
+      const localImages = await getOfflineImages(userId, volumeId);
+      if (localImages.length) setOfflineImages(localImages);
+    }
     setIsYoureiMode(false);
     setIsReaderOpen(true);
   };
@@ -88,6 +97,19 @@ export default function ReadButtonsVolume({
 
     setIsLoading(true);
     try {
+      if (!navigator.onLine && userId) {
+        const localImages = offlineImages?.length ? offlineImages : await getOfflineImages(userId, volumeId);
+        const totalPages = localImages.length;
+        if (!totalPages) return;
+        setOfflineImages(localImages);
+        const nextRead = !isRead;
+        const now = new Date();
+        const localDate = getLocalDateString();
+        await updateOfflineVolume(userId, volumeId, { isRead: nextRead, lastPage: nextRead ? totalPages - 1 : 0, totalPages });
+        await enqueueOfflineOperation(userId, "read", { volumeId, read: nextRead, totalPages, lastReadAt: now.toISOString(), firstRead: localDate });
+        setIsRead(nextRead);
+        return;
+      }
       const imagesRes = await fetch("/api/reader/manga", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -134,6 +156,13 @@ export default function ReadButtonsVolume({
 
     setIsLoading(true);
     try {
+      if (!navigator.onLine && userId) {
+        const nextFavorite = !isFavorite;
+        await updateOfflineVolume(userId, volumeId, { isFavorite: nextFavorite });
+        await enqueueOfflineOperation(userId, "favorite", { volumeId, favorite: nextFavorite });
+        setIsFavorite(nextFavorite);
+        return;
+      }
       const result = await toggleVolumeFavorite({
         volumeId,
         favorite: !isFavorite,
@@ -176,6 +205,13 @@ export default function ReadButtonsVolume({
           lastReadAt,
           date: today,
         };
+
+        if (!navigator.onLine && userId) {
+          await updateOfflineVolume(userId, volumeId, { lastPage, totalPages, isRead: isFinished });
+          await enqueueOfflineOperation(userId, "progress", body);
+          if (isFinished) setIsRead(true);
+          return;
+        }
 
         const data = await syncReadingProgress(body);
 
@@ -262,6 +298,8 @@ export default function ReadButtonsVolume({
         >
           {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
         </button>
+
+        <OfflineDownloadButton userId={userId} section={section} slug={slug} volumeId={volumeId} intl={intl} />
       </div>
 
       <MangaReader
@@ -278,6 +316,7 @@ export default function ReadButtonsVolume({
         volumeId={volumeId}
         communityRating={communityRating}
         initialPersonalRating={initialPersonalRating}
+        offlineImages={offlineImages}
       />
     </>
   );

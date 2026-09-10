@@ -5,6 +5,9 @@ import { HeartIcon, HeartOffIcon } from "lucide-react";
 import clsx from "clsx";
 import StatusSelect from "./StatusSelect";
 import { toggleSeriesFavorite } from "@/actions/favorites";
+import OfflineDownloadButton from "@/components/pwa/OfflineDownloadButton";
+import { enqueueOfflineOperation } from "@/lib/client/offlineLibrary";
+import type { LibrarySection } from "@/lib/librarySection";
 import type { Locale, Dictionary } from "@/lib/types";
 
 interface ReadButtonsSeriesProps {
@@ -12,6 +15,9 @@ interface ReadButtonsSeriesProps {
   intl: Dictionary;
   seriesId: string;
   initFavorite: boolean;
+  seriesSlug: string;
+  section?: LibrarySection;
+  userId?: string;
 }
 
 export default function ReadButtonsSeries({
@@ -19,6 +25,9 @@ export default function ReadButtonsSeries({
   intl,
   seriesId,
   initFavorite,
+  seriesSlug,
+  section = "manga",
+  userId,
 }: ReadButtonsSeriesProps) {
   const [isFavorite, setIsFavorite] = useState(initFavorite);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +36,12 @@ export default function ReadButtonsSeries({
     setIsLoading(true);
 
     try {
+      if (!navigator.onLine && userId) {
+        const favorite = !isFavorite;
+        await enqueueOfflineOperation(userId, "series-favorite", { seriesId, favorite });
+        setIsFavorite(favorite);
+        return;
+      }
       const result = await toggleSeriesFavorite({
         seriesId,
         favorite: !isFavorite,
@@ -62,6 +77,7 @@ export default function ReadButtonsSeries({
       >
         {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
       </button>
+      <OfflineDownloadButton userId={userId} section={section} slug={seriesSlug} seriesId={seriesId} intl={intl} />
     </div>
   );
 }

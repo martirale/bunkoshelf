@@ -85,6 +85,9 @@ export default function SeriesContent({
             intl={intl}
             seriesId={serieData.id as string}
             initFavorite={isFavorite}
+            seriesSlug={serieData.slug as string}
+            section={section}
+            userId={user?.id}
           />
 
           <div className="mt-8">

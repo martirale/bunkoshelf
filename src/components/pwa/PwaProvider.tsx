@@ -1,0 +1,85 @@
+"use client";
+
+import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
+import { flushOfflineOperations, resumeOfflineDownloads } from "@/lib/client/offlineLibrary";
+
+interface PwaContextValue {
+  online: boolean;
+}
+
+const PwaContext = createContext<PwaContextValue>({ online: true });
+const RELOAD_KEY = "bunko-sw-reload";
+
+function subscribe(callback: () => void) {
+  window.addEventListener("online", callback);
+  window.addEventListener("offline", callback);
+  return () => {
+    window.removeEventListener("online", callback);
+    window.removeEventListener("offline", callback);
+  };
+}
+
+export default function PwaProvider({ userId, children }: { userId?: string; children: React.ReactNode }) {
+  const online = useSyncExternalStore(subscribe, () => navigator.onLine, () => true);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+    navigator.serviceWorker.register("/sw.js")
+      .then((registration) => registration.update().catch(() => {}))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const reload = () => {
+      if (sessionStorage.getItem(RELOAD_KEY) === "1") return;
+      sessionStorage.setItem(RELOAD_KEY, "1");
+      window.location.reload();
+    };
+    const clear = () => sessionStorage.removeItem(RELOAD_KEY);
+    navigator.serviceWorker.addEventListener("controllerchange", reload);
+    window.addEventListener("load", clear);
+    return () => {
+      navigator.serviceWorker.removeEventListener("controllerchange", reload);
+      window.removeEventListener("load", clear);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!userId || !online) return;
+    void (async () => {
+      await resumeOfflineDownloads(userId);
+      await flushOfflineOperations(userId);
+      router.refresh();
+    })();
+  }, [online, router, userId]);
+
+  useEffect(() => {
+    document.documentElement.dataset.offline = online ? "false" : "true";
+  }, [online]);
+
+  useEffect(() => {
+    const intercept = (event: MouseEvent) => {
+      if (navigator.onLine || event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target instanceof Element ? event.target.closest("a[href]") : null;
+      if (!(target instanceof HTMLAnchorElement)) return;
+      const url = new URL(target.href);
+      if (url.origin !== window.location.origin) return;
+      event.preventDefault();
+      window.history.pushState({}, "", `${url.pathname}${url.search}`);
+      window.dispatchEvent(new Event("bunko:offline-navigate"));
+    };
+    document.addEventListener("click", intercept, true);
+    return () => document.removeEventListener("click", intercept, true);
+  }, []);
+
+  const value = useMemo(() => ({ online }), [online]);
+  return <PwaContext.Provider value={value}>{children}</PwaContext.Provider>;
+}
+
+export function usePwa() {
+  return useContext(PwaContext);
+}

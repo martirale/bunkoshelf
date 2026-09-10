@@ -1,6 +1,16 @@
 {
   "misc": {
     "coming": "Característica disponible próximamente",
+    "offline": {
+      "unavailable": "No disponible sin conexión",
+      "download": "Descargar para leer sin conexión",
+      "remove": "Eliminar descarga offline",
+      "downloadSeries": "¿Quieres descargar todos los tomos de esta serie?",
+      "removeSeries": "¿Quieres eliminar las descargas de esta serie?",
+      "removeVolume": "¿Quieres eliminar la descarga de este tomo?",
+      "downloading": "Descargando para leer sin conexión",
+      "downloadError": "No se pudo completar la descarga"
+    },
     "noSeriesFav": "No hay series favoritas...",
     "noVolumesFav": "No hay ningún manga favorito...",
     "dropzoneTt": "Arrastra y suelta aquí o haz clic para seleccionar",

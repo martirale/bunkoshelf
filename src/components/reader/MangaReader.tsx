@@ -26,6 +26,7 @@ interface MangaReaderProps {
   volumeId: string;
   communityRating: number | null;
   initialPersonalRating: number | null;
+  offlineImages?: string[];
 }
 
 export default function MangaReader({
@@ -42,6 +43,7 @@ export default function MangaReader({
   volumeId,
   communityRating,
   initialPersonalRating,
+  offlineImages,
 }: MangaReaderProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
@@ -66,6 +68,11 @@ export default function MangaReader({
       setLoading(true);
       setShowFinishScreen(false);
       try {
+        if (offlineImages?.length) {
+          setImages(offlineImages);
+          setCurrentIndex(0);
+          return;
+        }
         const response = await fetch("/api/reader/manga", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -109,7 +116,7 @@ export default function MangaReader({
     }
 
     fetchPages();
-  }, [isOpen, slug, isYoureiMode, isRTL]);
+  }, [isOpen, slug, isYoureiMode, isRTL, offlineImages]);
 
   useEffect(() => {
     if (!isYoureiMode && images.length > 0) {
