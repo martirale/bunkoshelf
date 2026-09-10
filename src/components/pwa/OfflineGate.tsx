@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { BookAIcon, BookCheckIcon, BookCopyIcon, BookMarkedIcon, BookPlusIcon, CloudOffIcon, ConstructionIcon, GhostIcon, HeartIcon, LibraryBigIcon, Settings2Icon, UserRoundIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
-import VolumesContent from "@/components/library/manga/VolumesContent";
-import SeriesContent from "@/components/library/manga/SeriesContent";
 import HeroKeepRead from "@/components/library/manga/row/HeroKeepRead";
 import SidebarMisc from "@/components/ui/SidebarMisc";
 import FavoritesNav from "@/components/favorites/FavoritesNav";
@@ -23,9 +22,18 @@ import TileMonthTrend from "@/components/stats/TileMonthTrend";
 import ProfileNav from "@/components/profile/ProfileNav";
 import SettingsNav from "@/components/settings/SettingsNav";
 import Pagination from "@/components/ui/Pagination";
+import ReadButtonsVolume from "@/components/library/manga/ReadButtonsVolume";
+import ReadButtonsSeries from "@/components/library/manga/ReadButtonsSeries";
+import MetadataPanel from "@/components/library/manga/MetadataPanel";
+import MangaSummary from "@/components/library/manga/MangaSummary";
+import VolumeRating from "@/components/library/manga/VolumeRating";
+import SeriesRating from "@/components/library/manga/SeriesRating";
+import Separator from "@/components/ui/Separator";
+import Tabs from "@/components/ui/Tabs";
 import { LIBRARY_PAGE_SIZE } from "@/lib/libraryPagination";
 import { getLibraryScope, type LibrarySection } from "@/lib/librarySection";
 import { getReadyVolumes, offlinePageUrl, type OfflineVolume } from "@/lib/client/offlineLibrary";
+import { ageRatingMap } from "@/lib/mangaMetadata";
 import type { Dictionary, Locale, Session } from "@/lib/types";
 import { usePwa } from "./PwaProvider";
 
@@ -46,7 +54,7 @@ function relationItems(value: unknown) {
   return value.map((item) => typeof item === "string" ? { name: item } : item).filter(Boolean);
 }
 
-function volumeMetadata(volume: OfflineVolume) {
+function volumeMetadata(volume: OfflineVolume): Record<string, unknown> {
   return {
     ...volume.metadata,
     title: volume.title,
@@ -58,16 +66,120 @@ function volumeMetadata(volume: OfflineVolume) {
   };
 }
 
+function OfflineCover({ alt, src }: { alt: string; src: string }) {
+  return (
+    <div className="mb-8 md:mb-0 md:mr-4 px-16 md:px-0 md:sticky md:top-4 md:self-start">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} className="w-full h-auto object-contain rounded-lg" />
+    </div>
+  );
+}
+
+function MetadataBadges({ intl, meta }: { intl: Dictionary; meta: Record<string, unknown> }) {
+  const ageMin = ageRatingMap(meta.ageRating as string);
+  const ageBadgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-2 ${
+    ageMin !== null && ageMin >= 18
+      ? "bg-red-500"
+      : ageMin !== null && ageMin >= 16
+        ? "bg-[#f5a524] text-onix"
+        : "bg-neutral-700"
+  }`;
+  const isWesternReading = meta.mangaStyle === "YesLTR" || meta.mangaStyle === "No";
+
+  return (
+    <div className="mt-2">
+      {meta.ageRating ? <span className={ageBadgeClass}>{ageMin !== null ? `${ageMin}+` : meta.ageRating as string}</span> : null}
+      {meta.languageISO ? <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1 mr-2">{meta.languageISO as string}</span> : null}
+      <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1">
+        {isWesternReading ? intl.manga.readingEn as string : intl.manga.readingJp as string}
+      </span>
+    </div>
+  );
+}
+
 function VolumeDetail({ volume, lang, intl, userId, user }: { volume: OfflineVolume; lang: Locale; intl: Dictionary; userId: string; user: Session | null }) {
-  return <VolumesContent volumeData={{ id: volume.id, slug: volume.slug, title: volume.title, filename: volume.title, coverImage: offlineCover(userId, volume), series: { id: volume.seriesId, slug: volume.seriesSlug, title: volume.seriesTitle, isOneshot: volume.isOneshot }, meta: volumeMetadata(volume) }} lang={lang} intl={intl} isFavorite={volume.isFavorite} isRead={volume.isRead} user={user} personalRating={null} readingEntries={[]} firstRead={null} section={volume.section} />;
+  const meta = volumeMetadata(volume);
+
+  return (
+    <div className="p-4">
+      <section className="flex flex-col md:flex-row">
+        <div className="w-full md:w-5/12 2xl:w-1/3">
+          <OfflineCover src={offlineCover(userId, volume)} alt={`Cover for ${volume.title}`} />
+        </div>
+        <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
+          <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">{volume.title}</h1>
+          {!volume.isOneshot && (
+            <div className="py-2">
+              <Link href={`/${lang}/${volume.section}/${volume.seriesSlug}`} className="italic hover:underline">
+                {intl.manga.series as string} {volume.seriesTitle}
+              </Link>
+            </div>
+          )}
+          <ReadButtonsVolume
+            lang={lang}
+            intl={intl}
+            volumeId={volume.id}
+            volumeTitle={volume.title}
+            coverSrc={offlineCover(userId, volume)}
+            initFavorite={volume.isFavorite}
+            initRead={volume.isRead}
+            slug={volume.slug}
+            mangaStyle={volume.mangaStyle ?? ""}
+            communityRating={typeof meta.communityRating === "number" ? meta.communityRating : null}
+            initialPersonalRating={null}
+            section={volume.section}
+            userId={user?.id}
+          />
+          <div className="mt-8">
+            <VolumeRating volumeId={volume.id} communityRating={typeof meta.communityRating === "number" ? meta.communityRating : null} initialPersonalRating={null} />
+          </div>
+          <MetadataBadges intl={intl} meta={meta} />
+          <p className="mt-4 flex items-center gap-2">
+            {meta.year ? meta.year as number : null}
+            {meta.pageCount ? <>&bull; {meta.pageCount as number} {intl.manga.pages as string}</> : null}
+            {volume.isOneshot && <span className="text-xs uppercase bg-lilah border border-lilah rounded px-1.5">Oneshot</span>}
+          </p>
+          {meta.summary ? <><h2 className="text-sm mt-8 mb-1">{intl.manga.synopsis as string}</h2><MangaSummary meta={meta} intl={intl} /></> : null}
+          <Tabs tabs={[{ label: intl.manga.details as string, content: <MetadataPanel meta={meta} lang={lang} intl={intl} section={volume.section} /> }]} />
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function SeriesDetail({ volumes, lang, intl, userId, user }: { volumes: OfflineVolume[]; lang: Locale; intl: Dictionary; userId: string; user: Session | null }) {
   const sortedVolumes = useMemo(() => volumes.slice().sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true })), [volumes]);
   const first = sortedVolumes[0];
   if (!first) return <OfflineUnavailable intl={intl} />;
+  const meta = volumeMetadata(first);
+  const averageRating = typeof meta.communityRating === "number" ? meta.communityRating : null;
 
-  return <SeriesContent serieData={{ id: first.seriesId, slug: first.seriesSlug, title: first.seriesTitle, coverImage: offlineCover(userId, first), meta: volumeMetadata(first), volumes: sortedVolumes.map((volume) => ({ id: volume.id, slug: volume.slug, filename: volume.title, coverImage: offlineCover(userId, volume), meta: volumeMetadata(volume), usersProgress: [{ isRead: volume.isRead, lastPage: volume.lastPage, totalPages: volume.totalPages }] })) }} lang={lang} intl={intl} isFavorite={sortedVolumes.some((volume) => volume.isFavorite)} aggregatedMeta={volumeMetadata(first)} averageRating={typeof first.metadata.communityRating === "number" ? first.metadata.communityRating : null} user={user} totalVolumes={sortedVolumes.length} section={first.section} />;
+  return (
+    <div className="p-4">
+      <section className="flex flex-col md:flex-row">
+        <div className="w-full md:w-5/12 2xl:w-1/3">
+          <OfflineCover src={offlineCover(userId, first)} alt={`Cover for ${first.seriesTitle}`} />
+        </div>
+        <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
+          <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">{first.seriesTitle}</h1>
+          <ReadButtonsSeries lang={lang} intl={intl} seriesId={first.seriesId} initFavorite={sortedVolumes.some((volume) => volume.isFavorite)} seriesSlug={first.seriesSlug} section={first.section} userId={user?.id} />
+          <SeriesRating rating={averageRating} />
+          <MetadataBadges intl={intl} meta={meta} />
+          <p className="mt-4">{meta.year ? meta.year as number : null} &bull; {sortedVolumes.length} {intl.manga.volumes as string}</p>
+          {meta.summary ? <><h2 className="text-sm mt-8 mb-1">{intl.manga.synopsis as string} (vol. 1)</h2><MangaSummary meta={meta} intl={intl} /></> : null}
+          <Separator />
+          <MetadataPanel meta={meta} lang={lang} intl={intl} linkBase="series" section={first.section} />
+        </div>
+      </section>
+      <section>
+        <Separator />
+        <h2>{intl.manga.seriesVolumes as string}</h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
+          {sortedVolumes.map((volume) => <MangaCard key={volume.id} title={volume.title} href={`/${lang}/${volume.section}/volume/${volume.slug}`} isSeries={false} isOneshot={false} onGoing={false} onPause={false} volumeCount={null} cover={offlineCover(userId, volume)} isDragging={false} seriesSlug={null} progressRatio={progressRatio(volume)} offlineVolumeId={volume.id} intl={intl} className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg" />)}
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function OfflineVolumesIndex({ volumes, filterVolumes, lang, intl, userId, favorites }: { volumes: OfflineVolume[]; filterVolumes: OfflineVolume[]; lang: Locale; intl: Dictionary; userId: string; favorites: boolean }) {

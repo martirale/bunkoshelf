@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import MangaCard from "@/components/ui/MangaCard";
 import ReadButtonsSeries from "./ReadButtonsSeries";
