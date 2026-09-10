@@ -27,7 +27,7 @@ export async function verifySession(): Promise<Session | null> {
     const token = cookiesInstance.get("yomimono_key")?.value;
     if (!token) return null;
 
-    return resolveSession(token);
+    return await resolveSession(token);
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) {
       throw error;

@@ -36,7 +36,13 @@ interface RootLayoutProps {
   params: Promise<{ lang: string }>;
 }
 
-async function AppChrome({ lang }: { lang: Locale }) {
+async function AppShell({
+  children,
+  lang,
+}: {
+  children: ReactNode;
+  lang: Locale;
+}) {
   const [intl, user, versionData] = await Promise.all([
     getDictionary(lang),
     verifySession(),
@@ -60,27 +66,16 @@ async function AppChrome({ lang }: { lang: Locale }) {
         challengeData={challengeData}
         versionData={versionData}
       />
+      <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
+        <PwaProvider userId={user?.id}>
+          <ToastProvider>
+            <OfflineGate lang={lang} intl={intl} userId={user?.id}>
+              {children}
+            </OfflineGate>
+          </ToastProvider>
+        </PwaProvider>
+      </main>
     </>
-  );
-}
-
-async function AppContent({
-  children,
-  lang,
-}: {
-  children: ReactNode;
-  lang: Locale;
-}) {
-  const [intl, user] = await Promise.all([getDictionary(lang), verifySession()]);
-
-  return (
-    <PwaProvider userId={user?.id}>
-      <ToastProvider>
-        <OfflineGate lang={lang} intl={intl} userId={user?.id}>
-          {children}
-        </OfflineGate>
-      </ToastProvider>
-    </PwaProvider>
   );
 }
 
@@ -104,15 +99,16 @@ export default async function RootLayout({ children, params }: RootLayoutProps) 
       <body className="flex h-screen overflow-hidden text-lg relative">
         <div className="fixed inset-0 -z-10 pointer-events-none bg-seigaiha-pattern-k opacity-50" />
 
-        <Suspense fallback={<aside className="hidden md:flex md:w-[35%] lg:w-[25%] xl:w-[21%] 2xl:w-[17%] bg-blackamber flex-col" />}>
-          <AppChrome lang={lang} />
+        <Suspense
+          fallback={(
+            <>
+              <aside className="hidden md:flex md:w-[35%] lg:w-[25%] xl:w-[21%] 2xl:w-[17%] bg-blackamber flex-col" />
+              <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto" />
+            </>
+          )}
+        >
+          <AppShell lang={lang}>{children}</AppShell>
         </Suspense>
-
-        <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
-          <Suspense fallback={<div className="min-h-full" />}>
-            <AppContent lang={lang}>{children}</AppContent>
-          </Suspense>
-        </main>
       </body>
     </html>
   );

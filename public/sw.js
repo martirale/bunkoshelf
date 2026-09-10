@@ -1,4 +1,4 @@
-const VERSION = "v1";
+const VERSION = "v4";
 const ASSET_CACHE = `bunko-assets-${VERSION}`;
 const PAGE_CACHE = `bunko-pages-${VERSION}`;
 const CRITICAL_ASSETS = [
@@ -77,7 +77,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(offlinePage(url));
     return;
   }
-  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/fonts/") || CRITICAL_ASSETS.includes(url.pathname)) {
+  if (event.request.destination === "font" || CRITICAL_ASSETS.includes(url.pathname)) {
     event.respondWith(cacheFirst(event.request));
     return;
   }

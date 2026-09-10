@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { flushOfflineOperations, getReadyVolumes, resumeOfflineDownloads } from "@/lib/client/offlineLibrary";
 
@@ -34,6 +34,7 @@ export default function PwaProvider({ userId, children }: { userId?: string; chi
   const [offlineSlugs, setOfflineSlugs] = useState<Set<string>>(new Set());
   const [offlineVolumeIds, setOfflineVolumeIds] = useState<Set<string>>(new Set());
   const [offlineSeriesIds, setOfflineSeriesIds] = useState<Set<string>>(new Set());
+  const wasOnline = useRef(online);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
@@ -59,11 +60,13 @@ export default function PwaProvider({ userId, children }: { userId?: string; chi
   }, []);
 
   useEffect(() => {
+    const reconnected = !wasOnline.current && online;
+    wasOnline.current = online;
     if (!userId || !online) return;
     void (async () => {
       await resumeOfflineDownloads(userId);
       await flushOfflineOperations(userId);
-      router.refresh();
+      if (reconnected) router.refresh();
     })();
   }, [online, router, userId]);
 

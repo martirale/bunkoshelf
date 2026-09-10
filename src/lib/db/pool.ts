@@ -8,11 +8,13 @@ pg.types.setTypeParser(1700, (value: string) =>
   value !== null ? parseFloat(value) : null
 );
 
-let pool: pg.Pool | undefined;
+const globalForPool = globalThis as typeof globalThis & {
+  bunkoPool?: pg.Pool;
+};
 
 export function getPool(): pg.Pool {
-  if (pool) {
-    return pool;
+  if (globalForPool.bunkoPool) {
+    return globalForPool.bunkoPool;
   }
 
   const connectionString = process.env.DATABASE_URL;
@@ -21,17 +23,17 @@ export function getPool(): pg.Pool {
     throw new Error("DATABASE_URL is not defined in environment variables");
   }
 
-  pool = new pg.Pool({
+  const pool = new pg.Pool({
     connectionString,
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 10000,
   });
 
   pool.on("error", (error: Error) => {
     console.error("[bunko/db] Unexpected pool error:", error.message);
-    process.exit(1);
   });
 
+  globalForPool.bunkoPool = pool;
   return pool;
 }

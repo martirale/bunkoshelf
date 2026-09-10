@@ -70,6 +70,7 @@ function isTransientDatabaseConnectionError(error: unknown): boolean {
   const message = error.message.toLowerCase();
 
   return (
+    message.includes("connection terminated due to connection timeout") ||
     message.includes("timeout exceeded when trying to connect") ||
     message.includes("connect econnrefused") ||
     message.includes("the database system is starting up")
