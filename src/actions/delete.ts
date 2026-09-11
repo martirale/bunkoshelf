@@ -40,6 +40,10 @@ export async function deleteSeries({ slug }: DeleteBySlugParams): Promise<Delete
       return { ok: false, error: "Unauthorized", status: 401 };
     }
 
+    if (!user.isAdmin) {
+      return { ok: false, error: "Unauthorized", status: 403 };
+    }
+
     if (!slug) {
       return { ok: false, error: "slug missing", status: 400 };
     }
@@ -113,6 +117,10 @@ export async function deleteVolume({ slug }: DeleteBySlugParams): Promise<Delete
     const user = await verifySession();
     if (!user) {
       return { ok: false, error: "Unauthorized", status: 401 };
+    }
+
+    if (!user.isAdmin) {
+      return { ok: false, error: "Unauthorized", status: 403 };
     }
 
     if (!slug) {
