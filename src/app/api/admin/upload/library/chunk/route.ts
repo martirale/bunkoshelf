@@ -13,6 +13,7 @@ import { indexUploadedVolume } from "@/lib/uploadIndexer";
 import { upsertFileChecksumRecord } from "@/lib/db/ingestion";
 import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 import type { ComicMetadata } from "@/lib/types/manga";
+import { indexBook } from "@/lib/books/indexer";
 
 export const maxDuration = 300;
 
@@ -170,7 +171,17 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (libraryType !== "books") {
+        if (libraryType === "books") {
+          await indexBook({
+            fullPath: `/${r2Key}`,
+            filename: fileName,
+            seriesPath: `/library/books/${dirWithSuffix}`,
+            seriesName: dirWithSuffix,
+            size: fileBuffer.length,
+            mtime: new Date(),
+            isOneshot,
+          });
+        } else {
           const seriesPath = `/library/${libraryType}/${dirWithSuffix}`;
           await indexUploadedVolume({
             fileName,
@@ -232,7 +243,17 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (libraryType !== "books") {
+        if (libraryType === "books") {
+          await indexBook({
+            fullPath: finalPath,
+            filename: fileName,
+            seriesPath: targetDirectory,
+            seriesName: path.basename(targetDirectory),
+            size: fileBuffer.length,
+            mtime: new Date(),
+            isOneshot,
+          });
+        } else {
           await indexUploadedVolume({
             fileName,
             fullPath: finalPath,

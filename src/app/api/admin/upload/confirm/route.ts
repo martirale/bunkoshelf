@@ -11,6 +11,7 @@ import { indexUploadedVolume } from "@/lib/uploadIndexer";
 import { upsertFileChecksumRecord } from "@/lib/db/ingestion";
 import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 import type { ComicMetadata } from "@/lib/types/manga";
+import { indexBook } from "@/lib/books/indexer";
 
 function generateChecksum(): string {
   return crypto.randomBytes(8).toString("hex");
@@ -87,7 +88,17 @@ export async function POST(request: NextRequest) {
       );
       await upsertFileChecksumRecord(`/${txtKey}`, checksum);
 
-      if (libraryType !== "books" && file.volumeMetadata) {
+      if (libraryType === "books") {
+        await indexBook({
+          fullPath: `/${file.key}`,
+          filename: file.fileName,
+          seriesPath: `/library/books/${dirWithSuffix}`,
+          seriesName: dirWithSuffix,
+          size: file.fileSize || 0,
+          mtime: new Date(),
+          isOneshot,
+        });
+      } else if (file.volumeMetadata) {
         const seriesPath = `/library/${libraryType}/${dirWithSuffix}`;
         await indexUploadedVolume({
           fileName: file.fileName,
@@ -105,9 +116,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (libraryType !== "books") {
-      revalidateMangaLibraryCache();
-    }
+    if (libraryType !== "books") revalidateMangaLibraryCache();
 
     log({
       event: "Files uploaded to library",

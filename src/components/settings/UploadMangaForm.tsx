@@ -68,6 +68,8 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
     setSelectedDirectory("");
     setNewDirectoryName("");
     setIsOneshot(false);
+    setFiles([]);
+    extractedDataRef.current = new Map();
   };
 
   const isOneshotMode =
@@ -109,6 +111,12 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
     setIsProcessing(true);
 
     const newExtractedData = new Map<string, ExtractedFileData>();
+
+    if (libraryType === "books") {
+      extractedDataRef.current = newExtractedData;
+      setIsProcessing(false);
+      return;
+    }
 
     for (let i = 0; i < acceptedFiles.length; i++) {
       const file = acceptedFiles[i];
@@ -518,11 +526,13 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
         <DropzoneUpload
           onDropAccepted={handleFilesAccepted}
           multiple={!isOneshotMode}
-          accept={{
-            "application/pdf": [".pdf"],
-            "application/zip": [".zip", ".cbz"],
-            "application/x-rar-compressed": [".rar", ".cbr"],
-          }}
+          accept={libraryType === "books"
+            ? { "application/epub+zip": [".epub"] }
+            : {
+                "application/pdf": [".pdf"],
+                "application/zip": [".zip", ".cbz"],
+                "application/x-rar-compressed": [".rar", ".cbr"],
+              }}
           intl={intl}
         />
 

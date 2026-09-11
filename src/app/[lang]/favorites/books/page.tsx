@@ -1,19 +1,17 @@
+import { verifySession } from "@/lib/auth/verifySession";
+import { listBookVolumes } from "@/lib/db/books/library";
+import { query } from "@/lib/db/query";
+import BookGrid from "@/components/library/books/BookGrid";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import { ConstructionIcon } from "lucide-react";
 import type { Locale } from "@/lib/types";
 
-interface FavBooksPageProps {
-  params: Promise<{ lang: string }>;
-}
-
-export default async function FavBooksPage({ params }: FavBooksPageProps) {
-  const { lang = "es" } = await params;
+export default async function FavoriteBooksPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
   const intl = await getDictionary(lang as Locale);
-
-  return (
-    <div className="flex flex-col items-center justify-center h-[60vh] md:h-[94vh] gap-4 p-4">
-      <ConstructionIcon size={64} />
-      <h2 className="font-roboto text-center">{intl.misc.coming as string}</h2>
-    </div>
-  );
+  const user = await verifySession();
+  if (!user) return <p className="p-4 text-center">Iniciá sesión para ver tus favoritos.</p>;
+  const ids = await query<{ volume_id: string }>("SELECT volume_id FROM user_to_books WHERE user_id=$1 AND is_favorite=TRUE", [user.id]);
+  const all = await listBookVolumes();
+  const favoriteIds = new Set(ids.map((item) => item.volume_id));
+  return <main><h1 className="p-4 text-2xl">Libros favoritos</h1><BookGrid books={all.filter((book) => favoriteIds.has(book.id))} lang={lang} intl={intl} /></main>;
 }

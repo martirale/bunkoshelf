@@ -234,7 +234,7 @@ export interface FavoriteSectionCounts {
 }
 
 export async function getFavoriteSectionCounts(userId: string): Promise<FavoriteSectionCounts> {
-  const rows = await query<{
+  const [rows, bookFavorites] = await Promise.all([query<{
     library_section: "manga" | "comic" | "other";
     favorite_type: "series" | "volumes";
     total: string;
@@ -251,27 +251,30 @@ export async function getFavoriteSectionCounts(userId: string): Promise<Favorite
     INNER JOIN library_series ls ON ls.id = lv.series_id
     WHERE utv.user_id = $1 AND utv.is_favorite = TRUE
     GROUP BY ls.library_section
-  `, [userId]);
+  `, [userId]), queryOne<{ total: string }>(
+    "SELECT COUNT(*)::text AS total FROM user_to_books WHERE user_id = $1 AND is_favorite = TRUE", [userId])]);
   const counts: FavoriteSectionCounts = { mangaSeries: 0, mangaVolumes: 0, comicSeries: 0, comicVolumes: 0, otherSeries: 0, otherVolumes: 0, books: 0 };
   for (const row of rows) {
     const key = `${row.library_section === "other" ? "other" : row.library_section}${row.favorite_type === "series" ? "Series" : "Volumes"}` as keyof FavoriteSectionCounts;
     counts[key] = Number(row.total);
   }
+  counts.books = Number(bookFavorites?.total ?? "0");
   return counts;
 }
 
 export async function getLibrarySectionCounts(): Promise<LibrarySectionCounts> {
-  const rows = await query<{ library_section: "manga" | "comic" | "other"; total: string }>(`
+  const [rows, bookCount] = await Promise.all([query<{ library_section: "manga" | "comic" | "other"; total: string }>(`
     SELECT library_section, COUNT(*)::text AS total
     FROM library_series
     GROUP BY library_section
-  `);
+  `), queryOne<{ total: string }>("SELECT COUNT(*)::text AS total FROM book_volumes")]);
   const counts = { manga: 0, comic: 0, others: 0, books: 0 };
   for (const row of rows) {
     if (row.library_section === "manga") counts.manga += Number(row.total);
     else if (row.library_section === "comic") counts.comic += Number(row.total);
     else counts.others += Number(row.total);
   }
+  counts.books = Number(bookCount?.total ?? "0");
   return counts;
 }
 
