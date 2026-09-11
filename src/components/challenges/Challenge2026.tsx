@@ -14,7 +14,7 @@ export default function Challenge2026({ intl, challenge }: Challenge2026Props) {
     ? challenge.filter((item) => item.year === 2026)
     : [];
   const entry = items[0] ?? null;
-  const completed = entry ? entry.completed >= (entry.goal ?? 0) : false;
+  const completed = entry ? entry.goal > 0 && entry.completed >= entry.goal : false;
   const progress = entry
     ? `${entry.completed ?? 0} ${challenges.of as string} ${entry.goal ?? 0}`
     : "0/0";
