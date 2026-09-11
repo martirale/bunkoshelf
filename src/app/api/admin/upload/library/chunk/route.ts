@@ -1,6 +1,7 @@
 import { NextResponse, connection } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
+import { normalizeLibraryDirectoryName } from "@/lib/libraryDirectory";
 
 import fs from "fs/promises";
 import path from "path";
@@ -60,6 +61,12 @@ export async function POST(request: NextRequest) {
     };
     const { type, isNew, newDirectoryName, isOneshot, existingDirectory } =
       metadata;
+    const directoryName = isNew
+      ? normalizeLibraryDirectoryName(newDirectoryName)
+      : existingDirectory;
+    if (!directoryName) {
+      return NextResponse.json({ error: "Missing directory name" }, { status: 400 });
+    }
 
     const tempFilePath = path.join(TEMP_PATH, `${fileName}.part`);
 
@@ -126,7 +133,6 @@ export async function POST(request: NextRequest) {
       }
 
       const suffix = isOneshot ? " [oneshot]" : "";
-      const directoryName = isNew ? newDirectoryName : existingDirectory;
       const dirWithSuffix = `${directoryName}${isNew ? suffix : ""}`;
 
       if (LIB_PROVIDER === "cloud") {

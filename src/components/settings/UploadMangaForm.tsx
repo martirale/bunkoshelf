@@ -8,6 +8,10 @@ import { extractFromArchive } from "@/lib/client/archiveExtractor";
 import { parseComicInfo } from "@/lib/client/comicInfoParser";
 import { generateCoverFilename } from "@/lib/client/coverHasher";
 import { sendPushBroadcast } from "@/actions/web-push";
+import {
+  normalizeLibraryDirectoryName,
+  sanitizeLibraryDirectoryName,
+} from "@/lib/libraryDirectory";
 import type { Dictionary } from "@/lib/types";
 import type { ComicMetadata } from "@/lib/types/manga";
 
@@ -288,7 +292,10 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
       const metadata: UploadMetadata = {
         type: isManga ? "manga" : "books",
         isNew: selectedDirectory === "new",
-        newDirectoryName: selectedDirectory === "new" ? newDirectoryName : null,
+        newDirectoryName:
+          selectedDirectory === "new"
+            ? normalizeLibraryDirectoryName(newDirectoryName)
+            : null,
         isOneshot: isOneshotMode,
         existingDirectory:
           selectedDirectory !== "new" ? selectedDirectory : null,
@@ -462,7 +469,9 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
             <input
               type="text"
               value={newDirectoryName}
-              onChange={(e) => setNewDirectoryName(e.target.value)}
+              onChange={(e) =>
+                setNewDirectoryName(sanitizeLibraryDirectoryName(e.target.value))
+              }
               placeholder={intl.settings.uploadLibraryNewFolder as string}
               className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
               required

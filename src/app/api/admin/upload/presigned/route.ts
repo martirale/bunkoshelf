@@ -1,6 +1,7 @@
 import { NextResponse, connection } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
+import { normalizeLibraryDirectoryName } from "@/lib/libraryDirectory";
 
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -44,7 +45,12 @@ export async function POST(request: NextRequest) {
 
     const libraryType = type === "manga" ? "manga" : "books";
     const suffix = isOneshot ? " [oneshot]" : "";
-    const directoryName = isNew ? newDirectoryName : existingDirectory;
+    const directoryName = isNew
+      ? normalizeLibraryDirectoryName(newDirectoryName)
+      : existingDirectory;
+    if (!directoryName) {
+      return NextResponse.json({ error: "Missing directory name" }, { status: 400 });
+    }
     const dirWithSuffix = `${directoryName}${isNew ? suffix : ""}`;
     const r2Key = `library/${libraryType}/${dirWithSuffix}/${fileName}`;
 
