@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
         }
       } else {
         const targetPath = path.join(LIBRARY_PATH, libraryType);
+        await fs.mkdir(targetPath, { recursive: true });
         const entries = await fs.readdir(targetPath, { withFileTypes: true });
         directories = entries
           .filter((entry) => entry.isDirectory())

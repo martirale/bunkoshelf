@@ -482,7 +482,9 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
               ? (intl.settings.uploadLibraryNewManga as string)
               : libraryType === "books"
                 ? (intl.settings.uploadLibraryNewBook as string)
-                : (intl.settings.uploadLibraryNewComic as string)}
+                : libraryType === "comic"
+                  ? (intl.settings.uploadLibraryNewComic as string)
+                  : (intl.settings.uploadLibraryNewOther as string)}
           </option>
           {directories.map((dir) => (
             <option key={dir} value={dir}>
