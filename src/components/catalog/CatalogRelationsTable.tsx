@@ -23,8 +23,9 @@ export default function CatalogRelationsTable({
               <tr className="font-bold uppercase bg-onix">
                 <th className="p-4 text-left rounded-l-md">{nameLabel}</th>
                 <th className="p-4 text-center">{intl.catalog.mangaColumn as string}</th>
-                <th className="p-4 text-center">{intl.catalog.othersColumn as string}</th>
+                <th className="p-4 text-center">{intl.catalog.comicColumn as string}</th>
                 <th className="p-4 text-center">{intl.catalog.booksColumn as string}</th>
+                <th className="p-4 text-center">{intl.catalog.othersColumn as string}</th>
                 <th className="p-4 text-center rounded-r-md">{intl.catalog.totalColumn as string}</th>
               </tr>
             </thead>
@@ -43,12 +44,17 @@ export default function CatalogRelationsTable({
                   </td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center">
-                      {item.hasOthers ? <CheckIcon size={18} /> : null}
+                      {item.hasComic ? <CheckIcon size={18} /> : null}
                     </div>
                   </td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center">
                       {item.hasBooks ? <CheckIcon size={18} /> : null}
+                    </div>
+                  </td>
+                  <td className="p-4 text-center">
+                    <div className="flex items-center justify-center">
+                      {item.hasOthers ? <CheckIcon size={18} /> : null}
                     </div>
                   </td>
                   <td className="p-4 text-center whitespace-nowrap">{item.total}</td>

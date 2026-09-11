@@ -34,15 +34,17 @@ function renderAuthorName(
 }
 
 function renderLibraries(
+  intl: Dictionary,
   lang: Locale,
   author: string | null,
   hasManga: boolean,
+  hasComic: boolean,
   hasOthers: boolean,
   hasBooks: boolean
 ) {
   const authorParam = author?.trim() ? author.trim() : "__unknown__";
 
-  function buildHref(section: "manga" | "others") {
+  function buildHref(section: "manga" | "comic" | "others") {
     const params = new URLSearchParams({ author: authorParam });
     return `/${lang}/${section}/volumes?${params.toString()}`;
   }
@@ -54,21 +56,29 @@ function renderLibraries(
           href={buildHref("manga")}
           className="bg-pearl text-onix px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
         >
-          Manga
+          {intl.catalog.mangaColumn as string}
         </Link>
+      )}
+      {hasComic && (
+        <Link
+          href={buildHref("comic")}
+          className="bg-neutral-700 px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+        >
+          {intl.catalog.comicColumn as string}
+        </Link>
+      )}
+      {hasBooks && (
+        <span className="border border-pearl px-2 rounded-full text-xs uppercase">
+          {intl.catalog.booksColumn as string}
+        </span>
       )}
       {hasOthers && (
         <Link
           href={buildHref("others")}
           className="bg-neutral-700 px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
         >
-          Cómic
+          {intl.catalog.othersColumn as string}
         </Link>
-      )}
-      {hasBooks && (
-        <span className="border border-pearl px-2 rounded-full text-xs uppercase">
-          Libros
-        </span>
       )}
     </div>
   );
@@ -122,9 +132,11 @@ export default function CatalogAuthorsTable({
                   </td>
                   <td className="p-4 text-center">
                     {renderLibraries(
+                      intl,
                       lang,
                       author.author,
                       author.hasManga,
+                      author.hasComic,
                       author.hasOthers,
                       author.hasBooks
                     )}

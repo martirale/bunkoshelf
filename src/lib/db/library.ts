@@ -202,6 +202,7 @@ export interface CatalogAuthorStats {
   avgRating: number | null;
   readCount: number;
   hasManga: boolean;
+  hasComic: boolean;
   hasOthers: boolean;
   hasBooks: boolean;
 }
@@ -209,6 +210,7 @@ export interface CatalogAuthorStats {
 export interface CatalogRelationStats {
   name: string;
   hasManga: boolean;
+  hasComic: boolean;
   hasOthers: boolean;
   hasBooks: boolean;
   total: number;
@@ -778,6 +780,7 @@ export async function listPagedCatalogAuthors(
       avg_rating: number | null;
       read_count: string | number;
       has_manga: boolean | null;
+      has_comic: boolean | null;
       has_others: boolean | null;
     }>(
       `
@@ -787,6 +790,7 @@ export async function listPagedCatalogAuthors(
           grouped.avg_rating,
           grouped.read_count,
           grouped.has_manga,
+          grouped.has_comic,
           grouped.has_others
         FROM (
           SELECT
@@ -794,9 +798,11 @@ export async function listPagedCatalogAuthors(
             COUNT(mv.id) AS works,
             ROUND(AVG(utv.personal_rating)::numeric, 1)::float8 AS avg_rating,
             COUNT(*) FILTER (WHERE utv.is_read = TRUE) AS read_count,
-            BOOL_OR(vm.manga_style IS DISTINCT FROM 'No') AS has_manga,
-            BOOL_OR(vm.manga_style = 'No') AS has_others
+            BOOL_OR(ms.library_section = 'manga') AS has_manga,
+            BOOL_OR(ms.library_section = 'comic') AS has_comic,
+            BOOL_OR(ms.library_section = 'other') AS has_others
           FROM manga_volumes mv
+          INNER JOIN manga_series ms ON ms.id = mv.series_id
           LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
           CROSS JOIN LATERAL (
             SELECT DISTINCT BTRIM(split_author.value) AS name
@@ -828,6 +834,7 @@ export async function listPagedCatalogAuthors(
       avgRating: row.avg_rating,
       readCount: parseCount(row.read_count),
       hasManga: row.has_manga === true,
+      hasComic: row.has_comic === true,
       hasOthers: row.has_others === true,
       hasBooks: false,
     })),
@@ -857,19 +864,21 @@ export async function listPagedCatalogGenres(
     query<{
       name: string;
       has_manga: boolean | null;
+      has_comic: boolean | null;
       has_others: boolean | null;
       total: string | number;
     }>(
       `
         SELECT
           g.name,
-          BOOL_OR(vm.manga_style IS DISTINCT FROM 'No') AS has_manga,
-          BOOL_OR(vm.manga_style = 'No') AS has_others,
+          BOOL_OR(ms.library_section = 'manga') AS has_manga,
+          BOOL_OR(ms.library_section = 'comic') AS has_comic,
+          BOOL_OR(ms.library_section = 'other') AS has_others,
           COUNT(mv.id) AS total
         FROM genres g
         INNER JOIN volume_to_genres vtg ON vtg.genre_id = g.id
         INNER JOIN manga_volumes mv ON mv.id = vtg.volume_id
-        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        INNER JOIN manga_series ms ON ms.id = mv.series_id
         GROUP BY g.id, g.name
         ORDER BY g.name ASC
         LIMIT $1
@@ -885,6 +894,7 @@ export async function listPagedCatalogGenres(
     rows.map((row) => ({
       name: row.name,
       hasManga: row.has_manga === true,
+      hasComic: row.has_comic === true,
       hasOthers: row.has_others === true,
       hasBooks: false,
       total: parseCount(row.total),
@@ -915,19 +925,21 @@ export async function listPagedCatalogTags(
     query<{
       name: string;
       has_manga: boolean | null;
+      has_comic: boolean | null;
       has_others: boolean | null;
       total: string | number;
     }>(
       `
         SELECT
           t.name,
-          BOOL_OR(vm.manga_style IS DISTINCT FROM 'No') AS has_manga,
-          BOOL_OR(vm.manga_style = 'No') AS has_others,
+          BOOL_OR(ms.library_section = 'manga') AS has_manga,
+          BOOL_OR(ms.library_section = 'comic') AS has_comic,
+          BOOL_OR(ms.library_section = 'other') AS has_others,
           COUNT(mv.id) AS total
         FROM tags t
         INNER JOIN volume_to_tags vtt ON vtt.tag_id = t.id
         INNER JOIN manga_volumes mv ON mv.id = vtt.volume_id
-        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+        INNER JOIN manga_series ms ON ms.id = mv.series_id
         GROUP BY t.id, t.name
         ORDER BY t.name ASC
         LIMIT $1
@@ -943,6 +955,7 @@ export async function listPagedCatalogTags(
     rows.map((row) => ({
       name: row.name,
       hasManga: row.has_manga === true,
+      hasComic: row.has_comic === true,
       hasOthers: row.has_others === true,
       hasBooks: false,
       total: parseCount(row.total),
@@ -1546,7 +1559,6 @@ export async function listSeries(
     mtime: Date;
     status: string;
     library_section: "manga" | "comic" | "other";
-    library_section: "manga" | "comic" | "other";
     created_at: Date;
     updated_at: Date;
   }>(
@@ -1597,6 +1609,7 @@ export async function findSeriesBySlugBasic(
     is_oneshot: boolean;
     mtime: Date;
     status: string;
+    library_section: "manga" | "comic" | "other";
     created_at: Date;
     updated_at: Date;
   }>(
