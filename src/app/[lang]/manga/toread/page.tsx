@@ -45,7 +45,7 @@ async function WantToReadContent({ searchParams, params }: ToReadPageProps) {
 
 export default function ToReadPage({ searchParams, params }: ToReadPageProps) {
   return (
-    <section className="p-4 mt-4">
+    <section className="p-4">
       <Suspense fallback={<GridSkeleton />}>
         <WantToReadContent searchParams={searchParams} params={params} />
       </Suspense>

@@ -47,7 +47,7 @@ export default function OthersSeriesPage({
   params,
 }: OthersSeriesPageProps) {
   return (
-    <section className="p-4 mt-4">
+    <section className="p-4">
       <Suspense fallback={<GridSkeleton />}>
         <SeriesIndexContent searchParams={searchParams} params={params} />
       </Suspense>
