@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
             genres: volumeMeta?.genres || [],
             tags: volumeMeta?.tags || [],
             fileSize: fileBuffer.length,
-            librarySection: libraryType === "others" ? "other" : libraryType,
+            librarySection: libraryType === "others" ? "other" : libraryType as "manga" | "comic",
           });
           revalidateMangaLibraryCache();
         }
@@ -244,7 +244,7 @@ export async function POST(request: NextRequest) {
             genres: volumeMeta?.genres || [],
             tags: volumeMeta?.tags || [],
             fileSize: fileBuffer.length,
-            librarySection: libraryType === "others" ? "other" : libraryType,
+            librarySection: libraryType === "others" ? "other" : libraryType as "manga" | "comic",
           });
           revalidateMangaLibraryCache();
         }

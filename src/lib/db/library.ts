@@ -221,6 +221,43 @@ export interface LibrarySectionCounts {
   books: number;
 }
 
+export interface FavoriteSectionCounts {
+  mangaSeries: number;
+  mangaVolumes: number;
+  comicSeries: number;
+  comicVolumes: number;
+  otherSeries: number;
+  otherVolumes: number;
+  books: number;
+}
+
+export async function getFavoriteSectionCounts(userId: string): Promise<FavoriteSectionCounts> {
+  const rows = await query<{
+    library_section: "manga" | "comic" | "other";
+    favorite_type: "series" | "volumes";
+    total: string;
+  }>(`
+    SELECT ls.library_section, 'series' AS favorite_type, COUNT(*)::text AS total
+    FROM user_to_series uts
+    INNER JOIN library_series ls ON ls.id = uts.series_id
+    WHERE uts.user_id = $1 AND uts.is_favorite = TRUE
+    GROUP BY ls.library_section
+    UNION ALL
+    SELECT ls.library_section, 'volumes' AS favorite_type, COUNT(*)::text AS total
+    FROM user_to_volumes utv
+    INNER JOIN library_volumes lv ON lv.id = utv.volume_id
+    INNER JOIN library_series ls ON ls.id = lv.series_id
+    WHERE utv.user_id = $1 AND utv.is_favorite = TRUE
+    GROUP BY ls.library_section
+  `, [userId]);
+  const counts: FavoriteSectionCounts = { mangaSeries: 0, mangaVolumes: 0, comicSeries: 0, comicVolumes: 0, otherSeries: 0, otherVolumes: 0, books: 0 };
+  for (const row of rows) {
+    const key = `${row.library_section === "other" ? "other" : row.library_section}${row.favorite_type === "series" ? "Series" : "Volumes"}` as keyof FavoriteSectionCounts;
+    counts[key] = Number(row.total);
+  }
+  return counts;
+}
+
 export async function getLibrarySectionCounts(): Promise<LibrarySectionCounts> {
   const rows = await query<{ library_section: "manga" | "comic" | "other"; total: string }>(`
     SELECT library_section, COUNT(*)::text AS total
@@ -1509,6 +1546,7 @@ export async function listSeries(
     mtime: Date;
     status: string;
     library_section: "manga" | "comic" | "other";
+    library_section: "manga" | "comic" | "other";
     created_at: Date;
     updated_at: Date;
   }>(
@@ -1571,6 +1609,7 @@ export async function findSeriesBySlugBasic(
         is_oneshot,
         mtime,
         status,
+        library_section,
         created_at,
         updated_at
       FROM manga_series
@@ -1592,6 +1631,7 @@ export async function findSeriesBySlugBasic(
     isOneshot: row.is_oneshot,
     mtime: row.mtime,
     status: row.status,
+    librarySection: row.library_section,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

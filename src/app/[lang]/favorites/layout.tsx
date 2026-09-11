@@ -3,6 +3,8 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import SidebarMisc from "@/components/ui/SidebarMisc";
 import FavoritesNav from "@/components/favorites/FavoritesNav";
 import { HeartIcon } from "lucide-react";
+import { verifySession } from "@/lib/auth/verifySession";
+import { getFavoriteSectionCounts } from "@/lib/db/library";
 import type { Locale } from "@/lib/types";
 import type { ReactNode } from "react";
 
@@ -17,6 +19,8 @@ async function FavoritesLayoutContent({
 }: FavoritesLayoutProps) {
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
+  const user = await verifySession();
+  const favoriteCounts = user ? await getFavoriteSectionCounts(user.id) : { mangaSeries: 0, mangaVolumes: 0, comicSeries: 0, comicVolumes: 0, otherSeries: 0, otherVolumes: 0, books: 0 };
 
   return (
     <div className="flex flex-col md:flex-row md:h-screen overflow-hidden">
@@ -28,6 +32,7 @@ async function FavoritesLayoutContent({
 
         <FavoritesNav
           intl={intl}
+          counts={favoriteCounts}
         />
       </SidebarMisc>
 

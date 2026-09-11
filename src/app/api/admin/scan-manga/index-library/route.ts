@@ -116,6 +116,7 @@ export async function POST(request: NextRequest) {
           title: cleanTitle,
           path: `/${prefix}${seriesName}`,
           isOneshot,
+          librarySection: "manga",
           mtime: new Date(),
         });
 
@@ -189,6 +190,7 @@ export async function POST(request: NextRequest) {
           title: cleanTitle,
           path: dirPath,
           isOneshot,
+          librarySection: "manga",
           mtime: stat.mtime,
         });
 

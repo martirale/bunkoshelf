@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
           genres: file.volumeMetadata?.genres || [],
           tags: file.volumeMetadata?.tags || [],
           fileSize: file.fileSize || 0,
-          librarySection: libraryType === "others" ? "other" : libraryType,
+          librarySection: libraryType === "others" ? "other" : libraryType as "manga" | "comic",
         });
       }
     }

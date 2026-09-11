@@ -35,10 +35,12 @@ export default async function SeriesIndexFav({
 }: SeriesIndexFavProps) {
   const user = await verifySession();
   if (!user) return null;
-  const heading =
-    section === "others"
+  const heading = section === "comic"
+    ? intl.favorites.ttSeriesComic
+    : section === "others"
       ? intl.favorites.ttSeriesOthers
       : intl.favorites.ttSeriesManga;
+  const emptyMessage = intl.misc.noSeriesFav;
 
   const favoriteSeriesIds = await listFavoriteSeriesIds(user.id);
 
@@ -46,7 +48,7 @@ export default async function SeriesIndexFav({
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
         <GhostIcon size={64} />
-        <h2>{intl.misc.noSeriesFav as string}</h2>
+        <h2>{emptyMessage as string}</h2>
       </div>
     );
   }
@@ -57,6 +59,15 @@ export default async function SeriesIndexFav({
     seriesIds: favoriteSeriesIds,
     scope,
   });
+
+  if (favorites.total === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-80 gap-4">
+        <GhostIcon size={64} />
+        <h2>{emptyMessage as string}</h2>
+      </div>
+    );
+  }
 
   const entries = favorites.items.map((series) => {
     const sortedVolumes = sortByPaddedTitle(series.volumes);

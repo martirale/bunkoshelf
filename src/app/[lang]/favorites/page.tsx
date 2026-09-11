@@ -7,5 +7,5 @@ interface FavoritesPageProps {
 export default async function FavoritesPage({ params }: FavoritesPageProps) {
   const { lang = "es" } = await params;
 
-  redirect(`/${lang}/favorites/manga`);
+  redirect(`/${lang}/favorites/manga/volumes`);
 }

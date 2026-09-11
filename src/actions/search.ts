@@ -15,7 +15,7 @@ interface SeriesDoc {
   title: string;
   slug: string;
   isOneshot: boolean;
-  section: "manga" | "others";
+  section: "manga" | "comic" | "others";
   writer: string;
   series: string;
 }
@@ -27,7 +27,7 @@ interface VolumeDoc {
   series: string;
   slug: string;
   isOneshot: boolean;
-  section: "manga" | "others";
+  section: "manga" | "comic" | "others";
   genres: string;
   tags: string;
 }
@@ -59,7 +59,7 @@ export async function searchManga({ query }: SearchParams) {
 
   const writerBySeriesId = new Map<string, string>();
   const seriesNameById = new Map<string, string>();
-  const sectionBySeriesId = new Map<string, "manga" | "others">();
+  const sectionBySeriesId = new Map<string, "manga" | "comic" | "others">();
 
   for (const vol of volumes) {
     const writer = vol.metadataObj?.writer?.trim();

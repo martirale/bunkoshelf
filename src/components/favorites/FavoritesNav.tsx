@@ -6,16 +6,23 @@ import clsx from "clsx";
 import MobileSecondaryNav from "@/components/ui/MobileSecondaryNav";
 import { getFavoritesNavLinks } from "@/lib/nav/favoritesNav";
 import type { Dictionary, Locale } from "@/lib/types";
+import type { FavoriteSectionCounts } from "@/lib/db/library";
 
 interface FavoritesNavProps {
   intl: Dictionary;
+  counts?: FavoriteSectionCounts;
 }
 
-export default function FavoritesNav({ intl }: FavoritesNavProps) {
+export default function FavoritesNav({ intl, counts }: FavoritesNavProps) {
   const params = useParams<{ lang: Locale }>();
   const pathname = usePathname();
   const currentLang = params.lang || "es";
-  const links = getFavoritesNavLinks({ intl, lang: currentLang, pathname });
+  const links = getFavoritesNavLinks({
+    intl,
+    lang: currentLang,
+    pathname,
+    counts: counts || { mangaSeries: 0, mangaVolumes: 0, comicSeries: 0, comicVolumes: 0, otherSeries: 0, otherVolumes: 0, books: 0 },
+  });
 
   return (
     <div className="mt-4 md:mt-16">

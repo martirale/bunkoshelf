@@ -34,17 +34,23 @@ export default async function VolumesIndexFav({
 }: VolumesIndexFavProps) {
   const user = await verifySession();
   if (!user) return null;
-  const heading =
-    section === "others"
+  const heading = section === "comic"
+    ? intl.favorites.ttVolumesComic
+    : section === "others"
       ? intl.favorites.ttVolumesOthers
       : intl.favorites.ttVolumesManga;
+  const emptyMessage = section === "manga"
+    ? intl.misc.noVolumesFav
+    : section === "comic"
+      ? intl.misc.noComicsFav
+      : intl.misc.noWorksFav;
 
   const favoriteVolumeIds = await listFavoriteVolumeIds(user.id);
   if (favoriteVolumeIds.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
         <GhostIcon size={64} />
-        <h2>{intl.misc.noVolumesFav as string}</h2>
+        <h2>{emptyMessage as string}</h2>
       </div>
     );
   }
@@ -59,6 +65,15 @@ export default async function VolumesIndexFav({
     user.id,
     paginated.items.map((volume) => volume.id)
   );
+
+  if (paginated.total === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-80 gap-4">
+        <GhostIcon size={64} />
+        <h2>{emptyMessage as string}</h2>
+      </div>
+    );
+  }
 
   const entries = paginated.items.map((vol) => ({
     ...vol,
