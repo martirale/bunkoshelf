@@ -3,12 +3,13 @@ export function sanitizeLibraryDirectoryName(
 ): string {
   return (value || "")
     .normalize("NFC")
-    .replace(/[^\p{L}\p{N}]+/gu, "-");
+    .replace(/[^\p{L}\p{N} ]+/gu, "-");
 }
 
 export function normalizeLibraryDirectoryName(
   value: string | null | undefined
 ): string {
   return sanitizeLibraryDirectoryName(value)
+    .trim()
     .replace(/^-+|-+$/g, "");
 }
