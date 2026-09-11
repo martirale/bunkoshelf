@@ -32,6 +32,8 @@
     "cancelled": "Cancelled",
     "scanSeries": "Rescan Series",
     "scanVolume": "Rescan Volume",
+    "downloadVolume": "Download Volume",
+    "downloadSeries": "Download Series",
     "scanning": "Scanning...",
     "details": "Details",
     "readingHistory": "Reading history",

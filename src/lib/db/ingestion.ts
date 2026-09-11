@@ -602,6 +602,33 @@ export async function findVolumeBySlugBasic(
   return row ? mapVolume(row) : null;
 }
 
+export async function listVolumesBySeriesId(
+  seriesId: string
+): Promise<IndexedVolume[]> {
+  const rows = await query<VolumeRow>(
+    `
+      SELECT
+        mv.id,
+        mv.slug,
+        mv.title,
+        mv.filename,
+        mv.full_path,
+        mv.size,
+        mv.cover_image,
+        mv.metadata_id,
+        mv.series_id,
+        ms.path AS series_path
+      FROM manga_volumes mv
+      INNER JOIN manga_series ms ON ms.id = mv.series_id
+      WHERE mv.series_id = $1
+      ORDER BY mv.sort_title ASC, mv.id ASC
+    `,
+    [seriesId]
+  );
+
+  return rows.map(mapVolume);
+}
+
 export async function listVolumeMetadataIdsBySeriesId(
   seriesId: string
 ): Promise<string[]> {

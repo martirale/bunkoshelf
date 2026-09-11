@@ -38,7 +38,21 @@ function ProgressRing({ value }: { value: number }) {
 export default function OfflineDownloadButton({ userId, section, slug, volumeId, seriesId, intl }: OfflineDownloadButtonProps) {
   const [download, setDownload] = useState<OfflineDownload | null>(null);
   const [seriesProgress, setSeriesProgress] = useState<{ completed: number; total: number } | null>(null);
+  const [isOnline, setIsOnline] = useState(false);
   const offline = intl.offline as Record<string, string> | undefined;
+
+  useEffect(() => {
+    const updateOnlineStatus = () => setIsOnline(navigator.onLine);
+
+    updateOnlineStatus();
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+
+    return () => {
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
+  }, []);
 
   useEffect(() => {
     if (!userId || !volumeId) return;
@@ -107,11 +121,10 @@ export default function OfflineDownloadButton({ userId, section, slug, volumeId,
   };
 
   const title = isReady ? offline?.remove : isDownloading ? offline?.downloading : offline?.download;
-  const online = typeof navigator !== "undefined" && navigator.onLine;
   return (
     <button
       onClick={handleClick}
-      disabled={!userId || (!online && !isReady) || isDownloading}
+      disabled={!userId || (!isOnline && !isReady) || isDownloading}
       title={title || "Descargar para leer sin conexión"}
       className={clsx(
         "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",

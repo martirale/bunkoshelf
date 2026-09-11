@@ -32,6 +32,8 @@
     "cancelled": "Cancelado",
     "scanSeries": "Re-Escanear serie",
     "scanVolume": "Re-Escanear tomo",
+    "downloadVolume": "Descargar tomo",
+    "downloadSeries": "Descargar serie",
     "scanning": "Escaneando...",
     "details": "Detalles",
     "readingHistory": "Historial de lectura",

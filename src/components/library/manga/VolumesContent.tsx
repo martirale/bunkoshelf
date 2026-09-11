@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { DownloadIcon } from "lucide-react";
 import ReadButtonsVolume from "./ReadButtonsVolume";
 import ReadingHistory from "./ReadingHistory";
 import MetadataPanel from "./MetadataPanel";
@@ -72,6 +73,7 @@ export default function VolumesContent({
     meta.mangaStyle === "YesLTR" || meta.mangaStyle === "No";
   const coverImage = volume.coverImage as string | undefined;
   const isOfflineCover = coverImage?.startsWith("/offline/") ?? false;
+  const canDownloadOriginal = process.env.LIB_PROVIDER === "cloud";
 
   return (
     <div className="p-4">
@@ -204,6 +206,15 @@ export default function VolumesContent({
               <Separator />
               <div className="flex flex-wrap items-center gap-4">
                 <ScanSeriesButton volumeId={volume.id as string} intl={intl} />
+                {canDownloadOriginal && (
+                  <a
+                    href={`/api/library/download/${encodeURIComponent(volume.slug as string)}`}
+                    className="text-xs uppercase cursor-pointer hover:underline flex flex-row items-center gap-1"
+                  >
+                    <DownloadIcon size={11} className="mb-0.5" />
+                    {intl.manga.downloadVolume as string}
+                  </a>
+                )}
                 <DeleteMangaItem
                   intl={intl}
                   slug={volume.slug as string}

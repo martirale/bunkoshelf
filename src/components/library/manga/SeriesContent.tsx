@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { DownloadIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import ReadButtonsSeries from "./ReadButtonsSeries";
 import MetadataPanel from "./MetadataPanel";
@@ -57,6 +58,7 @@ export default function SeriesContent({
   const isWesternReading =
     meta.mangaStyle === "YesLTR" || meta.mangaStyle === "No";
   const isOfflineCover = coverImage?.startsWith("/offline/") ?? false;
+  const canDownloadOriginal = process.env.LIB_PROVIDER === "cloud";
 
   return (
     <div className="p-4">
@@ -210,6 +212,15 @@ export default function SeriesContent({
             <Separator />
             <div className="flex flex-wrap items-center gap-4">
               <ScanSeriesButton seriesId={serieData.id as string} intl={intl} />
+              {canDownloadOriginal && (
+                <a
+                  href={`/api/library/download/series/${encodeURIComponent(serieData.slug as string)}`}
+                  className="text-xs uppercase cursor-pointer hover:underline flex flex-row items-center gap-1"
+                >
+                  <DownloadIcon size={11} className="mb-0.5" />
+                  {intl.manga.downloadSeries as string}
+                </a>
+              )}
               <DeleteMangaItem
                 intl={intl}
                 type="series"
