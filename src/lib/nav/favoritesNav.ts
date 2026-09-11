@@ -46,14 +46,14 @@ export function getFavoritesNavLinks({
       href: `/${lang}/favorites/comic`,
       icon: LibraryBigIcon,
       isActive: pathname === `/${lang}/favorites/comic`,
-      badge: favorites.badgeSeries as string,
+      badge: favorites.badgeComicSeries as string,
     }] : []),
     ...(counts.comicVolumes > 0 ? [{
       label: favorites.sectionComic,
       href: `/${lang}/favorites/comic/volumes`,
       icon: BookCopyIcon,
       isActive: pathname === `/${lang}/favorites/comic/volumes`,
-      badge: favorites.badgeVolumes as string,
+      badge: favorites.badgeComicVolumes as string,
     }] : []),
     ...(counts.books > 0 ? [{
       label: favorites.sectionBooks,
@@ -66,14 +66,14 @@ export function getFavoritesNavLinks({
       href: `/${lang}/favorites/others`,
       icon: LibraryBigIcon,
       isActive: pathname === `/${lang}/favorites/others`,
-      badge: favorites.badgeSeries as string,
+      badge: favorites.badgeOthersSeries as string,
     }] : []),
     ...(counts.otherVolumes > 0 ? [{
       label: favorites.sectionOthers,
       href: `/${lang}/favorites/others/volumes`,
       icon: BookCopyIcon,
       isActive: pathname === `/${lang}/favorites/others/volumes`,
-      badge: favorites.badgeVolumes as string,
+      badge: favorites.badgeOthersVolumes as string,
     }] : []),
   ];
 }

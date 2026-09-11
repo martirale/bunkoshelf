@@ -1,3 +1,5 @@
+import type { DictionarySection } from "@/lib/types";
+
 export type LibrarySection = "manga" | "comic" | "others";
 export type LibraryContentSection = "manga" | "comic" | "other";
 export type LibraryScope = "all" | LibrarySection;
@@ -32,4 +34,13 @@ export function getLibraryVolumeHref(
 
 export function getFavoritesHref(lang: string, section: LibrarySection) {
   return `/${lang}/favorites/${section}`;
+}
+
+export function getOneshotLabel(
+  section: LibrarySection,
+  labels: DictionarySection
+) {
+  if (section === "comic") return labels.comicOneshot as string;
+  if (section === "others") return labels.othersOneshot as string;
+  return labels.oneshot as string;
 }

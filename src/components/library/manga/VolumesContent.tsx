@@ -11,7 +11,7 @@ import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 import Tabs from "@/components/ui/Tabs";
 import VolumeRating from "./VolumeRating";
-import type { LibrarySection } from "@/lib/librarySection";
+import { getOneshotLabel, type LibrarySection } from "@/lib/librarySection";
 import type { Locale, Dictionary, DictionarySection, Session } from "@/lib/types";
 
 interface ReadingEntry {
@@ -164,7 +164,7 @@ export default function VolumesContent({
             ) : null}
             {isOneshot && (
               <span className="text-xs uppercase bg-lilah border border-lilah rounded px-1.5">
-                Oneshot
+                {getOneshotLabel(section, intl.manga as DictionarySection)}
               </span>
             )}
           </p>

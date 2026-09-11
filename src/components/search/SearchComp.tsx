@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { searchManga } from "@/actions/search";
 import { getReadyVolumes } from "@/lib/client/offlineLibrary";
+import { getOneshotLabel } from "@/lib/librarySection";
 import { usePwa } from "@/components/pwa/PwaProvider";
 import type { Locale, Dictionary, SearchResult } from "@/lib/types";
 import {
@@ -211,7 +212,7 @@ export default function SearchComp({ lang, intl }: SearchCompProps) {
                           <p className="text-base truncate">
                             <span className="flex items-center">
                               <BookIcon size={16} className="mr-1" />
-                              Oneshot
+                              {getOneshotLabel(res.section, intl.manga)}
                             </span>
                             <span className="flex items-center capitalize">
                               {genres && (

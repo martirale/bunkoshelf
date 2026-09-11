@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchModal } from "@/hooks/useSearchModal";
 import Link from "next/link";
 import { searchManga } from "@/actions/search";
+import { getOneshotLabel } from "@/lib/librarySection";
 import type { Locale, Dictionary, SearchResult } from "@/lib/types";
 import {
   SearchIcon,
@@ -212,7 +213,7 @@ export default function SearchModal({ lang, intl }: SearchModalProps) {
                           <p className="text-base truncate">
                             <span className="flex items-center">
                               <BookIcon size={16} className="mr-1" />
-                              Oneshot
+                              {getOneshotLabel(res.section, intl.manga)}
                             </span>
                             <span className="flex items-center capitalize">
                               {genres && (

@@ -31,7 +31,7 @@ import SeriesRating from "@/components/library/manga/SeriesRating";
 import Separator from "@/components/ui/Separator";
 import Tabs from "@/components/ui/Tabs";
 import { LIBRARY_PAGE_SIZE } from "@/lib/libraryPagination";
-import { getLibraryScope, type LibrarySection } from "@/lib/librarySection";
+import { getLibraryScope, getOneshotLabel, type LibrarySection } from "@/lib/librarySection";
 import { getReadyVolumes, offlinePageUrl, type OfflineVolume } from "@/lib/client/offlineLibrary";
 import { ageRatingMap } from "@/lib/mangaMetadata";
 import type { Dictionary, Locale, Session } from "@/lib/types";
@@ -137,7 +137,7 @@ function VolumeDetail({ volume, lang, intl, userId, user }: { volume: OfflineVol
           <p className="mt-4 flex items-center gap-2">
             {meta.year ? meta.year as number : null}
             {meta.pageCount ? <>&bull; {meta.pageCount as number} {intl.manga.pages as string}</> : null}
-            {volume.isOneshot && <span className="text-xs uppercase bg-lilah border border-lilah rounded px-1.5">Oneshot</span>}
+            {volume.isOneshot && <span className="text-xs uppercase bg-lilah border border-lilah rounded px-1.5">{getOneshotLabel(volume.section, intl.manga)}</span>}
           </p>
           {meta.summary ? <><h2 className="text-sm mt-8 mb-1">{intl.manga.synopsis as string}</h2><MangaSummary meta={meta} intl={intl} /></> : null}
           <Tabs tabs={[{ label: intl.manga.details as string, content: <MetadataPanel meta={meta} lang={lang} intl={intl} section={volume.section} /> }]} />

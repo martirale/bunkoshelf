@@ -41,6 +41,15 @@ export function getMangaNavLinks({
   stats,
 }: GetMangaNavLinksParams): MangaNavLink[] {
   const rootHref = getLibraryRootHref(lang, section);
+  const libraries = intl.libraries as DictionarySection;
+  const seriesLabel = section === "others"
+    ? libraries.otherCollections
+    : libraries.series;
+  const volumesLabel = section === "comic"
+    ? libraries.comicIssues
+    : section === "others"
+      ? libraries.otherWorks
+      : libraries.volumes;
 
   return [
     {
@@ -50,14 +59,14 @@ export function getMangaNavLinks({
       isActive: pathname === rootHref,
     },
     {
-      label: intl.libraries.series,
+      label: seriesLabel,
       href: `${rootHref}/series`,
       icon: LibraryBigIcon,
       isActive: pathname === `${rootHref}/series`,
       count: stats.totalSeries,
     },
     {
-      label: intl.libraries.volumes,
+      label: volumesLabel,
       href: `${rootHref}/volumes`,
       icon: BookCopyIcon,
       isActive: pathname === `${rootHref}/volumes`,

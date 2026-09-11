@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { useRef } from "react";
 import { CloudIcon } from "lucide-react";
 import { usePwa } from "@/components/pwa/PwaProvider";
+import { getOneshotLabel, type LibrarySection } from "@/lib/librarySection";
 import type { DictionarySection } from "@/lib/types";
 
 interface MangaCardProps {
@@ -50,6 +51,12 @@ export default function MangaCard({
   const { offlineSlugs, offlineVolumeIds, offlineSeriesIds } = usePwa();
 
   const manga = t.manga as DictionarySection;
+  const section: LibrarySection = href.includes("/comic/")
+    ? "comic"
+    : href.includes("/others/")
+      ? "others"
+      : "manga";
+  const oneshotLabel = getOneshotLabel(section, manga);
   const volumeSlug = href.split("?")[0].split("/").pop();
   const isOfflineCover = cover?.startsWith("/offline/") ?? false;
   const isOfflineAvailable = isSeries
@@ -142,7 +149,7 @@ export default function MangaCard({
           )}
           {!isSeries && isOneshot && (
             <span className="bg-neutral-700 text-[10px] leading-none uppercase py-1 px-1.5 rounded">
-              Oneshot
+              {oneshotLabel}
             </span>
           )}
           {!isSeries && isOfflineAvailable && (
