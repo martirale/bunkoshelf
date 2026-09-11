@@ -1,6 +1,6 @@
 import { NextResponse, connection } from "next/server";
 import { Readable } from "node:stream";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { verifySession } from "@/lib/auth/verifySession";
 import {
   findSeriesBySlugBasic,
@@ -58,15 +58,29 @@ export async function GET(
       return NextResponse.json({ error: "Series has no volumes" }, { status: 404 });
     }
 
+    const objects = await Promise.all(
+      volumes.map(async (volume) => {
+        const key = volume.fullPath.replace(/^\/+/, "").replace(/\\/g, "/");
+        const head = await r2Client.send(
+          new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key })
+        );
+
+        if (head.ContentLength === undefined) {
+          throw new Error(`Missing R2 size for ${volume.filename}`);
+        }
+
+        return { ...volume, key, size: head.ContentLength };
+      })
+    );
     const stream = createZipStream(
-      volumes.map((volume) => ({
+      objects.map((volume) => ({
         name: archiveName(volume.filename),
         size: volume.size,
         stream: async () => {
           const response = await r2Client.send(
             new GetObjectCommand({
               Bucket: R2_BUCKET,
-              Key: volume.fullPath.replace(/^\/+/, "").replace(/\\/g, "/"),
+              Key: volume.key,
             })
           );
 
