@@ -74,7 +74,6 @@ export default async function NextVol({
       lang={lang}
       intl={intl}
       section={section}
-      className="mt-4"
       header={
         <h2 key="header" className="flex items-center text-base md:text-lg">
           <BookMarkedIcon size={28} className="mr-2" />
