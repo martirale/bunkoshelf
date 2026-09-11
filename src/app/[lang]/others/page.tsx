@@ -11,7 +11,7 @@ interface OthersPageProps {
 
 function MangaRowSkeleton() {
   return (
-    <section className="mt-8">
+    <section>
       <div className="h-7 w-48 rounded bg-sand animate-pulse mb-4" />
       <div className="flex gap-4 overflow-hidden">
         {Array.from({ length: 5 }).map((_, i) => (
