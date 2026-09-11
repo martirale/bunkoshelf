@@ -100,7 +100,7 @@ export default function MangaCard({
         }
       }}
     >
-      <div className="relative aspect-[7/10.5] w-full flex-shrink-0">
+      <div className="relative isolate aspect-[7/10.5] w-full flex-shrink-0">
         {isOfflineCover ? (
           // IndexedDB pages are served by the service worker and cannot use Next's image optimizer.
           // eslint-disable-next-line @next/next/no-img-element
