@@ -1,5 +1,17 @@
 {
   "alerts": {
+    "alertTitle": "Notice",
+    "confirmTitle": "Confirm action",
+    "confirmEyebrow": "Confirmation",
+    "destructiveEyebrow": "Irreversible action",
+    "irreversibleDescription": "This action cannot be undone.",
+    "clearLogsTitle": "Clear recent activity",
+    "clearLogsDescription": "All activity records will be deleted.",
+    "clearLogsErrorTitle": "Could not clear activity",
+    "clearLogsErrorDescription": "Please try again in a few moments.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "close": "Got it",
     "confirmDelete": "Are you sure you want to delete the user?",
     "loginFail": "Invalid credentials",
     "serverError": "Invalid server response"

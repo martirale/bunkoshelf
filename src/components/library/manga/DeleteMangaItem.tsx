@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import { TrashIcon } from "lucide-react";
 import { deleteSeries, deleteVolume } from "@/actions/delete";
+import { useAlertDialog } from "@/components/AlertDialogProvider";
 import type { LibrarySection } from "@/lib/librarySection";
 import type { Dictionary } from "@/lib/types";
 
@@ -20,15 +21,23 @@ export default function DeleteMangaItem({
   section = "manga",
 }: DeleteMangaItemProps) {
   const t = intl;
+  const { confirm } = useAlertDialog()!;
 
   async function handleDelete() {
     let err: unknown = null;
     try {
-      const confirmed = confirm(
-        type === "volume"
-          ? (t.libraries.deleteSure as Record<string, string>).volume
-          : (t.libraries.deleteSure as Record<string, string>).series
-      );
+      const confirmed = await confirm({
+        title:
+          type === "volume"
+            ? (t.libraries.deleteItem as Record<string, string>).volume
+            : (t.libraries.deleteItem as Record<string, string>).series,
+        description:
+          type === "volume"
+            ? (t.libraries.deleteSure as Record<string, string>).volume
+            : (t.libraries.deleteSure as Record<string, string>).series,
+        destructive: true,
+        irreversible: true,
+      });
       if (!confirmed) return;
 
       const result =

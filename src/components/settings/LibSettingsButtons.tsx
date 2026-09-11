@@ -9,6 +9,7 @@ import {
   CloudCheckIcon,
 } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
+import { useAlertDialog } from "@/components/AlertDialogProvider";
 import useScanPolling from "@/hooks/useScanPolling";
 import Modal from "@/components/ui/Modal";
 import UploadMangaForm from "./UploadMangaForm";
@@ -46,6 +47,7 @@ export default function LibSettingsButtons({
   const [loadingAction, setLoadingAction] = useState<LoadingActionType>(null);
   const dbFileInputRef = useRef<HTMLInputElement>(null);
   const { addToast, updateToast } = useToast()!;
+  const { alert } = useAlertDialog()!;
   const { startPolling, loading } = useScanPolling({
     lang,
     intl: intl as unknown as Parameters<typeof useScanPolling>[0]["intl"],
@@ -199,7 +201,10 @@ export default function LibSettingsButtons({
       if (url) window.URL.revokeObjectURL(url);
       if (_err) {
         console.error(_err);
-        alert("Ocurrió un error al descargar la base de datos.");
+        await alert({
+          title: intl.settings.backupdb as string,
+          description: intl.settings.errorBackupDbDesc as string,
+        });
       }
     }
   };

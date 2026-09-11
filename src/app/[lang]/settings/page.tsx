@@ -91,7 +91,7 @@ async function SettingsPageContent({ params }: SettingsPageProps) {
         <div className="bg-blackamber rounded-lg p-4 2xl:flex-1/2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base">{intl.settings.ttActivity as string}</h2>
-            <ClearLogsButton />
+            <ClearLogsButton intl={intl} />
           </div>
           <div className="min-h-[300px] max-h-[300px] overflow-y-auto whitespace-pre-wrap flex flex-col gap-4">
             {logs

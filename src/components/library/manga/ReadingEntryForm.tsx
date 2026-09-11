@@ -3,6 +3,7 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { PenLineIcon } from "lucide-react";
 import Modal from "@/components/ui/Modal";
+import { useAlertDialog } from "@/components/AlertDialogProvider";
 import {
   createReadingEntry,
   updateReadingEntry,
@@ -32,6 +33,7 @@ export default function ReadingEntryForm({
 }: ReadingEntryFormProps) {
   const [readAt, setReadAt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { confirm } = useAlertDialog()!;
 
   const isEdit = !!entry;
 
@@ -59,7 +61,12 @@ export default function ReadingEntryForm({
   };
 
   const handleDelete = async () => {
-    const confirmResult = window.confirm((intl.alerts?.confirmDelete as string) || "Are you sure?");
+    const confirmResult = await confirm({
+      title: intl.manga.deleteReadingEntry as string,
+      description: (intl.alerts?.confirmDelete as string) || "Are you sure?",
+      destructive: true,
+      irreversible: true,
+    });
     if (!confirmResult) return;
 
     setIsLoading(true);

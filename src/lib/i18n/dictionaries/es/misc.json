@@ -5,11 +5,15 @@
       "unavailable": "No disponible sin conexión",
       "download": "Descargar para leer sin conexión",
       "remove": "Eliminar descarga offline",
+      "removeSeriesTitle": "Eliminar descargas offline",
+      "removeVolumeTitle": "Eliminar descarga offline",
       "downloadSeries": "¿Quieres descargar todos los tomos de esta serie?",
+      "downloadSeriesTitle": "Descargar serie",
       "removeSeries": "¿Quieres eliminar las descargas de esta serie?",
       "removeVolume": "¿Quieres eliminar la descarga de este tomo?",
       "downloading": "Descargando para leer sin conexión",
-      "downloadError": "No se pudo completar la descarga"
+      "downloadError": "No se pudo completar la descarga",
+      "downloadErrorTitle": "Descarga fallida"
     },
     "noSeriesFav": "No hay series favoritas...",
     "noVolumesFav": "No hay ningún manga favorito...",

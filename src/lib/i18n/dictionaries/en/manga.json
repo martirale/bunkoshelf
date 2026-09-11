@@ -42,6 +42,7 @@
     "addEntry": "Add reading",
     "editEntry": "Edit reading",
     "deleteEntry": "Delete",
+    "deleteReadingEntry": "Delete reading entry",
     "date": "Date",
     "save": "Save",
     "noEntries": "No readings recorded",

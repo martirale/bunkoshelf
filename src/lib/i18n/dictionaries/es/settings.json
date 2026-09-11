@@ -39,6 +39,7 @@
     "successRestoreDbTt": "Base de datos restaurada",
     "successRestoreDbDesc": "La base de datos se restauró correctamente",
     "errorRestoreDbDesc": "No se pudo restaurar la base de datos",
+    "errorBackupDbDesc": "No se pudo descargar la base de datos",
     "ttActivity": "Actividad reciente",
     "noActivity": "Sin actividad reciente...",
     "uploadLibrary": "Subir mangas/libros",

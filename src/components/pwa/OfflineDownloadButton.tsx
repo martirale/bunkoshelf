@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { DownloadIcon, Trash2Icon } from "lucide-react";
 import clsx from "clsx";
+import { useAlertDialog } from "@/components/AlertDialogProvider";
 import {
   downloadSeriesBySlug,
   downloadVolumeBySlug,
@@ -40,6 +41,7 @@ export default function OfflineDownloadButton({ userId, section, slug, volumeId,
   const [seriesProgress, setSeriesProgress] = useState<{ completed: number; total: number } | null>(null);
   const [isOnline, setIsOnline] = useState(false);
   const offline = intl.offline as Record<string, string> | undefined;
+  const { alert, confirm } = useAlertDialog()!;
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
@@ -87,7 +89,10 @@ export default function OfflineDownloadButton({ userId, section, slug, volumeId,
     if (!userId) return;
     if (isReady) {
       const message = isSeries ? offline?.removeSeries : offline?.removeVolume;
-      if (!window.confirm(message || "¿Quieres eliminar esta descarga offline?")) return;
+      if (!await confirm({
+        title: isSeries ? offline?.removeSeriesTitle : offline?.removeVolumeTitle,
+        description: message || "¿Quieres eliminar esta descarga offline?",
+      })) return;
       if (isSeries && seriesId) await removeOfflineSeries(userId, seriesId);
       if (!isSeries && volumeId) await removeOfflineVolume(userId, volumeId);
       setSeriesProgress(null);
@@ -97,7 +102,10 @@ export default function OfflineDownloadButton({ userId, section, slug, volumeId,
     if (!navigator.onLine || isDownloading) return;
     try {
       if (isSeries && seriesId) {
-        if (!window.confirm(offline?.downloadSeries || "¿Quieres descargar todos los tomos de esta serie?")) return;
+        if (!await confirm({
+          title: offline?.downloadSeriesTitle,
+          description: offline?.downloadSeries || "¿Quieres descargar todos los tomos de esta serie?",
+        })) return;
         setSeriesProgress({ completed: 0, total: 1 });
         await downloadSeriesBySlug(userId, section, slug, (completed, total) => setSeriesProgress({ completed, total }));
       } else {
@@ -115,7 +123,10 @@ export default function OfflineDownloadButton({ userId, section, slug, volumeId,
       }
     } catch (error) {
       console.error("Offline download error:", error);
-      window.alert(offline?.downloadError || "No se pudo completar la descarga");
+      await alert({
+        title: offline?.downloadErrorTitle,
+        description: offline?.downloadError || "No se pudo completar la descarga",
+      });
       setSeriesProgress(null);
     }
   };

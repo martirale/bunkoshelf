@@ -2,6 +2,10 @@
   "push": {
     "ttSubscription": "Notificación",
     "bodySubscription": "Notificaciones activadas",
+    "unsupportedTitle": "Notificaciones no compatibles",
+    "unsupportedDescription": "Este navegador no admite notificaciones push.",
+    "permissionDeniedTitle": "Permiso de notificaciones denegado",
+    "permissionDeniedDescription": "Activa el permiso desde los ajustes de tu navegador para continuar.",
     "ttLibraryUpdate": "Biblioteca actualizada",
     "bodyLibraryUpdate": "Hay novedades en la biblioteca",
     "ttReadStreak": "Racha de lectura",

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BellIcon } from "lucide-react";
 import { subscribePush, sendPushToSubscription } from "@/actions/web-push";
+import { useAlertDialog } from "@/components/AlertDialogProvider";
 import type { DictionarySection } from "@/lib/types";
 
 function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
@@ -48,6 +49,7 @@ export default function PushButton({ lang, intl, vapidPublicKey }: PushButtonPro
   const [permission, setPermission] = useState("default");
   const [hasSubscription, setHasSubscription] = useState(false);
   const [ready, setReady] = useState(false);
+  const { alert } = useAlertDialog()!;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -71,13 +73,25 @@ export default function PushButton({ lang, intl, vapidPublicKey }: PushButtonPro
   }, []);
 
   async function subscribeUser() {
-    if (!supported) return alert("Push no es soportado en este navegador");
+    const push = intl.push as DictionarySection;
+
+    if (!supported) {
+      return alert({
+        title: push.unsupportedTitle as string,
+        description: push.unsupportedDescription as string,
+      });
+    }
     if (!vapidPublicKey) return;
 
     if (Notification.permission === "default") {
       const perm = await Notification.requestPermission();
       setPermission(perm);
-      if (perm !== "granted") return alert("Permiso denegado");
+      if (perm !== "granted") {
+        return alert({
+          title: push.permissionDeniedTitle as string,
+          description: push.permissionDeniedDescription as string,
+        });
+      }
     }
 
     if (Notification.permission === "granted") {
@@ -93,7 +107,6 @@ export default function PushButton({ lang, intl, vapidPublicKey }: PushButtonPro
         await subscribePush(subInput, getDeviceName());
         setHasSubscription(true);
 
-        const push = intl.push as DictionarySection;
         await sendPushToSubscription(subInput, {
           title: push.ttSubscription as string,
           body: push.bodySubscription as string,

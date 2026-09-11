@@ -5,11 +5,15 @@
       "unavailable": "Unavailable offline",
       "download": "Download for offline reading",
       "remove": "Remove offline download",
+      "removeSeriesTitle": "Remove offline downloads",
+      "removeVolumeTitle": "Remove offline download",
       "downloadSeries": "Do you want to download every volume in this series?",
+      "downloadSeriesTitle": "Download series",
       "removeSeries": "Do you want to remove this series downloads?",
       "removeVolume": "Do you want to remove this volume download?",
       "downloading": "Downloading for offline reading",
-      "downloadError": "The download could not be completed"
+      "downloadError": "The download could not be completed",
+      "downloadErrorTitle": "Download failed"
     },
     "noSeriesFav": "There are no favorite series...",
     "noVolumesFav": "There is no favorite manga...",

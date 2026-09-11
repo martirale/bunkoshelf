@@ -5,6 +5,7 @@ import "../globals.css";
 import Sidebar from "@/components/sidebar/sidebar";
 import MobNav from "@/components/mobNav/MobNav";
 import { ToastProvider } from "@/components/ToastProvider";
+import { AlertDialogProvider } from "@/components/AlertDialogProvider";
 import PwaProvider from "@/components/pwa/PwaProvider";
 import OfflineGate from "@/components/pwa/OfflineGate";
 import { verifySession } from "@/lib/auth/verifySession";
@@ -69,9 +70,22 @@ async function AppShell({
       <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
         <PwaProvider userId={user?.id}>
           <ToastProvider>
-            <OfflineGate lang={lang} intl={intl} user={user}>
-              {children}
-            </OfflineGate>
+            <AlertDialogProvider
+              labels={{
+                alertTitle: intl.alerts.alertTitle as string,
+                confirmTitle: intl.alerts.confirmTitle as string,
+                confirmEyebrow: intl.alerts.confirmEyebrow as string,
+                destructiveEyebrow: intl.alerts.destructiveEyebrow as string,
+                irreversibleDescription: intl.alerts.irreversibleDescription as string,
+                confirm: intl.alerts.confirm as string,
+                cancel: intl.alerts.cancel as string,
+                close: intl.alerts.close as string,
+              }}
+            >
+              <OfflineGate lang={lang} intl={intl} user={user}>
+                {children}
+              </OfflineGate>
+            </AlertDialogProvider>
           </ToastProvider>
         </PwaProvider>
       </main>

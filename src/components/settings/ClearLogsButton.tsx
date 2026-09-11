@@ -2,14 +2,24 @@
 
 import { TrashIcon } from "lucide-react";
 import { clearLogs } from "@/actions/admin-logs";
+import { useAlertDialog } from "@/components/AlertDialogProvider";
+import type { Dictionary } from "@/lib/types";
 
 interface ClearLogsButtonProps {
+  intl: Dictionary;
   onClear?: () => void;
 }
 
-export default function ClearLogsButton({ onClear }: ClearLogsButtonProps) {
+export default function ClearLogsButton({ intl, onClear }: ClearLogsButtonProps) {
+  const { alert, confirm } = useAlertDialog()!;
+
   async function handleClick() {
-    const confirmed = confirm("¿Seguro que deseas limpiar el log?");
+    const confirmed = await confirm({
+      title: intl.alerts.clearLogsTitle as string,
+      description: intl.alerts.clearLogsDescription as string,
+      destructive: true,
+      irreversible: true,
+    });
     if (!confirmed) return;
 
     const result = await clearLogs();
@@ -21,7 +31,10 @@ export default function ClearLogsButton({ onClear }: ClearLogsButtonProps) {
         window.location.reload();
       }
     } else {
-      alert("No se pudo limpiar el log.");
+      await alert({
+        title: intl.alerts.clearLogsErrorTitle as string,
+        description: intl.alerts.clearLogsErrorDescription as string,
+      });
     }
   }
 

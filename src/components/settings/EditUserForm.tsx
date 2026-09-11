@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { UserRoundPenIcon } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
+import { useAlertDialog } from "@/components/AlertDialogProvider";
 import { adminUpdateUser, deleteUser } from "@/actions/users";
 import type { Dictionary } from "@/lib/types";
 import type { Role } from "@/lib/types/auth";
@@ -40,6 +41,7 @@ export default function EditUserForm({
   const [error] = useState<string | null>(null);
 
   const { addToast } = useToast()!;
+  const { confirm } = useAlertDialog()!;
 
   const isSelf = user?.id === currentUserId;
 
@@ -91,7 +93,12 @@ export default function EditUserForm({
   };
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(intl.alerts.confirmDelete as string);
+    const confirmed = await confirm({
+      title: intl.settings.deleteUser as string,
+      description: intl.alerts.confirmDelete as string,
+      destructive: true,
+      irreversible: true,
+    });
     if (!confirmed) return;
 
     const result = await deleteUser({ id: user!.id });

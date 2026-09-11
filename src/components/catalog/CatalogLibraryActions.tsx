@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { Loader2Icon, ScanSearchIcon, TrashIcon } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
+import { useAlertDialog } from "@/components/AlertDialogProvider";
 import { scanVolume } from "@/actions/scan-series";
 import { deleteVolume } from "@/actions/delete";
 import type { Dictionary } from "@/lib/types";
@@ -22,6 +23,7 @@ export default function CatalogLibraryActions({
 }: CatalogLibraryActionsProps) {
   const router = useRouter();
   const { addToast } = useToast()!;
+  const { confirm } = useAlertDialog()!;
   const [isScanning, setIsScanning] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -59,9 +61,12 @@ export default function CatalogLibraryActions({
   };
 
   const handleDelete = async () => {
-    const confirmed = confirm(
-      (intl.libraries.deleteSure as Record<string, string>).volume
-    );
+    const confirmed = await confirm({
+      title: (intl.libraries.deleteItem as Record<string, string>).volume,
+      description: (intl.libraries.deleteSure as Record<string, string>).volume,
+      destructive: true,
+      irreversible: true,
+    });
 
     if (!confirmed) return;
 

@@ -1,5 +1,17 @@
 {
   "alerts": {
+    "alertTitle": "Aviso",
+    "confirmTitle": "Confirmar acción",
+    "confirmEyebrow": "Confirmación",
+    "destructiveEyebrow": "Acción irreversible",
+    "irreversibleDescription": "Esta acción no se puede deshacer.",
+    "clearLogsTitle": "Limpiar actividad reciente",
+    "clearLogsDescription": "Se eliminarán todos los registros de actividad.",
+    "clearLogsErrorTitle": "No se pudo limpiar la actividad",
+    "clearLogsErrorDescription": "Inténtalo nuevamente en unos momentos.",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "close": "Entendido",
     "confirmDelete": "¿Seguro qué quieres eliminar el usuario?",
     "loginFail": "Credenciales inválidas",
     "serverError": "Respuesta del servidor no válida"
