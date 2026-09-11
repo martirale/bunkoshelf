@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { robotoCondensed, boldonse } from "../fonts";
 import "../globals.css";
 import Sidebar from "@/components/sidebar/sidebar";
@@ -45,6 +46,8 @@ async function AppShell({
   children: ReactNode;
   lang: Locale;
 }) {
+  await connection();
+
   const [intl, user, versionData, libraryCounts] = await Promise.all([
     getDictionary(lang),
     verifySession(),
