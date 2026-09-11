@@ -1154,6 +1154,7 @@ async function listPagedVolumeIdsRaw(
       `
         SELECT COUNT(*)::text AS total
         FROM manga_volumes mv
+        INNER JOIN manga_series ms ON ms.id = mv.series_id
         LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
         ${countConditions.length > 0 ? `WHERE ${countConditions.join(" AND ")}` : ""}
       `,
@@ -1163,6 +1164,7 @@ async function listPagedVolumeIdsRaw(
       `
         SELECT mv.id
         FROM manga_volumes mv
+        INNER JOIN manga_series ms ON ms.id = mv.series_id
         LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
         ${countConditions.length > 0 ? `WHERE ${countConditions.join(" AND ")}` : ""}
         ORDER BY mv.sort_title ASC, mv.id ASC
