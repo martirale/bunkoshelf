@@ -8,10 +8,7 @@ import { extractFromArchive } from "@/lib/client/archiveExtractor";
 import { parseComicInfo } from "@/lib/client/comicInfoParser";
 import { generateCoverFilename } from "@/lib/client/coverHasher";
 import { sendPushBroadcast } from "@/actions/web-push";
-import {
-  normalizeLibraryDirectoryName,
-  sanitizeLibraryDirectoryName,
-} from "@/lib/libraryDirectory";
+import { normalizeLibraryDirectoryName } from "@/lib/libraryDirectory";
 import type { Dictionary } from "@/lib/types";
 import type { ComicMetadata } from "@/lib/types/manga";
 
@@ -469,9 +466,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
             <input
               type="text"
               value={newDirectoryName}
-              onChange={(e) =>
-                setNewDirectoryName(sanitizeLibraryDirectoryName(e.target.value))
-              }
+              onChange={(e) => setNewDirectoryName(e.target.value)}
               placeholder={intl.settings.uploadLibraryNewFolder as string}
               className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
               required
