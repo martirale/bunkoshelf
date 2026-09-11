@@ -22,8 +22,12 @@ function buildScopeCondition(
   scope: LibraryScope | undefined,
   alias = "ms"
 ): string {
+  if (scope === "comic") {
+    return `${alias}.library_section = 'comic'`;
+  }
+
   if (scope === "others") {
-    return `${alias}.library_section IN ('comic', 'other')`;
+    return `${alias}.library_section = 'other'`;
   }
 
   if (scope === "manga") {
