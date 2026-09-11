@@ -105,7 +105,7 @@ export default function RowNewVolsCarousel({ entries, lang, intl }: RowNewVolsCa
         }}
       >
         {entries.map((entry) => (
-          <div key={entry.slug} className="flex-shrink-0 w-1/2 md:w-2/5 2xl:w-1/4">
+          <div key={entry.slug} className="shrink-0 w-1/2 md:w-2/5 2xl:w-1/4">
             <MangaCard
               title={entry.meta?.title ?? entry.title}
               href={getLibraryVolumeHref(lang, entry.section, entry.slug)}
