@@ -25,6 +25,20 @@ export function getFavoritesNavLinks({
 
   return [
     {
+      label: favorites.sectionComic,
+      href: `/${lang}/favorites/comic`,
+      icon: LibraryBigIcon,
+      isActive: pathname === `/${lang}/favorites/comic`,
+      badge: favorites.badgeSeries as string,
+    },
+    {
+      label: favorites.sectionComic,
+      href: `/${lang}/favorites/comic/volumes`,
+      icon: BookCopyIcon,
+      isActive: pathname === `/${lang}/favorites/comic/volumes`,
+      badge: favorites.badgeVolumes as string,
+    },
+    {
       label: favorites.sectionManga,
       href: `/${lang}/favorites/manga`,
       icon: LibraryBigIcon,

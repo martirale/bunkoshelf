@@ -216,6 +216,7 @@ export interface CatalogRelationStats {
 
 export interface LibrarySectionCounts {
   manga: number;
+  comic: number;
   others: number;
   books: number;
 }
@@ -226,9 +227,10 @@ export async function getLibrarySectionCounts(): Promise<LibrarySectionCounts> {
     FROM library_series
     GROUP BY library_section
   `);
-  const counts = { manga: 0, others: 0, books: 0 };
+  const counts = { manga: 0, comic: 0, others: 0, books: 0 };
   for (const row of rows) {
     if (row.library_section === "manga") counts.manga += Number(row.total);
+    else if (row.library_section === "comic") counts.comic += Number(row.total);
     else counts.others += Number(row.total);
   }
   return counts;
@@ -482,7 +484,11 @@ function buildVolumeFilterSql(
   const conditions: string[] = [];
 
   if (options.scope === "others") {
-    conditions.push(`ms.library_section IN ('comic', 'other')`);
+    conditions.push(`ms.library_section = 'other'`);
+  }
+
+  if (options.scope === "comic") {
+    conditions.push(`ms.library_section = 'comic'`);
   }
 
   if (options.scope === "manga") {
@@ -574,7 +580,13 @@ function buildLibraryFilterScopeConditions(
 ): string {
   if (scope === "others") {
     return `
-      WHERE ms.library_section IN ('comic', 'other')
+      WHERE ms.library_section = 'other'
+    `;
+  }
+
+  if (scope === "comic") {
+    return `
+      WHERE ms.library_section = 'comic'
     `;
   }
 

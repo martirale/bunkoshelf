@@ -1,25 +1,13 @@
-export type LibrarySection = "manga" | "others";
+export type LibrarySection = "manga" | "comic" | "others";
 export type LibraryContentSection = "manga" | "comic" | "other";
 export type LibraryScope = "all" | LibrarySection;
 
-export function isOthersLibraryItem(section: LibraryContentSection) {
-  return section !== "manga";
-}
-
 export function getLibraryScope(section: LibrarySection): LibraryScope {
-  if (section === "others") {
-    return "others";
-  }
-
-  return "manga";
+  return section;
 }
 
 export function getLibrarySection(section: LibraryContentSection): LibrarySection {
-  if (isOthersLibraryItem(section)) {
-    return "others";
-  }
-
-  return "manga";
+  return section === "other" ? "others" : section;
 }
 
 export function getLibraryRootHref(lang: string, section: LibrarySection) {
@@ -43,7 +31,5 @@ export function getLibraryVolumeHref(
 }
 
 export function getFavoritesHref(lang: string, section: LibrarySection) {
-  return section === "others"
-    ? `/${lang}/favorites/others`
-    : `/${lang}/favorites/manga`;
+  return `/${lang}/favorites/${section}`;
 }

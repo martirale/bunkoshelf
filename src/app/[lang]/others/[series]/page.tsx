@@ -19,6 +19,7 @@ import {
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { LIBRARY_PAGE_SIZE } from "@/lib/libraryPagination";
 import type { Locale } from "@/lib/types";
+import type { LibrarySection } from "@/lib/librarySection";
 
 function aggregateMetadata(
   volumes: SeriesVolumeAggregate[]
@@ -55,11 +56,13 @@ function aggregateMetadata(
 interface OthersSeriesPageProps {
   params: Promise<{ lang: string; series: string }>;
   searchParams: Promise<Record<string, string | undefined>>;
+  section?: LibrarySection;
 }
 
-async function OthersSeriesPageContent({
+export async function OthersSeriesPageContent({
   params,
   searchParams,
+  section = "others",
 }: OthersSeriesPageProps) {
   const { lang = "es", series } = await params;
   const resolvedSearchParams = await searchParams;
@@ -109,7 +112,7 @@ async function OthersSeriesPageContent({
 
     const targetSection = getLibrarySection(firstVolume.series.librarySection);
 
-    if (targetSection !== "others") {
+    if (targetSection !== section) {
       redirect(getLibrarySeriesHref(lang, targetSection, serie.slug));
     }
 
@@ -191,7 +194,7 @@ async function OthersSeriesPageContent({
         currentPage={volumePage.page}
         totalPages={volumePage.totalPages}
         totalVolumes={volumePage.total}
-        section="others"
+        section={section}
       />
     );
   } catch (error) {

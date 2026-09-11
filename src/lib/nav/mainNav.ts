@@ -43,6 +43,7 @@ export function getMainNavLinks({
 }: GetMainNavLinksParams): MainNavLink[] {
   const isLibraryActive =
     pathname.startsWith(`/${lang}/manga`) ||
+    pathname.startsWith(`/${lang}/comic`) ||
     pathname.startsWith(`/${lang}/others`) ||
     pathname.startsWith(`/${lang}/books`);
 
@@ -65,6 +66,11 @@ export function getMainNavLinks({
           label: intl.sidebar.manga as string,
           href: `/${lang}/manga`,
           isActive: pathname.startsWith(`/${lang}/manga`),
+        }] : []),
+        ...(libraryCounts.comic > 0 ? [{
+          label: intl.sidebar.comic as string,
+          href: `/${lang}/comic`,
+          isActive: pathname.startsWith(`/${lang}/comic`),
         }] : []),
         ...(libraryCounts.others > 0 ? [{
           label: intl.sidebar.others as string,

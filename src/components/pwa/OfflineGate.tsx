@@ -248,7 +248,11 @@ function OfflineLibrary({ path, lang, intl, userId, user }: { path: string; lang
   useEffect(() => { const load = () => void getReadyVolumes(userId).then(setVolumes); load(); window.addEventListener("bunko:offline-change", load); return () => window.removeEventListener("bunko:offline-change", load); }, [userId]);
   if (!volumes) return null;
 
-  const section: LibrarySection = path.includes(`/${lang}/others`) || path.includes("/favorites/others") ? "others" : "manga";
+  const section: LibrarySection = path.includes(`/${lang}/comic`) || path.includes("/favorites/comic")
+    ? "comic"
+    : path.includes(`/${lang}/others`) || path.includes("/favorites/others")
+      ? "others"
+      : "manga";
   const favorites = path.includes(`/${lang}/favorites`);
   const scoped = volumes.filter((volume) => volume.section === section && (!favorites || volume.isFavorite));
   const volumeSlug = path.match(/\/volume\/([^/?]+)/)?.[1];

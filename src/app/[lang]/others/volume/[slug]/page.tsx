@@ -15,12 +15,14 @@ import {
 } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import type { Locale } from "@/lib/types";
+import type { LibrarySection } from "@/lib/librarySection";
 
 interface OthersVolumePageProps {
   params: Promise<{ lang: string; slug: string }>;
+  section?: LibrarySection;
 }
 
-async function OthersVolumePageContent({ params }: OthersVolumePageProps) {
+export async function OthersVolumePageContent({ params, section = "others" }: OthersVolumePageProps) {
   const { lang = "es", slug } = await params;
   const intl = await getDictionary(lang as Locale);
 
@@ -43,7 +45,7 @@ async function OthersVolumePageContent({ params }: OthersVolumePageProps) {
 
     const targetSection = getLibrarySection(volumeEntry.series.librarySection);
 
-    if (targetSection !== "others") {
+    if (targetSection !== section) {
       redirect(getLibraryVolumeHref(lang, targetSection, volumeEntry.slug));
     }
 
@@ -98,7 +100,7 @@ async function OthersVolumePageContent({ params }: OthersVolumePageProps) {
         personalRating={personalRating}
         readingEntries={readingEntries}
         firstRead={firstRead}
-        section="others"
+        section={section}
       />
     );
   } catch (error) {
