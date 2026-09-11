@@ -107,7 +107,7 @@ async function SeriesMangaPageContent({
       );
     }
 
-    const targetSection = getLibrarySection(firstVolume.metadataObj?.mangaStyle);
+    const targetSection = getLibrarySection(firstVolume.series.librarySection);
 
     if (targetSection !== "manga") {
       redirect(getLibrarySeriesHref(lang, targetSection, serie.slug));

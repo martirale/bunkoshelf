@@ -19,7 +19,7 @@ export async function GET(
   if (!series) return NextResponse.json({ error: "Series not found" }, { status: 404 });
 
   const volumes = await listVolumes({ seriesIds: [series.id], includeGenres: true, includeTags: true, scope: getLibraryScope(section as LibrarySection) });
-  if (!volumes.length || getLibrarySection(volumes[0].metadataObj?.mangaStyle) !== section) {
+  if (!volumes.length || getLibrarySection(volumes[0].series.librarySection) !== section) {
     return NextResponse.json({ error: "Series not found" }, { status: 404 });
   }
   const progressById = await listVolumeProgressByIds(user.id, volumes.map((volume) => volume.id));

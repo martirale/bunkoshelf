@@ -74,7 +74,7 @@ export async function searchManga({ query }: SearchParams) {
     if (!sectionBySeriesId.has(vol.seriesId)) {
       sectionBySeriesId.set(
         vol.seriesId,
-        getLibrarySection(vol.metadataObj?.mangaStyle)
+        getLibrarySection(vol.series.librarySection)
       );
     }
   }
@@ -136,7 +136,7 @@ export async function searchManga({ query }: SearchParams) {
       series: vol.metadataObj?.series || "",
       slug: vol.slug,
       isOneshot: vol.series?.isOneshot ?? false,
-      section: getLibrarySection(vol.metadataObj?.mangaStyle),
+      section: getLibrarySection(vol.series.librarySection),
       genres: genreNames.join(", "),
       tags: tagNames.join(", "),
     };

@@ -12,6 +12,7 @@ import { verifySession } from "@/lib/auth/verifySession";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { getChallengeData } from "@/lib/utils";
 import { getVersionInfo } from "@/lib/versionInfo";
+import { getLibrarySectionCounts } from "@/lib/db/library";
 import type { Locale } from "@/lib/types";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
@@ -44,10 +45,11 @@ async function AppShell({
   children: ReactNode;
   lang: Locale;
 }) {
-  const [intl, user, versionData] = await Promise.all([
+  const [intl, user, versionData, libraryCounts] = await Promise.all([
     getDictionary(lang),
     verifySession(),
     getVersionInfo(),
+    getLibrarySectionCounts(),
   ]);
   const challengeData = await getChallengeData(user);
 
@@ -59,6 +61,7 @@ async function AppShell({
         user={user}
         challengeData={challengeData}
         versionData={versionData}
+        libraryCounts={libraryCounts}
       />
       <Sidebar
         lang={lang}
@@ -66,6 +69,7 @@ async function AppShell({
         user={user}
         challengeData={challengeData}
         versionData={versionData}
+        libraryCounts={libraryCounts}
       />
       <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
         <PwaProvider userId={user?.id}>

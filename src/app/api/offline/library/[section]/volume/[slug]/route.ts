@@ -24,7 +24,7 @@ export async function GET(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const volume = await findVolumeBySlug({ slug, includeGenres: true, includeTags: true });
-  if (!volume || getLibrarySection(volume.metadataObj?.mangaStyle) !== section) {
+  if (!volume || getLibrarySection(volume.series.librarySection) !== section) {
     return NextResponse.json({ error: "Volume not found" }, { status: 404 });
   }
   const progress = await findVolumeProgress(user.id, volume.id);

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { requireRole, ROLES } from "@/lib/auth/roles";
 import type { Dictionary, Role, Session } from "@/lib/types";
+import type { LibrarySectionCounts } from "@/lib/db/library";
 
 interface MainNavSubItem {
   label: string;
@@ -30,6 +31,7 @@ interface GetMainNavLinksParams {
   user: Session;
   lang: string;
   pathname: string;
+  libraryCounts: LibrarySectionCounts;
 }
 
 export function getMainNavLinks({
@@ -37,6 +39,7 @@ export function getMainNavLinks({
   user,
   lang,
   pathname,
+  libraryCounts,
 }: GetMainNavLinksParams): MainNavLink[] {
   const isLibraryActive =
     pathname.startsWith(`/${lang}/manga`) ||
@@ -58,21 +61,21 @@ export function getMainNavLinks({
       isActive: isLibraryActive,
       minRole: ROLES.MEMBER,
       subItems: [
-        {
+        ...(libraryCounts.manga > 0 ? [{
           label: intl.sidebar.manga as string,
           href: `/${lang}/manga`,
           isActive: pathname.startsWith(`/${lang}/manga`),
-        },
-        {
+        }] : []),
+        ...(libraryCounts.others > 0 ? [{
           label: intl.sidebar.others as string,
           href: `/${lang}/others`,
           isActive: pathname.startsWith(`/${lang}/others`),
-        },
-        {
+        }] : []),
+        ...(libraryCounts.books > 0 ? [{
           label: intl.sidebar.books as string,
           href: `/${lang}/books`,
           isActive: pathname.startsWith(`/${lang}/books`),
-        },
+        }] : []),
       ],
     },
     {

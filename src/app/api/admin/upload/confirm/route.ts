@@ -57,7 +57,9 @@ export async function POST(request: NextRequest) {
     const { type, isNew, newDirectoryName, isOneshot, existingDirectory } =
       metadata;
 
-    const libraryType = type === "manga" ? "manga" : "books";
+    const libraryType = ["manga", "comic", "books", "others"].includes(type)
+      ? type
+      : "books";
     const suffix = isOneshot ? " [oneshot]" : "";
     const directoryName = isNew
       ? normalizeLibraryDirectoryName(newDirectoryName)
@@ -85,7 +87,7 @@ export async function POST(request: NextRequest) {
       );
       await upsertFileChecksumRecord(`/${txtKey}`, checksum);
 
-      if (libraryType === "manga" && file.volumeMetadata) {
+      if (libraryType !== "books" && file.volumeMetadata) {
         const seriesPath = `/library/${libraryType}/${dirWithSuffix}`;
         await indexUploadedVolume({
           fileName: file.fileName,
@@ -98,11 +100,12 @@ export async function POST(request: NextRequest) {
           genres: file.volumeMetadata?.genres || [],
           tags: file.volumeMetadata?.tags || [],
           fileSize: file.fileSize || 0,
+          librarySection: libraryType === "others" ? "other" : libraryType,
         });
       }
     }
 
-    if (libraryType === "manga") {
+    if (libraryType !== "books") {
       revalidateMangaLibraryCache();
     }
 

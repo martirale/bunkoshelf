@@ -36,31 +36,31 @@ BEGIN
 END;
 $$;
 
-ALTER TABLE manga_series
+ALTER TABLE library_series
   ADD COLUMN IF NOT EXISTS sort_title TEXT;
 
-ALTER TABLE manga_volumes
+ALTER TABLE library_volumes
   ADD COLUMN IF NOT EXISTS sort_title TEXT;
 
-UPDATE manga_series
+UPDATE library_series
 SET sort_title = bunko_natural_sort_key(title)
 WHERE sort_title IS NULL OR sort_title = '';
 
-UPDATE manga_volumes
+UPDATE library_volumes
 SET sort_title = bunko_natural_sort_key(title)
 WHERE sort_title IS NULL OR sort_title = '';
 
-ALTER TABLE manga_series
+ALTER TABLE library_series
   ALTER COLUMN sort_title SET NOT NULL;
 
-ALTER TABLE manga_volumes
+ALTER TABLE library_volumes
   ALTER COLUMN sort_title SET NOT NULL;
 
-CREATE INDEX IF NOT EXISTS manga_series_sort_title_idx
-  ON manga_series (sort_title);
+CREATE INDEX IF NOT EXISTS library_series_sort_title_idx
+  ON library_series (sort_title);
 
-CREATE INDEX IF NOT EXISTS manga_volumes_sort_title_idx
-  ON manga_volumes (sort_title);
+CREATE INDEX IF NOT EXISTS library_volumes_sort_title_idx
+  ON library_volumes (sort_title);
 
-CREATE INDEX IF NOT EXISTS manga_volumes_series_id_sort_title_idx
-  ON manga_volumes (series_id, sort_title);
+CREATE INDEX IF NOT EXISTS library_volumes_series_id_sort_title_idx
+  ON library_volumes (series_id, sort_title);

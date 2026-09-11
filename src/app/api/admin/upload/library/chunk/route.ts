@@ -105,7 +105,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (chunkIndex === totalChunks - 1) {
-      const libraryType = type === "manga" ? "manga" : "books";
+      const libraryType = ["manga", "comic", "books", "others"].includes(type)
+        ? type
+        : "books";
       const fileBuffer = await fs.readFile(tempFilePath);
       const checksum = generateChecksum();
       const txtFileName = `${path.parse(fileName).name}.txt`;
@@ -168,7 +170,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (libraryType === "manga") {
+        if (libraryType !== "books") {
           const seriesPath = `/library/${libraryType}/${dirWithSuffix}`;
           await indexUploadedVolume({
             fileName,
@@ -181,6 +183,7 @@ export async function POST(request: NextRequest) {
             genres: volumeMeta?.genres || [],
             tags: volumeMeta?.tags || [],
             fileSize: fileBuffer.length,
+            librarySection: libraryType === "others" ? "other" : libraryType,
           });
           revalidateMangaLibraryCache();
         }
@@ -229,7 +232,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (libraryType === "manga") {
+        if (libraryType !== "books") {
           await indexUploadedVolume({
             fileName,
             fullPath: finalPath,
@@ -241,6 +244,7 @@ export async function POST(request: NextRequest) {
             genres: volumeMeta?.genres || [],
             tags: volumeMeta?.tags || [],
             fileSize: fileBuffer.length,
+            librarySection: libraryType === "others" ? "other" : libraryType,
           });
           revalidateMangaLibraryCache();
         }

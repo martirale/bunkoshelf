@@ -6,6 +6,7 @@ import {
   upsertVolumeRecord,
 } from "@/lib/db/ingestion";
 import type { ComicMetadata } from "@/lib/types";
+import type { LibraryContentSection } from "@/lib/librarySection";
 
 interface IndexUploadParams {
   fileName: string;
@@ -18,6 +19,7 @@ interface IndexUploadParams {
   genres: string[] | null;
   tags: string[] | null;
   fileSize: number;
+  librarySection: LibraryContentSection;
 }
 
 export function toSlug(str: string): string {
@@ -44,6 +46,7 @@ export async function indexUploadedVolume({
   genres,
   tags,
   fileSize,
+  librarySection,
 }: IndexUploadParams) {
   const cleanTitle = dirName.replace(/\[oneshot\]/gi, "").trim();
   const seriesSlug = toSlug(cleanTitle);
@@ -54,6 +57,7 @@ export async function indexUploadedVolume({
     title: cleanTitle,
     path: seriesPath,
     isOneshot: resolvedIsOneshot,
+    librarySection,
     mtime: new Date(),
   });
 

@@ -30,6 +30,7 @@ export interface LibrarySeries {
   isOneshot: boolean;
   mtime: Date;
   status: string;
+  librarySection: "manga" | "comic" | "other";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -213,6 +214,26 @@ export interface CatalogRelationStats {
   total: number;
 }
 
+export interface LibrarySectionCounts {
+  manga: number;
+  others: number;
+  books: number;
+}
+
+export async function getLibrarySectionCounts(): Promise<LibrarySectionCounts> {
+  const rows = await query<{ library_section: "manga" | "comic" | "other"; total: string }>(`
+    SELECT library_section, COUNT(*)::text AS total
+    FROM library_series
+    GROUP BY library_section
+  `);
+  const counts = { manga: 0, others: 0, books: 0 };
+  for (const row of rows) {
+    if (row.library_section === "manga") counts.manga += Number(row.total);
+    else counts.others += Number(row.total);
+  }
+  return counts;
+}
+
 interface VolumeRow {
   volume_id: string;
   volume_slug: string;
@@ -233,6 +254,7 @@ interface VolumeRow {
   series_is_oneshot: boolean;
   series_mtime: Date;
   series_status: string;
+  series_library_section: "manga" | "comic" | "other";
   series_created_at: Date;
   series_updated_at: Date;
   metadata_id: string | null;
@@ -287,6 +309,7 @@ function mapSeries(row: VolumeRow): LibrarySeries {
     isOneshot: row.series_is_oneshot,
     mtime: row.series_mtime,
     status: row.series_status,
+    librarySection: row.series_library_section,
     createdAt: row.series_created_at,
     updatedAt: row.series_updated_at,
   };
@@ -459,11 +482,11 @@ function buildVolumeFilterSql(
   const conditions: string[] = [];
 
   if (options.scope === "others") {
-    conditions.push(`vm.manga_style = 'No'`);
+    conditions.push(`ms.library_section IN ('comic', 'other')`);
   }
 
   if (options.scope === "manga") {
-    conditions.push(`(vm.manga_style IS NULL OR vm.manga_style <> 'No')`);
+    conditions.push(`ms.library_section = 'manga'`);
   }
 
   if (options.seriesIds && options.seriesIds.length > 0) {
@@ -551,14 +574,13 @@ function buildLibraryFilterScopeConditions(
 ): string {
   if (scope === "others") {
     return `
-      WHERE vm.manga_style = $${params.push("No")}
+      WHERE ms.library_section IN ('comic', 'other')
     `;
   }
 
   if (scope === "manga") {
     return `
-      WHERE vm.manga_style IS NULL
-         OR vm.manga_style <> $${params.push("No")}
+      WHERE ms.library_section = 'manga'
     `;
   }
 
@@ -618,7 +640,7 @@ export async function listPagedCatalogLibraryVolumes(
       language_iso: string | null;
       age_rating: string | null;
       gtin: string | null;
-      manga_style: string | null;
+      library_section: "manga" | "comic" | "other";
       is_read: boolean | null;
       is_favorite: boolean | null;
     }>(
@@ -635,7 +657,7 @@ export async function listPagedCatalogLibraryVolumes(
           vm.language_iso,
           vm.age_rating,
           vm.gtin,
-          vm.manga_style,
+          ms.library_section,
           utv.is_read,
           utv.is_favorite
         FROM manga_volumes mv
@@ -658,7 +680,7 @@ export async function listPagedCatalogLibraryVolumes(
     rows.map((row) => ({
       id: row.id,
       slug: row.slug,
-      section: getLibrarySection(row.manga_style),
+      section: getLibrarySection(row.library_section),
       title: row.title,
       series: row.series,
       number: row.number,
@@ -900,6 +922,7 @@ async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
           author.name AS id,
           author.name
         FROM manga_volumes mv
+        INNER JOIN manga_series ms ON ms.id = mv.series_id
         LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
         CROSS JOIN LATERAL (
           SELECT DISTINCT BTRIM(split_author.value) AS name
@@ -920,6 +943,7 @@ async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
         FROM genres g
         INNER JOIN volume_to_genres vtg ON vtg.genre_id = g.id
         INNER JOIN manga_volumes mv ON mv.id = vtg.volume_id
+        INNER JOIN manga_series ms ON ms.id = mv.series_id
         LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
         ${genreScopeWhere}
         ORDER BY g.name ASC
@@ -932,6 +956,7 @@ async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
         FROM tags t
         INNER JOIN volume_to_tags vtt ON vtt.tag_id = t.id
         INNER JOIN manga_volumes mv ON mv.id = vtt.volume_id
+        INNER JOIN manga_series ms ON ms.id = mv.series_id
         LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
         ${tagScopeWhere}
         ORDER BY t.name ASC
@@ -1015,6 +1040,7 @@ async function listVolumesRaw(
         ms.is_oneshot AS series_is_oneshot,
         ms.mtime AS series_mtime,
         ms.status AS series_status,
+        ms.library_section AS series_library_section,
         ms.created_at AS series_created_at,
         ms.updated_at AS series_updated_at,
         vm.id AS metadata_id,
@@ -1468,6 +1494,7 @@ export async function listSeries(
     is_oneshot: boolean;
     mtime: Date;
     status: string;
+    library_section: "manga" | "comic" | "other";
     created_at: Date;
     updated_at: Date;
   }>(
@@ -1481,6 +1508,7 @@ export async function listSeries(
         ms.is_oneshot,
         ms.mtime,
         ms.status,
+        ms.library_section,
         ms.created_at,
         ms.updated_at
       FROM manga_series ms
@@ -1499,6 +1527,7 @@ export async function listSeries(
       isOneshot: row.is_oneshot,
       mtime: row.mtime,
       status: row.status,
+      librarySection: row.library_section,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     }))

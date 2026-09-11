@@ -1,8 +1,9 @@
 export type LibrarySection = "manga" | "others";
+export type LibraryContentSection = "manga" | "comic" | "other";
 export type LibraryScope = "all" | LibrarySection;
 
-export function isOthersLibraryItem(mangaStyle: string | null | undefined) {
-  return mangaStyle === "No";
+export function isOthersLibraryItem(section: LibraryContentSection) {
+  return section !== "manga";
 }
 
 export function getLibraryScope(section: LibrarySection): LibraryScope {
@@ -13,10 +14,8 @@ export function getLibraryScope(section: LibrarySection): LibraryScope {
   return "manga";
 }
 
-export function getLibrarySection(
-  mangaStyle: string | null | undefined
-): LibrarySection {
-  if (isOthersLibraryItem(mangaStyle)) {
+export function getLibrarySection(section: LibraryContentSection): LibrarySection {
+  if (isOthersLibraryItem(section)) {
     return "others";
   }
 

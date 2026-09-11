@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 CREATE INDEX IF NOT EXISTS push_subscriptions_user_id_idx
   ON push_subscriptions (user_id);
 
-CREATE TABLE IF NOT EXISTS manga_series (
+CREATE TABLE IF NOT EXISTS library_series (
   id TEXT PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,
@@ -45,6 +45,10 @@ CREATE TABLE IF NOT EXISTS manga_series (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE library_series
+  ADD COLUMN IF NOT EXISTS library_section TEXT NOT NULL DEFAULT 'manga'
+  CHECK (library_section IN ('manga', 'comic', 'other'));
 
 CREATE TABLE IF NOT EXISTS volume_metadata (
   id TEXT PRIMARY KEY,
@@ -78,7 +82,7 @@ CREATE TABLE IF NOT EXISTS volume_metadata (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS manga_volumes (
+CREATE TABLE IF NOT EXISTS library_volumes (
   id TEXT PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,
@@ -87,19 +91,19 @@ CREATE TABLE IF NOT EXISTS manga_volumes (
   size INTEGER NOT NULL DEFAULT 0,
   mtime TIMESTAMP NOT NULL DEFAULT NOW(),
   cover_image TEXT,
-  series_id TEXT NOT NULL REFERENCES manga_series(id) ON DELETE CASCADE,
+  series_id TEXT NOT NULL REFERENCES library_series(id) ON DELETE CASCADE,
   metadata_id TEXT UNIQUE REFERENCES volume_metadata(id) ON DELETE CASCADE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS manga_volumes_series_id_idx
-  ON manga_volumes (series_id);
+CREATE INDEX IF NOT EXISTS library_volumes_series_id_idx
+  ON library_volumes (series_id);
 
 CREATE TABLE IF NOT EXISTS user_to_series (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id),
-  series_id TEXT NOT NULL REFERENCES manga_series(id) ON DELETE CASCADE,
+  series_id TEXT NOT NULL REFERENCES library_series(id) ON DELETE CASCADE,
   is_favorite BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -115,7 +119,7 @@ CREATE INDEX IF NOT EXISTS user_to_series_series_id_idx
 CREATE TABLE IF NOT EXISTS user_to_volumes (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id),
-  volume_id TEXT NOT NULL REFERENCES manga_volumes(id) ON DELETE CASCADE,
+  volume_id TEXT NOT NULL REFERENCES library_volumes(id) ON DELETE CASCADE,
   is_read BOOLEAN NOT NULL DEFAULT FALSE,
   is_favorite BOOLEAN NOT NULL DEFAULT FALSE,
   personal_rating DOUBLE PRECISION,
@@ -148,7 +152,7 @@ CREATE INDEX IF NOT EXISTS daily_reading_logs_user_id_idx
 CREATE TABLE IF NOT EXISTS reading_entries (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  volume_id TEXT NOT NULL REFERENCES manga_volumes(id) ON DELETE CASCADE,
+  volume_id TEXT NOT NULL REFERENCES library_volumes(id) ON DELETE CASCADE,
   read_at TEXT NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -179,7 +183,7 @@ CREATE TABLE IF NOT EXISTS tags (
 
 CREATE TABLE IF NOT EXISTS volume_to_genres (
   id TEXT PRIMARY KEY,
-  volume_id TEXT NOT NULL REFERENCES manga_volumes(id) ON DELETE CASCADE,
+  volume_id TEXT NOT NULL REFERENCES library_volumes(id) ON DELETE CASCADE,
   genre_id TEXT NOT NULL REFERENCES genres(id),
   UNIQUE (volume_id, genre_id)
 );
@@ -192,7 +196,7 @@ CREATE INDEX IF NOT EXISTS volume_to_genres_genre_id_idx
 
 CREATE TABLE IF NOT EXISTS volume_to_tags (
   id TEXT PRIMARY KEY,
-  volume_id TEXT NOT NULL REFERENCES manga_volumes(id) ON DELETE CASCADE,
+  volume_id TEXT NOT NULL REFERENCES library_volumes(id) ON DELETE CASCADE,
   tag_id TEXT NOT NULL REFERENCES tags(id),
   UNIQUE (volume_id, tag_id)
 );

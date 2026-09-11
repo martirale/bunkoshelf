@@ -28,7 +28,9 @@ export async function GET(request: NextRequest) {
     const action = searchParams.get("action");
 
     if (action === "list") {
-      const libraryType = type === "manga" ? "manga" : "books";
+      const libraryType = ["manga", "comic", "books", "others"].includes(type || "")
+        ? type!
+        : "books";
 
       let directories: string[] = [];
 

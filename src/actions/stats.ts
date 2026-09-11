@@ -20,14 +20,14 @@ interface ReaderStatsOptions {
 
 function buildScopeCondition(
   scope: LibraryScope | undefined,
-  alias = "vm"
+  alias = "ms"
 ): string {
   if (scope === "others") {
-    return `${alias}.manga_style = 'No'`;
+    return `${alias}.library_section IN ('comic', 'other')`;
   }
 
   if (scope === "manga") {
-    return `(${alias}.manga_style IS NULL OR ${alias}.manga_style <> 'No')`;
+    return `${alias}.library_section = 'manga'`;
   }
 
   return "TRUE";
@@ -172,6 +172,8 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
       FROM user_to_volumes utv
       INNER JOIN manga_volumes mv
         ON mv.id = utv.volume_id
+      INNER JOIN manga_series ms
+        ON ms.id = mv.series_id
       LEFT JOIN volume_metadata vm
         ON vm.id = mv.metadata_id
       WHERE utv.user_id = $1
@@ -187,6 +189,8 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
       FROM user_to_volumes utv
       INNER JOIN manga_volumes mv
         ON mv.id = utv.volume_id
+      INNER JOIN manga_series ms
+        ON ms.id = mv.series_id
       LEFT JOIN volume_metadata vm
         ON vm.id = mv.metadata_id
       WHERE utv.user_id = $1
@@ -211,6 +215,8 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
     `
       SELECT COUNT(*)::text AS count
       FROM manga_volumes mv
+      INNER JOIN manga_series ms
+        ON ms.id = mv.series_id
       LEFT JOIN volume_metadata vm
         ON vm.id = mv.metadata_id
       WHERE ${scopeCondition}
@@ -236,6 +242,8 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
       FROM manga_volumes mv
       INNER JOIN user_to_volumes utv
         ON utv.volume_id = mv.id
+      INNER JOIN manga_series ms
+        ON ms.id = mv.series_id
       LEFT JOIN volume_metadata vm
         ON vm.id = mv.metadata_id
       WHERE utv.user_id = $1
@@ -250,6 +258,8 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
       FROM user_to_volumes utv
       INNER JOIN manga_volumes mv
         ON mv.id = utv.volume_id
+      INNER JOIN manga_series ms
+        ON ms.id = mv.series_id
       LEFT JOIN volume_metadata vm
         ON vm.id = mv.metadata_id
       WHERE utv.user_id = $1

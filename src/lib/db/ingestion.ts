@@ -2,6 +2,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { execute, query, queryOne } from "./query";
 import { buildNaturalSortKey } from "@/lib/naturalSort";
 import type { ComicMetadata } from "@/lib/types";
+import type { LibraryContentSection } from "@/lib/librarySection";
 
 export interface IndexedSeries {
   id: string;
@@ -9,6 +10,7 @@ export interface IndexedSeries {
   title: string;
   path: string;
   isOneshot: boolean;
+  librarySection: LibraryContentSection;
 }
 
 export interface IndexedVolume {
@@ -30,6 +32,7 @@ interface SeriesRow {
   title: string;
   path: string;
   is_oneshot: boolean;
+  library_section: LibraryContentSection;
 }
 
 interface VolumeRow {
@@ -52,6 +55,7 @@ function mapSeries(row: SeriesRow): IndexedSeries {
     title: row.title,
     path: row.path,
     isOneshot: row.is_oneshot,
+    librarySection: row.library_section,
   };
 }
 
@@ -75,29 +79,32 @@ export async function upsertSeriesRecord(input: {
   title: string;
   path: string;
   isOneshot: boolean;
+  librarySection: LibraryContentSection;
   mtime: Date;
 }): Promise<IndexedSeries> {
   const row = await queryOne<SeriesRow>(
     `
-      INSERT INTO manga_series (
+      INSERT INTO library_series (
         id,
         slug,
         title,
         sort_title,
         path,
         is_oneshot,
+        library_section,
         mtime
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      ON CONFLICT (slug)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      ON CONFLICT (library_section, slug)
       DO UPDATE SET
         title = EXCLUDED.title,
         sort_title = EXCLUDED.sort_title,
         path = EXCLUDED.path,
         is_oneshot = EXCLUDED.is_oneshot,
+        library_section = EXCLUDED.library_section,
         mtime = EXCLUDED.mtime,
         updated_at = NOW()
-      RETURNING id, slug, title, path, is_oneshot
+      RETURNING id, slug, title, path, is_oneshot, library_section
     `,
     [
       createId(),
@@ -106,6 +113,7 @@ export async function upsertSeriesRecord(input: {
       buildNaturalSortKey(input.title),
       input.path,
       input.isOneshot,
+      input.librarySection,
       input.mtime,
     ]
   );
@@ -129,7 +137,7 @@ export async function upsertVolumeRecord(input: {
 }): Promise<IndexedVolume> {
   const row = await queryOne<VolumeRow>(
     `
-      INSERT INTO manga_volumes (
+      INSERT INTO library_volumes (
         id,
         slug,
         title,

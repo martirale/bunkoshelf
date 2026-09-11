@@ -7,6 +7,7 @@ import SearchInput from "@/components/search/SearchImput";
 import SearchModal from "@/components/search/SearchModal";
 import type { ChallengeData, Dictionary, Locale, Session } from "@/lib/types";
 import type { VersionInfo } from "@/lib/versionInfo";
+import type { LibrarySectionCounts } from "@/lib/db/library";
 
 interface SidebarProps {
   lang: Locale;
@@ -14,6 +15,7 @@ interface SidebarProps {
   user: Session | null;
   challengeData: ChallengeData | null;
   versionData: VersionInfo;
+  libraryCounts: LibrarySectionCounts;
 }
 
 export default function Sidebar({
@@ -22,6 +24,7 @@ export default function Sidebar({
   user,
   challengeData,
   versionData,
+  libraryCounts,
 }: SidebarProps) {
   return (
     <>
@@ -34,7 +37,7 @@ export default function Sidebar({
 
         {user && (
           <div className="flex-1">
-            <MainNav intl={intl} user={user} />
+            <MainNav intl={intl} user={user} libraryCounts={libraryCounts} />
 
             {/* <div className="mt-16">
               <SearchInput intl={intl} />

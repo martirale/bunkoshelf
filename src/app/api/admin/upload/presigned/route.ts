@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
     const { type, isNew, newDirectoryName, isOneshot, existingDirectory } =
       metadata;
 
-    const libraryType = type === "manga" ? "manga" : "books";
+    const libraryType = ["manga", "comic", "books", "others"].includes(type)
+      ? type
+      : "books";
     const suffix = isOneshot ? " [oneshot]" : "";
     const directoryName = isNew
       ? normalizeLibraryDirectoryName(newDirectoryName)

@@ -41,7 +41,7 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
       );
     }
 
-    const targetSection = getLibrarySection(volumeEntry.metadataObj?.mangaStyle);
+    const targetSection = getLibrarySection(volumeEntry.series.librarySection);
 
     if (targetSection !== "manga") {
       redirect(getLibraryVolumeHref(lang, targetSection, volumeEntry.slug));

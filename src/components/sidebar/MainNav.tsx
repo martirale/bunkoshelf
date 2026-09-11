@@ -7,17 +7,19 @@ import { usePathname, useParams } from "next/navigation";
 import clsx from "clsx";
 import { getMainNavLinks } from "@/lib/nav/mainNav";
 import type { Dictionary, Session } from "@/lib/types";
+import type { LibrarySectionCounts } from "@/lib/db/library";
 
 interface MainNavProps {
   intl: Dictionary;
   user: Session;
+  libraryCounts: LibrarySectionCounts;
 }
 
-export default function MainNav({ intl, user }: MainNavProps) {
+export default function MainNav({ intl, user, libraryCounts }: MainNavProps) {
   const params = useParams();
   const currentLang = (params.lang as string) || "es";
   const pathname = usePathname();
-  const links = getMainNavLinks({ intl, user, lang: currentLang, pathname });
+  const links = getMainNavLinks({ intl, user, lang: currentLang, pathname, libraryCounts });
   const isLibraryActive = links.some(
     (link) => link.isDropdown && link.isActive,
   );

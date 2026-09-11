@@ -23,7 +23,7 @@ interface ExtractedFileData {
 }
 
 interface UploadMetadata {
-  type: "manga" | "books";
+  type: "manga" | "comic" | "books" | "others";
   isNew: boolean;
   newDirectoryName: string | null;
   isOneshot: boolean;
@@ -49,7 +49,7 @@ interface UploadMangaFormProps {
 }
 
 export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
-  const [isManga, setIsManga] = useState(true);
+  const [libraryType, setLibraryType] = useState<UploadMetadata["type"]>("manga");
   const [directories, setDirectories] = useState<string[]>([]);
   const [selectedDirectory, setSelectedDirectory] = useState("");
   const [newDirectoryName, setNewDirectoryName] = useState("");
@@ -63,6 +63,13 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
   const extractedDataRef = useRef<Map<string, ExtractedFileData>>(new Map());
   const { addToast } = useToast()!;
 
+  const selectLibraryType = (type: UploadMetadata["type"]) => {
+    setLibraryType(type);
+    setSelectedDirectory("");
+    setNewDirectoryName("");
+    setIsOneshot(false);
+  };
+
   const isOneshotMode =
     (selectedDirectory === "new" && isOneshot) ||
     (selectedDirectory !== "new" &&
@@ -73,9 +80,8 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
     const fetchDirectories = async () => {
       let _err: unknown;
       try {
-        const type = isManga ? "manga" : "books";
         const res = await fetch(
-          `/api/admin/upload/library?type=${type}&action=list`,
+          `/api/admin/upload/library?type=${libraryType}&action=list`,
         );
         const data = await res.json();
 
@@ -96,7 +102,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
     };
 
     fetchDirectories();
-  }, [isManga, addToast]);
+  }, [libraryType, addToast]);
 
   const handleFilesAccepted = async (acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
@@ -287,7 +293,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
       setIsLoading(true);
 
       const metadata: UploadMetadata = {
-        type: isManga ? "manga" : "books",
+        type: libraryType,
         isNew: selectedDirectory === "new",
         newDirectoryName:
           selectedDirectory === "new"
@@ -372,7 +378,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
         await sendPushBroadcast({
           title: intl.push.ttLibraryUpdate as string,
           body: intl.push.bodyLibraryUpdate as string,
-          url: `/${lang}/manga`,
+          url: `/${lang}/${libraryType === "manga" ? "manga" : libraryType === "books" ? "books" : "others"}`,
         });
       } catch (e) {
         console.error("Error al enviar notificaciones push:", e);
@@ -420,9 +426,9 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => setIsManga(true)}
+            onClick={() => selectLibraryType("manga")}
             className={`font-bold px-6 py-2 rounded-lg leading-none uppercase transition-all duration-300 cursor-pointer ${
-              isManga
+              libraryType === "manga"
                 ? "text-sand bg-onix border border-onix"
                 : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
             }`}
@@ -431,14 +437,36 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
           </button>
           <button
             type="button"
-            onClick={() => setIsManga(false)}
+            onClick={() => selectLibraryType("comic")}
             className={`font-bold px-6 py-2 rounded-lg leading-none uppercase transition-all duration-300 cursor-pointer ${
-              !isManga
+              libraryType === "comic"
+                ? "text-sand bg-onix border border-onix"
+                : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
+            }`}
+          >
+            {intl.settings.uploadLibraryComic as string}
+          </button>
+          <button
+            type="button"
+            onClick={() => selectLibraryType("books")}
+            className={`font-bold px-6 py-2 rounded-lg leading-none uppercase transition-all duration-300 cursor-pointer ${
+              libraryType === "books"
                 ? "text-sand bg-onix border border-onix"
                 : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
             }`}
           >
             {intl.settings.uploadLibraryBook as string}
+          </button>
+          <button
+            type="button"
+            onClick={() => selectLibraryType("others")}
+            className={`font-bold px-6 py-2 rounded-lg leading-none uppercase transition-all duration-300 cursor-pointer ${
+              libraryType === "others"
+                ? "text-sand bg-onix border border-onix"
+                : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
+            }`}
+          >
+            {intl.settings.uploadLibraryOther as string}
           </button>
         </div>
 
@@ -450,9 +478,11 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
         >
           <option value="">{intl.settings.uploadLibrarySelect as string}</option>
           <option value="new">
-            {isManga
+            {libraryType === "manga"
               ? (intl.settings.uploadLibraryNewManga as string)
-              : (intl.settings.uploadLibraryNewBook as string)}
+              : libraryType === "books"
+                ? (intl.settings.uploadLibraryNewBook as string)
+                : (intl.settings.uploadLibraryNewComic as string)}
           </option>
           {directories.map((dir) => (
             <option key={dir} value={dir}>

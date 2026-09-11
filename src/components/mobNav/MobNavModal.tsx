@@ -9,6 +9,7 @@ import ChallengeProg from "@/components/sidebar/ChallengeProg";
 import FooterNav from "@/components/sidebar/FooterNav";
 import type { Dictionary, Session, ChallengeData } from "@/lib/types";
 import type { VersionInfo } from "@/lib/versionInfo";
+import type { LibrarySectionCounts } from "@/lib/db/library";
 
 interface MobNavModalProps {
   lang: string;
@@ -18,6 +19,7 @@ interface MobNavModalProps {
   user: Session | null;
   challengeData: ChallengeData | null;
   versionData: VersionInfo;
+  libraryCounts: LibrarySectionCounts;
 }
 
 export default function MobNavModal({
@@ -28,6 +30,7 @@ export default function MobNavModal({
   user,
   challengeData,
   versionData,
+  libraryCounts,
 }: MobNavModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -81,7 +84,7 @@ export default function MobNavModal({
 
         <div>
           {!user && <SecondNav intl={intl} />}
-          {user && <MainNav intl={intl} user={user} />}
+          {user && <MainNav intl={intl} user={user} libraryCounts={libraryCounts} />}
         </div>
 
         <div className="mt-8 mb-4">

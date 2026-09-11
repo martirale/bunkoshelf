@@ -7,6 +7,7 @@ import { MenuIcon, SearchIcon } from "lucide-react";
 import MobNavModal from "./MobNavModal";
 import type { Dictionary, Session, ChallengeData } from "@/lib/types";
 import type { VersionInfo } from "@/lib/versionInfo";
+import type { LibrarySectionCounts } from "@/lib/db/library";
 
 interface MobNavButtonProps {
   lang: string;
@@ -14,6 +15,7 @@ interface MobNavButtonProps {
   user: Session | null;
   challengeData: ChallengeData | null;
   versionData: VersionInfo;
+  libraryCounts: LibrarySectionCounts;
 }
 
 export default function MobNavButton({
@@ -22,6 +24,7 @@ export default function MobNavButton({
   user,
   challengeData,
   versionData,
+  libraryCounts,
 }: MobNavButtonProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -58,6 +61,7 @@ export default function MobNavButton({
         user={user}
         challengeData={challengeData}
         versionData={versionData}
+        libraryCounts={libraryCounts}
       />
     </div>
   );
