@@ -14,10 +14,10 @@ export default function DemographicsTiles({
   section = "manga",
 }: DemographicsTilesProps) {
   const demographics = [
-    { id: 1, name: "Shōnen", link: `/${section}/volumes?tag=shonen` },
-    { id: 2, name: "Shōjo", link: `/${section}/volumes?tag=shojo` },
-    { id: 3, name: "Seinen", link: `/${section}/volumes?tag=seinen` },
-    { id: 4, name: "Josei", link: `/${section}/volumes?tag=josei` },
+    { id: 1, name: "Shōnen", link: `/${section}/series?tag=shonen&includeOneshots=true` },
+    { id: 2, name: "Shōjo", link: `/${section}/series?tag=shojo&includeOneshots=true` },
+    { id: 3, name: "Seinen", link: `/${section}/series?tag=seinen&includeOneshots=true` },
+    { id: 4, name: "Josei", link: `/${section}/series?tag=josei&includeOneshots=true` },
   ];
 
   return (

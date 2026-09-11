@@ -9,6 +9,7 @@ import { LIBRARY_PAGE_SIZE } from "@/lib/libraryPagination";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import {
   getLibrarySeriesHref,
+  getLibraryVolumeHref,
   type LibraryScope,
   type LibrarySection,
 } from "@/lib/librarySection";
@@ -24,6 +25,7 @@ interface SeriesIndexProps {
   tagFilter?: string | string[];
   scope?: LibraryScope;
   section?: LibrarySection;
+  includeOneshots?: boolean;
 }
 
 export default async function SeriesIndex({
@@ -35,6 +37,7 @@ export default async function SeriesIndex({
   tagFilter = [],
   scope = "all",
   section = "manga",
+  includeOneshots = false,
 }: SeriesIndexProps) {
   const authorList =
     typeof authorFilter === "string" ? authorFilter.split(",") : authorFilter;
@@ -54,7 +57,7 @@ export default async function SeriesIndex({
       includeGenres: true,
       includeTags: true,
       scope,
-      excludeOneshots: true,
+      excludeOneshots: !includeOneshots,
     }),
   ]);
 
@@ -98,22 +101,33 @@ export default async function SeriesIndex({
           const totalVolumes = entry.volumes.length;
           const readVolumes = readCountMap[entry.id] ?? 0;
           const progressRatio = totalVolumes > 0 ? readVolumes / totalVolumes : 0;
+          const firstVolume = entry.volumes[0];
+          const isOneshot = entry.isOneshot;
 
           return (
             <MangaCard
               key={entry.title}
-              title={entry.volumes?.[0]?.meta?.series ?? entry.title}
-              href={getLibrarySeriesHref(lang, section, entry.slug)}
-              isSeries={true}
-              isOneshot={false}
-              onGoing={entry.status === "ONGOING"}
-              onPause={entry.status === "HIATUS"}
-              volumeCount={totalVolumes}
+              title={
+                isOneshot
+                  ? firstVolume?.meta?.title ?? entry.title
+                  : firstVolume?.meta?.series ?? entry.title
+              }
+              href={
+                isOneshot && firstVolume
+                  ? getLibraryVolumeHref(lang, section, firstVolume.slug)
+                  : getLibrarySeriesHref(lang, section, entry.slug)
+              }
+              isSeries={!isOneshot}
+              isOneshot={isOneshot}
+              onGoing={!isOneshot && entry.status === "ONGOING"}
+              onPause={!isOneshot && entry.status === "HIATUS"}
+              volumeCount={isOneshot ? null : totalVolumes}
               cover={entry.coverImage}
               progressRatio={progressRatio}
               isDragging={false}
-              seriesSlug={entry.slug}
-              offlineSeriesId={entry.id}
+              seriesSlug={isOneshot ? null : entry.slug}
+              offlineVolumeId={isOneshot ? firstVolume?.id : null}
+              offlineSeriesId={isOneshot ? null : entry.id}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />
