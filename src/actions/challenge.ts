@@ -39,6 +39,26 @@ function mapChallenge(row: ReadingChallengeRow): ReadingChallengeRecord {
   };
 }
 
+async function getCompletedCount(userId: string, year: number) {
+  const volumesRead = await query<{ last_read_at: Date | null }>(
+    `
+      SELECT utv.last_read_at
+      FROM user_to_volumes utv
+      INNER JOIN manga_volumes mv ON mv.id = utv.volume_id
+      INNER JOIN manga_series ms ON ms.id = mv.series_id
+      WHERE utv.user_id = $1
+        AND utv.is_read = TRUE
+        AND ms.library_section IN ('manga', 'comic', 'other')
+    `,
+    [userId]
+  );
+
+  return volumesRead.filter((volume) => {
+    if (!volume.last_read_at) return false;
+    return new Date(volume.last_read_at).getFullYear() === year;
+  }).length;
+}
+
 export async function getChallenge({ year }: GetChallengeParams) {
   const user = await verifySession();
   if (!user) {
@@ -48,6 +68,8 @@ export async function getChallenge({ year }: GetChallengeParams) {
   if (!year) {
     return { error: "Missing year", status: 400 };
   }
+
+  const completedCount = await getCompletedCount(user.id, year);
 
   let challenge = await queryOne<ReadingChallengeRow>(
     `
@@ -71,14 +93,20 @@ export async function getChallenge({ year }: GetChallengeParams) {
           completed,
           notified
         )
-        VALUES ($1, $2, $3, 0, 0, FALSE)
+        VALUES ($1, $2, $3, 0, $4, FALSE)
         RETURNING id, user_id, year, goal, completed, notified, created_at, updated_at
       `,
-      [createId(), user.id, year]
+      [createId(), user.id, year, completedCount]
     );
   }
 
-  return { challenge: challenge ? mapChallenge(challenge) : null };
+  const mappedChallenge = challenge ? mapChallenge(challenge) : null;
+
+  return {
+    challenge: mappedChallenge
+      ? { ...mappedChallenge, completed: completedCount }
+      : null,
+  };
 }
 
 export async function updateChallenge({ year, goal, notified }: UpdateChallengeParams) {
@@ -108,21 +136,7 @@ export async function updateChallenge({ year, goal, notified }: UpdateChallengeP
       [user.id, year]
     );
 
-    const volumesRead = await query<{ last_read_at: Date | null }>(
-      `
-        SELECT last_read_at
-        FROM user_to_volumes
-        WHERE user_id = $1
-          AND is_read = TRUE
-      `,
-      [user.id]
-    );
-
-    const completedCount = volumesRead.filter((vol) => {
-      if (!vol.last_read_at) return false;
-      const lastReadDate = new Date(vol.last_read_at);
-      return lastReadDate.getFullYear() === year;
-    }).length;
+    const completedCount = await getCompletedCount(user.id, year);
 
     if (challenge) {
       challenge = await queryOne<ReadingChallengeRow>(

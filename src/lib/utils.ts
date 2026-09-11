@@ -93,10 +93,13 @@ const resolveChallengeData = cache(async (userId: string, currentYear: number) =
 
   const userVolumes = await query<{ last_read_at: Date | null }>(
     `
-      SELECT last_read_at
-      FROM user_to_volumes
-      WHERE user_id = $1
-        AND is_read = TRUE
+      SELECT utv.last_read_at
+      FROM user_to_volumes utv
+      INNER JOIN manga_volumes mv ON mv.id = utv.volume_id
+      INNER JOIN manga_series ms ON ms.id = mv.series_id
+      WHERE utv.user_id = $1
+        AND utv.is_read = TRUE
+        AND ms.library_section IN ('manga', 'comic', 'other')
     `,
     [userId]
   );

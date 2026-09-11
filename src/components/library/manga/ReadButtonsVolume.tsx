@@ -138,6 +138,7 @@ export default function ReadButtonsVolume({
 
       if (result.success) {
         setIsRead((prev) => !prev);
+        window.dispatchEvent(new Event("bunko:challenge-updated"));
       } else if ("error" in result) {
         console.error("Failed to toggle read state:", result.error);
       }
@@ -221,6 +222,7 @@ export default function ReadButtonsVolume({
 
         if (isFinished && data?.success) {
           setIsRead(true);
+          window.dispatchEvent(new Event("bunko:challenge-updated"));
         }
 
         if (isFinished && data?.success) {
