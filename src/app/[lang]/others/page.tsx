@@ -27,33 +27,39 @@ async function OthersPageContent({ params }: OthersPageProps) {
   const intl = await getDictionary(lang as Locale);
 
   return (
-    <div className="p-4">
-      <Suspense fallback={<MangaRowSkeleton />}>
-        <NextVol
-          lang={lang as Locale}
-          intl={intl}
-          scope="others"
-          section="others"
-        />
-      </Suspense>
+    <div className="library-overview p-4">
+      <div className="library-overview-section">
+        <Suspense fallback={<MangaRowSkeleton />}>
+          <NextVol
+            lang={lang as Locale}
+            intl={intl}
+            scope="others"
+            section="others"
+          />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<MangaRowSkeleton />}>
-        <NewVols
-          lang={lang as Locale}
-          intl={intl}
-          scope="others"
-          section="others"
-        />
-      </Suspense>
+      <div className="library-overview-section">
+        <Suspense fallback={<MangaRowSkeleton />}>
+          <NewVols
+            lang={lang as Locale}
+            intl={intl}
+            scope="others"
+            section="others"
+          />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<MangaRowSkeleton />}>
-        <RecentlyRead
-          lang={lang as Locale}
-          intl={intl}
-          scope="others"
-          section="others"
-        />
-      </Suspense>
+      <div className="library-overview-section">
+        <Suspense fallback={<MangaRowSkeleton />}>
+          <RecentlyRead
+            lang={lang as Locale}
+            intl={intl}
+            scope="others"
+            section="others"
+          />
+        </Suspense>
+      </div>
     </div>
   );
 }

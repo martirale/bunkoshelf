@@ -45,6 +45,14 @@
   font-family: var(--font-boldonse);
 }
 
+.library-overview-section > section {
+  margin-top: 0 !important;
+}
+
+.library-overview-section:has(> section) + .library-overview-section:has(> section) > section {
+  margin-top: 1rem !important;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-sand);

@@ -30,20 +30,28 @@ async function MangaPageContent({ params }: MangaPageProps) {
   const scope = getLibraryScope("manga");
 
   return (
-    <div className="p-4">
-      <Suspense fallback={<MangaRowSkeleton />}>
-        <NextVol lang={lang as Locale} intl={intl} scope={scope} />
-      </Suspense>
+    <div className="library-overview p-4">
+      <div className="library-overview-section">
+        <Suspense fallback={<MangaRowSkeleton />}>
+          <NextVol lang={lang as Locale} intl={intl} scope={scope} />
+        </Suspense>
+      </div>
 
-      <DemographicsTiles intl={intl} lang={lang as Locale} />
+      <div className="library-overview-section">
+        <DemographicsTiles intl={intl} lang={lang as Locale} />
+      </div>
 
-      <Suspense fallback={<MangaRowSkeleton />}>
-        <NewVols lang={lang as Locale} intl={intl} scope={scope} />
-      </Suspense>
+      <div className="library-overview-section">
+        <Suspense fallback={<MangaRowSkeleton />}>
+          <NewVols lang={lang as Locale} intl={intl} scope={scope} />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<MangaRowSkeleton />}>
-        <RecentlyRead lang={lang as Locale} intl={intl} scope={scope} />
-      </Suspense>
+      <div className="library-overview-section">
+        <Suspense fallback={<MangaRowSkeleton />}>
+          <RecentlyRead lang={lang as Locale} intl={intl} scope={scope} />
+        </Suspense>
+      </div>
     </div>
   );
 }

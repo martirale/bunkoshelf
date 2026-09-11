@@ -225,7 +225,24 @@ function OfflineLibraryHome({ volumes, lang, intl, userId, section }: { volumes:
     if (!nextBySeries.has(volume.seriesId)) nextBySeries.set(volume.seriesId, volume);
   });
 
-  return <div className="p-4"><MangaRowCarousel entries={entries(Array.from(nextBySeries.values()).slice(0, 12))} lang={lang} intl={intl} section={section} className="mt-4" header={<h2 className="flex items-center text-base md:text-lg"><BookMarkedIcon size={28} className="mr-2" />{intl.libraries.inProgress as string}</h2>} />{section === "manga" && <DemographicsTiles intl={intl} lang={lang} section={section} />}<MangaRowCarousel entries={entries(recent)} lang={lang} intl={intl} section={section} header={<h2 className="flex items-center text-base md:text-lg"><BookPlusIcon size={28} className="mr-2" />{intl.libraries.recentlyAdded as string}</h2>} /><MangaRowCarousel entries={entries(recentlyRead)} lang={lang} intl={intl} section={section} header={<h2 className="flex items-center text-base md:text-lg"><BookCheckIcon size={28} className="mr-2" />{intl.libraries.recentlyRead as string}</h2>} /></div>;
+  return (
+    <div className="library-overview p-4">
+      <div className="library-overview-section">
+        <MangaRowCarousel entries={entries(Array.from(nextBySeries.values()).slice(0, 12))} lang={lang} intl={intl} section={section} className="mt-4" header={<h2 className="flex items-center text-base md:text-lg"><BookMarkedIcon size={28} className="mr-2" />{intl.libraries.inProgress as string}</h2>} />
+      </div>
+      {section === "manga" && (
+        <div className="library-overview-section">
+          <DemographicsTiles intl={intl} lang={lang} section={section} />
+        </div>
+      )}
+      <div className="library-overview-section">
+        <MangaRowCarousel entries={entries(recent)} lang={lang} intl={intl} section={section} header={<h2 className="flex items-center text-base md:text-lg"><BookPlusIcon size={28} className="mr-2" />{intl.libraries.recentlyAdded as string}</h2>} />
+      </div>
+      <div className="library-overview-section">
+        <MangaRowCarousel entries={entries(recentlyRead)} lang={lang} intl={intl} section={section} header={<h2 className="flex items-center text-base md:text-lg"><BookCheckIcon size={28} className="mr-2" />{intl.libraries.recentlyRead as string}</h2>} />
+      </div>
+    </div>
+  );
 }
 
 function OfflineHome({ lang, intl, userId }: { lang: Locale; intl: Dictionary; userId: string }) {
