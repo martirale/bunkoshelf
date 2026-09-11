@@ -3,6 +3,7 @@ import SecondNav from "./SecondNav";
 import MainNav from "./MainNav";
 import ChallengeProg from "./ChallengeProg";
 import FooterNav from "./FooterNav";
+import SidebarLogoutButton from "./SidebarLogoutButton";
 import SearchInput from "@/components/search/SearchImput";
 import SearchModal from "@/components/search/SearchModal";
 import type { ChallengeData, Dictionary, Locale, Session } from "@/lib/types";
@@ -31,7 +32,10 @@ export default function Sidebar({
       <aside className="hidden md:flex md:w-[35%] lg:w-[25%] xl:w-[21%] 2xl:w-[17%] bg-blackamber flex-col justify-between p-4">
         <h1 className="hidden">Bunko Shelf</h1>
 
-        <SidebarLogo />
+        <div className="flex w-full flex-nowrap items-center justify-between gap-4">
+          <SidebarLogo className="shrink-0 px-4" />
+          {user && <SidebarLogoutButton intl={intl} />}
+        </div>
 
         {!user && <SecondNav intl={intl} className="flex-1" />}
 
@@ -52,6 +56,7 @@ export default function Sidebar({
           intl={intl}
           user={user}
           versionData={versionData}
+          showLogout={false}
         />
       </aside>
 

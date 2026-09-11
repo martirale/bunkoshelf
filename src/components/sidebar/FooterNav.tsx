@@ -14,6 +14,7 @@ interface FooterNavProps {
   intl: Dictionary;
   user: Session | null;
   versionData: VersionInfo;
+  showLogout?: boolean;
 }
 
 export default function FooterNav({
@@ -21,6 +22,7 @@ export default function FooterNav({
   intl,
   user,
   versionData,
+  showLogout,
 }: FooterNavProps) {
   const params = useParams();
   const router = useRouter();
@@ -48,6 +50,7 @@ export default function FooterNav({
     lang,
     user,
     isLoggedIn: Boolean(user),
+    showLogout,
     onToggleLang: toggleLang,
     onLogout: handleLogout,
   });

@@ -27,6 +27,7 @@ interface GetFooterButtonsParams {
   lang: string;
   user: Session | null;
   isLoggedIn: boolean;
+  showLogout?: boolean;
   onToggleLang: () => void;
   onLogout: () => void;
 }
@@ -36,6 +37,7 @@ export function getFooterButtons({
   lang,
   user,
   isLoggedIn,
+  showLogout = true,
   onToggleLang,
   onLogout,
 }: GetFooterButtonsParams): FooterButton[] {
@@ -64,7 +66,7 @@ export function getFooterButtons({
           },
         ]
       : []),
-    ...(isLoggedIn
+    ...(isLoggedIn && showLogout
       ? [
           {
             type: "button" as const,

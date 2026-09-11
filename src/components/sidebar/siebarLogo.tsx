@@ -13,13 +13,13 @@ export default function SidebarLogo({ className }: SidebarLogoProps) {
   const lang = pathname.split("/")[1] === "en" ? "en" : "es";
 
   return (
-    <div className={`px-4 ${className}`}>
+    <div className={className ?? "px-4"}>
       <Link href={`/${lang}`} className="inline-block">
         <Image
           src="/logos/BunkoShelfPearl.svg"
           alt="Bunko Shelf Logo"
-          width={196}
-          height={39}
+          width={181}
+          height={36}
           priority
         />
       </Link>
