@@ -44,6 +44,8 @@ export default async function RecentlyRead({
         .slice(0, maxItems)
     : [];
 
+  if (entries.length === 0) return null;
+
   return (
     <MangaRowCarousel
       entries={entries}

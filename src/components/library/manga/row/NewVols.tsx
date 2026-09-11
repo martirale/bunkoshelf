@@ -42,6 +42,8 @@ export default async function NewVols({
         })
     : [];
 
+  if (entries.length === 0) return null;
+
   return (
     <MangaRowCarousel
       entries={entries}

@@ -68,6 +68,8 @@ export default async function NextVol({
     return nextVolumes.slice(0, maxItems);
   })();
 
+  if (entries.length === 0) return null;
+
   return (
     <MangaRowCarousel
       entries={entries}
