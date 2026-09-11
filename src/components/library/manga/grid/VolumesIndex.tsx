@@ -1,5 +1,5 @@
 import { listPagedVolumes, listVolumeProgressByIds } from "@/lib/db/library";
-import { LibraryBigIcon } from "lucide-react";
+import { BookCopyIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import Pagination from "@/components/ui/Pagination";
 import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
@@ -72,7 +72,7 @@ export default async function VolumesIndex({
     <>
       <div className="flex items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg mr-4">
-          <LibraryBigIcon size={28} className="mr-2" />
+          <BookCopyIcon size={28} className="mr-2" />
           {intl.manga.allVolumes as string}
         </h2>
 
