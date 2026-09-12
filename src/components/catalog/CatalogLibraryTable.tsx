@@ -47,6 +47,18 @@ function renderWriter(value: string | null | undefined) {
   return normalizeCommaSeparatedText(value) ?? "—";
 }
 
+function getCatalogVolumeHref(
+  lang: Locale,
+  section: CatalogLibraryVolume["section"],
+  slug: string
+) {
+  if (section === "books") {
+    return `/${lang}/books/volume/${slug}`;
+  }
+
+  return getLibraryVolumeHref(lang, section, slug);
+}
+
 export default function CatalogLibraryTable({
   data,
   intl,
@@ -90,7 +102,7 @@ export default function CatalogLibraryTable({
                   </td>
                   <td className="p-4">
                     <Link
-                      href={getLibraryVolumeHref(lang, volume.section, volume.slug)}
+                      href={getCatalogVolumeHref(lang, volume.section, volume.slug)}
                       className="block max-w-[20rem] whitespace-normal break-words leading-snug hover:underline"
                     >
                       {renderValue(volume.title)}
@@ -134,6 +146,7 @@ export default function CatalogLibraryTable({
                         intl={intl}
                         volumeId={volume.id}
                         volumeSlug={volume.slug}
+                        section={volume.section}
                       />
                     </td>
                   )}

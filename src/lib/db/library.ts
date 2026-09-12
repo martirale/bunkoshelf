@@ -182,7 +182,7 @@ export interface PaginatedResult<T> {
 export interface CatalogLibraryVolume {
   id: string;
   slug: string;
-  section: LibrarySection;
+  section: LibrarySection | "books";
   title: string | null;
   series: string | null;
   number: number | null;
@@ -681,8 +681,12 @@ export async function listPagedCatalogLibraryVolumes(
   const [countRow, rows] = await Promise.all([
     queryOne<{ total: string | number }>(
       `
-        SELECT COUNT(*) AS total
-        FROM manga_volumes mv
+        SELECT
+          (
+            (SELECT COUNT(*) FROM manga_volumes)
+            +
+            (SELECT COUNT(*) FROM book_volumes)
+          ) AS total
       `
     ),
     query<{
@@ -697,33 +701,92 @@ export async function listPagedCatalogLibraryVolumes(
       language_iso: string | null;
       age_rating: string | null;
       gtin: string | null;
-      library_section: "manga" | "comic" | "other";
+      library_section: "manga" | "comic" | "other" | "books";
       is_read: boolean | null;
       is_favorite: boolean | null;
     }>(
       `
+        WITH catalog_volumes AS (
+          SELECT
+            mv.id,
+            mv.slug,
+            vm.title,
+            ms.title AS series,
+            vm.number,
+            vm.year,
+            vm.writer,
+            vm.publisher,
+            vm.language_iso,
+            vm.age_rating,
+            vm.gtin,
+            ms.library_section,
+            utv.is_read,
+            utv.is_favorite,
+            ms.sort_title AS series_sort_title,
+            mv.sort_title AS volume_sort_title
+          FROM manga_volumes mv
+          INNER JOIN manga_series ms ON ms.id = mv.series_id
+          LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+          LEFT JOIN user_to_volumes utv
+            ON utv.volume_id = mv.id
+           AND utv.user_id = $1
+
+          UNION ALL
+
+          SELECT
+            bv.id,
+            bv.slug,
+            bm.title,
+            bs.title AS series,
+            bv.number,
+            SUBSTRING(bm.published_at FROM '([0-9]{4})')::integer AS year,
+            (
+              SELECT STRING_AGG(bp.name, ', ' ORDER BY bp.position, bp.id)
+              FROM book_people bp
+              WHERE bp.metadata_id = bm.id
+                AND bp.kind = 'creator'
+                AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
+            ) AS writer,
+            bm.publisher,
+            bm.language AS language_iso,
+            bm.age_rating,
+            (
+              SELECT REGEXP_REPLACE(bi.value, '^(?:urn:)?isbn:', '', 'i')
+              FROM book_identifiers bi
+              WHERE bi.metadata_id = bm.id
+                AND LOWER(bi.scheme) = 'isbn'
+              ORDER BY bi.is_primary DESC, bi.id
+              LIMIT 1
+            ) AS gtin,
+            'books' AS library_section,
+            utb.is_read,
+            utb.is_favorite,
+            bs.sort_title AS series_sort_title,
+            bv.sort_title AS volume_sort_title
+          FROM book_volumes bv
+          INNER JOIN book_series bs ON bs.id = bv.series_id
+          INNER JOIN book_metadata bm ON bm.volume_id = bv.id
+          LEFT JOIN user_to_books utb
+            ON utb.volume_id = bv.id
+           AND utb.user_id = $1
+        )
         SELECT
-          mv.id,
-          mv.slug,
-          vm.title,
-          ms.title AS series,
-          vm.number,
-          vm.year,
-          vm.writer,
-          vm.publisher,
-          vm.language_iso,
-          vm.age_rating,
-          vm.gtin,
-          ms.library_section,
-          utv.is_read,
-          utv.is_favorite
-        FROM manga_volumes mv
-        INNER JOIN manga_series ms ON ms.id = mv.series_id
-        LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
-        LEFT JOIN user_to_volumes utv
-          ON utv.volume_id = mv.id
-         AND utv.user_id = $1
-        ORDER BY ms.sort_title ASC, mv.sort_title ASC, mv.id ASC
+          id,
+          slug,
+          title,
+          series,
+          number,
+          year,
+          writer,
+          publisher,
+          language_iso,
+          age_rating,
+          gtin,
+          library_section,
+          is_read,
+          is_favorite
+        FROM catalog_volumes
+        ORDER BY series_sort_title ASC, volume_sort_title ASC, id ASC
         LIMIT $2
         OFFSET $3
       `,
@@ -737,7 +800,9 @@ export async function listPagedCatalogLibraryVolumes(
     rows.map((row) => ({
       id: row.id,
       slug: row.slug,
-      section: getLibrarySection(row.library_section),
+      section: row.library_section === "books"
+        ? "books"
+        : getLibrarySection(row.library_section),
       title: row.title,
       series: row.series,
       number: row.number,
