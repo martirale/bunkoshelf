@@ -25,6 +25,7 @@ export default function BookRowCarousel({
   className = "mt-8",
   progressById = {},
 }: BookRowCarouselProps) {
+  const booksDictionary = intl.books as Record<string, string>;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
@@ -72,10 +73,10 @@ export default function BookRowCarousel({
       <div className="flex justify-between items-center mb-4">
         {header}
         <div className="flex gap-4">
-          <button onClick={() => scrollCards("left")} className="cursor-pointer" aria-label="Previous books">
+          <button onClick={() => scrollCards("left")} className="cursor-pointer" aria-label={booksDictionary.previousBooks}>
             <ChevronLeftIcon size={28} className="hover:scale-110 transition-all duration-150" />
           </button>
-          <button onClick={() => scrollCards("right")} className="cursor-pointer" aria-label="Next books">
+          <button onClick={() => scrollCards("right")} className="cursor-pointer" aria-label={booksDictionary.nextBooks}>
             <ChevronRightIcon size={28} className="hover:scale-110 transition-all duration-150" />
           </button>
         </div>

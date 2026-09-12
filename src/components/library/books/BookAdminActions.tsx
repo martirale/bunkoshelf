@@ -19,6 +19,7 @@ export default function BookAdminActions({ type, slug, lang, intl, canDownload }
   const [isScanning, setIsScanning] = useState(false);
   const { addToast } = useToast()!;
   const { confirm } = useAlertDialog()!;
+  const books = intl.books as Record<string, string>;
   const labels = intl.libraries.bookActions as Record<string, string>;
   const isVolume = type === "volume";
   const itemLabel = isVolume ? labels.deleteBook : labels.deleteSeries;
@@ -28,19 +29,19 @@ export default function BookAdminActions({ type, slug, lang, intl, canDownload }
     try {
       const result = type === "volume" ? await rescanBookVolume(slug) : await rescanBookSeries(slug);
       if (!result.ok) {
-        addToast({ title: "Error", description: result.error, variant: "error" });
+        addToast({ title: books.error, description: books.actionFailed, variant: "error" });
         return;
       }
       addToast({
-        title: (intl.manga.scanComplete as string) || "Escaneo completado",
-        description: `${result.indexed ?? 0} ${type === "volume" ? "libro indexado" : "libros indexados"}`,
+        title: books.scanComplete,
+        description: `${result.indexed ?? 0} ${type === "volume" ? books.bookIndexed : books.booksIndexed}`,
         variant: "success",
       });
       window.setTimeout(() => window.location.reload(), 1200);
     } catch {
       addToast({
-        title: "Error",
-        description: isVolume ? "No se pudo reescanear el libro" : "No se pudo reescanear la serie",
+        title: books.error,
+        description: isVolume ? books.rescanBookFailed : books.rescanSeriesFailed,
         variant: "error",
       });
     } finally {
@@ -58,7 +59,7 @@ export default function BookAdminActions({ type, slug, lang, intl, canDownload }
     if (!confirmed) return;
     const result = type === "volume" ? await deleteBookVolume(slug) : await deleteBookSeries(slug);
     if (!result.ok) {
-      addToast({ title: "Error", description: result.error, variant: "error" });
+      addToast({ title: books.error, description: books.actionFailed, variant: "error" });
       return;
     }
     window.location.assign(`/${lang}/books/${type === "volume" ? "volumes" : "series"}`);
@@ -72,7 +73,7 @@ export default function BookAdminActions({ type, slug, lang, intl, canDownload }
     <div className="flex flex-wrap items-center gap-4">
       <button onClick={handleScan} disabled={isScanning} className="flex cursor-pointer items-center gap-1 text-xs uppercase hover:underline disabled:cursor-not-allowed disabled:opacity-50">
         {isScanning ? <Loader2Icon size={12} className="animate-spin" /> : <ScanSearchIcon size={12} />}
-        {isScanning ? (intl.manga.scanning as string) : isVolume ? labels.scanBook : labels.scanSeries}
+        {isScanning ? books.scanning : isVolume ? labels.scanBook : labels.scanSeries}
       </button>
       {canDownload && <a href={downloadHref} className="flex cursor-pointer items-center gap-1 text-xs uppercase hover:underline"><DownloadIcon size={11} />{isVolume ? labels.downloadBook : labels.downloadSeries}</a>}
       <button onClick={handleDelete} className="flex cursor-pointer items-center gap-1 text-xs uppercase text-danger-alt hover:underline"><TrashIcon size={11} />{itemLabel}</button>

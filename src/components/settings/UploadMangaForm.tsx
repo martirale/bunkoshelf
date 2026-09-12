@@ -49,6 +49,7 @@ interface UploadMangaFormProps {
 }
 
 export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
+  const settings = intl.settings as Record<string, string>;
   const [libraryType, setLibraryType] = useState<UploadMetadata["type"]>("manga");
   const [directories, setDirectories] = useState<string[]>([]);
   const [selectedDirectory, setSelectedDirectory] = useState("");
@@ -95,8 +96,8 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
       } finally {
         if (_err) {
           addToast({
-            title: "Error",
-            description: "Error al cargar directorios",
+            title: settings.uploadError,
+            description: settings.uploadDirectoriesFailed,
             variant: "error",
           });
         }
@@ -104,7 +105,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
     };
 
     fetchDirectories();
-  }, [libraryType, addToast]);
+  }, [libraryType, addToast, settings]);
 
   const handleFilesAccepted = async (acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
@@ -281,12 +282,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
       );
 
       if (xhr.status < 200 || xhr.status >= 300) {
-        let errorMsg = `Error al subir chunk ${chunkIndex + 1}`;
-        try {
-          const data = JSON.parse(xhr.responseText);
-          errorMsg = data.error || errorMsg;
-        } catch {}
-        throw new Error(errorMsg);
+        throw new Error(settings.uploadChunkFailed);
       }
 
       bytesUploaded += chunkSize;
@@ -366,7 +362,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
             fileSize: file.size,
           });
         } else {
-          throw new Error(`Error getting upload method for ${file.name}`);
+          throw new Error(settings.uploadMethodFailed);
         }
       }
 
@@ -378,7 +374,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
         });
 
         if (!confirmRes.ok) {
-          throw new Error("Error confirming upload");
+          throw new Error(settings.uploadConfirmFailed);
         }
       }
 
@@ -393,8 +389,8 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
       }
 
       addToast({
-        title: "Éxito",
-        description: `${files.length} archivo(s) subido(s) correctamente`,
+        title: settings.uploadSuccess,
+        description: `${files.length} ${settings.uploadSuccessDescription}`,
         variant: "success",
       });
       setSelectedDirectory("");
@@ -413,10 +409,8 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
       setProgressPercent(0);
       if (_err) {
         addToast({
-          title: "Error",
-          description:
-            (_err instanceof Error ? _err.message : null) ||
-            "Error al subir archivos",
+          title: settings.uploadError,
+          description: _err instanceof Error ? _err.message : settings.uploadFailed,
           variant: "error",
         });
       }

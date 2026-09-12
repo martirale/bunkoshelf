@@ -7,17 +7,6 @@ const namedEntities: Record<string, string> = {
   quot: '"',
 };
 
-const personRoles: Record<string, string> = {
-  aut: "Autoría",
-  bkp: "Producción digital",
-  cmp: "Composición",
-  edt: "Edición",
-  ill: "Ilustración",
-  nrt: "Narración",
-  pht: "Fotografía",
-  trl: "Traducción",
-};
-
 export const BOOK_AGE_RATINGS = ["0+", "6+", "10+", "13+", "15+", "16+", "17+", "18+"] as const;
 
 export type BookAgeRating = typeof BOOK_AGE_RATINGS[number];
@@ -60,10 +49,6 @@ export function getBookPublicationYear(value: string | null | undefined): string
   return year ?? null;
 }
 
-export function getBookLayoutLabel(layout: "reflowable" | "pre-paginated"): string {
-  return layout === "pre-paginated" ? "Fijo" : "Adaptable";
-}
-
 export function normalizeBookAgeRating(value: string | null | undefined): BookAgeRating | null {
   if (!value) return null;
   const rating = value.trim() as BookAgeRating;
@@ -73,11 +58,6 @@ export function normalizeBookAgeRating(value: string | null | undefined): BookAg
 export function getBookAgeMinimum(value: string | null | undefined): number | null {
   const rating = normalizeBookAgeRating(value);
   return rating ? bookAgeRatingMinimum[rating] : null;
-}
-
-export function getBookPersonRole(role: string | null): string | null {
-  if (!role) return null;
-  return personRoles[role.toLowerCase()] ?? role;
 }
 
 export function getBookIdentifierScheme(value: string, scheme: string | null): string {

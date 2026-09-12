@@ -11,6 +11,7 @@ import {
   Settings2Icon,
   Trash2Icon,
 } from "lucide-react";
+import type { Dictionary } from "@/lib/types";
 
 type ReaderTheme = "light" | "sepia" | "dark";
 type ReaderFlow = "paginated" | "scrolled-continuous";
@@ -35,6 +36,7 @@ interface EpubReaderProps {
   slug: string;
   title: string;
   layout: "reflowable" | "pre-paginated";
+  intl: Dictionary;
 }
 
 const fileCache = new Map<string, ArrayBuffer>();
@@ -51,7 +53,7 @@ async function getBookBuffer(slug: string): Promise<ArrayBuffer> {
   if (cached) return cached.slice(0);
 
   const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/file`);
-  if (!response.ok) throw new Error("No fue posible abrir este EPUB.");
+  if (!response.ok) throw new Error("Book file request failed");
   const buffer = await response.arrayBuffer();
   fileCache.set(slug, buffer);
   if (fileCache.size > maxCachedBooks) {
@@ -61,7 +63,8 @@ async function getBookBuffer(slug: string): Promise<ArrayBuffer> {
   return buffer.slice(0);
 }
 
-export default function EpubReader({ isOpen, onClose, slug, title, layout }: EpubReaderProps) {
+export default function EpubReader({ isOpen, onClose, slug, title, layout, intl }: EpubReaderProps) {
+  const reader = intl.epubReader as Record<string, string>;
   const viewerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const tocPanelRef = useRef<HTMLElement>(null);
@@ -410,8 +413,8 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
           if (!displayedCfi) return;
           setProgress(book.locations.percentageFromCfi(displayedCfi));
         });
-      } catch (cause) {
-        if (!cancelled) setError(cause instanceof Error ? cause.message : "No fue posible abrir el libro.");
+      } catch {
+        if (!cancelled) setError(reader.openFailed);
       } finally {
         if (!cancelled) {
           setControlsVisible(true);
@@ -428,7 +431,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       bookRef.current?.destroy();
       bookRef.current = null;
     };
-  }, [applyStyles, closePanels, findAnnotationAtPoint, isOpen, layout, openAnnotationMenu, persistProgress, renderAnnotation, slug]);
+  }, [applyStyles, closePanels, findAnnotationAtPoint, isOpen, layout, openAnnotationMenu, persistProgress, reader.openFailed, renderAnnotation, slug]);
 
   useEffect(() => {
     if (!isOpen || !("wakeLock" in navigator)) return;
@@ -486,18 +489,18 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       method: "DELETE",
     });
     if (!response.ok) {
-      setBookmarkMessage("No fue posible eliminar el marcador.");
+      setBookmarkMessage(reader.bookmarkDeleteFailed);
       return;
     }
     setBookmarks((current) => current.filter((item) => item.id !== bookmark.id));
     setBookmarkCfis((current) => current.filter((item) => item !== bookmark.cfi));
-    setBookmarkMessage("Marcador eliminado.");
+    setBookmarkMessage(reader.bookmarkDeleted);
   };
 
   const toggleBookmark = async () => {
     const currentCfi = cfi ?? renditionRef.current?.currentLocation?.()?.start?.cfi;
     if (!currentCfi) {
-      setBookmarkMessage("Todavía no hay una ubicación para marcar.");
+      setBookmarkMessage(reader.noLocation);
       return;
     }
     const existing = bookmarks.find((bookmark) => bookmark.cfi === currentCfi);
@@ -514,9 +517,9 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       const bookmark = await response.json() as ReaderState["bookmarks"][number];
       setBookmarkCfis((current) => [...current, currentCfi]);
       setBookmarks((current) => [...current, bookmark]);
-      setBookmarkMessage("Marcador guardado.");
+      setBookmarkMessage(reader.bookmarkSaved);
     } else {
-      setBookmarkMessage("No fue posible guardar el marcador.");
+      setBookmarkMessage(reader.bookmarkSaveFailed);
     }
   };
 
@@ -525,14 +528,14 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       method: "DELETE",
     });
     if (!response.ok) {
-      setBookmarkMessage("No fue posible eliminar el resaltado.");
+      setBookmarkMessage(reader.highlightDeleteFailed);
       return;
     }
     renditionRef.current?.annotations.remove(annotation.cfiRange, "highlight");
     setAnnotations((current) => current.filter((item) => item.id !== annotation.id));
     setAnnotationMenu(null);
     setAnnotationNoteEditorOpen(false);
-    setBookmarkMessage("Resaltado eliminado.");
+    setBookmarkMessage(reader.highlightDeleted);
   };
 
   const saveSelectionAnnotation = async (note: string | null) => {
@@ -548,7 +551,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       }),
     });
     if (!response.ok) {
-      setBookmarkMessage("No fue posible guardar el resaltado.");
+      setBookmarkMessage(reader.highlightSaveFailed);
       return;
     }
     const annotation = await response.json() as ReaderState["annotations"][number];
@@ -556,7 +559,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
     renderAnnotation(renditionRef.current, annotation);
     setSelectionMenu(null);
     setNoteEditorOpen(false);
-    setBookmarkMessage(note ? "Nota guardada." : "Resaltado guardado.");
+    setBookmarkMessage(note ? reader.noteSaved : reader.highlightSaved);
   };
 
   const clearAnnotationNote = async (annotation: ReaderState["annotations"][number]) => {
@@ -566,13 +569,13 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       body: JSON.stringify({ id: annotation.id, note: null }),
     });
     if (!response.ok) {
-      setBookmarkMessage("No fue posible eliminar la nota.");
+      setBookmarkMessage(reader.noteDeleteFailed);
       return;
     }
     const updated = await response.json() as ReaderState["annotations"][number];
     setAnnotations((current) => current.map((item) => item.id === updated.id ? updated : item));
     setAnnotationMenu((current) => current ? { ...current, annotation: updated } : null);
-    setBookmarkMessage("Nota eliminada.");
+    setBookmarkMessage(reader.noteDeleted);
   };
 
   const saveAnnotationNote = async (annotation: ReaderState["annotations"][number]) => {
@@ -584,14 +587,14 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       body: JSON.stringify({ id: annotation.id, note }),
     });
     if (!response.ok) {
-      setBookmarkMessage("No fue posible guardar la nota.");
+      setBookmarkMessage(reader.noteSaveFailed);
       return;
     }
     const updated = await response.json() as ReaderState["annotations"][number];
     setAnnotations((current) => current.map((item) => item.id === updated.id ? updated : item));
     setAnnotationMenu((current) => current ? { ...current, annotation: updated } : null);
     setAnnotationNoteEditorOpen(false);
-    setBookmarkMessage("Nota guardada.");
+    setBookmarkMessage(reader.noteSaved);
   };
 
   const runSearch = async () => {
@@ -630,23 +633,23 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       <header ref={headerRef} className={`absolute inset-x-0 top-0 z-30 flex h-12 items-center justify-between gap-3 border-b border-white/15 bg-onix/95 px-3 transition-transform duration-200 ${controlsVisible ? "translate-y-0" : "-translate-y-full pointer-events-none"}`}>
         <span className="min-w-0 truncate font-semibold">{title}</span>
         <div className="flex items-center gap-1">
-          <button onClick={() => togglePanel("toc")} title="Índice" aria-label="Índice" className="cursor-pointer p-2"><MenuIcon size={24} /></button>
-          <button onClick={toggleBookmark} title={isBookmarked ? "Eliminar marcador" : "Agregar marcador"} aria-label={isBookmarked ? "Eliminar marcador" : "Agregar marcador"} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
-          {layout === "reflowable" && <button onClick={() => togglePanel("settings")} title="Ajustes de lectura" aria-label="Ajustes de lectura" className="cursor-pointer p-2"><Settings2Icon size={24} /></button>}
-          <button onClick={closeReader} title="Cerrar lector" aria-label="Cerrar lector" className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
+          <button onClick={() => togglePanel("toc")} title={reader.contents} aria-label={reader.contents} className="cursor-pointer p-2"><MenuIcon size={24} /></button>
+          <button onClick={toggleBookmark} title={isBookmarked ? reader.removeBookmark : reader.addBookmark} aria-label={isBookmarked ? reader.removeBookmark : reader.addBookmark} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
+          {layout === "reflowable" && <button onClick={() => togglePanel("settings")} title={reader.settings} aria-label={reader.settings} className="cursor-pointer p-2"><Settings2Icon size={24} /></button>}
+          <button onClick={closeReader} title={reader.close} aria-label={reader.close} className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
         </div>
       </header>
 
       {showSettings && (
         <div ref={settingsPanelRef} className="absolute right-3 top-12 z-40 w-[min(24rem,calc(100vw-1.5rem))] rounded-b-lg bg-blackamber p-5 shadow-xl">
           <div className="grid gap-4 text-base">
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">Tema<select value={theme} onChange={(event) => setTheme(event.target.value as ReaderTheme)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="light">Claro</option><option value="sepia">Sepia</option><option value="dark">Oscuro</option></select></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">Flujo<select value={flow} onChange={(event) => setFlow(event.target.value as ReaderFlow)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="paginated">Páginas</option><option value="scrolled-continuous">Desplazamiento</option></select></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">Fuente<select value={fontFamily} onChange={(event) => setFontFamily(event.target.value as "serif" | "sans")} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="serif">Serif</option><option value="sans">Sans</option></select></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">Tamaño<input className="w-full cursor-pointer accent-lilah" type="range" min="80" max="160" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">Interlineado<input className="w-full cursor-pointer accent-lilah" type="range" min="1.2" max="2.4" step="0.1" value={lineHeight} onChange={(event) => setLineHeight(Number(event.target.value))} /></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">Márgenes<input className="w-full cursor-pointer accent-lilah" type="range" min="0" max="80" value={margin} onChange={(event) => setMargin(Number(event.target.value))} /></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">Columna<input className="w-full cursor-pointer accent-lilah" type="range" min="320" max="1200" value={columnWidth} onChange={(event) => setColumnWidth(Number(event.target.value))} /></label>
+            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.theme}<select value={theme} onChange={(event) => setTheme(event.target.value as ReaderTheme)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="light">{reader.light}</option><option value="sepia">{reader.sepia}</option><option value="dark">{reader.dark}</option></select></label>
+            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.flow}<select value={flow} onChange={(event) => setFlow(event.target.value as ReaderFlow)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="paginated">{reader.paginated}</option><option value="scrolled-continuous">{reader.scrolled}</option></select></label>
+            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.font}<select value={fontFamily} onChange={(event) => setFontFamily(event.target.value as "serif" | "sans")} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="serif">{reader.serif}</option><option value="sans">{reader.sans}</option></select></label>
+            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.fontSize}<input className="w-full cursor-pointer accent-lilah" type="range" min="80" max="160" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label>
+            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.lineHeight}<input className="w-full cursor-pointer accent-lilah" type="range" min="1.2" max="2.4" step="0.1" value={lineHeight} onChange={(event) => setLineHeight(Number(event.target.value))} /></label>
+            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.margin}<input className="w-full cursor-pointer accent-lilah" type="range" min="0" max="80" value={margin} onChange={(event) => setMargin(Number(event.target.value))} /></label>
+            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.column}<input className="w-full cursor-pointer accent-lilah" type="range" min="320" max="1200" value={columnWidth} onChange={(event) => setColumnWidth(Number(event.target.value))} /></label>
           </div>
         </div>
       )}
@@ -654,18 +657,18 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       {showToc && (
         <aside ref={tocPanelRef} className="absolute bottom-0 left-0 top-12 z-40 w-[min(24rem,calc(100vw-1.5rem))] overflow-y-auto bg-blackamber p-5 shadow-xl">
           <div className="mb-4 flex gap-2 border-b border-white/15">
-            <button onClick={() => setTocTab("contents")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "contents" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>Contenido</button>
-            <button onClick={() => setTocTab("bookmarks")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "bookmarks" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>Marcadores {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</button>
-            <button onClick={() => setTocTab("annotations")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "annotations" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>Notas {annotations.length > 0 ? `(${annotations.length})` : ""}</button>
+            <button onClick={() => setTocTab("contents")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "contents" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.contents}</button>
+            <button onClick={() => setTocTab("bookmarks")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "bookmarks" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.bookmarks} {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</button>
+            <button onClick={() => setTocTab("annotations")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "annotations" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.annotations} {annotations.length > 0 ? `(${annotations.length})` : ""}</button>
           </div>
           {tocTab === "contents" ? <>
-            <div className="mb-4 flex gap-2"><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && runSearch()} placeholder="Buscar en el libro" className="min-w-0 flex-1 rounded bg-onix px-3 py-2 text-base" /><button onClick={runSearch} className="cursor-pointer rounded bg-lilah p-2 text-onix"><SearchIcon size={20} /></button></div>
+            <div className="mb-4 flex gap-2"><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && runSearch()} placeholder={reader.searchPlaceholder} className="min-w-0 flex-1 rounded bg-onix px-3 py-2 text-base" /><button onClick={runSearch} aria-label={reader.searchPlaceholder} className="cursor-pointer rounded bg-lilah p-2 text-onix"><SearchIcon size={20} /></button></div>
             {matches.map((match) => <button key={match.cfi} onClick={() => openToc(match.cfi)} className="block w-full cursor-pointer py-2 text-left text-base hover:text-lilah">{match.label}</button>)}
             {toc.map((entry) => <button key={entry.href} onClick={() => openToc(entry.href)} className="block w-full cursor-pointer py-2 text-left text-base hover:text-lilah">{entry.label}</button>)}
           </> : tocTab === "bookmarks" ? <div className="space-y-1">
-            {bookmarks.length === 0 ? <p className="py-2 text-base text-neutral-400">Aún no hay marcadores en este libro.</p> : bookmarks.map((bookmark) => <div key={bookmark.id} className="flex items-center gap-2 rounded hover:bg-onix"><button onClick={() => openToc(bookmark.cfi)} className="min-w-0 flex-1 cursor-pointer px-2 py-3 text-left text-base hover:text-lilah"><span className="block truncate">{bookmark.chapterLabel || bookmark.label || "Página marcada"}</span><span className="mt-1 block text-sm text-neutral-400">Ir a esta ubicación</span></button><button onClick={() => removeBookmark(bookmark)} title="Eliminar marcador" aria-label="Eliminar marcador" className="cursor-pointer p-3 text-neutral-400 hover:text-lilah"><Trash2Icon size={18} /></button></div>)}
+            {bookmarks.length === 0 ? <p className="py-2 text-base text-neutral-400">{reader.noBookmarks}</p> : bookmarks.map((bookmark) => <div key={bookmark.id} className="flex items-center gap-2 rounded hover:bg-onix"><button onClick={() => openToc(bookmark.cfi)} className="min-w-0 flex-1 cursor-pointer px-2 py-3 text-left text-base hover:text-lilah"><span className="block truncate">{bookmark.chapterLabel || bookmark.label || reader.markedPage}</span><span className="mt-1 block text-sm text-neutral-400">{reader.goToLocation}</span></button><button onClick={() => removeBookmark(bookmark)} title={reader.removeBookmark} aria-label={reader.removeBookmark} className="cursor-pointer p-3 text-neutral-400 hover:text-lilah"><Trash2Icon size={18} /></button></div>)}
           </div> : <div className="space-y-2">
-            {annotations.length === 0 ? <p className="py-2 text-base text-neutral-400">Aún no hay notas ni resaltados en este libro.</p> : annotations.map((annotation) => <div key={annotation.id} className="rounded bg-onix/60 p-3"><button onClick={() => openToc(annotation.cfiRange)} className="block w-full cursor-pointer text-left hover:text-lilah"><span className="block text-base leading-relaxed">{annotation.excerpt || "Texto resaltado"}</span><span className="mt-2 block text-sm text-lilah">Ir a esta ubicación</span></button>{annotation.note && <p className="mt-3 border-t border-white/10 pt-3 text-base text-sand"><span className="mr-2 text-sm uppercase text-neutral-400">Nota</span>{annotation.note}</p>}<button onClick={() => removeAnnotation(annotation)} className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-neutral-400 hover:text-lilah"><Trash2Icon size={16} />Eliminar resaltado</button></div>)}
+            {annotations.length === 0 ? <p className="py-2 text-base text-neutral-400">{reader.noAnnotations}</p> : annotations.map((annotation) => <div key={annotation.id} className="rounded bg-onix/60 p-3"><button onClick={() => openToc(annotation.cfiRange)} className="block w-full cursor-pointer text-left hover:text-lilah"><span className="block text-base leading-relaxed">{annotation.excerpt || reader.highlightedText}</span><span className="mt-2 block text-sm text-lilah">{reader.goToLocation}</span></button>{annotation.note && <p className="mt-3 border-t border-white/10 pt-3 text-base text-sand"><span className="mr-2 text-sm uppercase text-neutral-400">{reader.note}</span>{annotation.note}</p>}<button onClick={() => removeAnnotation(annotation)} className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-neutral-400 hover:text-lilah"><Trash2Icon size={16} />{reader.deleteHighlight}</button></div>)}
           </div>}
         </aside>
       )}
@@ -673,14 +676,14 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       {bookmarkMessage && <p className="absolute left-1/2 top-16 z-50 -translate-x-1/2 rounded bg-blackamber px-3 py-2 text-sm shadow">{bookmarkMessage}</p>}
 
       {selectionMenu && <div className="fixed z-50 -translate-x-1/2 -translate-y-full rounded-lg bg-blackamber p-2 shadow-xl" style={{ left: selectionMenu.x, top: selectionMenu.y - 8 }}>
-        {noteEditorOpen ? <div className="w-64 space-y-2"><textarea value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} onKeyDown={(event) => event.stopPropagation()} autoFocus placeholder="Escribí una nota" className="min-h-20 w-full rounded bg-onix p-2 text-sm" /><div className="flex justify-end gap-2"><button onClick={() => { setNoteEditorOpen(false); setNoteDraft(""); }} className="cursor-pointer px-2 py-1 text-sm">Cancelar</button><button onClick={() => saveSelectionAnnotation(noteDraft.trim() || null)} className="cursor-pointer rounded bg-lilah px-3 py-1 text-sm text-pearl">Guardar</button></div></div> : <div className="flex items-center gap-1"><button onClick={() => saveSelectionAnnotation(null)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">Resaltar</button><button onClick={() => setNoteEditorOpen(true)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">Anotar</button></div>}
+        {noteEditorOpen ? <div className="w-64 space-y-2"><textarea value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} onKeyDown={(event) => event.stopPropagation()} autoFocus placeholder={reader.writeNote} className="min-h-20 w-full rounded bg-onix p-2 text-sm" /><div className="flex justify-end gap-2"><button onClick={() => { setNoteEditorOpen(false); setNoteDraft(""); }} className="cursor-pointer px-2 py-1 text-sm">{reader.cancel}</button><button onClick={() => saveSelectionAnnotation(noteDraft.trim() || null)} className="cursor-pointer rounded bg-lilah px-3 py-1 text-sm text-pearl">{reader.save}</button></div></div> : <div className="flex items-center gap-1"><button onClick={() => saveSelectionAnnotation(null)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">{reader.highlight}</button><button onClick={() => setNoteEditorOpen(true)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">{reader.annotate}</button></div>}
       </div>}
 
       {annotationMenu && <div className="fixed z-50 -translate-x-1/2 -translate-y-full rounded-lg bg-blackamber p-2 shadow-xl" style={{ left: annotationMenu.x, top: annotationMenu.y - 8 }}>
-        {annotationNoteEditorOpen ? <div className="w-64 space-y-2"><textarea value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} onKeyDown={(event) => event.stopPropagation()} autoFocus placeholder="Escribí una nota" className="min-h-20 w-full rounded bg-onix p-2 text-sm" /><div className="flex justify-end gap-2"><button onClick={() => setAnnotationNoteEditorOpen(false)} className="cursor-pointer px-2 py-1 text-sm">Cancelar</button><button onClick={() => saveAnnotationNote(annotationMenu.annotation)} className="cursor-pointer rounded bg-lilah px-3 py-1 text-sm text-pearl">Guardar</button></div></div> : <div className="flex items-center gap-1">
-          <button onClick={() => setAnnotationNoteEditorOpen(true)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">{annotationMenu.annotation.note ? "Editar nota" : "Anotar"}</button>
-          {annotationMenu.annotation.note && <button onClick={() => clearAnnotationNote(annotationMenu.annotation)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">Eliminar nota</button>}
-          <button onClick={() => removeAnnotation(annotationMenu.annotation)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">{annotationMenu.annotation.note ? "Eliminar ambos" : "Eliminar resaltado"}</button>
+        {annotationNoteEditorOpen ? <div className="w-64 space-y-2"><textarea value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} onKeyDown={(event) => event.stopPropagation()} autoFocus placeholder={reader.writeNote} className="min-h-20 w-full rounded bg-onix p-2 text-sm" /><div className="flex justify-end gap-2"><button onClick={() => setAnnotationNoteEditorOpen(false)} className="cursor-pointer px-2 py-1 text-sm">{reader.cancel}</button><button onClick={() => saveAnnotationNote(annotationMenu.annotation)} className="cursor-pointer rounded bg-lilah px-3 py-1 text-sm text-pearl">{reader.save}</button></div></div> : <div className="flex items-center gap-1">
+          <button onClick={() => setAnnotationNoteEditorOpen(true)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">{annotationMenu.annotation.note ? reader.editNote : reader.annotate}</button>
+          {annotationMenu.annotation.note && <button onClick={() => clearAnnotationNote(annotationMenu.annotation)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">{reader.deleteNote}</button>}
+          <button onClick={() => removeAnnotation(annotationMenu.annotation)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">{annotationMenu.annotation.note ? reader.deleteBoth : reader.deleteHighlight}</button>
         </div>}
       </div>}
 
@@ -693,15 +696,15 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
           setControlsVisible((visible) => !visible);
         }
       }}>
-        {loading && <div className="absolute inset-0 z-20 grid place-items-center bg-onix">Abriendo EPUB…</div>}
+        {loading && <div className="absolute inset-0 z-20 grid place-items-center bg-onix">{reader.opening}</div>}
         {error && <div className="absolute inset-0 z-20 grid place-items-center bg-onix p-6 text-center">{error}</div>}
         <div ref={viewerRef} className="h-full w-full" />
       </main>
 
       <footer className={`absolute inset-x-0 bottom-0 z-30 flex h-11 items-center justify-between gap-4 border-t border-white/15 bg-onix/95 px-3 transition-transform duration-200 ${controlsVisible ? "translate-y-0" : "translate-y-full pointer-events-none"}`}>
-        <button onClick={() => renditionRef.current?.prev()} title="Anterior" aria-label="Anterior" className="cursor-pointer p-2"><ChevronLeftIcon size={24} /></button>
+        <button onClick={() => renditionRef.current?.prev()} title={reader.previous} aria-label={reader.previous} className="cursor-pointer p-2"><ChevronLeftIcon size={24} /></button>
         <span className="text-sm">{Math.round(progress * 100)}%</span>
-        <button onClick={() => renditionRef.current?.next()} title="Siguiente" aria-label="Siguiente" className="cursor-pointer p-2"><ChevronRightIcon size={24} /></button>
+        <button onClick={() => renditionRef.current?.next()} title={reader.next} aria-label={reader.next} className="cursor-pointer p-2"><ChevronRightIcon size={24} /></button>
       </footer>
     </div>
   );

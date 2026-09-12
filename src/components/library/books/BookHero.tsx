@@ -19,6 +19,7 @@ interface ReadingEntry {
 }
 
 export default function BookHero({ lang, intl }: { lang: Locale; intl: Dictionary }) {
+  const books = intl.books as Record<string, string>;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [entries, setEntries] = useState<ReadingEntry[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -87,10 +88,10 @@ export default function BookHero({ lang, intl }: { lang: Locale; intl: Dictionar
             {intl.libraries.keepReading as string}
           </h2>
           <div className="flex gap-4 text-onix">
-            <button onClick={() => scrollCards("left")} className="cursor-pointer" aria-label="Previous books">
+            <button onClick={() => scrollCards("left")} className="cursor-pointer" aria-label={books.previousBooks}>
               <ChevronLeftIcon size={28} className="hover:scale-110 transition-all duration-150" />
             </button>
-            <button onClick={() => scrollCards("right")} className="cursor-pointer" aria-label="Next books">
+            <button onClick={() => scrollCards("right")} className="cursor-pointer" aria-label={books.nextBooks}>
               <ChevronRightIcon size={28} className="hover:scale-110 transition-all duration-150" />
             </button>
           </div>

@@ -20,6 +20,7 @@ interface BookVolumeContentProps {
 }
 
 export default function BookVolumeContent({ volume, lang, intl, isAdmin }: BookVolumeContentProps) {
+  const books = intl.books as Record<string, string>;
   const coverImage = getBookCoverUrl(volume.slug, volume.metadata.coverPath);
   const description = toPlainBookText(volume.metadata.description);
 
@@ -31,14 +32,14 @@ export default function BookVolumeContent({ volume, lang, intl, isAdmin }: BookV
             {coverImage ? (
               <Image
                 src={coverImage}
-                alt={`Cover for ${volume.metadata.title}`}
+                alt={`${books.coverOf} ${volume.metadata.title}`}
                 width={0}
                 height={0}
                 sizes="100vw"
                 className="w-full h-auto object-contain rounded-lg"
               />
             ) : (
-              <div className="aspect-[7/10.5] grid place-items-center rounded-lg bg-sand p-6 text-center text-onix">Sin portada</div>
+              <div className="aspect-[7/10.5] grid place-items-center rounded-lg bg-sand p-6 text-center text-onix">{books.noCover}</div>
             )}
           </div>
         </div>
@@ -48,30 +49,30 @@ export default function BookVolumeContent({ volume, lang, intl, isAdmin }: BookV
           {!volume.series.isOneshot && (
             <div className="py-2">
               <Link href={`/${lang}/books/${volume.series.slug}`} className="italic hover:underline">
-                {intl.manga.series as string} {volume.series.title}
+                {books.series} {volume.series.title}
               </Link>
             </div>
           )}
 
-          <BookReaderButton slug={volume.slug} title={volume.metadata.title} layout={volume.metadata.renditionLayout} />
+          <BookReaderButton slug={volume.slug} title={volume.metadata.title} layout={volume.metadata.renditionLayout} intl={intl} />
 
-          <BookMetadataBadges metadata={volume.metadata} />
+          <BookMetadataBadges metadata={volume.metadata} intl={intl} />
 
           <p className="mt-4">
             {getBookPublicationYear(volume.metadata.publishedAt ?? volume.metadata.modifiedAt)}
-            {volume.number !== null ? <> &bull; Libro {volume.number}</> : null}
+            {volume.number !== null ? <> &bull; {books.book} {volume.number}</> : null}
           </p>
 
           {description && (
             <>
-              <h2 className="text-sm mt-8 mb-1">{intl.manga.synopsis as string}</h2>
+              <h2 className="text-sm mt-8 mb-1">{books.synopsis}</h2>
               <BookSummary summary={description} intl={intl} />
             </>
           )}
 
           <Tabs tabs={[
-            { label: intl.manga.details as string, content: <BookMetadataPanel volume={volume} /> },
-            { label: intl.manga.readingHistory as string, content: <p className="text-neutral-400">El historial se actualiza al leer este libro.</p> },
+            { label: books.details, content: <BookMetadataPanel volume={volume} intl={intl} /> },
+            { label: books.readingHistory, content: <p className="text-neutral-400">{books.readingHistoryDescription}</p> },
           ]} />
           {isAdmin && <><Separator /><BookAdminActions type="volume" slug={volume.slug} lang={lang} intl={intl} canDownload={process.env.LIB_PROVIDER === "cloud"} /></>}
         </div>

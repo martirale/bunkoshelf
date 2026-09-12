@@ -11,7 +11,7 @@ interface BookGridProps {
 }
 
 export default function BookGrid({ books, lang, intl, progressById = {} }: BookGridProps) {
-  if (!books.length) return <p className="p-4 text-center">No hay libros indexados todavía.</p>;
+  if (!books.length) return <p className="p-4 text-center">{(intl.books as Record<string, string>).noBooksIndexed}</p>;
   return <div className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
     {books.map((book) => {
       const cover = getBookCoverUrl(book.slug, book.metadata.coverPath);

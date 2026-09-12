@@ -20,6 +20,7 @@ interface BookSeriesContentProps {
 }
 
 export default function BookSeriesContent({ volumes, lang, intl, progressById, isAdmin }: BookSeriesContentProps) {
+  const books = intl.books as Record<string, string>;
   const firstVolume = volumes[0];
   const coverImage = getBookCoverUrl(firstVolume.slug, firstVolume.metadata.coverPath);
   const meta = firstVolume.metadata;
@@ -31,30 +32,30 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
         <div className="w-full md:w-5/12 2xl:w-1/3">
           <div className="mb-8 md:mb-0 md:mr-4 px-16 md:px-0 md:sticky md:top-4 md:self-start">
             {coverImage ? (
-              <Image src={coverImage} alt={`Cover for ${firstVolume.series.title}`} width={0} height={0} sizes="100vw" className="w-full h-auto object-contain rounded-lg" />
+              <Image src={coverImage} alt={`${books.coverOf} ${firstVolume.series.title}`} width={0} height={0} sizes="100vw" className="w-full h-auto object-contain rounded-lg" />
             ) : (
-              <div className="aspect-[7/10.5] grid place-items-center rounded-lg bg-sand p-6 text-center text-onix">Sin portada</div>
+              <div className="aspect-[7/10.5] grid place-items-center rounded-lg bg-sand p-6 text-center text-onix">{books.noCover}</div>
             )}
           </div>
         </div>
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">{firstVolume.series.title}</h1>
-          <BookReaderButton slug={firstVolume.slug} title={firstVolume.metadata.title} layout={firstVolume.metadata.renditionLayout} />
-          <BookMetadataBadges metadata={meta} />
-          <p className="mt-4">{getBookPublicationYear(meta.publishedAt ?? meta.modifiedAt)} &bull; {volumes.length} {intl.manga.volumes as string}</p>
+          <BookReaderButton slug={firstVolume.slug} title={firstVolume.metadata.title} layout={firstVolume.metadata.renditionLayout} intl={intl} />
+          <BookMetadataBadges metadata={meta} intl={intl} />
+          <p className="mt-4">{getBookPublicationYear(meta.publishedAt ?? meta.modifiedAt)} &bull; {volumes.length} {books.books}</p>
           {description && (
             <>
-              <h2 className="text-sm mt-8 mb-1">{intl.manga.synopsis as string} (vol. 1)</h2>
+              <h2 className="text-sm mt-8 mb-1">{books.synopsis} ({books.book} 1)</h2>
               <BookSummary summary={description} intl={intl} />
             </>
           )}
           <Separator />
-          <BookMetadataPanel volume={firstVolume} />
+          <BookMetadataPanel volume={firstVolume} intl={intl} />
         </div>
       </section>
       <section>
         <Separator />
-        <h2>{intl.manga.seriesVolumes as string}</h2>
+        <h2>{books.seriesBooks}</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
           {volumes.map((volume) => (
             <MangaCard

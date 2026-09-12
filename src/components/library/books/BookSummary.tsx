@@ -11,6 +11,7 @@ interface BookSummaryProps {
 
 export default function BookSummary({ summary, intl }: BookSummaryProps) {
   const [expanded, setExpanded] = useState(false);
+  const books = intl.books as Record<string, string>;
 
   return (
     <div className="max-w-2xl">
@@ -22,7 +23,7 @@ export default function BookSummary({ summary, intl }: BookSummaryProps) {
           onClick={() => setExpanded((current) => !current)}
           className="mt-2 flex cursor-pointer items-center gap-1 text-sm uppercase text-neutral-600 underline"
         >
-          {expanded ? <>{intl.manga.showLess as string} <ChevronUpIcon size={16} /></> : <>{intl.manga.showMore as string} <ChevronDownIcon size={16} /></>}
+          {expanded ? <>{books.showLess} <ChevronUpIcon size={16} /></> : <>{books.showMore} <ChevronDownIcon size={16} /></>}
         </button>
       </div>
     </div>
