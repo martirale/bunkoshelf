@@ -26,6 +26,7 @@ interface MangaCardProps {
   progressRatio?: number | null;
   offlineVolumeId?: string | null;
   offlineSeriesId?: string | null;
+  imageSizes?: string;
 }
 
 export default function MangaCard({
@@ -45,6 +46,7 @@ export default function MangaCard({
   progressRatio,
   offlineVolumeId,
   offlineSeriesId,
+  imageSizes,
 }: MangaCardProps) {
   const t = intl;
   const ratio = progressRatio ?? 0;
@@ -123,7 +125,7 @@ export default function MangaCard({
             src={cover || "/placeholder.svg?=v1"}
             alt={`Cover for ${title ?? ""}`}
             fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 20vw, 14vw"
+            sizes={imageSizes ?? "(max-width: 768px) 50vw, (max-width: 1280px) 20vw, 14vw"}
             className="object-cover z-0"
           />
         )}

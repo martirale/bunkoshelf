@@ -77,6 +77,7 @@ export default function HeroKeepRead({
             offlineVolumeId={entry.id}
             intl={intl}
             isDragging={false}
+            imageSizes="(max-width: 767px) calc(100vw - 6rem), (max-width: 1535px) 50vw, 30vw"
             className="font-roboto font-bold leading-5 2xl:leading-6 text-xl 2xl:text-2xl"
           />
         ) : (
