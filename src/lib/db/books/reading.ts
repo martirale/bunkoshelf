@@ -21,7 +21,10 @@ export interface BookAnnotation { id: string; cfiRange: string; excerpt: string 
 export interface BookReadingEntry { id: string; readAt: string; }
 export interface BookReaderPreferences { theme: "light" | "sepia" | "dark"; flow: "paginated" | "scrolled-continuous"; fontFamily: "serif" | "sans"; fontSize: number; lineHeight: number; margin: number; columnWidth: number; }
 
-type BookProgressUpdate = Partial<Omit<BookProgress, "id" | "userId" | "volumeId">> & { readingDate?: string };
+type BookProgressUpdate = Partial<Omit<BookProgress, "id" | "userId" | "volumeId">> & {
+  readingDate?: string;
+  skipReadingEntry?: boolean;
+};
 
 function mapProgress(row: Record<string, unknown>): BookProgress {
   return { id: row.id as string, userId: row.user_id as string, volumeId: row.volume_id as string,
@@ -61,7 +64,7 @@ export async function upsertBookProgress(userId: string, volumeId: string, input
       lastReadAt,
       completedAt]);
   if (!row) throw new Error("Failed to update book progress");
-  if (completedNow) {
+  if (completedNow && !input.skipReadingEntry) {
     await execute("INSERT INTO book_reading_entries (id, user_id, volume_id, read_at) VALUES ($1,$2,$3,$4)", [createId(), userId, volumeId, readingDate!]);
   }
   if (readingDate && (input.lastReadAt || completedNow)) {
@@ -77,6 +80,31 @@ export async function listBookReadingEntries(userId: string, volumeId: string): 
     FROM book_reading_entries
     WHERE user_id = $1 AND volume_id = $2
     ORDER BY created_at DESC`, [userId, volumeId]);
+}
+
+export async function createBookReadingEntryRecord(userId: string, volumeId: string, readAt: string): Promise<BookReadingEntry | null> {
+  return queryOne<BookReadingEntry>(`INSERT INTO book_reading_entries (id,user_id,volume_id,read_at)
+    VALUES ($1,$2,$3,$4) RETURNING id,read_at AS "readAt"`, [createId(), userId, volumeId, readAt]);
+}
+
+export async function findBookReadingEntryById(entryId: string): Promise<{ id: string; userId: string; volumeId: string; readAt: string } | null> {
+  return queryOne<{ id: string; userId: string; volumeId: string; readAt: string }>(`SELECT id,user_id AS "userId",volume_id AS "volumeId",read_at AS "readAt"
+    FROM book_reading_entries WHERE id=$1 LIMIT 1`, [entryId]);
+}
+
+export async function updateBookReadingEntryRecord(entryId: string, readAt: string): Promise<BookReadingEntry | null> {
+  return queryOne<BookReadingEntry>(`UPDATE book_reading_entries SET read_at=$2 WHERE id=$1
+    RETURNING id,read_at AS "readAt"`, [entryId, readAt]);
+}
+
+export async function deleteBookReadingEntryRecord(entryId: string): Promise<void> {
+  await execute("DELETE FROM book_reading_entries WHERE id=$1", [entryId]);
+}
+
+export async function findOldestBookReadingEntryDate(userId: string, volumeId: string): Promise<string | null> {
+  const row = await queryOne<{ read_at: string }>(`SELECT read_at FROM book_reading_entries
+    WHERE user_id=$1 AND volume_id=$2 ORDER BY read_at ASC LIMIT 1`, [userId, volumeId]);
+  return row?.read_at ?? null;
 }
 
 export async function findBookSeriesFavorite(userId: string, seriesId: string): Promise<boolean> {
