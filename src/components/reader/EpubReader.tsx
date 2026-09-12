@@ -328,7 +328,10 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           }
 
           let touchStart: { x: number; y: number } | null = null;
+          let activePointerId: number | null = null;
           let ignoreClickUntil = 0;
+          document.documentElement.style.touchAction = "manipulation";
+          body.style.touchAction = "manipulation";
           const isInteractiveTarget = (target: EventTarget | null) => {
             return Boolean((target as HTMLElement | null)?.closest?.("a, button, input, select, textarea, [contenteditable='true']"));
           };
@@ -340,7 +343,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
             setNoteEditorOpen(false);
             setAnnotationNoteEditorOpen(false);
           };
-          const handleContentInteraction = (event: MouseEvent, x: number, y: number, navigate = false) => {
+          const handleContentInteraction = (event: Event, x: number, y: number, navigate = false) => {
             if (hasTextSelection() || pendingSelectionRef.current || isInteractiveTarget(event.target)) return;
             const annotation = findAnnotationAtPoint(contents, x, y);
             if (annotation) {
@@ -370,6 +373,34 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
             }
             handleContentInteraction(event, event.clientX, event.clientY);
           };
+          const handleTouchGesture = (event: Event, x: number, y: number) => {
+            const start = touchStart;
+            touchStart = null;
+            if (!start || hasTextSelection() || isInteractiveTarget(event.target)) return;
+
+            const deltaX = x - start.x;
+            const deltaY = y - start.y;
+            const distanceX = Math.abs(deltaX);
+            const distanceY = Math.abs(deltaY);
+
+            if (distanceX > 48 && distanceX > distanceY) {
+              if (event.cancelable) event.preventDefault();
+              event.stopPropagation();
+              ignoreClickUntil = Date.now() + 500;
+              clearReaderOverlays();
+              void (deltaX < 0 ? rendition.next() : rendition.prev());
+              return;
+            }
+
+            if (distanceX > 18 || distanceY > 18) {
+              ignoreClickUntil = Date.now() + 500;
+              return;
+            }
+
+            if (event.cancelable) event.preventDefault();
+            ignoreClickUntil = Date.now() + 500;
+            handleContentInteraction(event, x, y, true);
+          };
           const handleTouchStart = (event: TouchEvent) => {
             if (event.touches.length !== 1) {
               touchStart = null;
@@ -380,34 +411,25 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           };
           const handleTouchEnd = (event: TouchEvent) => {
             const touch = event.changedTouches[0];
-            const start = touchStart;
-            touchStart = null;
-            if (!touch || !start || hasTextSelection() || isInteractiveTarget(event.target)) return;
-
-            const deltaX = touch.clientX - start.x;
-            const deltaY = touch.clientY - start.y;
-            const distanceX = Math.abs(deltaX);
-            const distanceY = Math.abs(deltaY);
-
-            if (distanceX > 36 && distanceX > distanceY) {
-              event.preventDefault();
-              event.stopPropagation();
-              ignoreClickUntil = Date.now() + 450;
-              clearReaderOverlays();
-              void (deltaX < 0 ? rendition.next() : rendition.prev());
-              return;
-            }
-
-            if (distanceX > 12 || distanceY > 12) {
-              ignoreClickUntil = Date.now() + 450;
-              return;
-            }
-
-            event.preventDefault();
-            ignoreClickUntil = Date.now() + 450;
-            handleContentInteraction(event as unknown as MouseEvent, touch.clientX, touch.clientY, true);
+            if (!touch) return;
+            handleTouchGesture(event, touch.clientX, touch.clientY);
           };
-          document.addEventListener("click", handleContentClick);
+          const handlePointerDown = (event: PointerEvent) => {
+            if (!event.isPrimary || event.pointerType === "mouse") return;
+            activePointerId = event.pointerId;
+            touchStart = { x: event.clientX, y: event.clientY };
+          };
+          const handlePointerUp = (event: PointerEvent) => {
+            if (event.pointerId !== activePointerId) return;
+            activePointerId = null;
+            handleTouchGesture(event, event.clientX, event.clientY);
+          };
+          const resetTouchGesture = () => {
+            touchStart = null;
+            activePointerId = null;
+            pointerIsDownRef.current = false;
+          };
+          document.addEventListener("click", handleContentClick, true);
           document.addEventListener("keydown", (event) => readerKeyHandlerRef.current(event));
           const showPendingSelection = () => {
             window.setTimeout(() => {
@@ -444,14 +466,22 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           flushPendingSelectionRef.current = showPendingSelection;
           const markPointerDown = () => { pointerIsDownRef.current = true; };
           const markPointerUp = () => { pointerIsDownRef.current = false; showPendingSelection(); };
-          document.addEventListener("mousedown", markPointerDown);
-          document.addEventListener("touchstart", markPointerDown);
-          document.addEventListener("mouseup", showPendingSelection);
-          document.addEventListener("touchend", showPendingSelection);
-          document.addEventListener("pointerup", markPointerUp);
-          document.addEventListener("touchstart", handleTouchStart, { passive: true });
-          document.addEventListener("touchend", handleTouchEnd, { passive: false });
-          document.addEventListener("touchcancel", () => { touchStart = null; });
+          const supportsPointerEvents = "PointerEvent" in contents.window;
+          if (supportsPointerEvents) {
+            document.addEventListener("pointerdown", markPointerDown, true);
+            document.addEventListener("pointerup", markPointerUp, true);
+            document.addEventListener("pointerdown", handlePointerDown, true);
+            document.addEventListener("pointerup", handlePointerUp, true);
+            document.addEventListener("pointercancel", resetTouchGesture, true);
+          } else {
+            document.addEventListener("mousedown", markPointerDown, true);
+            document.addEventListener("touchstart", markPointerDown, true);
+            document.addEventListener("mouseup", markPointerUp, true);
+            document.addEventListener("touchend", markPointerUp, true);
+            document.addEventListener("touchstart", handleTouchStart, { passive: true, capture: true });
+            document.addEventListener("touchend", handleTouchEnd, { passive: false, capture: true });
+            document.addEventListener("touchcancel", resetTouchGesture, true);
+          }
         });
         if (layout === "reflowable") applyStyles();
         const refreshAnnotationLayers = () => {
