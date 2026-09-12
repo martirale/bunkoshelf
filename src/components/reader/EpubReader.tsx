@@ -63,6 +63,7 @@ async function getBookBuffer(slug: string): Promise<ArrayBuffer> {
 
 export default function EpubReader({ isOpen, onClose, slug, title, layout }: EpubReaderProps) {
   const viewerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const tocPanelRef = useRef<HTMLElement>(null);
   const settingsPanelRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<any>(null);
@@ -468,7 +469,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
     if (!isOpen || (!showSettings && !showToc)) return;
     const closeOnOutsidePointer = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (settingsPanelRef.current?.contains(target) || tocPanelRef.current?.contains(target)) return;
+      if (headerRef.current?.contains(target) || settingsPanelRef.current?.contains(target) || tocPanelRef.current?.contains(target)) return;
       closePanels();
     };
     document.addEventListener("pointerdown", closeOnOutsidePointer);
@@ -626,7 +627,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-onix text-sand">
-      <header className={`absolute inset-x-0 top-0 z-30 flex h-12 items-center justify-between gap-3 border-b border-white/15 bg-onix/95 px-3 transition-transform duration-200 ${controlsVisible ? "translate-y-0" : "-translate-y-full pointer-events-none"}`}>
+      <header ref={headerRef} className={`absolute inset-x-0 top-0 z-30 flex h-12 items-center justify-between gap-3 border-b border-white/15 bg-onix/95 px-3 transition-transform duration-200 ${controlsVisible ? "translate-y-0" : "-translate-y-full pointer-events-none"}`}>
         <span className="min-w-0 truncate font-semibold">{title}</span>
         <div className="flex items-center gap-1">
           <button onClick={() => togglePanel("toc")} title="Índice" aria-label="Índice" className="cursor-pointer p-2"><MenuIcon size={24} /></button>
