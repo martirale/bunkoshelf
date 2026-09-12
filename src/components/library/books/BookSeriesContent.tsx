@@ -9,7 +9,7 @@ import BookMetadataBadges from "./BookMetadataBadges";
 import BookAdminActions from "./BookAdminActions";
 import BookSummary from "./BookSummary";
 import { getBookCoverUrl } from "@/lib/books/cover";
-import { getBookPublicationYear, toPlainBookText } from "@/lib/books/metadata";
+import { getBookAgeMinimum, getBookPublicationYear, normalizeBookAgeRating, toPlainBookText, type BookAgeRating } from "@/lib/books/metadata";
 import { getBookProgressRatio } from "@/lib/books/readingProgress";
 import type { BookVolume } from "@/lib/db/books/library";
 import type { Dictionary, Locale } from "@/lib/types";
@@ -30,6 +30,12 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
   const coverImage = getBookCoverUrl(firstVolume.slug, firstVolume.metadata.coverPath);
   const meta = firstVolume.metadata;
   const description = toPlainBookText(meta.description);
+  const ageRating = volumes.reduce<BookAgeRating | null>((highest, volume) => {
+    const current = normalizeBookAgeRating(volume.metadata.ageRating);
+    if (!current) return highest;
+    if (!highest || getBookAgeMinimum(current)! > getBookAgeMinimum(highest)!) return current;
+    return highest;
+  }, null);
 
   return (
     <div className="p-4">
@@ -52,7 +58,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
           <div className="mt-8">
             <BookSeriesRating rating={averageRating} />
           </div>
-          <BookMetadataBadges metadata={meta} intl={intl} />
+          <BookMetadataBadges metadata={{ ...meta, ageRating }} intl={intl} />
           <p className="mt-4">{getBookPublicationYear(meta.publishedAt ?? meta.modifiedAt)} &bull; {volumes.length} {books.books}</p>
           {description && (
             <>
