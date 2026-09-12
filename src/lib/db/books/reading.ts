@@ -94,6 +94,12 @@ export async function deleteBookAnnotation(userId: string, annotationId: string)
   await execute("DELETE FROM book_annotations WHERE id=$1 AND user_id=$2", [annotationId, userId]);
 }
 
+export async function updateBookAnnotationNote(userId: string, annotationId: string, note: string | null): Promise<BookAnnotation | null> {
+  return queryOne<BookAnnotation>(`UPDATE book_annotations SET note=$3, updated_at=NOW()
+    WHERE id=$1 AND user_id=$2
+    RETURNING id,cfi_range AS "cfiRange",excerpt,note,color,created_at AS "createdAt"`, [annotationId, userId, note]);
+}
+
 export async function getBookReaderPreferences(userId: string): Promise<BookReaderPreferences | null> {
   const row = await queryOne<{ theme: BookReaderPreferences["theme"]; flow: BookReaderPreferences["flow"]; font_family: BookReaderPreferences["fontFamily"]; font_size: number; line_height: number; margin: number; column_width: number }>(
     "SELECT theme,flow,font_family,font_size,line_height,margin,column_width FROM user_book_reader_preferences WHERE user_id=$1", [userId]);

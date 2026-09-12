@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import { findBookVolumeBySlug } from "@/lib/db/books/library";
-import { createBookAnnotation, deleteBookAnnotation, listBookAnnotations } from "@/lib/db/books/reading";
+import { createBookAnnotation, deleteBookAnnotation, listBookAnnotations, updateBookAnnotationNote } from "@/lib/db/books/reading";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const user = await verifySession();
@@ -19,7 +19,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   if (!volume || !body.cfiRange) return NextResponse.json({ error: "Invalid annotation" }, { status: 400 });
   return NextResponse.json(await createBookAnnotation(user.id, volume.id, {
     cfiRange: body.cfiRange, excerpt: body.excerpt ?? null, note: body.note ?? null,
-    color: ["yellow", "green", "blue", "pink"].includes(body.color ?? "") ? body.color! : "yellow",
+    color: ["lilah", "yellow", "green", "blue", "pink"].includes(body.color ?? "") ? body.color! : "lilah",
   }));
 }
 
@@ -30,4 +30,16 @@ export async function DELETE(request: Request) {
   if (!id) return NextResponse.json({ error: "Missing annotation id" }, { status: 400 });
   await deleteBookAnnotation(user.id, id);
   return new NextResponse(null, { status: 204 });
+}
+
+export async function PATCH(request: Request) {
+  const user = await verifySession();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await request.json() as { id?: string; note?: string | null };
+  if (!body.id || (body.note !== null && typeof body.note !== "string")) {
+    return NextResponse.json({ error: "Invalid annotation" }, { status: 400 });
+  }
+  const annotation = await updateBookAnnotationNote(user.id, body.id, body.note || null);
+  if (!annotation) return NextResponse.json({ error: "Annotation not found" }, { status: 404 });
+  return NextResponse.json(annotation);
 }

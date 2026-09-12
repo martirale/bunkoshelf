@@ -9,6 +9,7 @@ import {
   Minimize2Icon,
   SearchIcon,
   Settings2Icon,
+  Trash2Icon,
 } from "lucide-react";
 
 type ReaderTheme = "light" | "sepia" | "dark";
@@ -16,8 +17,16 @@ type ReaderFlow = "paginated" | "scrolled-continuous";
 type TocEntry = { label: string; href: string; subitems?: TocEntry[] };
 type ReaderState = {
   progress: { cfi?: string | null; progression?: number | null } | null;
-  bookmarks: Array<{ cfi: string }>;
-  annotations: Array<{ cfiRange: string }>;
+  bookmarks: Array<{ id: string; cfi: string; label: string | null; chapterLabel: string | null }>;
+  annotations: Array<{ id: string; cfiRange: string; excerpt: string | null; note: string | null; color: string }>;
+};
+type SelectionMenu = { cfiRange: string; excerpt: string; x: number; y: number };
+type AnnotationMenu = { annotation: ReaderState["annotations"][number]; x: number; y: number };
+
+const highlightStyles = {
+  fill: "#8a6fdc",
+  "fill-opacity": "0.26",
+  "mix-blend-mode": "multiply",
 };
 
 interface EpubReaderProps {
@@ -58,6 +67,11 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
   const settingsPanelRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<any>(null);
   const renditionRef = useRef<any>(null);
+  const annotationsRef = useRef<ReaderState["annotations"]>([]);
+  const pendingSelectionRef = useRef<{ cfiRange: string; contents: any } | null>(null);
+  const flushPendingSelectionRef = useRef<() => void>(() => undefined);
+  const readerKeyHandlerRef = useRef<(event: KeyboardEvent) => void>(() => undefined);
+  const pointerIsDownRef = useRef(false);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const flowRef = useRef<ReaderFlow>("paginated");
   const hideControlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -78,9 +92,31 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
   const [showToc, setShowToc] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [bookmarkCfis, setBookmarkCfis] = useState<string[]>([]);
+  const [bookmarks, setBookmarks] = useState<ReaderState["bookmarks"]>([]);
+  const [annotations, setAnnotations] = useState<ReaderState["annotations"]>([]);
   const [bookmarkMessage, setBookmarkMessage] = useState<string | null>(null);
+  const [selectionMenu, setSelectionMenu] = useState<SelectionMenu | null>(null);
+  const [annotationMenu, setAnnotationMenu] = useState<AnnotationMenu | null>(null);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [noteEditorOpen, setNoteEditorOpen] = useState(false);
+  const [annotationNoteEditorOpen, setAnnotationNoteEditorOpen] = useState(false);
+  const [tocTab, setTocTab] = useState<"contents" | "bookmarks" | "annotations">("contents");
   const [search, setSearch] = useState("");
   const [matches, setMatches] = useState<Array<{ label: string; cfi: string }>>([]);
+
+  useEffect(() => {
+    annotationsRef.current = annotations;
+  }, [annotations]);
+
+  useEffect(() => {
+    if (isOpen) return;
+    pendingSelectionRef.current = null;
+    setSelectionMenu(null);
+    setAnnotationMenu(null);
+    setNoteEditorOpen(false);
+    setAnnotationNoteEditorOpen(false);
+    setNoteDraft("");
+  }, [isOpen]);
 
   const revealControls = useCallback(() => {
     setControlsVisible(true);
@@ -89,6 +125,53 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
   const closePanels = useCallback(() => {
     setShowSettings(false);
     setShowToc(false);
+  }, []);
+
+  const closeReader = useCallback(() => {
+    pendingSelectionRef.current = null;
+    setSelectionMenu(null);
+    setAnnotationMenu(null);
+    setNoteEditorOpen(false);
+    setAnnotationNoteEditorOpen(false);
+    setNoteDraft("");
+    closePanels();
+    onClose();
+  }, [closePanels, onClose]);
+
+  const openAnnotationMenu = useCallback((annotation: ReaderState["annotations"][number], cfiRange: string, contents: any) => {
+    const range = contents.range?.(cfiRange);
+    const rangeRect = range?.getBoundingClientRect();
+    const frameRect = contents.window?.frameElement?.getBoundingClientRect();
+    setSelectionMenu(null);
+    setNoteEditorOpen(false);
+    setAnnotationNoteEditorOpen(false);
+    setNoteDraft(annotation.note || "");
+    setAnnotationMenu({
+      annotation,
+      x: (frameRect?.left ?? 0) + (rangeRect?.left ?? 0) + (rangeRect?.width ?? 0) / 2,
+      y: (frameRect?.top ?? 0) + (rangeRect?.top ?? 0),
+    });
+    setControlsVisible(true);
+  }, []);
+
+  const renderAnnotation = useCallback((rendition: any, annotation: ReaderState["annotations"][number]) => {
+    rendition.annotations.highlight(
+      annotation.cfiRange,
+      { id: annotation.id },
+      undefined,
+      "bunko-highlight",
+      highlightStyles,
+    );
+  }, []);
+
+  const findAnnotationAtPoint = useCallback((contents: any, x: number, y: number) => {
+    return annotationsRef.current.find((annotation) => {
+      const range = contents.range?.(annotation.cfiRange);
+      const rects = range?.getClientRects?.() as DOMRectList | undefined;
+      return Array.from(rects ?? []).some((rect) => (
+        x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
+      ));
+    });
   }, []);
 
   const persistProgress = useCallback(async (location: any) => {
@@ -230,31 +313,92 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
             });
           }
 
-          document.addEventListener("click", () => {
+          const handleContentInteraction = (event: MouseEvent | TouchEvent) => {
+            const touch = (event as TouchEvent).changedTouches?.[0] ?? null;
+            const x = touch ? touch.clientX : (event as MouseEvent).clientX;
+            const y = touch ? touch.clientY : (event as MouseEvent).clientY;
+            const annotation = findAnnotationAtPoint(contents, x, y);
+            if (annotation) {
+              event.preventDefault();
+              event.stopPropagation();
+              openAnnotationMenu(annotation, annotation.cfiRange, contents);
+              return;
+            }
+            if (pendingSelectionRef.current) return;
             closePanels();
+            setSelectionMenu(null);
+            setAnnotationMenu(null);
             setControlsVisible((visible) => !visible);
-          });
+          };
+          document.addEventListener("click", handleContentInteraction);
+          document.addEventListener("keydown", (event) => readerKeyHandlerRef.current(event));
+          const showPendingSelection = () => {
+            window.setTimeout(() => {
+              const pending = pendingSelectionRef.current;
+              if (!pending || pending.contents !== contents) return;
+              const selection = contents.window.getSelection();
+              const excerpt = selection?.toString().trim();
+              if (!excerpt) {
+                pendingSelectionRef.current = null;
+                return;
+              }
+              const range = selection.rangeCount ? selection.getRangeAt(0) : null;
+              const selectionRect = range?.getBoundingClientRect();
+              const frameRect = contents.window.frameElement?.getBoundingClientRect();
+              const x = (frameRect?.left ?? 0) + (selectionRect?.left ?? 0) + (selectionRect?.width ?? 0) / 2;
+              const y = (frameRect?.top ?? 0) + (selectionRect?.top ?? 0);
+              const existing = annotationsRef.current.find((annotation) => annotation.cfiRange === pending.cfiRange);
+              pendingSelectionRef.current = null;
+              if (existing) {
+                setSelectionMenu(null);
+                setNoteEditorOpen(false);
+                setAnnotationMenu({ annotation: existing, x, y });
+              } else {
+                setAnnotationMenu(null);
+                setNoteEditorOpen(false);
+                setAnnotationNoteEditorOpen(false);
+                setNoteDraft("");
+                setSelectionMenu({ cfiRange: pending.cfiRange, excerpt, x, y });
+              }
+              setControlsVisible(true);
+              selection?.removeAllRanges();
+            }, 0);
+          };
+          flushPendingSelectionRef.current = showPendingSelection;
+          const markPointerDown = () => { pointerIsDownRef.current = true; };
+          const markPointerUp = () => { pointerIsDownRef.current = false; showPendingSelection(); };
+          document.addEventListener("mousedown", markPointerDown);
+          document.addEventListener("touchstart", markPointerDown);
+          document.addEventListener("mouseup", showPendingSelection);
+          document.addEventListener("touchend", showPendingSelection);
+          document.addEventListener("pointerup", markPointerUp);
         });
         if (layout === "reflowable") applyStyles();
-        rendition.on("relocated", persistProgress);
-        rendition.on("selected", async (cfiRange: string, contents: any) => {
-          const excerpt = contents.window.getSelection()?.toString().trim();
-          if (!excerpt) return;
-          const note = window.prompt("Nota para el resaltado (opcional):") ?? "";
-          const created = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/annotations`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cfiRange, excerpt, note, color: "yellow" }),
-          });
-          if (created.ok) rendition.annotations.highlight(cfiRange, {}, () => {}, "bunko-highlight", { fill: "#facc15", "fill-opacity": "0.45" });
-          contents.window.getSelection()?.removeAllRanges();
+        const refreshAnnotationLayers = () => {
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (cancelled) return;
+            rendition.views().forEach((view: any) => view.pane?.render?.());
+          }));
+        };
+        rendition.on("rendered", refreshAnnotationLayers);
+        rendition.on("relocated", (location: any) => {
+          void persistProgress(location);
+          refreshAnnotationLayers();
+        });
+        rendition.on("selected", (cfiRange: string, contents: any) => {
+          pendingSelectionRef.current = { cfiRange, contents };
+          if (!pointerIsDownRef.current) window.setTimeout(() => flushPendingSelectionRef.current(), 0);
         });
 
         setBookmarkCfis(state.bookmarks.map((bookmark) => bookmark.cfi));
-        for (const annotation of state.annotations) {
-          rendition.annotations.highlight(annotation.cfiRange, {}, () => {}, "bunko-highlight", { fill: "#facc15", "fill-opacity": "0.45" });
-        }
+        setBookmarks(state.bookmarks);
+        setAnnotations(state.annotations);
+        annotationsRef.current = state.annotations;
         await rendition.display(state.progress?.cfi ?? undefined);
+        await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+        if (cancelled) return;
+        for (const annotation of state.annotations) renderAnnotation(rendition, annotation);
+        refreshAnnotationLayers();
         const currentCfi = rendition.currentLocation?.()?.start?.cfi;
         if (currentCfi) setCfi(currentCfi);
         setProgress(state.progress?.progression ?? 0);
@@ -283,7 +427,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       bookRef.current?.destroy();
       bookRef.current = null;
     };
-  }, [applyStyles, closePanels, isOpen, layout, persistProgress, slug]);
+  }, [applyStyles, closePanels, findAnnotationAtPoint, isOpen, layout, openAnnotationMenu, persistProgress, renderAnnotation, slug]);
 
   useEffect(() => {
     if (!isOpen || !("wakeLock" in navigator)) return;
@@ -291,22 +435,34 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
     return () => { wakeLockRef.current?.release(); wakeLockRef.current = null; };
   }, [isOpen]);
 
+  const handleReaderKey = useCallback((event: KeyboardEvent) => {
+    if (!isOpen) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      if (showSettings || showToc) closePanels();
+      else closeReader();
+      return;
+    }
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      void renditionRef.current?.prev();
+    }
+    if (event.key === "ArrowRight" || event.key === " ") {
+      event.preventDefault();
+      void renditionRef.current?.next();
+    }
+  }, [closePanels, closeReader, isOpen, showSettings, showToc]);
+
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (!isOpen) return;
-      if (event.key === "Escape") {
-        if (showSettings || showToc) closePanels();
-        else onClose();
-      }
-      if (event.key === "ArrowLeft") renditionRef.current?.prev();
-      if (event.key === "ArrowRight" || event.key === " ") {
-        event.preventDefault();
-        renditionRef.current?.next();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closePanels, isOpen, onClose, showSettings, showToc]);
+    readerKeyHandlerRef.current = handleReaderKey;
+  }, [handleReaderKey]);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleReaderKey);
+    return () => window.removeEventListener("keydown", handleReaderKey);
+  }, [handleReaderKey]);
 
   useEffect(() => {
     if (!isOpen || (!showSettings && !showToc)) return;
@@ -324,14 +480,28 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
     setShowToc(false);
   };
 
-  const addBookmark = async () => {
+  const removeBookmark = async (bookmark: ReaderState["bookmarks"][number]) => {
+    const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/bookmarks?id=${encodeURIComponent(bookmark.id)}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      setBookmarkMessage("No fue posible eliminar el marcador.");
+      return;
+    }
+    setBookmarks((current) => current.filter((item) => item.id !== bookmark.id));
+    setBookmarkCfis((current) => current.filter((item) => item !== bookmark.cfi));
+    setBookmarkMessage("Marcador eliminado.");
+  };
+
+  const toggleBookmark = async () => {
     const currentCfi = cfi ?? renditionRef.current?.currentLocation?.()?.start?.cfi;
     if (!currentCfi) {
       setBookmarkMessage("Todavía no hay una ubicación para marcar.");
       return;
     }
-    if (bookmarkCfis.includes(currentCfi)) {
-      setBookmarkMessage("Esta página ya está marcada.");
+    const existing = bookmarks.find((bookmark) => bookmark.cfi === currentCfi);
+    if (existing) {
+      await removeBookmark(existing);
       return;
     }
     const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/bookmarks`, {
@@ -340,11 +510,87 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
       body: JSON.stringify({ cfi: currentCfi, label: title }),
     });
     if (response.ok) {
+      const bookmark = await response.json() as ReaderState["bookmarks"][number];
       setBookmarkCfis((current) => [...current, currentCfi]);
+      setBookmarks((current) => [...current, bookmark]);
       setBookmarkMessage("Marcador guardado.");
     } else {
       setBookmarkMessage("No fue posible guardar el marcador.");
     }
+  };
+
+  const removeAnnotation = async (annotation: ReaderState["annotations"][number]) => {
+    const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/annotations?id=${encodeURIComponent(annotation.id)}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      setBookmarkMessage("No fue posible eliminar el resaltado.");
+      return;
+    }
+    renditionRef.current?.annotations.remove(annotation.cfiRange, "highlight");
+    setAnnotations((current) => current.filter((item) => item.id !== annotation.id));
+    setAnnotationMenu(null);
+    setAnnotationNoteEditorOpen(false);
+    setBookmarkMessage("Resaltado eliminado.");
+  };
+
+  const saveSelectionAnnotation = async (note: string | null) => {
+    if (!selectionMenu) return;
+    const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/annotations`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cfiRange: selectionMenu.cfiRange,
+        excerpt: selectionMenu.excerpt,
+        note,
+        color: "lilah",
+      }),
+    });
+    if (!response.ok) {
+      setBookmarkMessage("No fue posible guardar el resaltado.");
+      return;
+    }
+    const annotation = await response.json() as ReaderState["annotations"][number];
+    setAnnotations((current) => [...current, annotation]);
+    renderAnnotation(renditionRef.current, annotation);
+    setSelectionMenu(null);
+    setNoteEditorOpen(false);
+    setBookmarkMessage(note ? "Nota guardada." : "Resaltado guardado.");
+  };
+
+  const clearAnnotationNote = async (annotation: ReaderState["annotations"][number]) => {
+    const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/annotations`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: annotation.id, note: null }),
+    });
+    if (!response.ok) {
+      setBookmarkMessage("No fue posible eliminar la nota.");
+      return;
+    }
+    const updated = await response.json() as ReaderState["annotations"][number];
+    setAnnotations((current) => current.map((item) => item.id === updated.id ? updated : item));
+    setAnnotationMenu((current) => current ? { ...current, annotation: updated } : null);
+    setBookmarkMessage("Nota eliminada.");
+  };
+
+  const saveAnnotationNote = async (annotation: ReaderState["annotations"][number]) => {
+    const note = noteDraft.trim();
+    if (!note) return;
+    const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/annotations`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: annotation.id, note }),
+    });
+    if (!response.ok) {
+      setBookmarkMessage("No fue posible guardar la nota.");
+      return;
+    }
+    const updated = await response.json() as ReaderState["annotations"][number];
+    setAnnotations((current) => current.map((item) => item.id === updated.id ? updated : item));
+    setAnnotationMenu((current) => current ? { ...current, annotation: updated } : null);
+    setAnnotationNoteEditorOpen(false);
+    setBookmarkMessage("Nota guardada.");
   };
 
   const runSearch = async () => {
@@ -362,6 +608,10 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
 
   const togglePanel = (panel: "toc" | "settings") => {
     revealControls();
+    setSelectionMenu(null);
+    setAnnotationMenu(null);
+    setNoteEditorOpen(false);
+    setAnnotationNoteEditorOpen(false);
     if (panel === "toc") {
       setShowToc((visible) => !visible);
       setShowSettings(false);
@@ -380,9 +630,9 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
         <span className="min-w-0 truncate font-semibold">{title}</span>
         <div className="flex items-center gap-1">
           <button onClick={() => togglePanel("toc")} title="Índice" aria-label="Índice" className="cursor-pointer p-2"><MenuIcon size={24} /></button>
-          <button onClick={addBookmark} title="Agregar marcador" aria-label="Agregar marcador" className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
+          <button onClick={toggleBookmark} title={isBookmarked ? "Eliminar marcador" : "Agregar marcador"} aria-label={isBookmarked ? "Eliminar marcador" : "Agregar marcador"} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
           {layout === "reflowable" && <button onClick={() => togglePanel("settings")} title="Ajustes de lectura" aria-label="Ajustes de lectura" className="cursor-pointer p-2"><Settings2Icon size={24} /></button>}
-          <button onClick={onClose} title="Cerrar lector" aria-label="Cerrar lector" className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
+          <button onClick={closeReader} title="Cerrar lector" aria-label="Cerrar lector" className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
         </div>
       </header>
 
@@ -402,17 +652,43 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout }: Epu
 
       {showToc && (
         <aside ref={tocPanelRef} className="absolute bottom-0 left-0 top-12 z-40 w-[min(24rem,calc(100vw-1.5rem))] overflow-y-auto bg-blackamber p-5 shadow-xl">
-          <div className="mb-4 flex gap-2"><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && runSearch()} placeholder="Buscar en el libro" className="min-w-0 flex-1 rounded bg-onix px-3 py-2 text-base" /><button onClick={runSearch} className="cursor-pointer rounded bg-lilah p-2 text-onix"><SearchIcon size={20} /></button></div>
-          {matches.map((match) => <button key={match.cfi} onClick={() => openToc(match.cfi)} className="block w-full cursor-pointer py-2 text-left text-base hover:text-lilah">{match.label}</button>)}
-          {toc.map((entry) => <button key={entry.href} onClick={() => openToc(entry.href)} className="block w-full cursor-pointer py-2 text-left text-base hover:text-lilah">{entry.label}</button>)}
+          <div className="mb-4 flex gap-2 border-b border-white/15">
+            <button onClick={() => setTocTab("contents")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "contents" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>Contenido</button>
+            <button onClick={() => setTocTab("bookmarks")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "bookmarks" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>Marcadores {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</button>
+            <button onClick={() => setTocTab("annotations")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "annotations" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>Notas {annotations.length > 0 ? `(${annotations.length})` : ""}</button>
+          </div>
+          {tocTab === "contents" ? <>
+            <div className="mb-4 flex gap-2"><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && runSearch()} placeholder="Buscar en el libro" className="min-w-0 flex-1 rounded bg-onix px-3 py-2 text-base" /><button onClick={runSearch} className="cursor-pointer rounded bg-lilah p-2 text-onix"><SearchIcon size={20} /></button></div>
+            {matches.map((match) => <button key={match.cfi} onClick={() => openToc(match.cfi)} className="block w-full cursor-pointer py-2 text-left text-base hover:text-lilah">{match.label}</button>)}
+            {toc.map((entry) => <button key={entry.href} onClick={() => openToc(entry.href)} className="block w-full cursor-pointer py-2 text-left text-base hover:text-lilah">{entry.label}</button>)}
+          </> : tocTab === "bookmarks" ? <div className="space-y-1">
+            {bookmarks.length === 0 ? <p className="py-2 text-base text-neutral-400">Aún no hay marcadores en este libro.</p> : bookmarks.map((bookmark) => <div key={bookmark.id} className="flex items-center gap-2 rounded hover:bg-onix"><button onClick={() => openToc(bookmark.cfi)} className="min-w-0 flex-1 cursor-pointer px-2 py-3 text-left text-base hover:text-lilah"><span className="block truncate">{bookmark.chapterLabel || bookmark.label || "Página marcada"}</span><span className="mt-1 block text-sm text-neutral-400">Ir a esta ubicación</span></button><button onClick={() => removeBookmark(bookmark)} title="Eliminar marcador" aria-label="Eliminar marcador" className="cursor-pointer p-3 text-neutral-400 hover:text-lilah"><Trash2Icon size={18} /></button></div>)}
+          </div> : <div className="space-y-2">
+            {annotations.length === 0 ? <p className="py-2 text-base text-neutral-400">Aún no hay notas ni resaltados en este libro.</p> : annotations.map((annotation) => <div key={annotation.id} className="rounded bg-onix/60 p-3"><button onClick={() => openToc(annotation.cfiRange)} className="block w-full cursor-pointer text-left hover:text-lilah"><span className="block text-base leading-relaxed">{annotation.excerpt || "Texto resaltado"}</span><span className="mt-2 block text-sm text-lilah">Ir a esta ubicación</span></button>{annotation.note && <p className="mt-3 border-t border-white/10 pt-3 text-base text-sand"><span className="mr-2 text-sm uppercase text-neutral-400">Nota</span>{annotation.note}</p>}<button onClick={() => removeAnnotation(annotation)} className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-neutral-400 hover:text-lilah"><Trash2Icon size={16} />Eliminar resaltado</button></div>)}
+          </div>}
         </aside>
       )}
 
       {bookmarkMessage && <p className="absolute left-1/2 top-16 z-50 -translate-x-1/2 rounded bg-blackamber px-3 py-2 text-sm shadow">{bookmarkMessage}</p>}
 
+      {selectionMenu && <div className="fixed z-50 -translate-x-1/2 -translate-y-full rounded-lg bg-blackamber p-2 shadow-xl" style={{ left: selectionMenu.x, top: selectionMenu.y - 8 }}>
+        {noteEditorOpen ? <div className="w-64 space-y-2"><textarea value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} onKeyDown={(event) => event.stopPropagation()} autoFocus placeholder="Escribí una nota" className="min-h-20 w-full rounded bg-onix p-2 text-sm" /><div className="flex justify-end gap-2"><button onClick={() => { setNoteEditorOpen(false); setNoteDraft(""); }} className="cursor-pointer px-2 py-1 text-sm">Cancelar</button><button onClick={() => saveSelectionAnnotation(noteDraft.trim() || null)} className="cursor-pointer rounded bg-lilah px-3 py-1 text-sm text-pearl">Guardar</button></div></div> : <div className="flex items-center gap-1"><button onClick={() => saveSelectionAnnotation(null)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">Resaltar</button><button onClick={() => setNoteEditorOpen(true)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">Anotar</button></div>}
+      </div>}
+
+      {annotationMenu && <div className="fixed z-50 -translate-x-1/2 -translate-y-full rounded-lg bg-blackamber p-2 shadow-xl" style={{ left: annotationMenu.x, top: annotationMenu.y - 8 }}>
+        {annotationNoteEditorOpen ? <div className="w-64 space-y-2"><textarea value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} onKeyDown={(event) => event.stopPropagation()} autoFocus placeholder="Escribí una nota" className="min-h-20 w-full rounded bg-onix p-2 text-sm" /><div className="flex justify-end gap-2"><button onClick={() => setAnnotationNoteEditorOpen(false)} className="cursor-pointer px-2 py-1 text-sm">Cancelar</button><button onClick={() => saveAnnotationNote(annotationMenu.annotation)} className="cursor-pointer rounded bg-lilah px-3 py-1 text-sm text-pearl">Guardar</button></div></div> : <div className="flex items-center gap-1">
+          <button onClick={() => setAnnotationNoteEditorOpen(true)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">{annotationMenu.annotation.note ? "Editar nota" : "Anotar"}</button>
+          {annotationMenu.annotation.note && <button onClick={() => clearAnnotationNote(annotationMenu.annotation)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">Eliminar nota</button>}
+          <button onClick={() => removeAnnotation(annotationMenu.annotation)} className="cursor-pointer rounded px-3 py-2 text-sm hover:bg-onix">{annotationMenu.annotation.note ? "Eliminar ambos" : "Eliminar resaltado"}</button>
+        </div>}
+      </div>}
+
       <main className="relative h-full w-full" style={themeStyles[theme]} onPointerUp={(event) => {
         if (event.target === event.currentTarget) {
           closePanels();
+          setSelectionMenu(null);
+          setAnnotationMenu(null);
+          setAnnotationNoteEditorOpen(false);
           setControlsVisible((visible) => !visible);
         }
       }}>
