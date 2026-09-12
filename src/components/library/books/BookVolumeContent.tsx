@@ -80,7 +80,7 @@ export default function BookVolumeContent({ volume, lang, intl, readingEntries, 
           )}
 
           <Tabs tabs={[
-            { label: books.details, content: <BookMetadataPanel volume={volume} intl={intl} /> },
+            { label: books.details, content: <BookMetadataPanel volume={volume} lang={lang} intl={intl} /> },
             { label: books.readingHistory, content: <BookReadingHistory volumeId={volume.id} entries={readingEntries} intl={intl} /> },
           ]} />
           {isAdmin && <><Separator /><BookAdminActions type="volume" slug={volume.slug} lang={lang} intl={intl} canDownload={process.env.LIB_PROVIDER === "cloud"} /></>}

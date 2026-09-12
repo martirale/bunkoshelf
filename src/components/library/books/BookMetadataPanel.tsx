@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { getBookIdentifierScheme, getBookIdentifierValue } from "@/lib/books/metadata";
 import type { BookVolume } from "@/lib/db/books/library";
-import type { Dictionary } from "@/lib/types";
+import type { Dictionary, Locale } from "@/lib/types";
 
 function MetadataField({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -12,7 +13,15 @@ function MetadataField({ label, children }: { label: string; children: ReactNode
   );
 }
 
-export default function BookMetadataPanel({ volume, intl }: { volume: BookVolume; intl: Dictionary }) {
+export default function BookMetadataPanel({
+  volume,
+  lang,
+  intl,
+}: {
+  volume: BookVolume;
+  lang: Locale;
+  intl: Dictionary;
+}) {
   const books = intl.books as Record<string, string>;
   const { metadata } = volume;
   const authors = metadata.people.filter((person) => person.kind === "creator" && (!person.role || person.role.toLowerCase() === "aut"));
@@ -36,7 +45,21 @@ export default function BookMetadataPanel({ volume, intl }: { volume: BookVolume
 
   return (
     <div>
-      {authors.length > 0 && <MetadataField label={books.author}>{authors.map((person) => person.name).join(", ")}</MetadataField>}
+      {authors.length > 0 && (
+        <MetadataField label={books.author}>
+          {authors.map((person, index) => (
+            <span key={`${person.name}-${person.position}`}>
+              {index > 0 && ", "}
+              <Link
+                href={{ pathname: `/${lang}/books/series`, query: { author: person.name } }}
+                className="transition-all duration-300 hover:text-lilah"
+              >
+                {person.name}
+              </Link>
+            </span>
+          ))}
+        </MetadataField>
+      )}
       {[...contributorsByRole].map(([role, people]) => (
         <MetadataField key={role} label={role}>{people.map((person) => person.name).join(", ")}</MetadataField>
       ))}

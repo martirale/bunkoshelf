@@ -44,41 +44,57 @@ function renderLibraries(
 ) {
   const authorParam = author?.trim() ? author.trim() : "__unknown__";
 
-  function buildHref(section: "manga" | "comic" | "others") {
+  function buildHref(section: "manga" | "comic" | "others" | "books") {
     const params = new URLSearchParams({ author: authorParam });
-    return `/${lang}/${section}/volumes?${params.toString()}`;
+    if (section === "books") {
+      return `/${lang}/books/series?${params.toString()}`;
+    }
+
+    params.set("includeOneshots", "true");
+    return `/${lang}/${section}/series?${params.toString()}`;
+  }
+
+  function renderLibrary(
+    section: "manga" | "comic" | "others" | "books",
+    label: string,
+    className: string
+  ) {
+    return (
+      <Link href={buildHref(section)} className={className}>
+        {label}
+      </Link>
+    );
   }
 
   return (
     <div className="flex items-center justify-center gap-1 flex-wrap">
       {hasManga && (
-        <Link
-          href={buildHref("manga")}
-          className="bg-pearl text-onix px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
-        >
-          {intl.catalog.mangaColumn as string}
-        </Link>
+        renderLibrary(
+          "manga",
+          intl.catalog.mangaColumn as string,
+          "bg-pearl text-onix px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+        )
       )}
       {hasComic && (
-        <Link
-          href={buildHref("comic")}
-          className="bg-neutral-700 px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
-        >
-          {intl.catalog.comicColumn as string}
-        </Link>
+        renderLibrary(
+          "comic",
+          intl.catalog.comicColumn as string,
+          "bg-neutral-700 px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+        )
       )}
       {hasBooks && (
-        <span className="border border-pearl px-2 rounded-full text-xs uppercase">
-          {intl.catalog.booksColumn as string}
-        </span>
+        renderLibrary(
+          "books",
+          intl.catalog.booksColumn as string,
+          "border border-pearl px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+        )
       )}
       {hasOthers && (
-        <Link
-          href={buildHref("others")}
-          className="bg-neutral-700 px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
-        >
-          {intl.catalog.othersColumn as string}
-        </Link>
+        renderLibrary(
+          "others",
+          intl.catalog.othersColumn as string,
+          "bg-neutral-700 px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+        )
       )}
     </div>
   );

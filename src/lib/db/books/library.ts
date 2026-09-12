@@ -234,10 +234,48 @@ export async function findBookFileBySlug(slug: string): Promise<{ filename: stri
   return row ? { filename: row.filename, fullPath: row.full_path } : null;
 }
 
-export async function listBookVolumes(options?: { seriesSlug?: string; limit?: number }): Promise<BookVolume[]> {
+export async function listBookVolumes(options?: {
+  seriesSlug?: string;
+  authorNames?: string[];
+  limit?: number;
+}): Promise<BookVolume[]> {
   const params: unknown[] = [];
-  const where = options?.seriesSlug ? " WHERE bs.slug = $1" : "";
-  if (options?.seriesSlug) params.push(options.seriesSlug);
+  const conditions: string[] = [];
+
+  if (options?.seriesSlug) {
+    params.push(options.seriesSlug);
+    conditions.push(`bs.slug = $${params.length}`);
+  }
+
+  if (options?.authorNames && options.authorNames.length > 0) {
+    params.push(options.authorNames);
+    const authorParam = params.length;
+    conditions.push(`
+      (
+        EXISTS (
+          SELECT 1
+          FROM book_people bp
+          WHERE bp.metadata_id = bm.id
+            AND bp.kind = 'creator'
+            AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
+            AND BTRIM(bp.name) = ANY($${authorParam}::text[])
+        )
+        OR (
+          '__unknown__' = ANY($${authorParam}::text[])
+          AND NOT EXISTS (
+            SELECT 1
+            FROM book_people bp
+            WHERE bp.metadata_id = bm.id
+              AND bp.kind = 'creator'
+              AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
+              AND BTRIM(bp.name) <> ''
+          )
+        )
+      )
+    `);
+  }
+
+  const where = conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
   const limit = options?.limit ?? 100;
   params.push(limit);
   const rows = await query<BookRow>(`${BOOK_SELECT}${where} ORDER BY bs.sort_title, bv.number NULLS LAST, bv.sort_title LIMIT $${params.length}`, params);

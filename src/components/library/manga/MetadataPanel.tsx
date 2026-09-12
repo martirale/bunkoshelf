@@ -50,7 +50,7 @@ function AuthorField({ field, label, href }: AuthorFieldProps) {
             <Link
               href={{
                 pathname: href,
-                query: { author },
+                query: { author, includeOneshots: "true" },
               }}
               scroll={false}
               className="hover:text-lilah transition-all duration-300"
@@ -82,10 +82,11 @@ export default function MetadataPanel({
   const genres = (meta.genres || []) as { name: string }[];
   const tags = (meta.tags || []) as { name: string }[];
   const href = `/${lang}/${section}/${linkBase}`;
+  const authorHref = `/${lang}/${section}/series`;
 
   return (
     <>
-      <AuthorField field={meta.writer} label={intl.manga.author} href={href} />
+      <AuthorField field={meta.writer} label={intl.manga.author} href={authorHref} />
       <MetaField field={meta.penciller} label={intl.manga.penciller} />
       <MetaField field={meta.inker} label={intl.manga.inker} />
       <MetaField field={meta.colorist} label={intl.manga.colorist} />

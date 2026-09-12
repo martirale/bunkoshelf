@@ -5,10 +5,19 @@ import { listBookProgressByIds, listBookVolumes } from "@/lib/db/books/library";
 import { LibraryBigIcon } from "lucide-react";
 import type { Dictionary, Locale } from "@/lib/types";
 
-export default async function SeriesIndex({ lang, intl }: { lang: Locale; intl: Dictionary }) {
+export default async function SeriesIndex({
+  lang,
+  intl,
+  authorFilter,
+}: {
+  lang: Locale;
+  intl: Dictionary;
+  authorFilter?: string;
+}) {
   const labels = intl.books as Record<string, string>;
   const user = await verifySession();
-  const books = await listBookVolumes();
+  const authorNames = authorFilter?.trim() ? [authorFilter.trim()] : undefined;
+  const books = await listBookVolumes({ authorNames });
   const progressById = user
     ? await listBookProgressByIds(user.id, books.map((book) => book.id))
     : {};

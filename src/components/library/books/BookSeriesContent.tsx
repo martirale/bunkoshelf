@@ -67,7 +67,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
             </>
           )}
           <Separator />
-          <BookMetadataPanel volume={firstVolume} intl={intl} />
+          <BookMetadataPanel volume={firstVolume} lang={lang} intl={intl} />
         </div>
       </section>
       <section>
