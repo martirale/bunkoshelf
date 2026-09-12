@@ -141,7 +141,7 @@ async function HomeContent({
     id: book.id,
     title: book.metadata.title,
     slug: book.slug,
-    isOneshot: false,
+    isOneshot: book.series.isOneshot,
     coverImage: getBookCoverUrl(book.slug, book.metadata.coverPath),
     section: "manga" as const,
     meta: null,
@@ -182,7 +182,7 @@ async function HomeContent({
       entry: {
         title: book.metadata.title,
         slug: book.slug,
-        isOneshot: false,
+        isOneshot: book.series.isOneshot,
         coverImage: getBookCoverUrl(book.slug, book.metadata.coverPath),
         section: "manga" as const,
         meta: null,

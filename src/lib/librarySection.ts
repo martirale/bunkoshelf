@@ -1,6 +1,7 @@
 import type { DictionarySection } from "@/lib/types";
 
 export type LibrarySection = "manga" | "comic" | "others";
+export type OneshotSection = LibrarySection | "books";
 export type LibraryContentSection = "manga" | "comic" | "other";
 export type LibraryScope = "all" | LibrarySection;
 
@@ -37,10 +38,10 @@ export function getFavoritesHref(lang: string, section: LibrarySection) {
 }
 
 export function getOneshotLabel(
-  section: LibrarySection,
+  section: OneshotSection,
   labels: DictionarySection
 ) {
   if (section === "comic") return labels.comicOneshot as string;
-  if (section === "others") return labels.othersOneshot as string;
+  if (section === "others" || section === "books") return labels.othersOneshot as string;
   return labels.oneshot as string;
 }
