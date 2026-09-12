@@ -186,13 +186,15 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   const persistProgress = useCallback(async (location: any) => {
     const nextCfi = location?.start?.cfi;
     if (!nextCfi) return;
-    const percentage = typeof location.start.percentage === "number"
-      ? location.start.percentage
-      : bookRef.current?.locations?.percentageFromCfi?.(nextCfi) ?? 0;
     setCfi(nextCfi);
     const isComplete = location.atEnd === true;
-    const nextProgress = isComplete ? 1 : percentage;
-    setProgress(nextProgress);
+    const calculatedProgress = bookRef.current?.locations?.percentageFromCfi?.(nextCfi);
+    const nextProgress = isComplete
+      ? 1
+      : typeof calculatedProgress === "number"
+        ? calculatedProgress
+        : undefined;
+    if (nextProgress !== undefined) setProgress(nextProgress);
     void fetch(`/api/reader/books/${encodeURIComponent(slug)}/progress`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -492,11 +494,15 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         setProgress(state.progress?.progression ?? 0);
         setToc((book.navigation?.toc ?? []) as TocEntry[]);
 
+        book.locations.pause = 16;
         void book.locations.generate(1600).then(() => {
-          const displayedCfi = rendition.currentLocation?.()?.start?.cfi;
+          const location = rendition.currentLocation?.();
+          const displayedCfi = location?.start?.cfi;
           if (!displayedCfi) return;
-          setProgress(book.locations.percentageFromCfi(displayedCfi));
-        });
+          const calculatedProgress = book.locations.percentageFromCfi(displayedCfi);
+          if (typeof calculatedProgress === "number") setProgress(calculatedProgress);
+          void persistProgress(location);
+        }).catch(() => undefined);
       } catch {
         if (!cancelled) setError(reader.openFailed);
       } finally {
