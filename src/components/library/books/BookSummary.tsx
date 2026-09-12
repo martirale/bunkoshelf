@@ -1,7 +1,8 @@
 "use client";
 
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { Dictionary } from "@/lib/types";
 
 interface BookSummaryProps {
@@ -11,7 +12,12 @@ interface BookSummaryProps {
 
 export default function BookSummary({ summary, intl }: BookSummaryProps) {
   const [expanded, setExpanded] = useState(false);
+  const pathname = usePathname();
   const books = intl.books as Record<string, string>;
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [pathname]);
 
   return (
     <div className="max-w-2xl">

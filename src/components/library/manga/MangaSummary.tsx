@@ -1,7 +1,8 @@
 "use client";
 
 import { ChevronUpIcon, ChevronDownIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { Dictionary } from "@/lib/types";
 
 interface MangaSummaryProps {
@@ -11,6 +12,11 @@ interface MangaSummaryProps {
 
 export default function MangaSummary({ meta, intl }: MangaSummaryProps) {
   const [expanded, setExpanded] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [pathname]);
 
   if (!meta.summary) return null;
 

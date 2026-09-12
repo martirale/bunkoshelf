@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import clsx from "clsx";
 
 interface Tab {
@@ -14,6 +15,11 @@ interface TabsProps {
 
 export default function Tabs({ tabs }: TabsProps) {
   const [active, setActive] = useState(0);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setActive(0);
+  }, [pathname]);
 
   return (
     <div className="mt-8">
