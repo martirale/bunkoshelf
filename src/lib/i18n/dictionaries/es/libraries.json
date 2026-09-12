@@ -22,6 +22,16 @@
     "deleteSure": {
       "series": "¿Estás seguro de que deseas eliminar esta serie de tu biblioteca?",
       "volume": "¿Estás seguro de que deseas eliminar este tomo de tu biblioteca?"
+    },
+    "bookActions": {
+      "scanBook": "Reescanear libro",
+      "scanSeries": "Reescanear serie",
+      "downloadBook": "Descargar libro",
+      "downloadSeries": "Descargar serie",
+      "deleteBook": "Eliminar libro",
+      "deleteSeries": "Eliminar serie",
+      "deleteBookSure": "¿Estás seguro de que deseas eliminar este libro de tu biblioteca?",
+      "deleteSeriesSure": "¿Estás seguro de que deseas eliminar esta serie y todos sus libros de tu biblioteca?"
     }
   }
 }

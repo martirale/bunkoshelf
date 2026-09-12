@@ -12,5 +12,5 @@ export default async function BookSeriesPage({ params }: { params: Promise<{ lan
   if (!books.length) notFound();
   const user = await verifySession();
   const progressById = user ? await listBookProgressByIds(user.id, books.map((book) => book.id)) : {};
-  return <BookSeriesContent volumes={books} lang={lang as Locale} intl={intl} progressById={progressById} />;
+  return <BookSeriesContent volumes={books} lang={lang as Locale} intl={intl} progressById={progressById} isAdmin={user?.isAdmin === true} />;
 }

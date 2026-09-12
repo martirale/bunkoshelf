@@ -3,7 +3,11 @@ import MangaCard from "@/components/ui/MangaCard";
 import Separator from "@/components/ui/Separator";
 import BookReaderButton from "./BookReaderButton";
 import BookMetadataPanel from "./BookMetadataPanel";
+import BookMetadataBadges from "./BookMetadataBadges";
+import BookAdminActions from "./BookAdminActions";
+import BookSummary from "./BookSummary";
 import { getBookCoverUrl } from "@/lib/books/cover";
+import { getBookPublicationYear, toPlainBookText } from "@/lib/books/metadata";
 import type { BookVolume } from "@/lib/db/books/library";
 import type { Dictionary, Locale } from "@/lib/types";
 
@@ -12,12 +16,14 @@ interface BookSeriesContentProps {
   lang: Locale;
   intl: Dictionary;
   progressById: Record<string, { isRead: boolean; progression: number | null }>;
+  isAdmin: boolean;
 }
 
-export default function BookSeriesContent({ volumes, lang, intl, progressById }: BookSeriesContentProps) {
+export default function BookSeriesContent({ volumes, lang, intl, progressById, isAdmin }: BookSeriesContentProps) {
   const firstVolume = volumes[0];
   const coverImage = getBookCoverUrl(firstVolume.slug, firstVolume.metadata.coverPath);
   const meta = firstVolume.metadata;
+  const description = toPlainBookText(meta.description);
 
   return (
     <div className="p-4">
@@ -34,15 +40,12 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById }:
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">{firstVolume.series.title}</h1>
           <BookReaderButton slug={firstVolume.slug} title={firstVolume.metadata.title} layout={firstVolume.metadata.renditionLayout} />
-          <div className="mt-8">
-            <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1 mr-2">{meta.language || "und"}</span>
-            <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1">{meta.renditionLayout === "pre-paginated" ? "Maquetación fija" : "Texto refluible"}</span>
-          </div>
-          <p className="mt-4">{meta.publishedAt || ""} &bull; {volumes.length} {intl.manga.volumes as string}</p>
-          {meta.description && (
+          <BookMetadataBadges metadata={meta} />
+          <p className="mt-4">{getBookPublicationYear(meta.publishedAt ?? meta.modifiedAt)} &bull; {volumes.length} {intl.manga.volumes as string}</p>
+          {description && (
             <>
               <h2 className="text-sm mt-8 mb-1">{intl.manga.synopsis as string} (vol. 1)</h2>
-              <p className="whitespace-pre-line leading-relaxed">{meta.description}</p>
+              <BookSummary summary={description} intl={intl} />
             </>
           )}
           <Separator />
@@ -73,6 +76,12 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById }:
             />
           ))}
         </div>
+        {isAdmin && (
+          <>
+            <Separator />
+            <BookAdminActions type="series" slug={firstVolume.series.slug} lang={lang} intl={intl} canDownload={process.env.LIB_PROVIDER === "cloud"} />
+          </>
+        )}
       </section>
     </div>
   );

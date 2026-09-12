@@ -4,7 +4,11 @@ import Separator from "@/components/ui/Separator";
 import Tabs from "@/components/ui/Tabs";
 import BookReaderButton from "./BookReaderButton";
 import BookMetadataPanel from "./BookMetadataPanel";
+import BookMetadataBadges from "./BookMetadataBadges";
+import BookAdminActions from "./BookAdminActions";
+import BookSummary from "./BookSummary";
 import { getBookCoverUrl } from "@/lib/books/cover";
+import { getBookPublicationYear, toPlainBookText } from "@/lib/books/metadata";
 import type { BookVolume } from "@/lib/db/books/library";
 import type { Dictionary, Locale } from "@/lib/types";
 
@@ -12,11 +16,12 @@ interface BookVolumeContentProps {
   volume: BookVolume;
   lang: Locale;
   intl: Dictionary;
+  isAdmin: boolean;
 }
 
-export default function BookVolumeContent({ volume, lang, intl }: BookVolumeContentProps) {
+export default function BookVolumeContent({ volume, lang, intl, isAdmin }: BookVolumeContentProps) {
   const coverImage = getBookCoverUrl(volume.slug, volume.metadata.coverPath);
-  const isFixedLayout = volume.metadata.renditionLayout === "pre-paginated";
+  const description = toPlainBookText(volume.metadata.description);
 
   return (
     <div className="p-4">
@@ -50,20 +55,17 @@ export default function BookVolumeContent({ volume, lang, intl }: BookVolumeCont
 
           <BookReaderButton slug={volume.slug} title={volume.metadata.title} layout={volume.metadata.renditionLayout} />
 
-          <div className="mt-8">
-            <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1 mr-2">{volume.metadata.language || "und"}</span>
-            <span className="text-sm uppercase bg-neutral-700 rounded-md px-3 py-1">{isFixedLayout ? "Maquetación fija" : "Texto refluible"}</span>
-          </div>
+          <BookMetadataBadges metadata={volume.metadata} />
 
           <p className="mt-4">
-            {volume.metadata.publishedAt || volume.metadata.modifiedAt || ""}
+            {getBookPublicationYear(volume.metadata.publishedAt ?? volume.metadata.modifiedAt)}
             {volume.number !== null ? <> &bull; Libro {volume.number}</> : null}
           </p>
 
-          {volume.metadata.description && (
+          {description && (
             <>
               <h2 className="text-sm mt-8 mb-1">{intl.manga.synopsis as string}</h2>
-              <p className="whitespace-pre-line leading-relaxed">{volume.metadata.description}</p>
+              <BookSummary summary={description} intl={intl} />
             </>
           )}
 
@@ -71,7 +73,7 @@ export default function BookVolumeContent({ volume, lang, intl }: BookVolumeCont
             { label: intl.manga.details as string, content: <BookMetadataPanel volume={volume} /> },
             { label: intl.manga.readingHistory as string, content: <p className="text-neutral-400">El historial se actualiza al leer este libro.</p> },
           ]} />
-          <Separator />
+          {isAdmin && <><Separator /><BookAdminActions type="volume" slug={volume.slug} lang={lang} intl={intl} canDownload={process.env.LIB_PROVIDER === "cloud"} /></>}
         </div>
       </section>
     </div>

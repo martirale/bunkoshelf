@@ -6,6 +6,7 @@ import type {
   EpubParseResult,
   EpubPerson,
 } from "./types";
+import { getBookIdentifierScheme, normalizeBookAgeRating, toPlainBookText } from "./metadata.ts";
 
 type XmlValue = string | { _: string; $?: Record<string, string> };
 type XmlRecord = Record<string, XmlValue | XmlValue[] | Record<string, unknown> | Record<string, unknown>[]>;
@@ -63,14 +64,48 @@ function parsePeople(metadata: XmlRecord): EpubPerson[] {
       const attributes = attrs(entry);
       people.push({
         name,
-        role: roles.get(attributes.id ?? "") ?? attributes.role ?? null,
+        role: roles.get(attributes.id ?? "") ?? attributes.role ?? attributes["opf:role"] ?? null,
         kind,
-        sortName: attributes["file-as"] ?? null,
+        sortName: attributes["file-as"] ?? attributes["opf:file-as"] ?? null,
         position,
       });
     });
   }
   return people;
+}
+
+function propertyValues(metadata: XmlRecord): Map<string, string> {
+  return new Map(
+    values(metadata.meta)
+      .map((entry) => [attrs(entry).property, xmlText(entry)] as const)
+      .filter((entry): entry is [string, string] => Boolean(entry[0] && entry[1])),
+  );
+}
+
+function namedMetaValues(metadata: XmlRecord): Map<string, string> {
+  return new Map(
+    values(metadata.meta)
+      .map((entry) => [attrs(entry).name, attrs(entry).content] as const)
+      .filter((entry): entry is [string, string] => Boolean(entry[0] && entry[1])),
+  );
+}
+
+function parseTitles(metadata: XmlRecord): { title: string; subtitle: string | null } {
+  const titles = values(metadata["dc:title"]);
+  const titleTypes = new Map(
+    values(metadata.meta)
+      .map((entry) => [attrs(entry).refines?.replace(/^#/, ""), attrs(entry).property, xmlText(entry)] as const)
+      .filter((entry): entry is [string, string, string] => entry[1] === "title-type" && Boolean(entry[0] && entry[2]))
+      .map(([id, , value]) => [id, value]),
+  );
+  const mainEntry = titles.find((entry) => titleTypes.get(attrs(entry).id ?? "") === "main") ?? titles[0];
+  const title = xmlText(mainEntry);
+  if (!title) throw new Error("EPUB is missing dc:title");
+  const subtitle = titles
+    .filter((entry) => entry !== mainEntry)
+    .find((entry) => titleTypes.get(attrs(entry).id ?? "") === "subtitle")
+    ?? titles.find((entry) => entry !== mainEntry);
+  return { title, subtitle: xmlText(subtitle) };
 }
 
 function parseMetadata(packagePath: string, parsed: Record<string, unknown>): EpubMetadata {
@@ -84,7 +119,8 @@ function parseMetadata(packagePath: string, parsed: Record<string, unknown>): Ep
     .reduce<EpubMetadata["identifiers"]>((items, entry) => {
       const value = xmlText(entry);
       if (value && !items.some((item) => item.value === value)) {
-        items.push({ value, scheme: attrs(entry).scheme ?? attrs(entry)["opf:scheme"] ?? null, isPrimary: attrs(entry).id === primaryIdentifier });
+        const scheme = attrs(entry).scheme ?? attrs(entry)["opf:scheme"] ?? null;
+        items.push({ value, scheme: getBookIdentifierScheme(value, scheme), isPrimary: attrs(entry).id === primaryIdentifier });
       }
       return items;
     }, []);
@@ -97,27 +133,25 @@ function parseMetadata(packagePath: string, parsed: Record<string, unknown>): Ep
     ?? manifestItems.find((item) => item.id === legacyCoverId);
   const navItem = manifestItems.find((item) => item.properties?.split(/\s+/).includes("nav"))
     ?? manifestItems.find((item) => item["media-type"] === "application/x-dtbncx+xml");
-  const rendition = new Map(
-    values(metadata.meta)
-      .map((entry) => [attrs(entry).property, xmlText(entry)] as const)
-      .filter((entry): entry is [string, string] => Boolean(entry[0] && entry[1])),
-  );
-  const title = firstText(metadata, "dc:title");
-  if (!title) throw new Error("EPUB is missing dc:title");
+  const rendition = propertyValues(metadata);
+  const namedMeta = namedMetaValues(metadata);
+  const { title, subtitle } = parseTitles(metadata);
 
   return {
     title,
-    subtitle: values(metadata["dc:title"])
-      .slice(1)
-      .map(xmlText)
-      .find(Boolean) ?? null,
-    description: firstText(metadata, "dc:description"),
+    subtitle,
+    description: toPlainBookText(firstText(metadata, "dc:description")),
     publisher: firstText(metadata, "dc:publisher"),
     publishedAt: firstText(metadata, "dc:date"),
     language: firstText(metadata, "dc:language"),
     rights: firstText(metadata, "dc:rights"),
     source: firstText(metadata, "dc:source"),
-    publicationType: firstText(metadata, "dc:type"),
+    publicationType: rendition.get("schema:bookFormat") ?? firstText(metadata, "dc:type"),
+    ageRating: normalizeBookAgeRating(rendition.get("schema:typicalAgeRange")
+      ?? rendition.get("schema:contentRating")
+      ?? rendition.get("schema:audience")
+      ?? namedMeta.get("rating")
+      ?? firstText(metadata, "dc:audience")),
     modifiedAt: rendition.get("dcterms:modified") ?? null,
     packagePath,
     navigationPath: navItem?.href ? resolveArchivePath(packagePath, navItem.href) : null,

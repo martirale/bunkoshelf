@@ -27,6 +27,7 @@ export interface EpubMetadata {
   rights: string | null;
   source: string | null;
   publicationType: string | null;
+  ageRating: string | null;
   modifiedAt: string | null;
   packagePath: string;
   navigationPath: string | null;
