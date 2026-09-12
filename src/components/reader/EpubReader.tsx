@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type TouchEvent as ReactTouchEvent } from "react";
 import {
   BookmarkIcon,
   ChevronLeftIcon,
@@ -81,6 +81,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   const flushPendingSelectionRef = useRef<() => void>(() => undefined);
   const readerKeyHandlerRef = useRef<(event: KeyboardEvent) => void>(() => undefined);
   const pointerIsDownRef = useRef(false);
+  const touchOverlayStartRef = useRef<{ x: number; y: number } | null>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const flowRef = useRef<ReaderFlow>("paginated");
   const hideControlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -100,6 +101,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   const [showSettings, setShowSettings] = useState(false);
   const [showToc, setShowToc] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [touchOverlayEnabled, setTouchOverlayEnabled] = useState(false);
   const [bookmarkCfis, setBookmarkCfis] = useState<string[]>([]);
   const [bookmarks, setBookmarks] = useState<ReaderState["bookmarks"]>([]);
   const [annotations, setAnnotations] = useState<ReaderState["annotations"]>([]);
@@ -116,6 +118,14 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   useEffect(() => {
     annotationsRef.current = annotations;
   }, [annotations]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(pointer: coarse)");
+    const updateTouchOverlay = () => setTouchOverlayEnabled(navigator.maxTouchPoints > 0 || media.matches);
+    updateTouchOverlay();
+    media.addEventListener("change", updateTouchOverlay);
+    return () => media.removeEventListener("change", updateTouchOverlay);
+  }, []);
 
   useEffect(() => {
     if (isOpen) return;
@@ -146,6 +156,57 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
     closePanels();
     onClose();
   }, [closePanels, onClose]);
+
+  const handleTouchOverlayStart = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
+    if (event.touches.length !== 1) {
+      touchOverlayStartRef.current = null;
+      return;
+    }
+    const touch = event.touches[0];
+    touchOverlayStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }, []);
+
+  const handleTouchOverlayEnd = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
+    const start = touchOverlayStartRef.current;
+    touchOverlayStartRef.current = null;
+    const touch = event.changedTouches[0];
+    if (!start || !touch) return;
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    const distanceX = Math.abs(deltaX);
+    const distanceY = Math.abs(deltaY);
+
+    if (distanceX > 48 && distanceX > distanceY) {
+      closePanels();
+      setSelectionMenu(null);
+      setAnnotationMenu(null);
+      setNoteEditorOpen(false);
+      setAnnotationNoteEditorOpen(false);
+      void (deltaX < 0 ? renditionRef.current?.next() : renditionRef.current?.prev());
+      return;
+    }
+
+    if (distanceX > 18 || distanceY > 18) return;
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = touch.clientX - bounds.left;
+    if (x < bounds.width / 3) {
+      void renditionRef.current?.prev();
+      return;
+    }
+    if (x > (bounds.width * 2) / 3) {
+      void renditionRef.current?.next();
+      return;
+    }
+
+    closePanels();
+    setSelectionMenu(null);
+    setAnnotationMenu(null);
+    setNoteEditorOpen(false);
+    setAnnotationNoteEditorOpen(false);
+    setControlsVisible((visible) => !visible);
+  }, [closePanels]);
 
   const openAnnotationMenu = useCallback((annotation: ReaderState["annotations"][number], cfiRange: string, contents: any) => {
     const range = contents.range?.(cfiRange);
@@ -718,6 +779,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   };
 
   if (!isOpen) return null;
+  const touchOverlayActive = touchOverlayEnabled && (layout === "pre-paginated" || flow === "paginated");
   const isBookmarked = !!cfi && bookmarkCfis.includes(cfi);
 
   return (
@@ -794,6 +856,14 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           ref={viewerRef}
           className="mx-auto h-full w-full touch-pan-y"
           style={{ maxWidth: flow === "paginated" ? `${(columnWidth + 32) * 2}px` : `${columnWidth}px` }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 z-10"
+          style={{ pointerEvents: touchOverlayActive ? "auto" : "none", touchAction: touchOverlayActive ? "none" : "auto" }}
+          onTouchStart={handleTouchOverlayStart}
+          onTouchEnd={handleTouchOverlayEnd}
+          onTouchCancel={() => { touchOverlayStartRef.current = null; }}
         />
       </main>
 
