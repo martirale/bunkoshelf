@@ -302,6 +302,8 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         const rendition = book.renderTo(viewerRef.current, {
           width: "100%",
           height: "100%",
+          manager: "continuous",
+          snap: true,
           flow: layout === "pre-paginated" ? "paginated" : flowRef.current,
           allowScriptedContent: false,
           spread: "auto",
@@ -383,11 +385,8 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
             const distanceY = Math.abs(deltaY);
 
             if (distanceX > 48 && distanceX > distanceY) {
-              if (event.cancelable) event.preventDefault();
-              event.stopPropagation();
               ignoreClickUntil = Date.now() + 500;
               clearReaderOverlays();
-              void (deltaX < 0 ? rendition.next() : rendition.prev());
               return;
             }
 
