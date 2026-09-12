@@ -376,7 +376,7 @@ export async function getBookReaderStats(userId: string): Promise<{ totalVolumes
 export async function listRecentlyReadBooks(userId: string, limit = 12): Promise<BookVolume[]> {
   const rows = await query<BookRow>(`${BOOK_SELECT}
     INNER JOIN user_to_books ub ON ub.volume_id = bv.id
-    WHERE ub.user_id = $1 AND ub.last_read_at IS NOT NULL
+    WHERE ub.user_id = $1 AND ub.is_read = TRUE AND ub.last_read_at IS NOT NULL
     ORDER BY ub.last_read_at DESC LIMIT $2`, [userId, limit]);
   return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
 }
