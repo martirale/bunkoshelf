@@ -842,6 +842,20 @@ export async function listPagedCatalogAuthors(
             WHERE BTRIM(split_author.value) <> ''
           ) AS author
           GROUP BY author.name
+
+          UNION
+
+          SELECT COALESCE(author.name, '__unknown__') AS name
+          FROM book_volumes bv
+          INNER JOIN book_metadata bm ON bm.volume_id = bv.id
+          LEFT JOIN LATERAL (
+            SELECT DISTINCT BTRIM(bp.name) AS name
+            FROM book_people bp
+            WHERE bp.metadata_id = bm.id
+              AND bp.kind = 'creator'
+              AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
+              AND BTRIM(bp.name) <> ''
+          ) AS author ON TRUE
         ) AS authors
       `
     ),
@@ -853,25 +867,16 @@ export async function listPagedCatalogAuthors(
       has_manga: boolean | null;
       has_comic: boolean | null;
       has_others: boolean | null;
+      has_books: boolean | null;
     }>(
       `
-        SELECT
-          grouped.author,
-          grouped.works,
-          grouped.avg_rating,
-          grouped.read_count,
-          grouped.has_manga,
-          grouped.has_comic,
-          grouped.has_others
-        FROM (
+        WITH author_works AS (
           SELECT
             author.name AS author,
-            COUNT(mv.id) AS works,
-            ROUND(AVG(utv.personal_rating)::numeric, 1)::float8 AS avg_rating,
-            COUNT(*) FILTER (WHERE utv.is_read = TRUE) AS read_count,
-            BOOL_OR(ms.library_section = 'manga') AS has_manga,
-            BOOL_OR(ms.library_section = 'comic') AS has_comic,
-            BOOL_OR(ms.library_section = 'other') AS has_others
+            mv.id AS volume_id,
+            utv.personal_rating,
+            utv.is_read,
+            ms.library_section
           FROM manga_volumes mv
           INNER JOIN manga_series ms ON ms.id = mv.series_id
           LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
@@ -886,9 +891,41 @@ export async function listPagedCatalogAuthors(
           LEFT JOIN user_to_volumes utv
             ON utv.volume_id = mv.id
            AND utv.user_id = $1
-          GROUP BY author.name
-        ) AS grouped
-        ORDER BY grouped.author ASC
+
+          UNION ALL
+
+          SELECT
+            COALESCE(author.name, '__unknown__') AS author,
+            bv.id AS volume_id,
+            utb.personal_rating,
+            utb.is_read,
+            'books' AS library_section
+          FROM book_volumes bv
+          INNER JOIN book_metadata bm ON bm.volume_id = bv.id
+          LEFT JOIN LATERAL (
+            SELECT DISTINCT BTRIM(bp.name) AS name
+            FROM book_people bp
+            WHERE bp.metadata_id = bm.id
+              AND bp.kind = 'creator'
+              AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
+              AND BTRIM(bp.name) <> ''
+          ) AS author ON TRUE
+          LEFT JOIN user_to_books utb
+            ON utb.volume_id = bv.id
+           AND utb.user_id = $1
+        )
+        SELECT
+          author,
+          COUNT(volume_id) AS works,
+          ROUND(AVG(personal_rating)::numeric, 1)::float8 AS avg_rating,
+          COUNT(*) FILTER (WHERE is_read = TRUE) AS read_count,
+          BOOL_OR(library_section = 'manga') AS has_manga,
+          BOOL_OR(library_section = 'comic') AS has_comic,
+          BOOL_OR(library_section = 'other') AS has_others,
+          BOOL_OR(library_section = 'books') AS has_books
+        FROM author_works
+        GROUP BY author
+        ORDER BY author ASC
         LIMIT $2
         OFFSET $3
       `,
@@ -907,7 +944,7 @@ export async function listPagedCatalogAuthors(
       hasManga: row.has_manga === true,
       hasComic: row.has_comic === true,
       hasOthers: row.has_others === true,
-      hasBooks: false,
+      hasBooks: row.has_books === true,
     })),
     total,
     pagination
