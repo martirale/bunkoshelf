@@ -316,7 +316,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           const images = Array.from(body.querySelectorAll("img"));
           const text = body.textContent?.replace(/\s/g, "") ?? "";
 
-          if (images.length && text.length < 80) {
+          if (images.length === 1 && text.length === 0) {
             body.style.setProperty("display", "grid", "important");
             body.style.setProperty("place-items", "center", "important");
             body.style.setProperty("min-height", "100%", "important");
