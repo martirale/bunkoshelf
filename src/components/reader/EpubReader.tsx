@@ -222,11 +222,10 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         "line-height": `${lineHeight} !important`,
         "padding-left": `${margin}px !important`,
         "padding-right": `${margin}px !important`,
-        "max-width": `${columnWidth}px !important`,
         margin: "0 auto !important",
       },
     });
-  }, [columnWidth, flow, fontFamily, fontSize, layout, lineHeight, margin, theme]);
+  }, [flow, fontFamily, fontSize, layout, lineHeight, margin, theme]);
 
   useEffect(() => { applyStyles(); }, [applyStyles]);
   useEffect(() => { flowRef.current = flow; }, [flow]);
@@ -304,6 +303,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           height: "100%",
           manager: "continuous",
           snap: true,
+          gap: 32,
           flow: layout === "pre-paginated" ? "paginated" : flowRef.current,
           allowScriptedContent: false,
           spread: "auto",
@@ -782,7 +782,11 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
       }}>
         {loading && <div className="absolute inset-0 z-20 grid place-items-center bg-onix">{reader.opening}</div>}
         {error && <div className="absolute inset-0 z-20 grid place-items-center bg-onix p-6 text-center">{error}</div>}
-        <div ref={viewerRef} className="h-full w-full touch-pan-y" />
+        <div
+          ref={viewerRef}
+          className="mx-auto h-full w-full touch-pan-y"
+          style={{ maxWidth: flow === "paginated" ? `${(columnWidth + 32) * 2}px` : `${columnWidth}px` }}
+        />
       </main>
 
       <footer className={`absolute inset-x-0 bottom-0 z-30 flex h-11 items-center justify-between gap-4 border-t border-white/15 bg-onix/95 px-3 transition-transform duration-200 ${controlsVisible ? "translate-y-0" : "translate-y-full pointer-events-none"}`}>
