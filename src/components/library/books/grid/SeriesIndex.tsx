@@ -29,6 +29,7 @@ export default async function SeriesIndex({
   const series = Array.from(visibleBooks.reduce((map, book) => {
     const current = map.get(book.series.id) ?? {
       ...book.series,
+      title: book.series.isOneshot ? book.metadata.title : book.series.title,
       cover: getBookCoverUrl(book.slug, book.metadata.coverPath),
       firstSlug: book.slug,
       volumeIds: [] as string[],

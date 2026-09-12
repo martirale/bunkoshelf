@@ -109,7 +109,7 @@ export default async function SeriesIndex({
               key={entry.title}
               title={
                 isOneshot
-                  ? firstVolume?.meta?.title ?? entry.title
+                  ? firstVolume?.meta?.title ?? firstVolume?.title ?? entry.title
                   : firstVolume?.meta?.series ?? entry.title
               }
               href={
