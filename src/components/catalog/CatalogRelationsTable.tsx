@@ -33,7 +33,7 @@ export default function CatalogRelationsTable({
               {data.items.map((item) => (
                 <tr key={item.name}>
                   <td className="p-4">
-                    <div className="max-w-[18rem] whitespace-normal break-words leading-snug">
+                    <div className="max-w-[18rem] whitespace-normal break-words leading-snug capitalize">
                       {item.name}
                     </div>
                   </td>
