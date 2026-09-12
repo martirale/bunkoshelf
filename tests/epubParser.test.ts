@@ -4,7 +4,7 @@ import AdmZip from "adm-zip";
 import { parseEpubBuffer } from "../src/lib/books/epubParser.ts";
 import { normalizeBookAgeRating } from "../src/lib/books/metadata.ts";
 
-function createEpub(options: { encrypted?: boolean; fixedLayout?: boolean; includeCover?: boolean; obfuscatedFont?: boolean; repeatedIdentifier?: boolean; htmlDescription?: boolean; ageRating?: string; epub3Isbn?: boolean } = {}) {
+function createEpub(options: { encrypted?: boolean; fixedLayout?: boolean; includeCover?: boolean; obfuscatedFont?: boolean; repeatedIdentifier?: boolean; htmlDescription?: boolean; ageRating?: string; epub3Isbn?: boolean; epub2Series?: boolean; epub3Series?: boolean } = {}) {
   const zip = new AdmZip();
   zip.addFile("mimetype", Buffer.from("application/epub+zip"));
   zip.addFile("META-INF/container.xml", Buffer.from(`<?xml version="1.0"?><container><rootfiles><rootfile full-path="OPS/book.opf" media-type="application/oebps-package+xml"/></rootfiles></container>`));
@@ -18,7 +18,9 @@ function createEpub(options: { encrypted?: boolean; fixedLayout?: boolean; inclu
   const identifier = options.epub3Isbn
     ? '<dc:identifier id="isbn">urn:isbn:9780000000001</dc:identifier><meta refines="#isbn" property="identifier-type" scheme="onix:codelist5">15</meta>'
     : '<dc:identifier id="isbn" opf:scheme="ISBN" xmlns:opf="http://www.idpf.org/2007/opf">9780000000001</dc:identifier>';
-  zip.addFile("OPS/book.opf", Buffer.from(`<?xml version="1.0"?><package><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${identifier}${options.repeatedIdentifier ? '<dc:identifier>9780000000001</dc:identifier>' : ""}<dc:title>Libro de prueba</dc:title><dc:language>es</dc:language><dc:creator id="author">Autora</dc:creator><dc:subject>Ficción</dc:subject><dc:description>${description}</dc:description>${ageRating}<meta property="rendition:layout">${options.fixedLayout ? "pre-paginated" : "reflowable"}</meta></metadata><manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>${options.includeCover ? '<item id="cover" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/>' : ""}</manifest><spine><itemref idref="chapter"/></spine></package>`));
+  const epub2Series = options.epub2Series ? '<meta name="bunko:series" content="Saga de prueba"/><meta name="bunko:series-type" content="series"/><meta name="bunko:series-position" content="2"/>' : "";
+  const epub3Series = options.epub3Series ? '<meta property="belongs-to-collection" id="collection">Saga de prueba</meta><meta refines="#collection" property="collection-type">series</meta><meta refines="#collection" property="group-position">2</meta>' : "";
+  zip.addFile("OPS/book.opf", Buffer.from(`<?xml version="1.0"?><package><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${identifier}${options.repeatedIdentifier ? '<dc:identifier>9780000000001</dc:identifier>' : ""}<dc:title>Libro de prueba</dc:title><dc:language>es</dc:language><dc:creator id="author">Autora</dc:creator><dc:subject>Ficción</dc:subject><dc:description>${description}</dc:description>${ageRating}${epub2Series}${epub3Series}<meta property="rendition:layout">${options.fixedLayout ? "pre-paginated" : "reflowable"}</meta></metadata><manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>${options.includeCover ? '<item id="cover" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/>' : ""}</manifest><spine><itemref idref="chapter"/></spine></package>`));
   zip.addFile("OPS/chapter.xhtml", Buffer.from("<html><body>Contenido</body></html>"));
   zip.addFile("OPS/nav.xhtml", Buffer.from("<html><body>Índice</body></html>"));
   if (options.includeCover) zip.addFile("OPS/cover.jpg", Buffer.from([0xff, 0xd8, 0xff]));
@@ -54,6 +56,16 @@ test("reconoce ISBN mediante el refinamiento estándar de EPUB 3", async () => {
   const result = await parseEpubBuffer(createEpub({ epub3Isbn: true }));
   assert.equal(result.metadata.identifiers[0]?.scheme, "ISBN");
   assert.equal(result.metadata.identifiers[0]?.value, "urn:isbn:9780000000001");
+});
+
+test("reconoce series de Bunko en OPF 2", async () => {
+  const result = await parseEpubBuffer(createEpub({ epub2Series: true }));
+  assert.deepEqual(result.metadata.collection, { title: "Saga de prueba", type: "series", position: 2 });
+});
+
+test("reconoce colecciones estándar de EPUB 3", async () => {
+  const result = await parseEpubBuffer(createEpub({ epub3Series: true }));
+  assert.deepEqual(result.metadata.collection, { title: "Saga de prueba", type: "series", position: 2 });
 });
 
 test("normaliza descripciones HTML y clasificación de edad", async () => {

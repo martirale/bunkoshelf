@@ -2,7 +2,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { DeleteObjectCommand, DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { verifySession } from "@/lib/auth/verifySession";
 import { indexBook } from "@/lib/books/indexer";
 import {
@@ -34,6 +34,12 @@ function getCloudKey(filePath: string): string {
   return key;
 }
 
+function getBookSource(filePath: string): { seriesPath: string; seriesName: string } {
+  const storagePath = provider === "cloud" ? path.posix : path;
+  const seriesPath = storagePath.dirname(filePath);
+  return { seriesPath, seriesName: storagePath.basename(seriesPath) };
+}
+
 function getLocalPath(filePath: string): string {
   const resolved = path.resolve(filePath);
   if (!resolved.startsWith(`${booksRoot}${path.sep}`)) throw new Error("Invalid book storage path");
@@ -45,31 +51,18 @@ function checksumPath(filePath: string): string {
   return extension.join(extension.dirname(filePath), `${extension.parse(filePath).name}.txt`);
 }
 
-async function deleteCloudPrefix(prefix: string): Promise<void> {
-  let continuationToken: string | undefined;
-  do {
-    const response = await r2Client.send(new ListObjectsV2Command({
-      Bucket: R2_BUCKET,
-      Prefix: prefix,
-      ContinuationToken: continuationToken,
-    }));
-    const objects = response.Contents?.flatMap((item) => item.Key ? [{ Key: item.Key }] : []) ?? [];
-    if (objects.length) await r2Client.send(new DeleteObjectsCommand({ Bucket: R2_BUCKET, Delete: { Objects: objects } }));
-    continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
-  } while (continuationToken);
-}
-
 export async function rescanBookVolume(slug: string): Promise<BookAdminResult> {
   const authError = await requireAdmin();
   if (authError) return authError;
   try {
     const volume = await findBookVolumeBySlug(slug);
     if (!volume) return { ok: false, error: "Book not found" };
+    const source = getBookSource(volume.fullPath);
     await indexBook({
       fullPath: volume.fullPath,
       filename: volume.filename,
-      seriesPath: volume.series.path,
-      seriesName: volume.series.title,
+      seriesPath: source.seriesPath,
+      seriesName: source.seriesName,
       size: volume.size,
       mtime: new Date(),
       isOneshot: volume.series.isOneshot,
@@ -88,11 +81,12 @@ export async function rescanBookSeries(slug: string): Promise<BookAdminResult> {
     if (!series) return { ok: false, error: "Series not found" };
     const volumes = await listBookVolumes({ seriesSlug: slug });
     for (const volume of volumes) {
+      const source = getBookSource(volume.fullPath);
       await indexBook({
         fullPath: volume.fullPath,
         filename: volume.filename,
-        seriesPath: series.path,
-        seriesName: series.title,
+        seriesPath: source.seriesPath,
+        seriesName: source.seriesName,
         size: volume.size,
         mtime: new Date(),
         isOneshot: series.isOneshot,
@@ -135,13 +129,13 @@ export async function deleteBookSeries(slug: string): Promise<BookAdminResult> {
     const series = await findBookSeriesBySlug(slug);
     if (!series) return { ok: false, error: "Series not found" };
     const volumes = await listBookVolumes({ seriesSlug: slug });
+    const files = volumes.flatMap((volume) => [volume.fullPath, checksumPath(volume.fullPath)]);
     if (provider === "cloud") {
-      const prefix = getCloudKey(series.path).replace(/\/?$/, "/");
-      await deleteCloudPrefix(prefix);
+      await Promise.all(files.map((filePath) => r2Client.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: getCloudKey(filePath) }))));
     } else {
-      await fs.rm(getLocalPath(series.path), { recursive: true, force: true });
+      await Promise.all(files.map((filePath) => fs.rm(getLocalPath(filePath), { force: true })));
     }
-    await deleteBookChecksums(volumes.flatMap((volume) => [volume.fullPath, checksumPath(volume.fullPath)]));
+    await deleteBookChecksums(files);
     await deleteBookSeriesRecord(series.id);
     return { ok: true };
   } catch (error) {

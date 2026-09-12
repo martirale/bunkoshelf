@@ -17,6 +17,12 @@ export interface EpubSubject {
   scheme: string | null;
 }
 
+export interface EpubCollection {
+  title: string;
+  type: "series" | "set" | null;
+  position: number | null;
+}
+
 export interface EpubMetadata {
   title: string;
   subtitle: string | null;
@@ -36,6 +42,7 @@ export interface EpubMetadata {
   renditionFlow: string | null;
   renditionOrientation: string | null;
   renditionSpread: string | null;
+  collection: EpubCollection | null;
   identifiers: EpubIdentifier[];
   people: EpubPerson[];
   subjects: EpubSubject[];

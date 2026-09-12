@@ -2,6 +2,7 @@ import AdmZip from "adm-zip";
 import path from "node:path";
 import xml2js from "xml2js";
 import type {
+  EpubCollection,
   EpubMetadata,
   EpubParseResult,
   EpubPerson,
@@ -105,6 +106,54 @@ function namedMetaValues(metadata: XmlRecord): Map<string, string> {
   );
 }
 
+function collectionType(value: string | null | undefined): EpubCollection["type"] {
+  const normalized = value?.trim().toLowerCase();
+  return normalized === "series" || normalized === "set" ? normalized : null;
+}
+
+function collectionPosition(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const position = Number(value.trim().replace(",", "."));
+  return Number.isFinite(position) && position >= 0 ? position : null;
+}
+
+function parseCollection(metadata: XmlRecord, namedMeta: Map<string, string>): EpubCollection | null {
+  const entries = values(metadata.meta);
+  const epub3Collections = entries.flatMap((entry, index) => {
+    const attributes = attrs(entry);
+    const title = xmlText(entry);
+    if (attributes.property !== "belongs-to-collection" || !title) return [];
+    const id = attributes.id;
+    const refinements = id
+      ? entries.filter((candidate) => attrs(candidate).refines?.replace(/^#/, "") === id)
+      : [];
+    const valueFor = (property: string) => xmlText(refinements.find((candidate) => attrs(candidate).property === property));
+    return [{
+      title,
+      type: collectionType(valueFor("collection-type")),
+      position: collectionPosition(valueFor("group-position")),
+      index,
+    }];
+  });
+
+  if (epub3Collections.length > 0) {
+    epub3Collections.sort((a, b) => {
+      const priority = (type: EpubCollection["type"]) => type === "series" ? 0 : type === "set" ? 1 : 2;
+      return priority(a.type) - priority(b.type) || a.index - b.index;
+    });
+    const { title, type, position } = epub3Collections[0];
+    return { title, type, position };
+  }
+
+  const title = namedMeta.get("bunko:series")?.trim();
+  if (!title) return null;
+  return {
+    title,
+    type: collectionType(namedMeta.get("bunko:series-type") ?? "series"),
+    position: collectionPosition(namedMeta.get("bunko:series-position")),
+  };
+}
+
 function parseTitles(metadata: XmlRecord): { title: string; subtitle: string | null } {
   const titles = values(metadata["dc:title"]);
   const titleTypes = new Map(
@@ -152,6 +201,7 @@ function parseMetadata(packagePath: string, parsed: Record<string, unknown>): Ep
     ?? manifestItems.find((item) => item["media-type"] === "application/x-dtbncx+xml");
   const rendition = propertyValues(metadata);
   const namedMeta = namedMetaValues(metadata);
+  const collection = parseCollection(metadata, namedMeta);
   const { title, subtitle } = parseTitles(metadata);
 
   return {
@@ -177,6 +227,7 @@ function parseMetadata(packagePath: string, parsed: Record<string, unknown>): Ep
     renditionFlow: rendition.get("rendition:flow") ?? null,
     renditionOrientation: rendition.get("rendition:orientation") ?? null,
     renditionSpread: rendition.get("rendition:spread") ?? null,
+    collection,
     identifiers,
     people: parsePeople(metadata),
     subjects: values(metadata["dc:subject"]).reduce<EpubMetadata["subjects"]>((items, entry) => {

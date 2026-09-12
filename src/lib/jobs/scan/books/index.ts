@@ -17,15 +17,16 @@ export async function scanBooks(): Promise<{ indexed: number; errors: string[] }
     for (const item of response.Contents ?? []) {
       if (!item.Key?.toLowerCase().endsWith(".epub")) continue;
       const relative = item.Key.replace(/^library\/books\//, "");
-      const parts = relative.split("/");
-      if (parts.length < 2) continue;
       const fullPath = `/${item.Key}`;
       existingPaths.add(fullPath);
       const checksum = `${item.ETag ?? ""}:${item.Size ?? 0}:${item.LastModified?.getTime() ?? 0}`;
       if (knownChecksums.get(fullPath) === checksum) continue;
       try {
-        await indexBook({ fullPath, filename: parts.at(-1)!, seriesPath: `/library/books/${parts[0]}`,
-          seriesName: parts[0], size: item.Size ?? 0, mtime: item.LastModified ?? new Date() });
+        const directory = path.posix.dirname(relative);
+        const seriesPath = directory === "." ? "/library/books" : `/library/books/${directory}`;
+        const seriesName = directory === "." ? "books" : path.posix.basename(directory);
+        await indexBook({ fullPath, filename: path.posix.basename(relative), seriesPath,
+          seriesName, size: item.Size ?? 0, mtime: item.LastModified ?? new Date() });
         await saveBookChecksum(fullPath, checksum);
         indexed++;
       } catch (error) { errors.push(`${item.Key}: ${(error as Error).message}`); }

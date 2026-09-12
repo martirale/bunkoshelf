@@ -47,7 +47,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
           <p className="mt-4">{getBookPublicationYear(meta.publishedAt ?? meta.modifiedAt)} &bull; {volumes.length} {books.books}</p>
           {description && (
             <>
-              <h2 className="text-sm mt-8 mb-1">{books.synopsis} ({books.book} 1)</h2>
+              <h2 className="text-sm mt-8 mb-1">{books.synopsis}{firstVolume.number !== null ? ` (${books.book} ${firstVolume.number})` : null}</h2>
               <BookSummary summary={description} intl={intl} />
             </>
           )}

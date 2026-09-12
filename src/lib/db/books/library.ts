@@ -10,6 +10,7 @@ export interface BookSeries {
   path: string;
   isOneshot: boolean;
   status: string;
+  collectionType: "series" | "set" | null;
 }
 
 export interface BookVolume {
@@ -42,6 +43,7 @@ interface BookRow {
   series_path: string;
   series_is_oneshot: boolean;
   series_status: string;
+  series_collection_type: "series" | "set" | null;
   metadata_id: string;
   metadata_title: string;
   metadata_subtitle: string | null;
@@ -81,6 +83,7 @@ function mapBook(row: BookRow): BookVolume {
       path: row.series_path,
       isOneshot: row.series_is_oneshot,
       status: row.series_status,
+      collectionType: row.series_collection_type,
     },
     metadata: {
       id: row.metadata_id,
@@ -102,6 +105,7 @@ function mapBook(row: BookRow): BookVolume {
       renditionFlow: row.metadata_rendition_flow,
       renditionOrientation: row.metadata_rendition_orientation,
       renditionSpread: row.metadata_rendition_spread,
+      collection: null,
       identifiers: [],
       people: [],
       subjects: [],
@@ -114,7 +118,7 @@ const BOOK_SELECT = `
     bv.filename AS volume_filename, bv.full_path AS volume_full_path,
     bv.size::text AS volume_size, bv.cover_image AS volume_cover_image, bv.number AS volume_number, bv.created_at AS volume_created_at,
     bs.id AS series_id, bs.slug AS series_slug, bs.title AS series_title, bs.path AS series_path,
-    bs.is_oneshot AS series_is_oneshot, bs.status AS series_status,
+    bs.is_oneshot AS series_is_oneshot, bs.status AS series_status, bs.collection_type AS series_collection_type,
     bm.id AS metadata_id, bm.title AS metadata_title, bm.subtitle AS metadata_subtitle,
     bm.description AS metadata_description, bm.publisher AS metadata_publisher,
     bm.published_at AS metadata_published_at, bm.language AS metadata_language,
@@ -148,6 +152,8 @@ export async function upsertBook(input: {
   seriesTitle: string;
   seriesPath: string;
   isOneshot: boolean;
+  collectionType: "series" | "set" | null;
+  volumeNumber: number | null;
   seriesSlug: string;
   volumeSlug: string;
   filename: string;
@@ -157,20 +163,22 @@ export async function upsertBook(input: {
   metadata: EpubMetadata;
 }): Promise<BookVolume> {
   const series = await queryOne<{ id: string }>(`
-    INSERT INTO book_series (id, slug, title, sort_title, path, is_oneshot, mtime)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO book_series (id, slug, title, sort_title, path, is_oneshot, collection_type, mtime)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (slug) DO UPDATE SET title = EXCLUDED.title, sort_title = EXCLUDED.sort_title,
-      path = EXCLUDED.path, is_oneshot = EXCLUDED.is_oneshot, mtime = EXCLUDED.mtime, updated_at = NOW()
-    RETURNING id`, [createId(), input.seriesSlug, input.seriesTitle, buildNaturalSortKey(input.seriesTitle), input.seriesPath, input.isOneshot, input.mtime]);
+      path = EXCLUDED.path, is_oneshot = EXCLUDED.is_oneshot, collection_type = EXCLUDED.collection_type,
+      mtime = EXCLUDED.mtime, updated_at = NOW()
+    RETURNING id`, [createId(), input.seriesSlug, input.seriesTitle, buildNaturalSortKey(input.seriesTitle), input.seriesPath, input.isOneshot, input.collectionType, input.mtime]);
   if (!series) throw new Error("Failed to create book series");
 
   const volume = await queryOne<{ id: string }>(`
-    INSERT INTO book_volumes (id, series_id, slug, title, sort_title, filename, full_path, size, mtime, cover_image)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    INSERT INTO book_volumes (id, series_id, slug, title, sort_title, filename, full_path, size, mtime, cover_image, number)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     ON CONFLICT (slug) DO UPDATE SET series_id = EXCLUDED.series_id, title = EXCLUDED.title,
       sort_title = EXCLUDED.sort_title, filename = EXCLUDED.filename, full_path = EXCLUDED.full_path,
-      size = EXCLUDED.size, mtime = EXCLUDED.mtime, cover_image = EXCLUDED.cover_image, updated_at = NOW()
-    RETURNING id`, [createId(), series.id, input.volumeSlug, input.metadata.title, buildNaturalSortKey(input.metadata.title), input.filename, input.fullPath, input.size, input.mtime, input.metadata.coverPath]);
+      size = EXCLUDED.size, mtime = EXCLUDED.mtime, cover_image = EXCLUDED.cover_image,
+      number = EXCLUDED.number, updated_at = NOW()
+    RETURNING id`, [createId(), series.id, input.volumeSlug, input.metadata.title, buildNaturalSortKey(input.metadata.title), input.filename, input.fullPath, input.size, input.mtime, input.metadata.coverPath, input.volumeNumber]);
   if (!volume) throw new Error("Failed to create book volume");
 
   const metadata = await queryOne<{ id: string }>(`
@@ -206,6 +214,8 @@ export async function upsertBook(input: {
       "INSERT INTO book_subjects (id, metadata_id, name, scheme) VALUES ($1,$2,$3,$4) ON CONFLICT (metadata_id, name) DO NOTHING",
       [createId(), metadata.id, item.name, item.scheme])),
   ]);
+  await execute(`DELETE FROM book_series
+    WHERE id <> $1 AND NOT EXISTS (SELECT 1 FROM book_volumes WHERE book_volumes.series_id = book_series.id)`, [series.id]);
   const result = await findBookVolumeBySlug(input.volumeSlug);
   if (!result) throw new Error("Failed to read indexed book");
   return result;
@@ -230,7 +240,7 @@ export async function listBookVolumes(options?: { seriesSlug?: string; limit?: n
   if (options?.seriesSlug) params.push(options.seriesSlug);
   const limit = options?.limit ?? 100;
   params.push(limit);
-  const rows = await query<BookRow>(`${BOOK_SELECT}${where} ORDER BY bs.sort_title, bv.sort_title LIMIT $${params.length}`, params);
+  const rows = await query<BookRow>(`${BOOK_SELECT}${where} ORDER BY bs.sort_title, bv.number NULLS LAST, bv.sort_title LIMIT $${params.length}`, params);
   return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
 }
 
@@ -247,7 +257,8 @@ export async function listFavoriteBookSeries(userId: string, options: { page: nu
   const total = Number(count?.count ?? "0");
   const offset = Math.max(0, options.page - 1) * options.pageSize;
   const series = await query<BookSeries>(`
-    SELECT bs.id, bs.slug, bs.title, bs.path, bs.is_oneshot AS "isOneshot", bs.status
+    SELECT bs.id, bs.slug, bs.title, bs.path, bs.is_oneshot AS "isOneshot", bs.status,
+      bs.collection_type AS "collectionType"
     FROM book_series bs
     INNER JOIN user_to_book_series ubs ON ubs.series_id = bs.id
     WHERE ubs.user_id = $1 AND ubs.is_favorite = TRUE
@@ -271,7 +282,7 @@ export async function listFavoriteBookVolumes(userId: string, options: { page: n
   const rows = await query<BookRow>(`${BOOK_SELECT}
     INNER JOIN user_to_books ub ON ub.volume_id = bv.id
     WHERE ub.user_id = $1 AND ub.is_favorite = TRUE
-    ORDER BY bs.sort_title, bv.sort_title
+    ORDER BY bs.sort_title, bv.number NULLS LAST, bv.sort_title
     LIMIT $2 OFFSET $3`, [userId, options.pageSize, offset]);
   const items = await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
 
@@ -335,6 +346,7 @@ export async function listRecentlyReadBooks(userId: string, limit = 12): Promise
 export async function listBookSeries(): Promise<Array<BookSeries & { volumeCount: number }>> {
   return query<BookSeries & { volumeCount: number }>(`
     SELECT bs.id, bs.slug, bs.title, bs.path, bs.is_oneshot AS "isOneshot", bs.status,
+      bs.collection_type AS "collectionType",
       COUNT(bv.id)::int AS "volumeCount"
     FROM book_series bs LEFT JOIN book_volumes bv ON bv.series_id = bs.id
     GROUP BY bs.id ORDER BY bs.sort_title`);
@@ -342,13 +354,15 @@ export async function listBookSeries(): Promise<Array<BookSeries & { volumeCount
 
 export async function findBookSeriesBySlug(slug: string): Promise<BookSeries | null> {
   return queryOne<BookSeries>(`
-    SELECT id, slug, title, path, is_oneshot AS "isOneshot", status
+    SELECT id, slug, title, path, is_oneshot AS "isOneshot", status,
+      collection_type AS "collectionType"
     FROM book_series WHERE slug = $1 LIMIT 1`, [slug]);
 }
 
 export async function findBookSeriesById(id: string): Promise<BookSeries | null> {
   return queryOne<BookSeries>(`
-    SELECT id, slug, title, path, is_oneshot AS "isOneshot", status
+    SELECT id, slug, title, path, is_oneshot AS "isOneshot", status,
+      collection_type AS "collectionType"
     FROM book_series WHERE id = $1 LIMIT 1`, [id]);
 }
 
