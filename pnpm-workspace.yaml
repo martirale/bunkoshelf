@@ -1,4 +1,6 @@
 allowBuilds:
+  core-js: false
   esbuild: true
+  es5-ext: false
   sharp: true
   unrs-resolver: true
