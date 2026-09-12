@@ -304,7 +304,6 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           width: "100%",
           height: "100%",
           manager: "continuous",
-          snap: true,
           gap: 32,
           flow: layout === "pre-paginated" ? "paginated" : flowRef.current,
           allowScriptedContent: false,
@@ -387,8 +386,11 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
             const distanceY = Math.abs(deltaY);
 
             if (distanceX > 48 && distanceX > distanceY) {
+              if (event.cancelable) event.preventDefault();
+              event.stopPropagation();
               ignoreClickUntil = Date.now() + 500;
               clearReaderOverlays();
+              void (deltaX < 0 ? rendition.next() : rendition.prev());
               return;
             }
 
@@ -457,11 +459,11 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           const markPointerUp = () => { pointerIsDownRef.current = false; showPendingSelection(); };
           document.addEventListener("mousedown", markPointerDown, true);
           document.addEventListener("mouseup", markPointerUp, true);
-          document.addEventListener("touchstart", markPointerDown, true);
-          document.addEventListener("touchend", markPointerUp, true);
-          document.addEventListener("touchstart", handleTouchStart, { passive: true, capture: true });
-          document.addEventListener("touchend", handleTouchEnd, { passive: false, capture: true });
-          document.addEventListener("touchcancel", resetTouchGesture, true);
+          body.addEventListener("touchstart", markPointerDown, true);
+          body.addEventListener("touchend", markPointerUp, true);
+          body.addEventListener("touchstart", handleTouchStart, { passive: true, capture: true });
+          body.addEventListener("touchend", handleTouchEnd, { passive: false, capture: true });
+          body.addEventListener("touchcancel", resetTouchGesture, true);
         });
         if (layout === "reflowable") applyStyles();
         const refreshAnnotationLayers = () => {
