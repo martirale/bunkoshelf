@@ -18,7 +18,10 @@ export interface BookProgress {
 
 export interface BookBookmark { id: string; cfi: string; label: string | null; chapterLabel: string | null; createdAt: Date; }
 export interface BookAnnotation { id: string; cfiRange: string; excerpt: string | null; note: string | null; color: string; createdAt: Date; }
+export interface BookReadingEntry { id: string; readAt: string; }
 export interface BookReaderPreferences { theme: "light" | "sepia" | "dark"; flow: "paginated" | "scrolled-continuous"; fontFamily: "serif" | "sans"; fontSize: number; lineHeight: number; margin: number; columnWidth: number; }
+
+type BookProgressUpdate = Partial<Omit<BookProgress, "id" | "userId" | "volumeId">> & { readingDate?: string };
 
 function mapProgress(row: Record<string, unknown>): BookProgress {
   return { id: row.id as string, userId: row.user_id as string, volumeId: row.volume_id as string,
@@ -33,10 +36,15 @@ export async function findBookProgress(userId: string, volumeId: string): Promis
   return row ? mapProgress(row) : null;
 }
 
-export async function upsertBookProgress(userId: string, volumeId: string, input: Partial<Omit<BookProgress, "id" | "userId" | "volumeId">>): Promise<BookProgress> {
+export async function upsertBookProgress(userId: string, volumeId: string, input: BookProgressUpdate): Promise<BookProgress> {
   const current = await findBookProgress(userId, volumeId);
   const isRead = input.isRead ?? current?.isRead ?? false;
+  const completedNow = isRead && !current?.isRead;
   const completedAt = isRead && !current?.completedAt ? new Date() : current?.completedAt ?? null;
+  const lastReadAt = input.lastReadAt === undefined
+    ? completedNow ? new Date() : current?.lastReadAt ?? null
+    : input.lastReadAt;
+  const readingDate = input.readingDate ?? lastReadAt?.toISOString().slice(0, 10);
   const row = await queryOne<Record<string, unknown>>(`
     INSERT INTO user_to_books (id,user_id,volume_id,is_read,is_favorite,personal_rating,cfi,progression,chapter_href,chapter_label,last_read_at,completed_at)
     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
@@ -50,19 +58,25 @@ export async function upsertBookProgress(userId: string, volumeId: string, input
       input.progression === undefined ? current?.progression ?? null : input.progression,
       input.chapterHref === undefined ? current?.chapterHref ?? null : input.chapterHref,
       input.chapterLabel === undefined ? current?.chapterLabel ?? null : input.chapterLabel,
-      input.lastReadAt === undefined ? current?.lastReadAt ?? null : input.lastReadAt,
+      lastReadAt,
       completedAt]);
   if (!row) throw new Error("Failed to update book progress");
-  if (isRead && !current?.isRead) {
-    const now = new Date();
-    await execute("INSERT INTO book_reading_entries (id, user_id, volume_id, read_at) VALUES ($1,$2,$3,$4)", [createId(), userId, volumeId, now.toISOString().slice(0, 10)]);
+  if (completedNow) {
+    await execute("INSERT INTO book_reading_entries (id, user_id, volume_id, read_at) VALUES ($1,$2,$3,$4)", [createId(), userId, volumeId, readingDate!]);
   }
-  if (input.lastReadAt) {
-    const date = input.lastReadAt.toISOString().slice(0, 10);
+  if (readingDate && (input.lastReadAt || completedNow)) {
     await execute(`INSERT INTO daily_reading_logs (id, user_id, date) VALUES ($1,$2,$3)
-      ON CONFLICT (user_id, date) DO NOTHING`, [createId(), userId, date]);
+      ON CONFLICT (user_id, date) DO NOTHING`, [createId(), userId, readingDate]);
   }
   return mapProgress(row);
+}
+
+export async function listBookReadingEntries(userId: string, volumeId: string): Promise<BookReadingEntry[]> {
+  return query<BookReadingEntry>(`
+    SELECT id, read_at AS "readAt"
+    FROM book_reading_entries
+    WHERE user_id = $1 AND volume_id = $2
+    ORDER BY created_at DESC`, [userId, volumeId]);
 }
 
 export async function findBookSeriesFavorite(userId: string, seriesId: string): Promise<boolean> {

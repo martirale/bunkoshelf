@@ -1,16 +1,39 @@
 import MangaCard from "@/components/ui/MangaCard";
+import { verifySession } from "@/lib/auth/verifySession";
 import { getBookCoverUrl } from "@/lib/books/cover";
-import { listBookVolumes } from "@/lib/db/books/library";
+import { listBookProgressByIds, listBookVolumes } from "@/lib/db/books/library";
 import { LibraryBigIcon } from "lucide-react";
 import type { Dictionary, Locale } from "@/lib/types";
 
 export default async function SeriesIndex({ lang, intl }: { lang: Locale; intl: Dictionary }) {
-  const books = await listBookVolumes();
+  const labels = intl.books as Record<string, string>;
+  const [books, user] = await Promise.all([listBookVolumes(), verifySession()]);
+  const progressById = user
+    ? await listBookProgressByIds(user.id, books.map((book) => book.id))
+    : {};
   const series = Array.from(books.reduce((map, book) => {
-    const current = map.get(book.series.id) ?? { ...book.series, cover: getBookCoverUrl(book.slug, book.metadata.coverPath), count: 0 };
-    current.count++;
+    const current = map.get(book.series.id) ?? {
+      ...book.series,
+      cover: getBookCoverUrl(book.slug, book.metadata.coverPath),
+      firstSlug: book.slug,
+      volumeIds: [] as string[],
+    };
+    current.volumeIds.push(book.id);
     map.set(book.series.id, current);
     return map;
-  }, new Map<string, { id: string; slug: string; title: string; cover: string | null; count: number }>()).values());
-  return <><div className="mb-4 flex items-center"><h2 className="flex items-center text-base md:text-lg"><LibraryBigIcon size={28} className="mr-2" />{intl.libraries.series as string}</h2></div><section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">{series.map((item) => <MangaCard key={item.id} title={item.title} href={`/${lang}/books/${item.slug}`} isSeries isOneshot={false} onGoing={false} onPause={false} volumeCount={item.count} cover={item.cover} intl={intl} isDragging={false} seriesSlug={item.slug} className="font-roboto font-bold leading-5 text-base 2xl:text-lg" />)}</section></>;
+  }, new Map<string, { id: string; slug: string; title: string; isOneshot: boolean; cover: string | null; firstSlug: string; volumeIds: string[] }>()).values());
+
+  return <>
+    <div className="mb-4 flex items-center">
+      <h2 className="flex items-center text-base md:text-lg"><LibraryBigIcon size={28} className="mr-2" />{intl.libraries.series as string}</h2>
+    </div>
+    <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
+      {series.map((item) => {
+        const progressRatio = item.volumeIds.length
+          ? item.volumeIds.filter((id) => progressById[id]?.isRead).length / item.volumeIds.length
+          : 0;
+        return <MangaCard key={item.id} title={item.title} href={item.isOneshot ? `/${lang}/books/volume/${item.firstSlug}` : `/${lang}/books/${item.slug}`} isSeries={!item.isOneshot} isOneshot={item.isOneshot} onGoing={false} onPause={false} volumeCount={item.isOneshot ? null : item.volumeIds.length} countLabel={labels.books} cover={item.cover} progressRatio={progressRatio} intl={intl} isDragging={false} seriesSlug={item.slug} className="font-roboto font-bold leading-5 text-base 2xl:text-lg" />;
+      })}
+    </section>
+  </>;
 }

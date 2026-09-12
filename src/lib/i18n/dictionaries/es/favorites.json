@@ -25,6 +25,14 @@
     "sectionOthersVolumes": "Otros - Obras",
     "sectionBooks": "Libros",
     "badgeBookSeries": "Series",
-    "badgeBookVolumes": "Libros"
+    "badgeBookVolumes": "Libros",
+    "headingMangaSeries": "Mangas · Series",
+    "headingMangaVolumes": "Mangas · Tomos",
+    "headingComicSeries": "Cómics · Series",
+    "headingComicVolumes": "Cómics · Números",
+    "headingBooksSeries": "Libros · Series",
+    "headingBooksVolumes": "Libros · Libros",
+    "headingOthersSeries": "Otros · Colecciones",
+    "headingOthersVolumes": "Otros · Obras"
   }
 }

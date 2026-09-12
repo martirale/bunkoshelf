@@ -17,6 +17,7 @@ interface MangaCardProps {
   onGoing?: boolean;
   onPause?: boolean;
   volumeCount?: number | null;
+  countLabel?: string;
   cover?: string | null;
   intl: DictionarySection;
   isDragging: boolean;
@@ -35,6 +36,7 @@ export default function MangaCard({
   onGoing,
   onPause,
   volumeCount,
+  countLabel,
   cover,
   intl,
   isDragging,
@@ -129,7 +131,7 @@ export default function MangaCard({
         <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
           {isSeries && volumeCount != null && (
             <span className="bg-neutral-700 text-[10px] leading-none uppercase py-1 px-1.5 rounded">
-              {volumeCount} {manga.volumes as string}
+              {volumeCount} {countLabel ?? manga.volumes as string}
             </span>
           )}
           {isSeries && onGoing && (

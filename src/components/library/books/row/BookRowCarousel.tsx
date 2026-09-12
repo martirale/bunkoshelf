@@ -6,6 +6,7 @@ import MangaCard from "@/components/ui/MangaCard";
 import { getBookCoverUrl } from "@/lib/books/cover";
 import type { BookVolume } from "@/lib/db/books/library";
 import type { Dictionary } from "@/lib/types";
+import { getBookProgressRatio } from "@/lib/books/readingProgress";
 import type { MouseEvent as ReactMouseEvent, DragEvent, ReactNode } from "react";
 
 interface BookRowCarouselProps {
@@ -14,7 +15,7 @@ interface BookRowCarouselProps {
   intl: Dictionary;
   header: ReactNode;
   className?: string;
-  progressById?: Record<string, number | null>;
+  progressById?: Record<string, { isRead: boolean; progression: number | null }>;
 }
 
 export default function BookRowCarousel({
@@ -103,7 +104,7 @@ export default function BookRowCarousel({
               title={book.metadata.title}
               href={`/${lang}/books/volume/${book.slug}`}
               isSeries={false}
-              isOneshot={false}
+              isOneshot={book.series.isOneshot}
               onGoing={false}
               onPause={false}
               volumeCount={null}
@@ -111,7 +112,7 @@ export default function BookRowCarousel({
               intl={intl}
               isDragging={isDragging}
               seriesSlug={null}
-              progressRatio={progressById[book.id] ?? null}
+              progressRatio={getBookProgressRatio(progressById[book.id])}
               offlineVolumeId={book.id}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />

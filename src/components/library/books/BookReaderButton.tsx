@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { BookCheckIcon, CheckIcon, HeartIcon, HeartOffIcon } from "lucide-react";
 import EpubReader from "@/components/reader/EpubReader";
+import { updateBookReadState } from "@/actions/books-reading";
 import type { Dictionary } from "@/lib/types";
 
 interface BookReaderButtonProps {
@@ -21,6 +22,11 @@ export default function BookReaderButton({ slug, title, layout, intl }: BookRead
   const [favorite, setFavorite] = useState(false);
   const [isRead, setIsRead] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const getLocalDateString = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  };
 
   useEffect(() => {
     fetch(`/api/reader/books/${encodeURIComponent(slug)}/progress`)
@@ -52,6 +58,24 @@ export default function BookReaderButton({ slug, title, layout, intl }: BookRead
     }
   };
 
+  const toggleRead = async () => {
+    setIsLoading(true);
+    try {
+      const nextIsRead = !isRead;
+      const result = await updateBookReadState({
+        slug,
+        read: nextIsRead,
+        readAt: nextIsRead ? getLocalDateString() : undefined,
+      });
+      if (!result.success) return;
+      setIsRead(nextIsRead);
+      if (nextIsRead) window.dispatchEvent(new Event("bunko:challenge-updated"));
+      router.refresh();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return <>
     <div className="flex flex-row mt-4 gap-2">
       <button
@@ -63,10 +87,7 @@ export default function BookReaderButton({ slug, title, layout, intl }: BookRead
         <span className="font-bold uppercase">{books.read}</span>
       </button>
       <button
-        onClick={() => {
-          const nextIsRead = !isRead;
-          void updateProgress({ isRead: nextIsRead, progression: nextIsRead ? 1 : 0 });
-        }}
+        onClick={() => void toggleRead()}
         disabled={isLoading}
         className={clsx(
           "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",

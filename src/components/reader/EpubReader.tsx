@@ -63,6 +63,11 @@ async function getBookBuffer(slug: string): Promise<ArrayBuffer> {
   return buffer.slice(0);
 }
 
+function getLocalDateString() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
 export default function EpubReader({ isOpen, onClose, slug, title, layout, intl }: EpubReaderProps) {
   const reader = intl.epubReader as Record<string, string>;
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -196,6 +201,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         progression: nextProgress,
         chapterHref: location.start.href,
         isRead: isComplete,
+        readingDate: getLocalDateString(),
       }),
     }).then((response) => {
       if (response.ok && isComplete) window.dispatchEvent(new Event("bunko:challenge-updated"));

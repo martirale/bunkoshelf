@@ -8,6 +8,7 @@ import BookAdminActions from "./BookAdminActions";
 import BookSummary from "./BookSummary";
 import { getBookCoverUrl } from "@/lib/books/cover";
 import { getBookPublicationYear, toPlainBookText } from "@/lib/books/metadata";
+import { getBookProgressRatio } from "@/lib/books/readingProgress";
 import type { BookVolume } from "@/lib/db/books/library";
 import type { Dictionary, Locale } from "@/lib/types";
 
@@ -71,7 +72,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
               cover={getBookCoverUrl(volume.slug, volume.metadata.coverPath)}
               isDragging={false}
               seriesSlug={null}
-              progressRatio={progressById[volume.id]?.progression ?? null}
+              progressRatio={getBookProgressRatio(progressById[volume.id])}
               offlineVolumeId={volume.id}
               intl={intl}
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"

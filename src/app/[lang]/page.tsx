@@ -14,6 +14,7 @@ import { getLibrarySection } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import { getBookCoverUrl } from "@/lib/books/cover";
+import { getBookProgressRatio } from "@/lib/books/readingProgress";
 import { listBookProgressByIds, listRecentlyAddedBooks } from "@/lib/db/books/library";
 import { verifySession } from "@/lib/auth/verifySession";
 import type { Locale, DictionarySection } from "@/lib/types";
@@ -157,7 +158,7 @@ async function HomeContent({
         coverImage: getBookCoverUrl(book.slug, book.metadata.coverPath),
         section: "manga" as const,
         meta: null,
-        progressRatio: bookProgress[book.id]?.progression ?? null,
+        progressRatio: getBookProgressRatio(bookProgress[book.id]),
         href: `/${lang}/books/volume/${book.slug}`,
       } satisfies VolumeEntry,
     })),

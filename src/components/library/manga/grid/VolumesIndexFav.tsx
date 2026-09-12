@@ -35,10 +35,10 @@ export default async function VolumesIndexFav({
   const user = await verifySession();
   if (!user) return null;
   const heading = section === "comic"
-    ? intl.favorites.ttVolumesComic
+    ? intl.favorites.headingComicVolumes
     : section === "others"
-      ? intl.favorites.ttVolumesOthers
-      : intl.favorites.ttVolumesManga;
+      ? intl.favorites.headingOthersVolumes
+      : intl.favorites.headingMangaVolumes;
   const emptyMessage = section === "manga"
     ? intl.misc.noVolumesFav
     : section === "comic"

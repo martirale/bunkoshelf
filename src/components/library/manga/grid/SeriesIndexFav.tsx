@@ -36,10 +36,10 @@ export default async function SeriesIndexFav({
   const user = await verifySession();
   if (!user) return null;
   const heading = section === "comic"
-    ? intl.favorites.ttSeriesComic
+    ? intl.favorites.headingComicSeries
     : section === "others"
-      ? intl.favorites.ttSeriesOthers
-      : intl.favorites.ttSeriesManga;
+      ? intl.favorites.headingOthersSeries
+      : intl.favorites.headingMangaSeries;
   const emptyMessage = intl.misc.noSeriesFav;
 
   const favoriteSeriesIds = await listFavoriteSeriesIds(user.id);

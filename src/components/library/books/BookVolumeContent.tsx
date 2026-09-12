@@ -3,6 +3,7 @@ import Link from "next/link";
 import Separator from "@/components/ui/Separator";
 import Tabs from "@/components/ui/Tabs";
 import BookReaderButton from "./BookReaderButton";
+import BookReadingHistory from "./BookReadingHistory";
 import BookMetadataPanel from "./BookMetadataPanel";
 import BookMetadataBadges from "./BookMetadataBadges";
 import BookAdminActions from "./BookAdminActions";
@@ -10,16 +11,18 @@ import BookSummary from "./BookSummary";
 import { getBookCoverUrl } from "@/lib/books/cover";
 import { getBookPublicationYear, toPlainBookText } from "@/lib/books/metadata";
 import type { BookVolume } from "@/lib/db/books/library";
+import type { BookReadingEntry } from "@/lib/db/books/reading";
 import type { Dictionary, Locale } from "@/lib/types";
 
 interface BookVolumeContentProps {
   volume: BookVolume;
   lang: Locale;
   intl: Dictionary;
+  readingEntries: BookReadingEntry[];
   isAdmin: boolean;
 }
 
-export default function BookVolumeContent({ volume, lang, intl, isAdmin }: BookVolumeContentProps) {
+export default function BookVolumeContent({ volume, lang, intl, readingEntries, isAdmin }: BookVolumeContentProps) {
   const books = intl.books as Record<string, string>;
   const coverImage = getBookCoverUrl(volume.slug, volume.metadata.coverPath);
   const description = toPlainBookText(volume.metadata.description);
@@ -72,7 +75,7 @@ export default function BookVolumeContent({ volume, lang, intl, isAdmin }: BookV
 
           <Tabs tabs={[
             { label: books.details, content: <BookMetadataPanel volume={volume} intl={intl} /> },
-            { label: books.readingHistory, content: <p className="text-neutral-400">{books.readingHistoryDescription}</p> },
+            { label: books.readingHistory, content: <BookReadingHistory entries={readingEntries} intl={intl} /> },
           ]} />
           {isAdmin && <><Separator /><BookAdminActions type="volume" slug={volume.slug} lang={lang} intl={intl} canDownload={process.env.LIB_PROVIDER === "cloud"} /></>}
         </div>
