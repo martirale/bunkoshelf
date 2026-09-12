@@ -7,7 +7,8 @@ import type { Dictionary, Locale } from "@/lib/types";
 
 export default async function SeriesIndex({ lang, intl }: { lang: Locale; intl: Dictionary }) {
   const labels = intl.books as Record<string, string>;
-  const [books, user] = await Promise.all([listBookVolumes(), verifySession()]);
+  const user = await verifySession();
+  const books = await listBookVolumes();
   const progressById = user
     ? await listBookProgressByIds(user.id, books.map((book) => book.id))
     : {};

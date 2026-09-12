@@ -1,5 +1,4 @@
 import { BookCheckIcon, BookPlusIcon } from "lucide-react";
-import { connection } from "next/server";
 import type { Dictionary } from "@/lib/types";
 import { listBookProgressByIds, listBookVolumes, listRecentlyReadBooks } from "@/lib/db/books/library";
 import { verifySession } from "@/lib/auth/verifySession";
@@ -8,9 +7,8 @@ import BookRowCarousel from "./row/BookRowCarousel";
 interface BookOverviewProps { lang: string; intl: Dictionary; }
 
 export default async function BookOverview({ lang, intl }: BookOverviewProps) {
-  await connection();
-
-  const [books, user] = await Promise.all([listBookVolumes({ limit: 20 }), verifySession()]);
+  const user = await verifySession();
+  const books = await listBookVolumes({ limit: 20 });
   if (!books.length) return <p className="p-4 text-center">{(intl.books as Record<string, string>).noBooksIndexed}</p>;
   const recentlyRead = user ? await listRecentlyReadBooks(user.id, 12) : [];
   const progressById = user
