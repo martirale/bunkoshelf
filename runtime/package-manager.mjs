@@ -2,6 +2,14 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fs from "fs-extra";
 
+const pnpmAllowedBuilds = [
+  "core-js",
+  "es5-ext",
+  "esbuild",
+  "sharp",
+  "unrs-resolver",
+];
+
 function parsePackageManagerName(value) {
   if (!value) return null;
   if (value.startsWith("pnpm@") || value === "pnpm") return "pnpm";
@@ -71,6 +79,14 @@ export function getPackageManagerVersion(name) {
   return null;
 }
 
+export function getPnpmBuildPolicy() {
+  return [
+    "allowBuilds:",
+    ...pnpmAllowedBuilds.map((packageName) => `  ${packageName}: true`),
+    "",
+  ].join("\n");
+}
+
 export function getInstallCommand(name) {
   if (name === "pnpm") {
     return {
@@ -89,7 +105,14 @@ export function getUpdateDependencyCommand(name, target) {
   if (name === "pnpm") {
     return {
       command: "pnpm",
-      args: ["add", "--save-exact", target],
+      args: [
+        "add",
+        "--save-exact",
+        ...pnpmAllowedBuilds.map(
+          (packageName) => `--allow-build=${packageName}`
+        ),
+        target,
+      ],
     };
   }
 

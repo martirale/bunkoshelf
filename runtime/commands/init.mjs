@@ -9,6 +9,7 @@ import {
   detectPackageManager,
   getInstallCommand,
   getPackageManagerVersion,
+  getPnpmBuildPolicy,
   getStartCommand,
   getUpdateCommand,
 } from "../package-manager.mjs";
@@ -123,6 +124,12 @@ export async function init(projectName, options = {}) {
       spaces: 2,
     }
   );
+  if (packageManager === "pnpm") {
+    await fs.writeFile(
+      join(projectDir, "pnpm-workspace.yaml"),
+      getPnpmBuildPolicy()
+    );
+  }
   await fs.writeFile(join(projectDir, ".gitignore"), ".env\nnode_modules\n");
   progress.stop("Project created");
 
