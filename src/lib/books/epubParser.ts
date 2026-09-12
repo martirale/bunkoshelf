@@ -54,6 +54,21 @@ function roleByRefines(metadata: XmlRecord): Map<string, string> {
   return roles;
 }
 
+function identifierTypeByRefines(metadata: XmlRecord): Map<string, string> {
+  const types = new Map<string, string>();
+  for (const entry of values(metadata.meta)) {
+    const attributes = attrs(entry);
+    if (attributes.property !== "identifier-type" || !attributes.refines) continue;
+    const value = xmlText(entry)?.trim();
+    if (!value) continue;
+    const scheme = attributes.scheme?.toLowerCase();
+    if ((scheme === "onix:codelist5" && value === "15") || value.toLowerCase() === "isbn") {
+      types.set(attributes.refines.replace(/^#/, ""), "ISBN");
+    }
+  }
+  return types;
+}
+
 function parsePeople(metadata: XmlRecord): EpubPerson[] {
   const roles = roleByRefines(metadata);
   const people: EpubPerson[] = [];
@@ -115,12 +130,14 @@ function parseMetadata(packagePath: string, parsed: Record<string, unknown>): Ep
   if (!metadata || !manifest) throw new Error("EPUB package document is missing metadata or manifest");
 
   const primaryIdentifier = attrs(values(metadata["dc:identifier"])[0]).id;
+  const refinedIdentifierTypes = identifierTypeByRefines(metadata);
   const identifiers = values(metadata["dc:identifier"])
     .reduce<EpubMetadata["identifiers"]>((items, entry) => {
       const value = xmlText(entry);
       if (value && !items.some((item) => item.value === value)) {
-        const scheme = attrs(entry).scheme ?? attrs(entry)["opf:scheme"] ?? null;
-        items.push({ value, scheme: getBookIdentifierScheme(value, scheme), isPrimary: attrs(entry).id === primaryIdentifier });
+        const attributes = attrs(entry);
+        const scheme = refinedIdentifierTypes.get(attributes.id ?? "") ?? attributes.scheme ?? attributes["opf:scheme"] ?? null;
+        items.push({ value, scheme: getBookIdentifierScheme(value, scheme), isPrimary: attributes.id === primaryIdentifier });
       }
       return items;
     }, []);

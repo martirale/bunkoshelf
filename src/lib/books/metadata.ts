@@ -81,8 +81,10 @@ export function getBookPersonRole(role: string | null): string | null {
 }
 
 export function getBookIdentifierScheme(value: string, scheme: string | null): string {
+  if (scheme?.toLowerCase() === "isbn") return "ISBN";
   if (scheme) return scheme;
   if (/^mobi-asin:/i.test(value)) return "ASIN";
+  if (/^(?:urn:)?isbn:/i.test(value)) return "ISBN";
   if (/^(?:urn:)?uuid:/i.test(value)) return "UUID";
   if (/^(?:97[89])?[\d -]{9,}$/i.test(value)) return "ISBN";
   return "ID";
@@ -91,6 +93,7 @@ export function getBookIdentifierScheme(value: string, scheme: string | null): s
 export function getBookIdentifierValue(value: string, scheme: string | null): string {
   const normalizedScheme = getBookIdentifierScheme(value, scheme).toLowerCase();
   if (normalizedScheme === "asin") return value.replace(/^mobi-asin:/i, "");
+  if (normalizedScheme === "isbn") return value.replace(/^(?:urn:)?isbn:/i, "");
   if (normalizedScheme === "uuid") return value.replace(/^(?:urn:)?uuid:/i, "");
   return value;
 }
