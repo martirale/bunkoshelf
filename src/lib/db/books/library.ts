@@ -209,6 +209,14 @@ export async function findBookVolumeBySlug(slug: string): Promise<BookVolume | n
   return row ? hydrateMetadata(mapBook(row)) : null;
 }
 
+export async function findBookFileBySlug(slug: string): Promise<{ filename: string; fullPath: string } | null> {
+  const row = await queryOne<{ filename: string; full_path: string }>(
+    "SELECT filename, full_path FROM book_volumes WHERE slug = $1 LIMIT 1",
+    [slug],
+  );
+  return row ? { filename: row.filename, fullPath: row.full_path } : null;
+}
+
 export async function listBookVolumes(options?: { seriesSlug?: string; limit?: number }): Promise<BookVolume[]> {
   const params: unknown[] = [];
   const where = options?.seriesSlug ? " WHERE bs.slug = $1" : "";
