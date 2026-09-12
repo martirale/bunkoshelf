@@ -278,14 +278,18 @@ export async function listFavoriteBookVolumes(userId: string, options: { page: n
   return { items, total, totalPages: Math.max(1, Math.ceil(total / options.pageSize)) };
 }
 
-export async function listBooksInProgress(userId: string, limit = 12): Promise<Array<BookVolume & { progression: number }>> {
-  const select = BOOK_SELECT.replace("  FROM book_volumes", "  , ub.progression\n  FROM book_volumes");
-  const rows = await query<BookRow & { progression: number }>(`${select}
+export async function listBooksInProgress(userId: string, limit = 12): Promise<Array<BookVolume & { progression: number; lastReadAt: Date | null }>> {
+  const select = BOOK_SELECT.replace("  FROM book_volumes", "  , ub.progression, ub.last_read_at\n  FROM book_volumes");
+  const rows = await query<BookRow & { progression: number; last_read_at: Date | null }>(`${select}
     INNER JOIN user_to_books ub ON ub.volume_id = bv.id
     WHERE ub.user_id = $1 AND ub.cfi IS NOT NULL AND ub.is_read = FALSE
     ORDER BY ub.last_read_at DESC NULLS LAST LIMIT $2`, [userId, limit]);
   const books = await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
-  return books.map((book, index) => ({ ...book, progression: Number(rows[index].progression ?? 0) }));
+  return books.map((book, index) => ({
+    ...book,
+    progression: Number(rows[index].progression ?? 0),
+    lastReadAt: rows[index].last_read_at,
+  }));
 }
 
 export async function listBookProgressByIds(userId: string, volumeIds: string[]): Promise<Record<string, { isRead: boolean; progression: number | null }>> {

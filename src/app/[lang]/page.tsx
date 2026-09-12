@@ -15,7 +15,7 @@ import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import { getBookCoverUrl } from "@/lib/books/cover";
 import { getBookProgressRatio } from "@/lib/books/readingProgress";
-import { listBookProgressByIds, listRecentlyAddedBooks } from "@/lib/db/books/library";
+import { listBookProgressByIds, listBooksInProgress, listRecentlyAddedBooks } from "@/lib/db/books/library";
 import { verifySession } from "@/lib/auth/verifySession";
 import type { Locale, DictionarySection } from "@/lib/types";
 import type { HomeKeepReadingEntry } from "@/components/home/manga/HeroKeepRead";
@@ -99,16 +99,19 @@ async function HomeContent({
     listRecentlyAddedBooks(),
     verifySession(),
   ]);
-  const bookProgress = user
-    ? await listBookProgressByIds(user.id, recentBooks.map((book) => book.id))
-    : {};
+  const [bookProgress, booksInProgress] = user
+    ? await Promise.all([
+      listBookProgressByIds(user.id, recentBooks.map((book) => book.id)),
+      listBooksInProgress(user.id, 1),
+    ])
+    : [{}, []] as const;
 
   const home = intl.home as DictionarySection;
   const volumes = volumesResult?.success && volumesResult.data
     ? volumesResult.data
     : [];
 
-  const keepReadingEntry: HomeKeepReadingEntry | null = volumes
+  const mangaKeepReadingEntries = volumes
     .map((vol) => {
       const progress = vol.usersProgress?.[0] ?? null;
       return {
@@ -129,6 +132,28 @@ async function HomeContent({
       const alreadyFinished = vol.lastPage >= vol.totalPages - 1;
       return !notStarted && !alreadyFinished;
     })
+    .sort((a, b) => (b.lastReadAt?.getTime() ?? 0) - (a.lastReadAt?.getTime() ?? 0));
+
+  const bookKeepReadingEntries = booksInProgress.map((book) => ({
+    id: book.id,
+    title: book.metadata.title,
+    slug: book.slug,
+    isOneshot: false,
+    coverImage: getBookCoverUrl(book.slug, book.metadata.coverPath),
+    section: "manga" as const,
+    meta: null,
+    lastPage: 0,
+    totalPages: 0,
+    progressRatio: book.progression,
+    href: `/${lang}/books/volume/${book.slug}`,
+    libraryHref: `/${lang}/books`,
+    lastReadAt: book.lastReadAt,
+  }));
+
+  const keepReadingEntry: HomeKeepReadingEntry | null = [
+    ...mangaKeepReadingEntries,
+    ...bookKeepReadingEntries,
+  ]
     .sort((a, b) => (b.lastReadAt?.getTime() ?? 0) - (a.lastReadAt?.getTime() ?? 0))[0] ?? null;
 
   const recentEntries = [...volumes]

@@ -22,6 +22,9 @@ export interface HomeKeepReadingEntry {
   meta: { title?: string | null } | null;
   lastPage: number;
   totalPages: number;
+  progressRatio?: number;
+  href?: string;
+  libraryHref?: string;
 }
 
 interface HeroKeepReadProps {
@@ -42,7 +45,7 @@ export default function HeroKeepRead({
   return (
     <div className="flex-shrink-0 w-full md:w-1/1 2xl:w-3/5">
       <div className="flex justify-between items-center mb-4">
-        <Link href={getLibraryRootHref(lang, entry?.section ?? "manga")}>
+        <Link href={entry?.libraryHref ?? getLibraryRootHref(lang, entry?.section ?? "manga")}>
           <h2 className="text-onix flex items-center text-base md:text-lg">
             <LibraryBigIcon size={28} className="mr-2" />
             {libraries.keepReading as string}
@@ -63,13 +66,13 @@ export default function HeroKeepRead({
         {entry ? (
           <MangaCard
             title={entry.meta?.title ?? entry.title}
-            href={`/${lang}/${entry.section}/volume/${entry.slug}`}
+            href={entry.href ?? `/${lang}/${entry.section}/volume/${entry.slug}`}
             isSeries={false}
             isOneshot={entry.isOneshot}
             volumeCount={null}
             cover={entry.coverImage}
             progressRatio={
-              entry.totalPages > 0 ? (entry.lastPage + 1) / entry.totalPages : 0
+              entry.progressRatio ?? (entry.totalPages > 0 ? (entry.lastPage + 1) / entry.totalPages : 0)
             }
             offlineVolumeId={entry.id}
             intl={intl}
