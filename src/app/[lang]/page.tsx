@@ -99,12 +99,12 @@ async function HomeContent({
     listRecentlyAddedBooks(),
     verifySession(),
   ]);
-  const [bookProgress, booksInProgress] = user
-    ? await Promise.all([
-      listBookProgressByIds(user.id, recentBooks.map((book) => book.id)),
-      listBooksInProgress(user.id, 1),
-    ])
-    : [{}, []] as const;
+  const [bookProgress, booksInProgress] = await Promise.all([
+    user
+      ? listBookProgressByIds(user.id, recentBooks.map((book) => book.id))
+      : Promise.resolve({} as Record<string, { isRead: boolean; progression: number | null }>),
+    user ? listBooksInProgress(user.id, 1) : Promise.resolve([]),
+  ]);
 
   const home = intl.home as DictionarySection;
   const volumes = volumesResult?.success && volumesResult.data

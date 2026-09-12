@@ -83,7 +83,7 @@ export default function HeroKeepRead({
           <div className="flex justify-center items-center">
             <Image
               src="/placeholder-v.svg"
-              alt="No hay lectura activa"
+              alt={libraries.noActiveReading as string}
               width={460}
               height={785}
               className="object-contain rounded-lg"
