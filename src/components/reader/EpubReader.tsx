@@ -185,16 +185,20 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
       ? location.start.percentage
       : bookRef.current?.locations?.percentageFromCfi?.(nextCfi) ?? 0;
     setCfi(nextCfi);
-    setProgress(percentage);
+    const isComplete = location.atEnd === true;
+    const nextProgress = isComplete ? 1 : percentage;
+    setProgress(nextProgress);
     void fetch(`/api/reader/books/${encodeURIComponent(slug)}/progress`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         cfi: nextCfi,
-        progression: percentage,
+        progression: nextProgress,
         chapterHref: location.start.href,
-        isRead: location.atEnd === true,
+        isRead: isComplete,
       }),
+    }).then((response) => {
+      if (response.ok && isComplete) window.dispatchEvent(new Event("bunko:challenge-updated"));
     });
   }, [slug]);
 

@@ -57,7 +57,26 @@ export async function upsertBookProgress(userId: string, volumeId: string, input
     const now = new Date();
     await execute("INSERT INTO book_reading_entries (id, user_id, volume_id, read_at) VALUES ($1,$2,$3,$4)", [createId(), userId, volumeId, now.toISOString().slice(0, 10)]);
   }
+  if (input.lastReadAt) {
+    const date = input.lastReadAt.toISOString().slice(0, 10);
+    await execute(`INSERT INTO daily_reading_logs (id, user_id, date) VALUES ($1,$2,$3)
+      ON CONFLICT (user_id, date) DO NOTHING`, [createId(), userId, date]);
+  }
   return mapProgress(row);
+}
+
+export async function findBookSeriesFavorite(userId: string, seriesId: string): Promise<boolean> {
+  const row = await queryOne<{ is_favorite: boolean }>(
+    "SELECT is_favorite FROM user_to_book_series WHERE user_id=$1 AND series_id=$2 LIMIT 1",
+    [userId, seriesId],
+  );
+  return row?.is_favorite ?? false;
+}
+
+export async function upsertBookSeriesFavorite(userId: string, seriesId: string, isFavorite: boolean): Promise<void> {
+  await execute(`INSERT INTO user_to_book_series (id,user_id,series_id,is_favorite) VALUES ($1,$2,$3,$4)
+    ON CONFLICT (user_id,series_id) DO UPDATE SET is_favorite=EXCLUDED.is_favorite,updated_at=NOW()`,
+  [createId(), userId, seriesId, isFavorite]);
 }
 
 export async function listBookBookmarks(userId: string, volumeId: string): Promise<BookBookmark[]> {

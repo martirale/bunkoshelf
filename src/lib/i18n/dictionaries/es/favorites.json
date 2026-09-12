@@ -23,6 +23,8 @@
     "sectionComic": "Cómics",
     "sectionOthersSeries": "Otros - Colecciones",
     "sectionOthersVolumes": "Otros - Obras",
-    "sectionBooks": "Libros"
+    "sectionBooks": "Libros",
+    "badgeBookSeries": "Series",
+    "badgeBookVolumes": "Libros"
   }
 }

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { BookCopyIcon, BookHeartIcon, LibraryBigIcon } from "lucide-react";
+import { BookCopyIcon, LibraryBigIcon } from "lucide-react";
 import type { Dictionary, DictionarySection } from "@/lib/types";
 import type { FavoriteSectionCounts } from "@/lib/db/library";
 
@@ -55,11 +55,19 @@ export function getFavoritesNavLinks({
       isActive: pathname === `/${lang}/favorites/comic/volumes`,
       badge: favorites.badgeComicVolumes as string,
     }] : []),
-    ...(counts.books > 0 ? [{
+    ...(counts.bookSeries > 0 ? [{
       label: favorites.sectionBooks,
       href: `/${lang}/favorites/books`,
-      icon: BookHeartIcon,
+      icon: LibraryBigIcon,
       isActive: pathname === `/${lang}/favorites/books`,
+      badge: favorites.badgeBookSeries as string,
+    }] : []),
+    ...(counts.bookVolumes > 0 ? [{
+      label: favorites.sectionBooks,
+      href: `/${lang}/favorites/books/volumes`,
+      icon: BookCopyIcon,
+      isActive: pathname === `/${lang}/favorites/books/volumes`,
+      badge: favorites.badgeBookVolumes as string,
     }] : []),
     ...(counts.otherSeries > 0 ? [{
       label: favorites.sectionOthers,

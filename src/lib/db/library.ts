@@ -230,11 +230,12 @@ export interface FavoriteSectionCounts {
   comicVolumes: number;
   otherSeries: number;
   otherVolumes: number;
-  books: number;
+  bookSeries: number;
+  bookVolumes: number;
 }
 
 export async function getFavoriteSectionCounts(userId: string): Promise<FavoriteSectionCounts> {
-  const [rows, bookFavorites] = await Promise.all([query<{
+  const [rows, bookSeriesFavorites, bookVolumeFavorites] = await Promise.all([query<{
     library_section: "manga" | "comic" | "other";
     favorite_type: "series" | "volumes";
     total: string;
@@ -252,13 +253,15 @@ export async function getFavoriteSectionCounts(userId: string): Promise<Favorite
     WHERE utv.user_id = $1 AND utv.is_favorite = TRUE
     GROUP BY ls.library_section
   `, [userId]), queryOne<{ total: string }>(
+    "SELECT COUNT(*)::text AS total FROM user_to_book_series WHERE user_id = $1 AND is_favorite = TRUE", [userId]), queryOne<{ total: string }>(
     "SELECT COUNT(*)::text AS total FROM user_to_books WHERE user_id = $1 AND is_favorite = TRUE", [userId])]);
-  const counts: FavoriteSectionCounts = { mangaSeries: 0, mangaVolumes: 0, comicSeries: 0, comicVolumes: 0, otherSeries: 0, otherVolumes: 0, books: 0 };
+  const counts: FavoriteSectionCounts = { mangaSeries: 0, mangaVolumes: 0, comicSeries: 0, comicVolumes: 0, otherSeries: 0, otherVolumes: 0, bookSeries: 0, bookVolumes: 0 };
   for (const row of rows) {
     const key = `${row.library_section === "other" ? "other" : row.library_section}${row.favorite_type === "series" ? "Series" : "Volumes"}` as keyof FavoriteSectionCounts;
     counts[key] = Number(row.total);
   }
-  counts.books = Number(bookFavorites?.total ?? "0");
+  counts.bookSeries = Number(bookSeriesFavorites?.total ?? "0");
+  counts.bookVolumes = Number(bookVolumeFavorites?.total ?? "0");
   return counts;
 }
 

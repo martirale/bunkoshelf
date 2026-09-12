@@ -17,6 +17,8 @@ export default async function FavoritesPage({ params }: FavoritesPageProps) {
       [counts.mangaVolumes, `/${lang}/favorites/manga/volumes`],
       [counts.comicSeries, `/${lang}/favorites/comic`],
       [counts.comicVolumes, `/${lang}/favorites/comic/volumes`],
+      [counts.bookSeries, `/${lang}/favorites/books`],
+      [counts.bookVolumes, `/${lang}/favorites/books/volumes`],
       [counts.otherSeries, `/${lang}/favorites/others`],
       [counts.otherVolumes, `/${lang}/favorites/others/volumes`],
     ] as const;

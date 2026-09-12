@@ -1,7 +1,7 @@
 import Image from "next/image";
 import MangaCard from "@/components/ui/MangaCard";
 import Separator from "@/components/ui/Separator";
-import BookReaderButton from "./BookReaderButton";
+import BookSeriesFavoriteButton from "./BookSeriesFavoriteButton";
 import BookMetadataPanel from "./BookMetadataPanel";
 import BookMetadataBadges from "./BookMetadataBadges";
 import BookAdminActions from "./BookAdminActions";
@@ -16,10 +16,11 @@ interface BookSeriesContentProps {
   lang: Locale;
   intl: Dictionary;
   progressById: Record<string, { isRead: boolean; progression: number | null }>;
+  isFavorite: boolean;
   isAdmin: boolean;
 }
 
-export default function BookSeriesContent({ volumes, lang, intl, progressById, isAdmin }: BookSeriesContentProps) {
+export default function BookSeriesContent({ volumes, lang, intl, progressById, isFavorite, isAdmin }: BookSeriesContentProps) {
   const books = intl.books as Record<string, string>;
   const firstVolume = volumes[0];
   const coverImage = getBookCoverUrl(firstVolume.slug, firstVolume.metadata.coverPath);
@@ -40,7 +41,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
         </div>
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">{firstVolume.series.title}</h1>
-          <BookReaderButton slug={firstVolume.slug} title={firstVolume.metadata.title} layout={firstVolume.metadata.renditionLayout} intl={intl} />
+          <BookSeriesFavoriteButton seriesId={firstVolume.series.id} initialFavorite={isFavorite} intl={intl} />
           <BookMetadataBadges metadata={meta} intl={intl} />
           <p className="mt-4">{getBookPublicationYear(meta.publishedAt ?? meta.modifiedAt)} &bull; {volumes.length} {books.books}</p>
           {description && (

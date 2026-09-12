@@ -162,6 +162,7 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
   }
 
   const scopeCondition = buildScopeCondition(options?.scope);
+  const includeBooks = options?.scope === undefined || options.scope === "all";
 
   const volumesRead = await query<{
     id: string;
@@ -284,20 +285,53 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
     [user.id, new Date().getFullYear()]
   );
 
-  const readEntries = allReadDates;
-  const allCompleted = volumesRead.map(({ id, volume_id }) => ({
+  const [bookVolumesRead, bookAllReadDates, bookDailyReading, bookTotalVolumes, bookTotalSeries, bookProgressVolumes, bookFirstReadDates] = includeBooks
+    ? await Promise.all([
+      query<{ id: string; volume_id: string; last_read_at: Date | null }>(`
+        SELECT id, volume_id, last_read_at
+        FROM user_to_books
+        WHERE user_id = $1 AND is_read = TRUE`, [user.id]),
+      query<{ last_read_at: Date | null }>(`
+        SELECT last_read_at
+        FROM user_to_books
+        WHERE user_id = $1 AND last_read_at IS NOT NULL
+        ORDER BY last_read_at DESC`, [user.id]),
+      query<{ date: string }>(`
+        SELECT read_at::text AS date
+        FROM book_reading_entries
+        WHERE user_id = $1
+        ORDER BY read_at DESC`, [user.id]),
+      queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_volumes"),
+      queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_series WHERE is_oneshot = FALSE"),
+      query<{ is_read: boolean }>("SELECT is_read FROM user_to_books WHERE user_id = $1", [user.id]),
+      query<{ first_read: string | null }>(`
+        SELECT MIN(read_at)::text AS first_read
+        FROM book_reading_entries
+        WHERE user_id = $1
+        GROUP BY volume_id`, [user.id]),
+    ])
+    : [[], [], [], null, null, [], []] as const;
+
+  const combinedVolumesRead = [...volumesRead, ...bookVolumesRead];
+  const combinedReadDates = [...allReadDates, ...bookAllReadDates];
+  const combinedProgressVolumes = [...userProgressVolumes, ...bookProgressVolumes];
+  const combinedFirstReadDates = [...allFirstReadDates, ...bookFirstReadDates];
+  const readEntries = combinedReadDates;
+  const allCompleted = combinedVolumesRead.map(({ id, volume_id }) => ({
     id,
     volume_id,
   }));
 
-  const totalTracked = userProgressVolumes.length;
-  const totalRead = userProgressVolumes.filter((volume) => volume.is_read).length;
-  const totalUnread = Number(totalVolumes?.count ?? 0) - totalRead;
+  const totalTracked = combinedProgressVolumes.length;
+  const totalRead = combinedProgressVolumes.filter((volume) => volume.is_read).length;
+  const combinedTotalVolumes = Number(totalVolumes?.count ?? 0) + Number(bookTotalVolumes?.count ?? 0);
+  const totalUnread = combinedTotalVolumes - totalRead;
 
   const now = new Date();
   const monthlyReadCount = Array(12).fill(0) as number[];
 
-  for (const entry of allFirstReadDates) {
+  for (const entry of combinedFirstReadDates) {
+    if (!entry.first_read) continue;
     const [yearStr, monthStr] = entry.first_read!.split("-");
     const year = Number(yearStr);
     const month = Number(monthStr);
@@ -336,7 +370,7 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
   }
 
   return {
-    volumesRead: volumesRead.map((entry) => ({
+    volumesRead: combinedVolumesRead.map((entry) => ({
       id: entry.id,
       volumeId: entry.volume_id,
       lastReadAt: entry.last_read_at,
@@ -348,12 +382,14 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
       id: entry.id,
       volumeId: entry.volume_id,
     })),
-    allReadDates: allReadDates.map((entry) => ({
+    allReadDates: combinedReadDates.map((entry) => ({
       lastReadAt: entry.last_read_at,
     })),
-    dailyReading,
-    totalVolumes: Number(totalVolumes?.count ?? 0),
-    totalSeries: Number(totalSeries?.count ?? 0),
+    dailyReading: includeBooks
+      ? Array.from(new Map([...dailyReading, ...bookDailyReading].map((entry) => [entry.date, entry])).values())
+      : dailyReading,
+    totalVolumes: combinedTotalVolumes,
+    totalSeries: Number(totalSeries?.count ?? 0) + Number(bookTotalSeries?.count ?? 0),
     readingProgressSummary: {
       totalTracked,
       totalRead,

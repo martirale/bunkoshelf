@@ -13,6 +13,9 @@ import PushButton from "@/components/ui/PushButton";
 import { getLibrarySection } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
+import { getBookCoverUrl } from "@/lib/books/cover";
+import { listBookProgressByIds, listRecentlyAddedBooks } from "@/lib/db/books/library";
+import { verifySession } from "@/lib/auth/verifySession";
 import type { Locale, DictionarySection } from "@/lib/types";
 import type { HomeKeepReadingEntry } from "@/components/home/manga/HeroKeepRead";
 import type { VolumeEntry } from "@/components/home/manga/RowNewVolsCarousel";
@@ -89,8 +92,15 @@ async function HomeContent({
   lang: Locale;
   intl: Awaited<ReturnType<typeof getDictionary>>;
 }) {
-  const volumesResult = await getMangaVolumes();
-  const statsData = await getReaderStats();
+  const [volumesResult, statsData, recentBooks, user] = await Promise.all([
+    getMangaVolumes(),
+    getReaderStats(),
+    listRecentlyAddedBooks(),
+    verifySession(),
+  ]);
+  const bookProgress = user
+    ? await listBookProgressByIds(user.id, recentBooks.map((book) => book.id))
+    : {};
 
   const home = intl.home as DictionarySection;
   const volumes = volumesResult?.success && volumesResult.data
@@ -120,18 +130,41 @@ async function HomeContent({
     })
     .sort((a, b) => (b.lastReadAt?.getTime() ?? 0) - (a.lastReadAt?.getTime() ?? 0))[0] ?? null;
 
-  const recentEntries: VolumeEntry[] = [...volumes]
+  const recentEntries = [...volumes]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 8)
     .map((vol) => ({
-      progressRatio: getVolumeProgressRatio(vol.usersProgress?.[0] ?? null),
-      title: vol.title,
-      slug: vol.slug,
-      isOneshot: vol.series?.isOneshot === true,
-      coverImage: getMangaCoverUrl(vol),
-      section: getLibrarySection(vol.series.librarySection),
-      meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
+      createdAt: vol.createdAt,
+      entry: {
+        progressRatio: getVolumeProgressRatio(vol.usersProgress?.[0] ?? null),
+        title: vol.title,
+        slug: vol.slug,
+        isOneshot: vol.series?.isOneshot === true,
+        coverImage: getMangaCoverUrl(vol),
+        section: getLibrarySection(vol.series.librarySection),
+        meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
+      } satisfies VolumeEntry,
     }));
+
+  const mixedRecentEntries = [
+    ...recentEntries,
+    ...recentBooks.map((book) => ({
+      createdAt: book.createdAt,
+      entry: {
+        title: book.metadata.title,
+        slug: book.slug,
+        isOneshot: false,
+        coverImage: getBookCoverUrl(book.slug, book.metadata.coverPath),
+        section: "manga" as const,
+        meta: null,
+        progressRatio: bookProgress[book.id]?.progression ?? null,
+        href: `/${lang}/books/volume/${book.slug}`,
+      } satisfies VolumeEntry,
+    })),
+  ]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 8)
+    .map(({ entry }) => entry);
 
   return (
     <div className="relative">
@@ -183,7 +216,7 @@ async function HomeContent({
           <RowNewVols
             lang={lang}
             intl={intl}
-            entries={recentEntries}
+            entries={mixedRecentEntries}
           />
         </div>
       </div>

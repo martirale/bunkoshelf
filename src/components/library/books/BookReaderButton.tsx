@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { BookCheckIcon, CheckIcon, HeartIcon, HeartOffIcon } from "lucide-react";
 import EpubReader from "@/components/reader/EpubReader";
@@ -14,6 +15,7 @@ interface BookReaderButtonProps {
 }
 
 export default function BookReaderButton({ slug, title, layout, intl }: BookReaderButtonProps) {
+  const router = useRouter();
   const books = intl.books as Record<string, string>;
   const [open, setOpen] = useState(false);
   const [favorite, setFavorite] = useState(false);
@@ -30,7 +32,7 @@ export default function BookReaderButton({ slug, title, layout, intl }: BookRead
       .catch(() => undefined);
   }, [slug]);
 
-  const updateProgress = async (body: Record<string, boolean>) => {
+  const updateProgress = async (body: { isRead?: boolean; isFavorite?: boolean; progression?: number }) => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/progress`, {
@@ -39,8 +41,12 @@ export default function BookReaderButton({ slug, title, layout, intl }: BookRead
         body: JSON.stringify(body),
       });
       if (!response.ok) return;
-      if ("isFavorite" in body) setFavorite(body.isFavorite);
-      if ("isRead" in body) setIsRead(body.isRead);
+      if (body.isFavorite !== undefined) setFavorite(body.isFavorite);
+      if (body.isRead !== undefined) {
+        setIsRead(body.isRead);
+        if (body.isRead) window.dispatchEvent(new Event("bunko:challenge-updated"));
+      }
+      router.refresh();
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +63,10 @@ export default function BookReaderButton({ slug, title, layout, intl }: BookRead
         <span className="font-bold uppercase">{books.read}</span>
       </button>
       <button
-        onClick={() => updateProgress({ isRead: !isRead })}
+        onClick={() => {
+          const nextIsRead = !isRead;
+          void updateProgress({ isRead: nextIsRead, progression: nextIsRead ? 1 : 0 });
+        }}
         disabled={isLoading}
         className={clsx(
           "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
@@ -69,7 +78,7 @@ export default function BookReaderButton({ slug, title, layout, intl }: BookRead
         <CheckIcon size={20} />
       </button>
       <button
-        onClick={() => updateProgress({ isFavorite: !favorite })}
+        onClick={() => void updateProgress({ isFavorite: !favorite })}
         disabled={isLoading}
         className={clsx(
           "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",

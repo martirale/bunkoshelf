@@ -21,6 +21,7 @@ export interface BookVolume {
   size: number;
   coverImage: string | null;
   number: number | null;
+  createdAt: Date;
   series: BookSeries;
   metadata: EpubMetadata & { id: string };
 }
@@ -34,6 +35,7 @@ interface BookRow {
   volume_size: string;
   volume_cover_image: string | null;
   volume_number: number | null;
+  volume_created_at: Date;
   series_id: string;
   series_slug: string;
   series_title: string;
@@ -71,6 +73,7 @@ function mapBook(row: BookRow): BookVolume {
     size: Number(row.volume_size),
     coverImage: row.volume_cover_image,
     number: row.volume_number,
+    createdAt: row.volume_created_at,
     series: {
       id: row.series_id,
       slug: row.series_slug,
@@ -109,7 +112,7 @@ function mapBook(row: BookRow): BookVolume {
 const BOOK_SELECT = `
   SELECT bv.id AS volume_id, bv.slug AS volume_slug, bv.title AS volume_title,
     bv.filename AS volume_filename, bv.full_path AS volume_full_path,
-    bv.size::text AS volume_size, bv.cover_image AS volume_cover_image, bv.number AS volume_number,
+    bv.size::text AS volume_size, bv.cover_image AS volume_cover_image, bv.number AS volume_number, bv.created_at AS volume_created_at,
     bs.id AS series_id, bs.slug AS series_slug, bs.title AS series_title, bs.path AS series_path,
     bs.is_oneshot AS series_is_oneshot, bs.status AS series_status,
     bm.id AS metadata_id, bm.title AS metadata_title, bm.subtitle AS metadata_subtitle,
@@ -231,6 +234,50 @@ export async function listBookVolumes(options?: { seriesSlug?: string; limit?: n
   return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
 }
 
+export async function listRecentlyAddedBooks(limit = 8): Promise<BookVolume[]> {
+  const rows = await query<BookRow>(`${BOOK_SELECT} ORDER BY bv.created_at DESC LIMIT $1`, [limit]);
+  return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
+}
+
+export async function listFavoriteBookSeries(userId: string, options: { page: number; pageSize: number }) {
+  const count = await queryOne<{ count: string }>(`
+    SELECT COUNT(*)::text AS count
+    FROM user_to_book_series ubs
+    WHERE ubs.user_id = $1 AND ubs.is_favorite = TRUE`, [userId]);
+  const total = Number(count?.count ?? "0");
+  const offset = Math.max(0, options.page - 1) * options.pageSize;
+  const series = await query<BookSeries>(`
+    SELECT bs.id, bs.slug, bs.title, bs.path, bs.is_oneshot AS "isOneshot", bs.status
+    FROM book_series bs
+    INNER JOIN user_to_book_series ubs ON ubs.series_id = bs.id
+    WHERE ubs.user_id = $1 AND ubs.is_favorite = TRUE
+    ORDER BY bs.sort_title
+    LIMIT $2 OFFSET $3`, [userId, options.pageSize, offset]);
+  const items = await Promise.all(series.map(async (entry) => ({
+    ...entry,
+    volumes: await listBookVolumes({ seriesSlug: entry.slug, limit: 100 }),
+  })));
+
+  return { items, total, totalPages: Math.max(1, Math.ceil(total / options.pageSize)) };
+}
+
+export async function listFavoriteBookVolumes(userId: string, options: { page: number; pageSize: number }) {
+  const count = await queryOne<{ count: string }>(`
+    SELECT COUNT(*)::text AS count
+    FROM user_to_books
+    WHERE user_id = $1 AND is_favorite = TRUE`, [userId]);
+  const total = Number(count?.count ?? "0");
+  const offset = Math.max(0, options.page - 1) * options.pageSize;
+  const rows = await query<BookRow>(`${BOOK_SELECT}
+    INNER JOIN user_to_books ub ON ub.volume_id = bv.id
+    WHERE ub.user_id = $1 AND ub.is_favorite = TRUE
+    ORDER BY bs.sort_title, bv.sort_title
+    LIMIT $2 OFFSET $3`, [userId, options.pageSize, offset]);
+  const items = await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
+
+  return { items, total, totalPages: Math.max(1, Math.ceil(total / options.pageSize)) };
+}
+
 export async function listBooksInProgress(userId: string, limit = 12): Promise<Array<BookVolume & { progression: number }>> {
   const select = BOOK_SELECT.replace("  FROM book_volumes", "  , ub.progression\n  FROM book_volumes");
   const rows = await query<BookRow & { progression: number }>(`${select}
@@ -293,6 +340,12 @@ export async function findBookSeriesBySlug(slug: string): Promise<BookSeries | n
   return queryOne<BookSeries>(`
     SELECT id, slug, title, path, is_oneshot AS "isOneshot", status
     FROM book_series WHERE slug = $1 LIMIT 1`, [slug]);
+}
+
+export async function findBookSeriesById(id: string): Promise<BookSeries | null> {
+  return queryOne<BookSeries>(`
+    SELECT id, slug, title, path, is_oneshot AS "isOneshot", status
+    FROM book_series WHERE id = $1 LIMIT 1`, [id]);
 }
 
 export async function countBookVolumesBySeriesId(seriesId: string): Promise<number> {

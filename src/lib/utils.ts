@@ -91,7 +91,8 @@ const resolveChallengeData = cache(async (userId: string, currentYear: number) =
     [userId, currentYear]
   );
 
-  const userVolumes = await query<{ last_read_at: Date | null }>(
+  const [userVolumes, userBooks] = await Promise.all([
+    query<{ last_read_at: Date | null }>(
     `
       SELECT utv.last_read_at
       FROM user_to_volumes utv
@@ -101,11 +102,16 @@ const resolveChallengeData = cache(async (userId: string, currentYear: number) =
         AND utv.is_read = TRUE
         AND ms.library_section IN ('manga', 'comic', 'other')
     `,
-    [userId]
-  );
+      [userId]
+    ),
+    query<{ last_read_at: Date | null }>(`
+      SELECT last_read_at
+      FROM user_to_books
+      WHERE user_id = $1 AND is_read = TRUE`, [userId]),
+  ]);
 
   const goal = challenge?.goal ?? 0;
-  const progress = userVolumes.filter((vol) => {
+  const progress = [...userVolumes, ...userBooks].filter((vol) => {
     if (!vol.last_read_at) return false;
     return new Date(vol.last_read_at).getFullYear() === currentYear;
   }).length;

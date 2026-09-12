@@ -21,7 +21,7 @@ export default function FavoritesNav({ intl, counts }: FavoritesNavProps) {
     intl,
     lang: currentLang,
     pathname,
-    counts: counts || { mangaSeries: 0, mangaVolumes: 0, comicSeries: 0, comicVolumes: 0, otherSeries: 0, otherVolumes: 0, books: 0 },
+    counts: counts || { mangaSeries: 0, mangaVolumes: 0, comicSeries: 0, comicVolumes: 0, otherSeries: 0, otherVolumes: 0, bookSeries: 0, bookVolumes: 0 },
   });
 
   return (

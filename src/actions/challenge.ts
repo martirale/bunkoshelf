@@ -40,7 +40,8 @@ function mapChallenge(row: ReadingChallengeRow): ReadingChallengeRecord {
 }
 
 async function getCompletedCount(userId: string, year: number) {
-  const volumesRead = await query<{ last_read_at: Date | null }>(
+  const [volumesRead, booksRead] = await Promise.all([
+    query<{ last_read_at: Date | null }>(
     `
       SELECT utv.last_read_at
       FROM user_to_volumes utv
@@ -50,10 +51,15 @@ async function getCompletedCount(userId: string, year: number) {
         AND utv.is_read = TRUE
         AND ms.library_section IN ('manga', 'comic', 'other')
     `,
-    [userId]
-  );
+      [userId]
+    ),
+    query<{ last_read_at: Date | null }>(`
+      SELECT last_read_at
+      FROM user_to_books
+      WHERE user_id = $1 AND is_read = TRUE`, [userId]),
+  ]);
 
-  return volumesRead.filter((volume) => {
+  return [...volumesRead, ...booksRead].filter((volume) => {
     if (!volume.last_read_at) return false;
     return new Date(volume.last_read_at).getFullYear() === year;
   }).length;

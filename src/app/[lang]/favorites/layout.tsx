@@ -20,7 +20,7 @@ async function FavoritesLayoutContent({
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
   const user = await verifySession();
-  const favoriteCounts = user ? await getFavoriteSectionCounts(user.id) : { mangaSeries: 0, mangaVolumes: 0, comicSeries: 0, comicVolumes: 0, otherSeries: 0, otherVolumes: 0, books: 0 };
+  const favoriteCounts = user ? await getFavoriteSectionCounts(user.id) : { mangaSeries: 0, mangaVolumes: 0, comicSeries: 0, comicVolumes: 0, otherSeries: 0, otherVolumes: 0, bookSeries: 0, bookVolumes: 0 };
 
   return (
     <div className="flex flex-col md:flex-row md:h-screen overflow-hidden">
