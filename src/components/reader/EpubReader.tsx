@@ -327,10 +327,21 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
             });
           }
 
-          const handleContentInteraction = (event: MouseEvent | TouchEvent) => {
-            const touch = (event as TouchEvent).changedTouches?.[0] ?? null;
-            const x = touch ? touch.clientX : (event as MouseEvent).clientX;
-            const y = touch ? touch.clientY : (event as MouseEvent).clientY;
+          let touchStart: { x: number; y: number } | null = null;
+          let ignoreClickUntil = 0;
+          const isInteractiveTarget = (target: EventTarget | null) => {
+            return Boolean((target as HTMLElement | null)?.closest?.("a, button, input, select, textarea, [contenteditable='true']"));
+          };
+          const hasTextSelection = () => Boolean(contents.window.getSelection()?.toString().trim());
+          const clearReaderOverlays = () => {
+            closePanels();
+            setSelectionMenu(null);
+            setAnnotationMenu(null);
+            setNoteEditorOpen(false);
+            setAnnotationNoteEditorOpen(false);
+          };
+          const handleContentInteraction = (event: MouseEvent, x: number, y: number, navigate = false) => {
+            if (hasTextSelection() || pendingSelectionRef.current || isInteractiveTarget(event.target)) return;
             const annotation = findAnnotationAtPoint(contents, x, y);
             if (annotation) {
               event.preventDefault();
@@ -338,13 +349,65 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
               openAnnotationMenu(annotation, annotation.cfiRange, contents);
               return;
             }
-            if (pendingSelectionRef.current) return;
-            closePanels();
-            setSelectionMenu(null);
-            setAnnotationMenu(null);
+            clearReaderOverlays();
+            if (navigate) {
+              const width = contents.window.innerWidth;
+              if (x < width / 3) {
+                void rendition.prev();
+                return;
+              }
+              if (x > (width * 2) / 3) {
+                void rendition.next();
+                return;
+              }
+            }
             setControlsVisible((visible) => !visible);
           };
-          document.addEventListener("click", handleContentInteraction);
+          const handleContentClick = (event: MouseEvent) => {
+            if (Date.now() < ignoreClickUntil) {
+              event.preventDefault();
+              return;
+            }
+            handleContentInteraction(event, event.clientX, event.clientY);
+          };
+          const handleTouchStart = (event: TouchEvent) => {
+            if (event.touches.length !== 1) {
+              touchStart = null;
+              return;
+            }
+            const touch = event.touches[0];
+            touchStart = { x: touch.clientX, y: touch.clientY };
+          };
+          const handleTouchEnd = (event: TouchEvent) => {
+            const touch = event.changedTouches[0];
+            const start = touchStart;
+            touchStart = null;
+            if (!touch || !start || hasTextSelection() || isInteractiveTarget(event.target)) return;
+
+            const deltaX = touch.clientX - start.x;
+            const deltaY = touch.clientY - start.y;
+            const distanceX = Math.abs(deltaX);
+            const distanceY = Math.abs(deltaY);
+
+            if (distanceX > 36 && distanceX > distanceY) {
+              event.preventDefault();
+              event.stopPropagation();
+              ignoreClickUntil = Date.now() + 450;
+              clearReaderOverlays();
+              void (deltaX < 0 ? rendition.next() : rendition.prev());
+              return;
+            }
+
+            if (distanceX > 12 || distanceY > 12) {
+              ignoreClickUntil = Date.now() + 450;
+              return;
+            }
+
+            event.preventDefault();
+            ignoreClickUntil = Date.now() + 450;
+            handleContentInteraction(event as unknown as MouseEvent, touch.clientX, touch.clientY, true);
+          };
+          document.addEventListener("click", handleContentClick);
           document.addEventListener("keydown", (event) => readerKeyHandlerRef.current(event));
           const showPendingSelection = () => {
             window.setTimeout(() => {
@@ -386,6 +449,9 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           document.addEventListener("mouseup", showPendingSelection);
           document.addEventListener("touchend", showPendingSelection);
           document.addEventListener("pointerup", markPointerUp);
+          document.addEventListener("touchstart", handleTouchStart, { passive: true });
+          document.addEventListener("touchend", handleTouchEnd, { passive: false });
+          document.addEventListener("touchcancel", () => { touchStart = null; });
         });
         if (layout === "reflowable") applyStyles();
         const refreshAnnotationLayers = () => {
