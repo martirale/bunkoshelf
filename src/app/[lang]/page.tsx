@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { getMangaVolumes } from "@/actions/library";
 import { getReaderStats } from "@/actions/stats";
 import HeroKeepRead from "@/components/home/manga/HeroKeepRead";
@@ -93,6 +94,8 @@ async function HomeContent({
   lang: Locale;
   intl: Awaited<ReturnType<typeof getDictionary>>;
 }) {
+  await connection();
+
   const [volumesResult, statsData, recentBooks, user] = await Promise.all([
     getMangaVolumes(),
     getReaderStats(),
