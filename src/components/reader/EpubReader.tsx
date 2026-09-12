@@ -328,10 +328,9 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           }
 
           let touchStart: { x: number; y: number } | null = null;
-          let activePointerId: number | null = null;
           let ignoreClickUntil = 0;
-          document.documentElement.style.touchAction = "manipulation";
-          body.style.touchAction = "manipulation";
+          document.documentElement.style.touchAction = "pan-y";
+          body.style.touchAction = "pan-y";
           const isInteractiveTarget = (target: EventTarget | null) => {
             return Boolean((target as HTMLElement | null)?.closest?.("a, button, input, select, textarea, [contenteditable='true']"));
           };
@@ -414,19 +413,8 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
             if (!touch) return;
             handleTouchGesture(event, touch.clientX, touch.clientY);
           };
-          const handlePointerDown = (event: PointerEvent) => {
-            if (!event.isPrimary || event.pointerType === "mouse") return;
-            activePointerId = event.pointerId;
-            touchStart = { x: event.clientX, y: event.clientY };
-          };
-          const handlePointerUp = (event: PointerEvent) => {
-            if (event.pointerId !== activePointerId) return;
-            activePointerId = null;
-            handleTouchGesture(event, event.clientX, event.clientY);
-          };
           const resetTouchGesture = () => {
             touchStart = null;
-            activePointerId = null;
             pointerIsDownRef.current = false;
           };
           document.addEventListener("click", handleContentClick, true);
@@ -466,22 +454,13 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           flushPendingSelectionRef.current = showPendingSelection;
           const markPointerDown = () => { pointerIsDownRef.current = true; };
           const markPointerUp = () => { pointerIsDownRef.current = false; showPendingSelection(); };
-          const supportsPointerEvents = "PointerEvent" in contents.window;
-          if (supportsPointerEvents) {
-            document.addEventListener("pointerdown", markPointerDown, true);
-            document.addEventListener("pointerup", markPointerUp, true);
-            document.addEventListener("pointerdown", handlePointerDown, true);
-            document.addEventListener("pointerup", handlePointerUp, true);
-            document.addEventListener("pointercancel", resetTouchGesture, true);
-          } else {
-            document.addEventListener("mousedown", markPointerDown, true);
-            document.addEventListener("touchstart", markPointerDown, true);
-            document.addEventListener("mouseup", markPointerUp, true);
-            document.addEventListener("touchend", markPointerUp, true);
-            document.addEventListener("touchstart", handleTouchStart, { passive: true, capture: true });
-            document.addEventListener("touchend", handleTouchEnd, { passive: false, capture: true });
-            document.addEventListener("touchcancel", resetTouchGesture, true);
-          }
+          document.addEventListener("mousedown", markPointerDown, true);
+          document.addEventListener("mouseup", markPointerUp, true);
+          document.addEventListener("touchstart", markPointerDown, true);
+          document.addEventListener("touchend", markPointerUp, true);
+          document.addEventListener("touchstart", handleTouchStart, { passive: true, capture: true });
+          document.addEventListener("touchend", handleTouchEnd, { passive: false, capture: true });
+          document.addEventListener("touchcancel", resetTouchGesture, true);
         });
         if (layout === "reflowable") applyStyles();
         const refreshAnnotationLayers = () => {
@@ -793,7 +772,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         </div>}
       </div>}
 
-      <main className="relative h-full w-full" style={themeStyles[theme]} onPointerUp={(event) => {
+      <main className="relative h-full w-full touch-pan-y" style={themeStyles[theme]} onPointerUp={(event) => {
         if (event.target === event.currentTarget) {
           closePanels();
           setSelectionMenu(null);
@@ -804,7 +783,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
       }}>
         {loading && <div className="absolute inset-0 z-20 grid place-items-center bg-onix">{reader.opening}</div>}
         {error && <div className="absolute inset-0 z-20 grid place-items-center bg-onix p-6 text-center">{error}</div>}
-        <div ref={viewerRef} className="h-full w-full" />
+        <div ref={viewerRef} className="h-full w-full touch-pan-y" />
       </main>
 
       <footer className={`absolute inset-x-0 bottom-0 z-30 flex h-11 items-center justify-between gap-4 border-t border-white/15 bg-onix/95 px-3 transition-transform duration-200 ${controlsVisible ? "translate-y-0" : "translate-y-full pointer-events-none"}`}>
