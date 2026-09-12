@@ -51,7 +51,7 @@ export default function BookMetadataPanel({
             <span key={`${person.name}-${person.position}`}>
               {index > 0 && ", "}
               <Link
-                href={{ pathname: `/${lang}/books/series`, query: { author: person.name } }}
+                href={{ pathname: `/${lang}/books/series`, query: { author: person.name, includeOneshots: "true" } }}
                 className="transition-all duration-300 hover:text-lilah"
               >
                 {person.name}

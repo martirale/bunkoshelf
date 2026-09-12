@@ -9,19 +9,24 @@ export default async function SeriesIndex({
   lang,
   intl,
   authorFilter,
+  includeOneshots = false,
 }: {
   lang: Locale;
   intl: Dictionary;
   authorFilter?: string;
+  includeOneshots?: boolean;
 }) {
   const labels = intl.books as Record<string, string>;
   const user = await verifySession();
   const authorNames = authorFilter?.trim() ? [authorFilter.trim()] : undefined;
   const books = await listBookVolumes({ authorNames });
+  const visibleBooks = includeOneshots
+    ? books
+    : books.filter((book) => !book.series.isOneshot);
   const progressById = user
-    ? await listBookProgressByIds(user.id, books.map((book) => book.id))
+    ? await listBookProgressByIds(user.id, visibleBooks.map((book) => book.id))
     : {};
-  const series = Array.from(books.reduce((map, book) => {
+  const series = Array.from(visibleBooks.reduce((map, book) => {
     const current = map.get(book.series.id) ?? {
       ...book.series,
       cover: getBookCoverUrl(book.slug, book.metadata.coverPath),

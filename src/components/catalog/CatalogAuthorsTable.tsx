@@ -47,6 +47,7 @@ function renderLibraries(
   function buildHref(section: "manga" | "comic" | "others" | "books") {
     const params = new URLSearchParams({ author: authorParam });
     if (section === "books") {
+      params.set("includeOneshots", "true");
       return `/${lang}/books/series?${params.toString()}`;
     }
 
