@@ -39,6 +39,21 @@ export async function findBookProgress(userId: string, volumeId: string): Promis
   return row ? mapProgress(row) : null;
 }
 
+export async function listBookRatings(userId: string, volumeIds: string[]): Promise<Map<string, number>> {
+  if (!volumeIds.length) return new Map();
+
+  const rows = await query<{ volume_id: string; personal_rating: number }>(
+    `SELECT volume_id, personal_rating
+     FROM user_to_books
+     WHERE user_id = $1
+       AND volume_id = ANY($2)
+       AND personal_rating IS NOT NULL`,
+    [userId, volumeIds],
+  );
+
+  return new Map(rows.map((row) => [row.volume_id, row.personal_rating]));
+}
+
 export async function upsertBookProgress(userId: string, volumeId: string, input: BookProgressUpdate): Promise<BookProgress> {
   const current = await findBookProgress(userId, volumeId);
   const isRead = input.isRead ?? current?.isRead ?? false;

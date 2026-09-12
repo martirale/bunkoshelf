@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { findBookVolumeBySlug } from "@/lib/db/books/library";
 import { verifySession } from "@/lib/auth/verifySession";
-import { listBookReadingEntries } from "@/lib/db/books/reading";
+import { findBookProgress, listBookReadingEntries } from "@/lib/db/books/reading";
 import BookVolumeContent from "@/components/library/books/BookVolumeContent";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import type { Locale } from "@/lib/types";
@@ -17,8 +17,13 @@ async function BookVolumePageContent({ params }: { params: Promise<{ lang: strin
   const volume = await findBookVolumeBySlug(slug);
   if (!volume) notFound();
   const intl = await getDictionary(lang as Locale);
-  const readingEntries = user ? await listBookReadingEntries(user.id, volume.id) : [];
-  return <BookVolumeContent volume={volume} lang={lang as Locale} intl={intl} readingEntries={readingEntries} isAdmin={user?.isAdmin === true} />;
+  const [readingEntries, progress]: [Awaited<ReturnType<typeof listBookReadingEntries>>, Awaited<ReturnType<typeof findBookProgress>>] = user
+    ? await Promise.all([
+      listBookReadingEntries(user.id, volume.id),
+      findBookProgress(user.id, volume.id),
+    ])
+    : [[], null];
+  return <BookVolumeContent volume={volume} lang={lang as Locale} intl={intl} readingEntries={readingEntries} personalRating={progress?.personalRating ?? null} isAdmin={user?.isAdmin === true} />;
 }
 
 export default function BookVolumePage(props: { params: Promise<{ lang: string; slug: string }> }) {

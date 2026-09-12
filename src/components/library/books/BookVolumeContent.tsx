@@ -3,6 +3,7 @@ import Link from "next/link";
 import Separator from "@/components/ui/Separator";
 import Tabs from "@/components/ui/Tabs";
 import BookReaderButton from "./BookReaderButton";
+import BookVolumeRating from "./BookVolumeRating";
 import BookReadingHistory from "./BookReadingHistory";
 import BookMetadataPanel from "./BookMetadataPanel";
 import BookMetadataBadges from "./BookMetadataBadges";
@@ -19,10 +20,11 @@ interface BookVolumeContentProps {
   lang: Locale;
   intl: Dictionary;
   readingEntries: BookReadingEntry[];
+  personalRating: number | null;
   isAdmin: boolean;
 }
 
-export default function BookVolumeContent({ volume, lang, intl, readingEntries, isAdmin }: BookVolumeContentProps) {
+export default function BookVolumeContent({ volume, lang, intl, readingEntries, personalRating, isAdmin }: BookVolumeContentProps) {
   const books = intl.books as Record<string, string>;
   const coverImage = getBookCoverUrl(volume.slug, volume.metadata.coverPath);
   const description = toPlainBookText(volume.metadata.description);
@@ -58,6 +60,10 @@ export default function BookVolumeContent({ volume, lang, intl, readingEntries, 
           )}
 
           <BookReaderButton slug={volume.slug} title={volume.metadata.title} layout={volume.metadata.renditionLayout} intl={intl} />
+
+          <div className="mt-8">
+            <BookVolumeRating volumeId={volume.id} initialPersonalRating={personalRating} intl={intl} />
+          </div>
 
           <BookMetadataBadges metadata={volume.metadata} intl={intl} />
 

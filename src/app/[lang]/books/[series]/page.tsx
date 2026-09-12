@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { listBookProgressByIds, listBookVolumes } from "@/lib/db/books/library";
-import { findBookSeriesFavorite } from "@/lib/db/books/reading";
+import { findBookSeriesFavorite, listBookRatings } from "@/lib/db/books/reading";
 import { verifySession } from "@/lib/auth/verifySession";
 import BookSeriesContent from "@/components/library/books/BookSeriesContent";
 import { getDictionary } from "@/lib/i18n/Dictionary";
@@ -17,11 +17,18 @@ async function BookSeriesPageContent({ params }: { params: Promise<{ lang: strin
   const user = await verifySession();
   const books = await listBookVolumes({ seriesSlug: series });
   if (!books.length) notFound();
-  const [progressById, isFavorite] = user ? await Promise.all([
+  const [progressById, isFavorite, personalRatings] = user ? await Promise.all([
     listBookProgressByIds(user.id, books.map((book) => book.id)),
     findBookSeriesFavorite(user.id, books[0].series.id),
-  ]) : [{}, false] as const;
-  return <BookSeriesContent volumes={books} lang={lang as Locale} intl={intl} progressById={progressById} isFavorite={isFavorite} isAdmin={user?.isAdmin === true} />;
+    listBookRatings(user.id, books.map((book) => book.id)),
+  ]) : [{}, false, new Map<string, number>()] as const;
+  const ratings = books
+    .map((book) => personalRatings.get(book.id))
+    .filter((rating): rating is number => rating !== undefined);
+  const averageRating = ratings.length
+    ? Math.round((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length) * 2) / 2
+    : null;
+  return <BookSeriesContent volumes={books} lang={lang as Locale} intl={intl} progressById={progressById} isFavorite={isFavorite} averageRating={averageRating} isAdmin={user?.isAdmin === true} />;
 }
 
 export default function BookSeriesPage(props: { params: Promise<{ lang: string; series: string }> }) {
