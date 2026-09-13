@@ -24,8 +24,12 @@ function xmlText(value: XmlValue | undefined): string | null {
   return value?._?.trim() || null;
 }
 
-function attrs(value: XmlValue | undefined): Record<string, string> {
-  return typeof value === "object" && value ? value.$ ?? {} : {};
+function attrs(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object" || !("$" in value)) return {};
+  const attributes = value.$;
+  return attributes && typeof attributes === "object" && !Array.isArray(attributes)
+    ? attributes as Record<string, string>
+    : {};
 }
 
 function firstText(record: XmlRecord, name: string): string | null {
