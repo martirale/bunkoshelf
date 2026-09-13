@@ -59,6 +59,9 @@ export default function VolumesContent({
   const isOneshot = series?.isOneshot === true;
   const seriesTitle = series?.title as string | undefined;
   const seriesSlug = series?.slug as string | undefined;
+  const seriesLabel = section === "others"
+    ? (intl.libraries.otherCollection as string)
+    : (intl.manga.series as string);
 
   const ageMin = ageRatingMap(meta.ageRating as string);
   const badgeClass = `text-sm uppercase rounded-md px-3 py-1 mr-2 ${
@@ -108,7 +111,7 @@ export default function VolumesContent({
                 href={`/${lang}/${section}/${seriesSlug}`}
                 className="italic hover:underline"
               >
-                {intl.manga.series as string} {(meta.series as string) || seriesTitle}
+                {seriesLabel} {(meta.series as string) || seriesTitle}
               </Link>
             </div>
           )}

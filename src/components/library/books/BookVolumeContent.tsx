@@ -29,6 +29,9 @@ export default function BookVolumeContent({ volume, lang, intl, readingEntries, 
   const coverImage = getBookCoverUrl(volume.slug, volume.metadata.coverPath);
   const description = toPlainBookText(volume.metadata.description);
   const libraryRoot = volume.series.librarySection === "other" ? "others" : "books";
+  const seriesLabel = libraryRoot === "others"
+    ? (intl.libraries.otherCollection as string)
+    : books.series;
 
   return (
     <div className="p-4">
@@ -55,7 +58,7 @@ export default function BookVolumeContent({ volume, lang, intl, readingEntries, 
           {!volume.series.isOneshot && (
             <div className="py-2">
               <Link href={`/${lang}/${libraryRoot}/${volume.series.slug}`} className="italic hover:underline">
-                {books.series} {volume.series.title}
+                {seriesLabel} {volume.series.title}
               </Link>
             </div>
           )}
