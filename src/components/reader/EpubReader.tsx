@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type TouchEvent as ReactTouchEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import {
   BookmarkIcon,
   ChevronLeftIcon,
@@ -68,12 +69,37 @@ function getLocalDateString() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
+function normalizeEpubPath(resource: string, basePath = "") {
+  try {
+    return decodeURI(new URL(resource, new URL(basePath, "https://epub.local/")).pathname).replace(/^\//, "");
+  } catch {
+    return resource.replace(/^\//, "");
+  }
+}
+
+function isCoverSection(document: Document, sectionHref: string, coverPath?: string) {
+  if (document.querySelector("meta[name='calibre:cover'][content='true']")) return true;
+  if (!coverPath) return false;
+  if (/(?:^|\/)titlepage\.x?html?$/i.test(sectionHref)) return true;
+
+  const normalizedCoverPath = normalizeEpubPath(coverPath);
+  const resources = Array.from(document.querySelectorAll("img[src], image[href], image[xlink\\:href], object[data]"));
+  return resources.some((resource) => {
+    const source = resource.getAttribute("src")
+      ?? resource.getAttribute("href")
+      ?? resource.getAttribute("xlink:href")
+      ?? resource.getAttribute("data");
+    return source ? normalizeEpubPath(source, sectionHref) === normalizedCoverPath : false;
+  });
+}
+
 export default function EpubReader({ isOpen, onClose, slug, title, layout, intl }: EpubReaderProps) {
   const reader = intl.epubReader as Record<string, string>;
   const viewerRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLElement>(null);
   const tocPanelRef = useRef<HTMLElement>(null);
   const settingsPanelRef = useRef<HTMLDivElement>(null);
+  const tocToggleRef = useRef<HTMLButtonElement>(null);
+  const settingsToggleRef = useRef<HTMLButtonElement>(null);
   const bookRef = useRef<any>(null);
   const renditionRef = useRef<any>(null);
   const annotationsRef = useRef<ReaderState["annotations"]>([]);
@@ -81,10 +107,11 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   const flushPendingSelectionRef = useRef<() => void>(() => undefined);
   const readerKeyHandlerRef = useRef<(event: KeyboardEvent) => void>(() => undefined);
   const pointerIsDownRef = useRef(false);
-  const touchOverlayStartRef = useRef<{ x: number; y: number } | null>(null);
+  const hasCoverRef = useRef(false);
+  const coverSectionIndexRef = useRef<number | null>(null);
+  const coverVisibleRef = useRef(false);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const flowRef = useRef<ReaderFlow>("paginated");
-  const hideControlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toc, setToc] = useState<TocEntry[]>([]);
@@ -100,8 +127,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showToc, setShowToc] = useState(false);
-  const [controlsVisible, setControlsVisible] = useState(true);
-  const [touchOverlayEnabled, setTouchOverlayEnabled] = useState(false);
+  const [coverVisible, setCoverVisible] = useState(false);
   const [bookmarkCfis, setBookmarkCfis] = useState<string[]>([]);
   const [bookmarks, setBookmarks] = useState<ReaderState["bookmarks"]>([]);
   const [annotations, setAnnotations] = useState<ReaderState["annotations"]>([]);
@@ -120,14 +146,6 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   }, [annotations]);
 
   useEffect(() => {
-    const media = window.matchMedia("(pointer: coarse)");
-    const updateTouchOverlay = () => setTouchOverlayEnabled(navigator.maxTouchPoints > 0 || media.matches);
-    updateTouchOverlay();
-    media.addEventListener("change", updateTouchOverlay);
-    return () => media.removeEventListener("change", updateTouchOverlay);
-  }, []);
-
-  useEffect(() => {
     if (isOpen) return;
     pendingSelectionRef.current = null;
     setSelectionMenu(null);
@@ -135,11 +153,9 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
     setNoteEditorOpen(false);
     setAnnotationNoteEditorOpen(false);
     setNoteDraft("");
+    coverVisibleRef.current = false;
+    setCoverVisible(false);
   }, [isOpen]);
-
-  const revealControls = useCallback(() => {
-    setControlsVisible(true);
-  }, []);
 
   const closePanels = useCallback(() => {
     setShowSettings(false);
@@ -157,57 +173,6 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
     onClose();
   }, [closePanels, onClose]);
 
-  const handleTouchOverlayStart = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
-    if (event.touches.length !== 1) {
-      touchOverlayStartRef.current = null;
-      return;
-    }
-    const touch = event.touches[0];
-    touchOverlayStartRef.current = { x: touch.clientX, y: touch.clientY };
-  }, []);
-
-  const handleTouchOverlayEnd = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
-    const start = touchOverlayStartRef.current;
-    touchOverlayStartRef.current = null;
-    const touch = event.changedTouches[0];
-    if (!start || !touch) return;
-
-    const deltaX = touch.clientX - start.x;
-    const deltaY = touch.clientY - start.y;
-    const distanceX = Math.abs(deltaX);
-    const distanceY = Math.abs(deltaY);
-
-    if (distanceX > 48 && distanceX > distanceY) {
-      closePanels();
-      setSelectionMenu(null);
-      setAnnotationMenu(null);
-      setNoteEditorOpen(false);
-      setAnnotationNoteEditorOpen(false);
-      void (deltaX < 0 ? renditionRef.current?.next() : renditionRef.current?.prev());
-      return;
-    }
-
-    if (distanceX > 18 || distanceY > 18) return;
-
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const x = touch.clientX - bounds.left;
-    if (x < bounds.width / 3) {
-      void renditionRef.current?.prev();
-      return;
-    }
-    if (x > (bounds.width * 2) / 3) {
-      void renditionRef.current?.next();
-      return;
-    }
-
-    closePanels();
-    setSelectionMenu(null);
-    setAnnotationMenu(null);
-    setNoteEditorOpen(false);
-    setAnnotationNoteEditorOpen(false);
-    setControlsVisible((visible) => !visible);
-  }, [closePanels]);
-
   const openAnnotationMenu = useCallback((annotation: ReaderState["annotations"][number], cfiRange: string, contents: any) => {
     const range = contents.range?.(cfiRange);
     const rangeRect = range?.getBoundingClientRect();
@@ -221,7 +186,6 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
       x: (frameRect?.left ?? 0) + (rangeRect?.left ?? 0) + (rangeRect?.width ?? 0) / 2,
       y: (frameRect?.top ?? 0) + (rangeRect?.top ?? 0),
     });
-    setControlsVisible(true);
   }, []);
 
   const renderAnnotation = useCallback((rendition: any, annotation: ReaderState["annotations"][number]) => {
@@ -300,16 +264,6 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   }, [bookmarkMessage]);
 
   useEffect(() => {
-    if (!isOpen || showSettings || showToc) return;
-    if (hideControlsTimerRef.current) clearTimeout(hideControlsTimerRef.current);
-    if (!controlsVisible) return;
-    hideControlsTimerRef.current = setTimeout(() => setControlsVisible(false), 3500);
-    return () => {
-      if (hideControlsTimerRef.current) clearTimeout(hideControlsTimerRef.current);
-    };
-  }, [controlsVisible, isOpen, showSettings, showToc]);
-
-  useEffect(() => {
     if (!isOpen || layout === "pre-paginated") return;
     setPreferencesLoaded(false);
     fetch("/api/reader/books/preferences")
@@ -344,7 +298,6 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
     const initialize = async () => {
       setLoading(true);
       setError(null);
-      setControlsVisible(true);
       setBookmarkMessage(null);
       try {
         const [module, buffer, stateResponse] = await Promise.all([
@@ -361,11 +314,25 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         await book.ready;
         if (cancelled || !viewerRef.current) return;
 
+        hasCoverRef.current = Boolean(book.packaging?.coverPath);
+        const firstSection = book.spine?.get(0);
+        if (firstSection) {
+          const firstDocument = await firstSection.load(book.load.bind(book));
+          const isCover = isCoverSection(firstDocument, firstSection.href, book.packaging?.coverPath);
+          coverSectionIndexRef.current = isCover ? firstSection.index : null;
+          firstSection.unload();
+        }
+        const initialSection = book.spine?.get(state.progress?.cfi);
+        const startsAtCoverSection = initialSection?.index === coverSectionIndexRef.current;
+        const showCover = hasCoverRef.current && (!state.progress?.cfi || startsAtCoverSection);
+        coverVisibleRef.current = showCover;
+        setCoverVisible(showCover);
+        const firstContentSection = book.spine?.get((coverSectionIndexRef.current ?? -1) + 1);
+        const initialTarget = showCover ? firstContentSection?.href : state.progress?.cfi;
+
         const rendition = book.renderTo(viewerRef.current, {
           width: "100%",
           height: "100%",
-          manager: "continuous",
-          gap: 32,
           flow: layout === "pre-paginated" ? "paginated" : flowRef.current,
           allowScriptedContent: false,
           spread: "auto",
@@ -391,23 +358,10 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
             });
           }
 
-          let touchStart: { x: number; y: number } | null = null;
-          let ignoreClickUntil = 0;
-          document.documentElement.style.touchAction = "pan-y";
-          body.style.touchAction = "pan-y";
-          const isInteractiveTarget = (target: EventTarget | null) => {
-            return Boolean((target as HTMLElement | null)?.closest?.("a, button, input, select, textarea, [contenteditable='true']"));
-          };
-          const hasTextSelection = () => Boolean(contents.window.getSelection()?.toString().trim());
-          const clearReaderOverlays = () => {
-            closePanels();
-            setSelectionMenu(null);
-            setAnnotationMenu(null);
-            setNoteEditorOpen(false);
-            setAnnotationNoteEditorOpen(false);
-          };
-          const handleContentInteraction = (event: Event, x: number, y: number, navigate = false) => {
-            if (hasTextSelection() || pendingSelectionRef.current || isInteractiveTarget(event.target)) return;
+          const handleContentInteraction = (event: MouseEvent | TouchEvent) => {
+            const touch = (event as TouchEvent).changedTouches?.[0] ?? null;
+            const x = touch ? touch.clientX : (event as MouseEvent).clientX;
+            const y = touch ? touch.clientY : (event as MouseEvent).clientY;
             const annotation = findAnnotationAtPoint(contents, x, y);
             if (annotation) {
               event.preventDefault();
@@ -415,73 +369,14 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
               openAnnotationMenu(annotation, annotation.cfiRange, contents);
               return;
             }
-            clearReaderOverlays();
-            if (navigate) {
-              const width = contents.window.innerWidth;
-              if (x < width / 3) {
-                void rendition.prev();
-                return;
-              }
-              if (x > (width * 2) / 3) {
-                void rendition.next();
-                return;
-              }
-            }
-            setControlsVisible((visible) => !visible);
+            if (pendingSelectionRef.current) return;
+            closePanels();
+            setSelectionMenu(null);
+            setAnnotationMenu(null);
+            setNoteEditorOpen(false);
+            setAnnotationNoteEditorOpen(false);
           };
-          const handleContentClick = (event: MouseEvent) => {
-            if (Date.now() < ignoreClickUntil) {
-              event.preventDefault();
-              return;
-            }
-            handleContentInteraction(event, event.clientX, event.clientY);
-          };
-          const handleTouchGesture = (event: Event, x: number, y: number) => {
-            const start = touchStart;
-            touchStart = null;
-            if (!start || hasTextSelection() || isInteractiveTarget(event.target)) return;
-
-            const deltaX = x - start.x;
-            const deltaY = y - start.y;
-            const distanceX = Math.abs(deltaX);
-            const distanceY = Math.abs(deltaY);
-
-            if (distanceX > 48 && distanceX > distanceY) {
-              if (event.cancelable) event.preventDefault();
-              event.stopPropagation();
-              ignoreClickUntil = Date.now() + 500;
-              clearReaderOverlays();
-              void (deltaX < 0 ? rendition.next() : rendition.prev());
-              return;
-            }
-
-            if (distanceX > 18 || distanceY > 18) {
-              ignoreClickUntil = Date.now() + 500;
-              return;
-            }
-
-            if (event.cancelable) event.preventDefault();
-            ignoreClickUntil = Date.now() + 500;
-            handleContentInteraction(event, x, y, true);
-          };
-          const handleTouchStart = (event: TouchEvent) => {
-            if (event.touches.length !== 1) {
-              touchStart = null;
-              return;
-            }
-            const touch = event.touches[0];
-            touchStart = { x: touch.clientX, y: touch.clientY };
-          };
-          const handleTouchEnd = (event: TouchEvent) => {
-            const touch = event.changedTouches[0];
-            if (!touch) return;
-            handleTouchGesture(event, touch.clientX, touch.clientY);
-          };
-          const resetTouchGesture = () => {
-            touchStart = null;
-            pointerIsDownRef.current = false;
-          };
-          document.addEventListener("click", handleContentClick, true);
+          document.addEventListener("click", handleContentInteraction);
           document.addEventListener("keydown", (event) => readerKeyHandlerRef.current(event));
           const showPendingSelection = () => {
             window.setTimeout(() => {
@@ -511,20 +406,17 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
                 setNoteDraft("");
                 setSelectionMenu({ cfiRange: pending.cfiRange, excerpt, x, y });
               }
-              setControlsVisible(true);
               selection?.removeAllRanges();
             }, 0);
           };
           flushPendingSelectionRef.current = showPendingSelection;
           const markPointerDown = () => { pointerIsDownRef.current = true; };
           const markPointerUp = () => { pointerIsDownRef.current = false; showPendingSelection(); };
-          document.addEventListener("mousedown", markPointerDown, true);
-          document.addEventListener("mouseup", markPointerUp, true);
-          body.addEventListener("touchstart", markPointerDown, true);
-          body.addEventListener("touchend", markPointerUp, true);
-          body.addEventListener("touchstart", handleTouchStart, { passive: true, capture: true });
-          body.addEventListener("touchend", handleTouchEnd, { passive: false, capture: true });
-          body.addEventListener("touchcancel", resetTouchGesture, true);
+          document.addEventListener("mousedown", markPointerDown);
+          document.addEventListener("touchstart", markPointerDown);
+          document.addEventListener("mouseup", showPendingSelection);
+          document.addEventListener("touchend", showPendingSelection);
+          document.addEventListener("pointerup", markPointerUp);
         });
         if (layout === "reflowable") applyStyles();
         const refreshAnnotationLayers = () => {
@@ -535,7 +427,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         };
         rendition.on("rendered", refreshAnnotationLayers);
         rendition.on("relocated", (location: any) => {
-          void persistProgress(location);
+          if (!coverVisibleRef.current) void persistProgress(location);
           refreshAnnotationLayers();
         });
         rendition.on("selected", (cfiRange: string, contents: any) => {
@@ -547,7 +439,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         setBookmarks(state.bookmarks);
         setAnnotations(state.annotations);
         annotationsRef.current = state.annotations;
-        await rendition.display(state.progress?.cfi ?? undefined);
+        await rendition.display(initialTarget ?? undefined);
         await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
         if (cancelled) return;
         for (const annotation of state.annotations) renderAnnotation(rendition, annotation);
@@ -564,15 +456,12 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           if (!displayedCfi) return;
           const calculatedProgress = book.locations.percentageFromCfi(displayedCfi);
           if (typeof calculatedProgress === "number") setProgress(calculatedProgress);
-          void persistProgress(location);
+          if (!coverVisibleRef.current) void persistProgress(location);
         }).catch(() => undefined);
       } catch {
         if (!cancelled) setError(reader.openFailed);
       } finally {
-        if (!cancelled) {
-          setControlsVisible(true);
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     };
 
@@ -592,6 +481,28 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
     return () => { wakeLockRef.current?.release(); wakeLockRef.current = null; };
   }, [isOpen]);
 
+  const navigatePrevious = useCallback(() => {
+    const location = renditionRef.current?.currentLocation?.();
+    const section = bookRef.current?.spine?.get(location?.start?.cfi);
+    const firstContentIndex = (coverSectionIndexRef.current ?? -1) + 1;
+    const isFirstPage = !location?.start?.displayed || location.start.displayed.page === 1;
+    if (hasCoverRef.current && section?.index === firstContentIndex && isFirstPage) {
+      coverVisibleRef.current = true;
+      setCoverVisible(true);
+      return;
+    }
+    void renditionRef.current?.prev();
+  }, []);
+
+  const navigateNext = useCallback(() => {
+    if (coverVisibleRef.current) {
+      coverVisibleRef.current = false;
+      setCoverVisible(false);
+      return;
+    }
+    void renditionRef.current?.next();
+  }, []);
+
   const handleReaderKey = useCallback((event: KeyboardEvent) => {
     if (!isOpen) return;
     const target = event.target as HTMLElement | null;
@@ -604,13 +515,13 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
     }
     if (event.key === "ArrowLeft") {
       event.preventDefault();
-      void renditionRef.current?.prev();
+      navigatePrevious();
     }
     if (event.key === "ArrowRight" || event.key === " ") {
       event.preventDefault();
-      void renditionRef.current?.next();
+      navigateNext();
     }
-  }, [closePanels, closeReader, isOpen, showSettings, showToc]);
+  }, [closePanels, closeReader, isOpen, navigateNext, navigatePrevious, showSettings, showToc]);
 
   useEffect(() => {
     readerKeyHandlerRef.current = handleReaderKey;
@@ -625,7 +536,12 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
     if (!isOpen || (!showSettings && !showToc)) return;
     const closeOnOutsidePointer = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (headerRef.current?.contains(target) || settingsPanelRef.current?.contains(target) || tocPanelRef.current?.contains(target)) return;
+      if (
+        settingsPanelRef.current?.contains(target)
+        || tocPanelRef.current?.contains(target)
+        || settingsToggleRef.current?.contains(target)
+        || tocToggleRef.current?.contains(target)
+      ) return;
       closePanels();
     };
     document.addEventListener("pointerdown", closeOnOutsidePointer);
@@ -633,6 +549,8 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   }, [closePanels, isOpen, showSettings, showToc]);
 
   const openToc = async (href: string) => {
+    coverVisibleRef.current = false;
+    setCoverVisible(false);
     await renditionRef.current?.display(href);
     setShowToc(false);
   };
@@ -764,7 +682,6 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   };
 
   const togglePanel = (panel: "toc" | "settings") => {
-    revealControls();
     setSelectionMenu(null);
     setAnnotationMenu(null);
     setNoteEditorOpen(false);
@@ -779,23 +696,12 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   };
 
   if (!isOpen) return null;
-  const touchOverlayActive = touchOverlayEnabled && (layout === "pre-paginated" || flow === "paginated");
   const isBookmarked = !!cfi && bookmarkCfis.includes(cfi);
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-onix text-sand">
-      <header ref={headerRef} className={`absolute inset-x-0 top-0 z-30 flex h-12 items-center justify-between gap-3 border-b border-white/15 bg-onix/95 px-3 transition-transform duration-200 ${controlsVisible ? "translate-y-0" : "-translate-y-full pointer-events-none"}`}>
-        <span className="min-w-0 truncate font-semibold">{title}</span>
-        <div className="flex items-center gap-1">
-          <button onClick={() => togglePanel("toc")} title={reader.contents} aria-label={reader.contents} className="cursor-pointer p-2"><MenuIcon size={24} /></button>
-          <button onClick={toggleBookmark} title={isBookmarked ? reader.removeBookmark : reader.addBookmark} aria-label={isBookmarked ? reader.removeBookmark : reader.addBookmark} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
-          {layout === "reflowable" && <button onClick={() => togglePanel("settings")} title={reader.settings} aria-label={reader.settings} className="cursor-pointer p-2"><Settings2Icon size={24} /></button>}
-          <button onClick={closeReader} title={reader.close} aria-label={reader.close} className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
-        </div>
-      </header>
-
       {showSettings && (
-        <div ref={settingsPanelRef} className="absolute right-3 top-12 z-40 w-[min(24rem,calc(100vw-1.5rem))] rounded-b-lg bg-blackamber p-5 shadow-xl">
+        <div ref={settingsPanelRef} className="absolute bottom-14 right-3 z-40 max-h-[calc(100dvh-4.5rem)] w-[min(24rem,calc(100vw-1.5rem))] overflow-y-auto rounded-lg bg-blackamber p-5 shadow-xl">
           <div className="grid gap-4 text-base">
             <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.theme}<select value={theme} onChange={(event) => setTheme(event.target.value as ReaderTheme)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="light">{reader.light}</option><option value="sepia">{reader.sepia}</option><option value="dark">{reader.dark}</option></select></label>
             <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.flow}<select value={flow} onChange={(event) => setFlow(event.target.value as ReaderFlow)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="paginated">{reader.paginated}</option><option value="scrolled-continuous">{reader.scrolled}</option></select></label>
@@ -809,7 +715,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
       )}
 
       {showToc && (
-        <aside ref={tocPanelRef} className="absolute bottom-0 left-0 top-12 z-40 w-[min(24rem,calc(100vw-1.5rem))] overflow-y-auto bg-blackamber p-5 shadow-xl">
+        <aside ref={tocPanelRef} className="absolute bottom-14 left-0 top-0 z-40 w-[min(24rem,calc(100vw-1.5rem))] overflow-y-auto bg-blackamber p-5 shadow-xl">
           <div className="mb-4 flex gap-2 border-b border-white/15">
             <button onClick={() => setTocTab("contents")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "contents" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.contents}</button>
             <button onClick={() => setTocTab("bookmarks")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "bookmarks" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.bookmarks} {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</button>
@@ -841,36 +747,34 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         </div>}
       </div>}
 
-      <main className="relative h-full w-full touch-pan-y" style={themeStyles[theme]} onPointerUp={(event) => {
+      <main className="relative w-full" style={{ ...themeStyles[theme], height: "calc(100% - 3.5rem)" }} onPointerUp={(event) => {
         if (event.target === event.currentTarget) {
           closePanels();
           setSelectionMenu(null);
           setAnnotationMenu(null);
           setAnnotationNoteEditorOpen(false);
-          setControlsVisible((visible) => !visible);
         }
       }}>
         {loading && <div className="absolute inset-0 z-20 grid place-items-center bg-onix">{reader.opening}</div>}
         {error && <div className="absolute inset-0 z-20 grid place-items-center bg-onix p-6 text-center">{error}</div>}
+        {coverVisible && <div className="absolute inset-0 z-10" style={themeStyles[theme]}>
+          <Image src={`/api/library/books/cover/${encodeURIComponent(slug)}`} alt={title} fill priority unoptimized sizes="100vw" className="object-contain" />
+        </div>}
         <div
           ref={viewerRef}
-          className="mx-auto h-full w-full touch-pan-y"
+          className="mx-auto h-full w-full"
           style={{ maxWidth: flow === "paginated" ? `${(columnWidth + 32) * 2}px` : `${columnWidth}px` }}
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 z-10"
-          style={{ pointerEvents: touchOverlayActive ? "auto" : "none", touchAction: touchOverlayActive ? "none" : "auto" }}
-          onTouchStart={handleTouchOverlayStart}
-          onTouchEnd={handleTouchOverlayEnd}
-          onTouchCancel={() => { touchOverlayStartRef.current = null; }}
         />
       </main>
 
-      <footer className={`absolute inset-x-0 bottom-0 z-30 flex h-11 items-center justify-between gap-4 border-t border-white/15 bg-onix/95 px-3 transition-transform duration-200 ${controlsVisible ? "translate-y-0" : "translate-y-full pointer-events-none"}`}>
-        <button onClick={() => renditionRef.current?.prev()} title={reader.previous} aria-label={reader.previous} className="cursor-pointer p-2"><ChevronLeftIcon size={24} /></button>
-        <span className="text-sm">{Math.round(progress * 100)}%</span>
-        <button onClick={() => renditionRef.current?.next()} title={reader.next} aria-label={reader.next} className="cursor-pointer p-2"><ChevronRightIcon size={24} /></button>
+      <footer className="absolute inset-x-0 bottom-0 z-30 flex h-14 items-center gap-1 border-t border-white/15 bg-onix/95 px-2">
+        <button onClick={navigatePrevious} title={reader.previous} aria-label={reader.previous} className="cursor-pointer p-2"><ChevronLeftIcon size={24} /></button>
+        <button ref={tocToggleRef} onClick={() => togglePanel("toc")} title={reader.contents} aria-label={reader.contents} className="cursor-pointer p-2"><MenuIcon size={24} /></button>
+        <button onClick={toggleBookmark} title={isBookmarked ? reader.removeBookmark : reader.addBookmark} aria-label={isBookmarked ? reader.removeBookmark : reader.addBookmark} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
+        {layout === "reflowable" && <button ref={settingsToggleRef} onClick={() => togglePanel("settings")} title={reader.settings} aria-label={reader.settings} className="cursor-pointer p-2"><Settings2Icon size={24} /></button>}
+        <span className="ml-auto text-sm">{Math.round(progress * 100)}%</span>
+        <button onClick={navigateNext} title={reader.next} aria-label={reader.next} className="cursor-pointer p-2"><ChevronRightIcon size={24} /></button>
+        <button onClick={closeReader} title={reader.close} aria-label={reader.close} className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
       </footer>
     </div>
   );
