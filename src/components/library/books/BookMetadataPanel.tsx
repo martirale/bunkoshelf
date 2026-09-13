@@ -30,11 +30,16 @@ export default function BookMetadataPanel({
   const roleLabels: Record<string, string> = {
     aut: books.author,
     bkp: books.digitalProduction,
+    bjd: books.design,
+    bkd: books.design,
     cmp: books.composition,
+    cov: books.design,
+    dsr: books.design,
     edt: books.editing,
     ill: books.illustration,
     nrt: books.narration,
     pht: books.photography,
+    tyd: books.design,
     trl: books.translation,
   };
   const contributorsByRole = contributors.reduce<Map<string, typeof contributors>>((groups, person) => {
