@@ -259,6 +259,7 @@ function parseMetadata(packagePath: string, parsed: Record<string, unknown>): Ep
   const namedMeta = namedMetaValues(metadata);
   const collection = parseCollection(metadata, namedMeta);
   const { title, subtitle } = parseTitles(metadata);
+  const epubVersion = attrs(pkg).version?.trim().split(".")[0];
 
   return {
     title,
@@ -270,6 +271,7 @@ function parseMetadata(packagePath: string, parsed: Record<string, unknown>): Ep
     rights: firstText(metadata, "dc:rights"),
     source: firstText(metadata, "dc:source"),
     publicationType: rendition.get("schema:bookFormat") ?? firstText(metadata, "dc:type"),
+    epubVersion: epubVersion === "2" || epubVersion === "3" ? epubVersion : null,
     ageRating: normalizeBookAgeRating(rendition.get("schema:typicalAgeRange")
       ?? rendition.get("schema:contentRating")
       ?? rendition.get("schema:audience")

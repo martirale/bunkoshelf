@@ -4,7 +4,7 @@ import AdmZip from "adm-zip";
 import { parseEpubBuffer } from "../src/lib/books/epubParser.ts";
 import { normalizeBookAgeRating } from "../src/lib/books/metadata.ts";
 
-function createEpub(options: { encrypted?: boolean; fixedLayout?: boolean; includeCover?: boolean; epub2GuideCover?: boolean; obfuscatedFont?: boolean; repeatedIdentifier?: boolean; htmlDescription?: boolean; ageRating?: string; epub3Isbn?: boolean; epub2Contributors?: boolean; epub2Series?: boolean; epub3Contributors?: boolean; epub3Series?: boolean } = {}) {
+function createEpub(options: { encrypted?: boolean; fixedLayout?: boolean; includeCover?: boolean; epub2GuideCover?: boolean; obfuscatedFont?: boolean; repeatedIdentifier?: boolean; htmlDescription?: boolean; ageRating?: string; epub3Isbn?: boolean; epub2Contributors?: boolean; epub2Series?: boolean; epub3Contributors?: boolean; epub3Series?: boolean; epubVersion?: string } = {}) {
   const zip = new AdmZip();
   zip.addFile("mimetype", Buffer.from("application/epub+zip"));
   zip.addFile("META-INF/container.xml", Buffer.from(`<?xml version="1.0"?><container><rootfiles><rootfile full-path="OPS/book.opf" media-type="application/oebps-package+xml"/></rootfiles></container>`));
@@ -23,7 +23,7 @@ function createEpub(options: { encrypted?: boolean; fixedLayout?: boolean; inclu
   const epub2Series = options.epub2Series ? '<meta name="bunko:series" content="Saga de prueba"/><meta name="bunko:series-type" content="series"/><meta name="bunko:series-position" content="2"/>' : "";
   const epub3Contributors = options.epub3Contributors ? '<dc:contributor id="designer">Diseñador EPUB 3</dc:contributor><meta refines="#designer" property="role">dsr</meta>' : "";
   const epub3Series = options.epub3Series ? '<meta property="belongs-to-collection" id="collection">Saga de prueba</meta><meta refines="#collection" property="collection-type">series</meta><meta refines="#collection" property="group-position">2</meta>' : "";
-  zip.addFile("OPS/book.opf", Buffer.from(`<?xml version="1.0"?><package><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${identifier}${options.repeatedIdentifier ? '<dc:identifier>9780000000001</dc:identifier>' : ""}<dc:title>Libro de prueba</dc:title><dc:language>es</dc:language><dc:creator id="author">Autora</dc:creator>${epub2Contributors}${epub3Contributors}<dc:subject>Ficción</dc:subject><dc:description>${description}</dc:description>${ageRating}${epub2Series}${epub3Series}<meta property="rendition:layout">${options.fixedLayout ? "pre-paginated" : "reflowable"}</meta></metadata><manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>${epub2GuideCover}${options.includeCover ? '<item id="cover" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/>' : ""}</manifest><spine><itemref idref="chapter"/></spine>${options.epub2GuideCover ? '<guide><reference type="cover" href="cover.xhtml"/></guide>' : ""}</package>`));
+  zip.addFile("OPS/book.opf", Buffer.from(`<?xml version="1.0"?><package version="${options.epubVersion ?? "3.0"}"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${identifier}${options.repeatedIdentifier ? '<dc:identifier>9780000000001</dc:identifier>' : ""}<dc:title>Libro de prueba</dc:title><dc:language>es</dc:language><dc:creator id="author">Autora</dc:creator>${epub2Contributors}${epub3Contributors}<dc:subject>Ficción</dc:subject><dc:description>${description}</dc:description>${ageRating}${epub2Series}${epub3Series}<meta property="rendition:layout">${options.fixedLayout ? "pre-paginated" : "reflowable"}</meta></metadata><manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>${epub2GuideCover}${options.includeCover ? '<item id="cover" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/>' : ""}</manifest><spine><itemref idref="chapter"/></spine>${options.epub2GuideCover ? '<guide><reference type="cover" href="cover.xhtml"/></guide>' : ""}</package>`));
   zip.addFile("OPS/chapter.xhtml", Buffer.from("<html><body>Contenido</body></html>"));
   zip.addFile("OPS/nav.xhtml", Buffer.from("<html><body>Índice</body></html>"));
   if (options.epub2GuideCover) {
@@ -42,6 +42,13 @@ test("parsea metadatos, portada y rendition de un EPUB", async () => {
   assert.equal(result.metadata.people[0]?.name, "Autora");
   assert.equal(result.metadata.coverPath, "OPS/cover.jpg");
   assert.ok(result.cover?.data.length);
+});
+
+test("detecta la versión mayor de EPUB desde el documento de paquete", async () => {
+  const epub2 = await parseEpubBuffer(createEpub({ epubVersion: "2.0" }));
+  const epub3 = await parseEpubBuffer(createEpub({ epubVersion: "3.3" }));
+  assert.equal(epub2.metadata.epubVersion, "2");
+  assert.equal(epub3.metadata.epubVersion, "3");
 });
 
 test("extrae una portada EPUB 2 declarada en guide mediante XHTML", async () => {

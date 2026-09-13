@@ -33,6 +33,7 @@ export interface EpubMetadata {
   rights: string | null;
   source: string | null;
   publicationType: string | null;
+  epubVersion: "2" | "3" | null;
   ageRating: string | null;
   modifiedAt: string | null;
   packagePath: string;
