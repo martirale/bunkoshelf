@@ -699,9 +699,9 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   const isBookmarked = !!cfi && bookmarkCfis.includes(cfi);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-onix text-sand">
+    <div className="fixed inset-0 z-50 overflow-hidden text-sand" style={{ background: themeStyles[theme].background }}>
       {showSettings && (
-        <div ref={settingsPanelRef} className="absolute bottom-14 right-3 z-40 max-h-[calc(100dvh-4.5rem)] w-[min(24rem,calc(100vw-1.5rem))] overflow-y-auto rounded-lg bg-blackamber p-5 shadow-xl">
+        <div ref={settingsPanelRef} className="absolute bottom-[calc(3.5rem+max(0.75rem,env(safe-area-inset-bottom)))] right-3 z-40 max-h-[calc(100dvh-5.5rem-max(0.75rem,env(safe-area-inset-bottom)))] w-[min(24rem,calc(100vw-1.5rem))] overflow-y-auto rounded-lg bg-blackamber p-5 shadow-xl md:bottom-14 md:max-h-[calc(100dvh-4.5rem)]">
           <div className="grid gap-4 text-base">
             <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.theme}<select value={theme} onChange={(event) => setTheme(event.target.value as ReaderTheme)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="light">{reader.light}</option><option value="sepia">{reader.sepia}</option><option value="dark">{reader.dark}</option></select></label>
             <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.flow}<select value={flow} onChange={(event) => setFlow(event.target.value as ReaderFlow)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="paginated">{reader.paginated}</option><option value="scrolled-continuous">{reader.scrolled}</option></select></label>
@@ -715,7 +715,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
       )}
 
       {showToc && (
-        <aside ref={tocPanelRef} className="absolute bottom-14 left-0 top-0 z-40 w-[min(24rem,calc(100vw-1.5rem))] overflow-y-auto bg-blackamber p-5 shadow-xl">
+        <aside ref={tocPanelRef} className="absolute bottom-[calc(3.5rem+max(0.75rem,env(safe-area-inset-bottom)))] left-0 top-0 z-40 w-[min(24rem,calc(100vw-1.5rem))] overflow-y-auto bg-blackamber p-5 shadow-xl md:bottom-14">
           <div className="mb-4 flex gap-2 border-b border-white/15">
             <button onClick={() => setTocTab("contents")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "contents" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.contents}</button>
             <button onClick={() => setTocTab("bookmarks")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "bookmarks" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.bookmarks} {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</button>
@@ -747,7 +747,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         </div>}
       </div>}
 
-      <main className="relative w-full" style={{ ...themeStyles[theme], height: "calc(100% - 3.5rem)" }} onPointerUp={(event) => {
+      <main className="relative h-[calc(100%-5.5rem-max(0.75rem,env(safe-area-inset-bottom)))] w-full md:h-[calc(100%-5.5rem)]" style={themeStyles[theme]} onPointerUp={(event) => {
         if (event.target === event.currentTarget) {
           closePanels();
           setSelectionMenu(null);
@@ -767,14 +767,21 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         />
       </main>
 
-      <footer className="absolute inset-x-0 bottom-0 z-30 flex h-14 items-center gap-1 border-t border-white/15 bg-onix/95 px-2">
-        <button onClick={navigatePrevious} title={reader.previous} aria-label={reader.previous} className="cursor-pointer p-2"><ChevronLeftIcon size={24} /></button>
-        <button ref={tocToggleRef} onClick={() => togglePanel("toc")} title={reader.contents} aria-label={reader.contents} className="cursor-pointer p-2"><MenuIcon size={24} /></button>
-        <button onClick={toggleBookmark} title={isBookmarked ? reader.removeBookmark : reader.addBookmark} aria-label={isBookmarked ? reader.removeBookmark : reader.addBookmark} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
-        {layout === "reflowable" && <button ref={settingsToggleRef} onClick={() => togglePanel("settings")} title={reader.settings} aria-label={reader.settings} className="cursor-pointer p-2"><Settings2Icon size={24} /></button>}
-        <span className="ml-auto text-sm">{Math.round(progress * 100)}%</span>
-        <button onClick={navigateNext} title={reader.next} aria-label={reader.next} className="cursor-pointer p-2"><ChevronRightIcon size={24} /></button>
-        <button onClick={closeReader} title={reader.close} aria-label={reader.close} className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
+      <span className="pointer-events-none absolute bottom-[calc(4rem+max(0.75rem,env(safe-area-inset-bottom)))] left-1/2 z-30 -translate-x-1/2 text-sm md:bottom-16" style={{ color: themeStyles[theme].color }}>{Math.round(progress * 100)}%</span>
+
+      <footer className="absolute inset-x-0 bottom-0 z-30 h-[calc(3.5rem+max(0.75rem,env(safe-area-inset-bottom)))] pb-[max(0.75rem,env(safe-area-inset-bottom))] md:h-14 md:pb-0" style={themeStyles[theme]}>
+        <div className="flex h-14 items-center justify-between px-2">
+          <div className="flex items-center gap-1">
+            <button onClick={closeReader} title={reader.close} aria-label={reader.close} className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
+            {layout === "reflowable" && <button ref={settingsToggleRef} onClick={() => togglePanel("settings")} title={reader.settings} aria-label={reader.settings} className="cursor-pointer p-2"><Settings2Icon size={24} /></button>}
+            <button onClick={toggleBookmark} title={isBookmarked ? reader.removeBookmark : reader.addBookmark} aria-label={isBookmarked ? reader.removeBookmark : reader.addBookmark} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
+            <button ref={tocToggleRef} onClick={() => togglePanel("toc")} title={reader.contents} aria-label={reader.contents} className="cursor-pointer p-2"><MenuIcon size={24} /></button>
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={navigatePrevious} title={reader.previous} aria-label={reader.previous} className="cursor-pointer p-2"><ChevronLeftIcon size={24} /></button>
+            <button onClick={navigateNext} title={reader.next} aria-label={reader.next} className="cursor-pointer p-2"><ChevronRightIcon size={24} /></button>
+          </div>
+        </div>
       </footer>
     </div>
   );
