@@ -37,6 +37,12 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
     return highest;
   }, null);
   const libraryRoot = firstVolume.series.librarySection === "other" ? "others" : "books";
+  const worksLabel = libraryRoot === "others"
+    ? (intl.libraries.otherWorks as string)
+    : books.books;
+  const seriesWorksLabel = libraryRoot === "others"
+    ? (intl.libraries.otherCollectionWorks as string)
+    : books.seriesBooks;
 
   return (
     <div className="p-4">
@@ -60,7 +66,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
             <BookSeriesRating rating={averageRating} />
           </div>
           <BookMetadataBadges metadata={{ ...meta, ageRating }} intl={intl} />
-          <p className="mt-4">{getBookPublicationYear(meta.publishedAt ?? meta.modifiedAt)} &bull; {volumes.length} {books.books}</p>
+          <p className="mt-4">{getBookPublicationYear(meta.publishedAt ?? meta.modifiedAt)} &bull; {volumes.length} {worksLabel}</p>
           {description && (
             <>
               <h2 className="text-sm mt-8 mb-1">{books.synopsis}{firstVolume.number !== null ? ` (${books.book} ${firstVolume.number})` : null}</h2>
@@ -73,7 +79,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
       </section>
       <section>
         <Separator />
-        <h2>{books.seriesBooks}</h2>
+        <h2>{seriesWorksLabel}</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
           {volumes.map((volume) => (
             <MangaCard

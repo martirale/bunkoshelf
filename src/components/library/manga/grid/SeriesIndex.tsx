@@ -91,7 +91,7 @@ export default async function SeriesIndex({
         <h2 className="flex items-center text-base md:text-lg mr-4">
           <LibraryBigIcon size={28} className="mr-2" />
           {section === "others"
-            ? (intl.libraries.otherCollections as string)
+            ? (intl.libraries.allOtherCollections as string)
             : (intl.manga.allSeries as string)}
         </h2>
 
