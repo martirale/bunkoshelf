@@ -41,7 +41,63 @@ function safeArchivePath(input: string): string {
 }
 
 function resolveArchivePath(base: string, relative: string): string {
-  return safeArchivePath(path.posix.join(path.posix.dirname(base), relative));
+  const resource = relative.split(/[?#]/, 1)[0];
+  return safeArchivePath(path.posix.join(path.posix.dirname(base), resource));
+}
+
+function findGuideCoverReference(parsed: Record<string, unknown>): string | null {
+  const pkg = parsed.package as XmlRecord | undefined;
+  const guide = pkg?.guide as XmlRecord | undefined;
+  const cover = values(guide?.reference)
+    .map((entry) => attrs(entry))
+    .find((entry) => entry.type?.split(/\s+/).some((type) => type.toLowerCase() === "cover"));
+  return cover?.href ?? null;
+}
+
+function findCoverResourceReference(value: unknown): string | null {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const resource = findCoverResourceReference(item);
+      if (resource) return resource;
+    }
+    return null;
+  }
+  if (!value || typeof value !== "object") return null;
+
+  for (const [name, child] of Object.entries(value)) {
+    if (name === "$" || name === "_") continue;
+    const element = name.split(":").at(-1)?.toLowerCase();
+    if (element === "img" || element === "image" || element === "object") {
+      for (const entry of values(child)) {
+        const attributes = attrs(entry);
+        const resource = attributes.src ?? attributes.href ?? attributes["xlink:href"] ?? attributes.data;
+        if (resource && !/^(?:data:|https?:)/i.test(resource)) return resource;
+      }
+    }
+    const resource = findCoverResourceReference(child);
+    if (resource) return resource;
+  }
+  return null;
+}
+
+async function resolveCoverPath(zip: AdmZip, packagePath: string, reference: string | null): Promise<string | null> {
+  if (!reference) return null;
+  let directPath: string | null = null;
+  try {
+    directPath = safeArchivePath(reference.split(/[?#]/, 1)[0]);
+  } catch {
+    directPath = null;
+  }
+  const coverPath = directPath && zip.getEntry(directPath) ? directPath : resolveArchivePath(packagePath, reference);
+  const coverEntry = zip.getEntry(coverPath);
+  if (!coverEntry) return null;
+  if (!/\.(?:x?html?)$/i.test(coverPath)) return coverPath;
+
+  const coverDocument = await xmlParser.parseStringPromise(coverEntry.getData().toString("utf8")) as Record<string, unknown>;
+  const resource = findCoverResourceReference(coverDocument);
+  if (!resource) return null;
+  const imagePath = resolveArchivePath(coverPath, resource);
+  return zip.getEntry(imagePath) ? imagePath : null;
 }
 
 function roleByRefines(metadata: XmlRecord): Map<string, string> {
@@ -254,6 +310,11 @@ export async function parseEpubBuffer(buffer: Buffer): Promise<EpubParseResult> 
 
   const packageDocument = await xmlParser.parseStringPromise(packageEntry.getData().toString("utf8")) as Record<string, unknown>;
   const metadata = parseMetadata(safePackagePath, packageDocument);
+  metadata.coverPath = await resolveCoverPath(
+    zip,
+    safePackagePath,
+    metadata.coverPath ?? findGuideCoverReference(packageDocument),
+  );
   const coverEntry = metadata.coverPath ? zip.getEntry(metadata.coverPath) : null;
   const cover = coverEntry
     ? { path: metadata.coverPath!, data: coverEntry.getData(), mediaType: null }
