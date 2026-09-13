@@ -36,6 +36,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
     if (!highest || getBookAgeMinimum(current)! > getBookAgeMinimum(highest)!) return current;
     return highest;
   }, null);
+  const libraryRoot = firstVolume.series.librarySection === "other" ? "others" : "books";
 
   return (
     <div className="p-4">
@@ -78,7 +79,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
             <MangaCard
               key={volume.id}
               title={volume.metadata.title}
-              href={`/${lang}/books/volume/${volume.slug}`}
+              href={`/${lang}/${libraryRoot}/volume/${volume.slug}`}
               isSeries={false}
               isOneshot={false}
               onGoing={false}

@@ -87,7 +87,7 @@ export default async function VolumesIndex({
           return (
             <MangaCard
               key={entry.title}
-              title={entry.meta?.title}
+              title={entry.meta?.title ?? entry.title}
               href={href}
               isSeries={false}
               isOneshot={entry.isOneshot}

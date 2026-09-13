@@ -144,6 +144,7 @@ export async function OthersSeriesPageContent({
         slug: firstVolume.slug,
         coverImage: firstVolume.coverImage ?? null,
         updatedAt: firstVolume.updatedAt,
+        metadataObj: firstVolume.metadataObj,
       }),
       meta: {
         ...(firstVolume.metadataObj || null),

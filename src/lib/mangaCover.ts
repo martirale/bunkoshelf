@@ -2,6 +2,7 @@ interface MangaCoverInput {
   slug: string;
   coverImage: string | null;
   updatedAt?: Date | string | null;
+  metadataObj?: { format?: string | null } | null;
 }
 
 function getVersion(updatedAt?: Date | string | null): string | null {
@@ -23,9 +24,12 @@ export function getMangaCoverUrl({
   slug,
   coverImage,
   updatedAt,
+  metadataObj,
 }: MangaCoverInput): string | null {
   if (!coverImage) {
-    return null;
+    return metadataObj?.format === "EPUB"
+      ? `/api/library/books/cover/${encodeURIComponent(slug)}`
+      : null;
   }
 
   const version = getVersion(updatedAt);

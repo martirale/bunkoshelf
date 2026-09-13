@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
       const libraryType = ["manga", "comic", "books", "others"].includes(type)
         ? type
         : "books";
+      const isEpub = path.extname(fileName).toLowerCase() === ".epub";
       const fileBuffer = await fs.readFile(tempFilePath);
       const checksum = generateChecksum();
       const txtFileName = `${path.parse(fileName).name}.txt`;
@@ -171,17 +172,19 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (libraryType === "books") {
-          await indexBook({
+        const bookResult = libraryType === "books" || (libraryType === "others" && isEpub)
+          ? await indexBook({
             fullPath: `/${r2Key}`,
             filename: fileName,
-            seriesPath: `/library/books/${dirWithSuffix}`,
+            seriesPath: `/library/${libraryType}/${dirWithSuffix}`,
             seriesName: dirWithSuffix,
             size: fileBuffer.length,
             mtime: new Date(),
             isOneshot,
-          });
-        } else {
+            librarySection: libraryType === "others" ? "other" : "books",
+          })
+          : null;
+        if (libraryType !== "books") {
           const seriesPath = `/library/${libraryType}/${dirWithSuffix}`;
           await indexUploadedVolume({
             fileName,
@@ -190,8 +193,8 @@ export async function POST(request: NextRequest) {
             seriesPath,
             isOneshot,
             coverFilename: coverFilename || null,
-            metadata: volumeMeta?.metadata || null,
-            genres: volumeMeta?.genres || [],
+            metadata: bookResult?.comicMetadata ?? volumeMeta?.metadata ?? null,
+            genres: bookResult?.genres ?? volumeMeta?.genres ?? [],
             tags: volumeMeta?.tags || [],
             fileSize: fileBuffer.length,
             librarySection: libraryType === "others" ? "other" : libraryType as "manga" | "comic",
@@ -243,8 +246,8 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (libraryType === "books") {
-          await indexBook({
+        const bookResult = libraryType === "books" || (libraryType === "others" && isEpub)
+          ? await indexBook({
             fullPath: finalPath,
             filename: fileName,
             seriesPath: targetDirectory,
@@ -252,8 +255,10 @@ export async function POST(request: NextRequest) {
             size: fileBuffer.length,
             mtime: new Date(),
             isOneshot,
-          });
-        } else {
+            librarySection: libraryType === "others" ? "other" : "books",
+          })
+          : null;
+        if (libraryType !== "books") {
           await indexUploadedVolume({
             fileName,
             fullPath: finalPath,
@@ -261,8 +266,8 @@ export async function POST(request: NextRequest) {
             seriesPath: targetDirectory,
             isOneshot,
             coverFilename: coverFilename || null,
-            metadata: volumeMeta?.metadata || null,
-            genres: volumeMeta?.genres || [],
+            metadata: bookResult?.comicMetadata ?? volumeMeta?.metadata ?? null,
+            genres: bookResult?.genres ?? volumeMeta?.genres ?? [],
             tags: volumeMeta?.tags || [],
             fileSize: fileBuffer.length,
             librarySection: libraryType === "others" ? "other" : libraryType as "manga" | "comic",

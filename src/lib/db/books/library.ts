@@ -3,6 +3,8 @@ import { buildNaturalSortKey } from "@/lib/naturalSort";
 import type { EpubMetadata } from "@/lib/books/types";
 import { execute, query, queryOne } from "../query";
 
+export type BookLibrarySection = "books" | "other";
+
 export interface BookSeries {
   id: string;
   slug: string;
@@ -11,6 +13,7 @@ export interface BookSeries {
   isOneshot: boolean;
   status: string;
   collectionType: "series" | "set" | null;
+  librarySection: BookLibrarySection;
 }
 
 export interface BookVolume {
@@ -44,6 +47,7 @@ interface BookRow {
   series_is_oneshot: boolean;
   series_status: string;
   series_collection_type: "series" | "set" | null;
+  series_library_section: BookLibrarySection;
   metadata_id: string;
   metadata_title: string;
   metadata_subtitle: string | null;
@@ -85,6 +89,7 @@ function mapBook(row: BookRow): BookVolume {
       isOneshot: row.series_is_oneshot,
       status: row.series_status,
       collectionType: row.series_collection_type,
+      librarySection: row.series_library_section,
     },
     metadata: {
       id: row.metadata_id,
@@ -121,6 +126,7 @@ const BOOK_SELECT = `
     bv.size::text AS volume_size, bv.cover_image AS volume_cover_image, bv.number AS volume_number, bv.created_at AS volume_created_at,
     bs.id AS series_id, bs.slug AS series_slug, bs.title AS series_title, bs.path AS series_path,
     bs.is_oneshot AS series_is_oneshot, bs.status AS series_status, bs.collection_type AS series_collection_type,
+    bs.library_section AS series_library_section,
     bm.id AS metadata_id, bm.title AS metadata_title, bm.subtitle AS metadata_subtitle,
     bm.description AS metadata_description, bm.publisher AS metadata_publisher,
     bm.published_at AS metadata_published_at, bm.language AS metadata_language,
@@ -164,14 +170,15 @@ export async function upsertBook(input: {
   size: number;
   mtime: Date;
   metadata: EpubMetadata;
+  librarySection: BookLibrarySection;
 }): Promise<BookVolume> {
   const series = await queryOne<{ id: string }>(`
-    INSERT INTO book_series (id, slug, title, sort_title, path, is_oneshot, collection_type, mtime)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    INSERT INTO book_series (id, slug, title, sort_title, path, is_oneshot, collection_type, mtime, library_section)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     ON CONFLICT (slug) DO UPDATE SET title = EXCLUDED.title, sort_title = EXCLUDED.sort_title,
       path = EXCLUDED.path, is_oneshot = EXCLUDED.is_oneshot, collection_type = EXCLUDED.collection_type,
-      mtime = EXCLUDED.mtime, updated_at = NOW()
-    RETURNING id`, [createId(), input.seriesSlug, input.seriesTitle, buildNaturalSortKey(input.seriesTitle), input.seriesPath, input.isOneshot, input.collectionType, input.mtime]);
+      mtime = EXCLUDED.mtime, library_section = EXCLUDED.library_section, updated_at = NOW()
+    RETURNING id`, [createId(), input.seriesSlug, input.seriesTitle, buildNaturalSortKey(input.seriesTitle), input.seriesPath, input.isOneshot, input.collectionType, input.mtime, input.librarySection]);
   if (!series) throw new Error("Failed to create book series");
 
   const volume = await queryOne<{ id: string }>(`
@@ -242,9 +249,13 @@ export async function listBookVolumes(options?: {
   seriesSlug?: string;
   authorNames?: string[];
   limit?: number;
+  librarySection?: BookLibrarySection;
 }): Promise<BookVolume[]> {
   const params: unknown[] = [];
   const conditions: string[] = [];
+
+  params.push(options?.librarySection ?? "books");
+  conditions.push(`bs.library_section = $${params.length}`);
 
   if (options?.seriesSlug) {
     params.push(options.seriesSlug);
@@ -286,8 +297,8 @@ export async function listBookVolumes(options?: {
   return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
 }
 
-export async function listRecentlyAddedBooks(limit = 8): Promise<BookVolume[]> {
-  const rows = await query<BookRow>(`${BOOK_SELECT} ORDER BY bv.created_at DESC LIMIT $1`, [limit]);
+export async function listRecentlyAddedBooks(limit = 8, librarySection: BookLibrarySection = "books"): Promise<BookVolume[]> {
+  const rows = await query<BookRow>(`${BOOK_SELECT} WHERE bs.library_section = $1 ORDER BY bv.created_at DESC LIMIT $2`, [librarySection, limit]);
   return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
 }
 
@@ -295,15 +306,16 @@ export async function listFavoriteBookSeries(userId: string, options: { page: nu
   const count = await queryOne<{ count: string }>(`
     SELECT COUNT(*)::text AS count
     FROM user_to_book_series ubs
-    WHERE ubs.user_id = $1 AND ubs.is_favorite = TRUE`, [userId]);
+    INNER JOIN book_series bs ON bs.id = ubs.series_id
+    WHERE ubs.user_id = $1 AND ubs.is_favorite = TRUE AND bs.library_section = 'books'`, [userId]);
   const total = Number(count?.count ?? "0");
   const offset = Math.max(0, options.page - 1) * options.pageSize;
   const series = await query<BookSeries>(`
     SELECT bs.id, bs.slug, bs.title, bs.path, bs.is_oneshot AS "isOneshot", bs.status,
-      bs.collection_type AS "collectionType"
+      bs.collection_type AS "collectionType", bs.library_section AS "librarySection"
     FROM book_series bs
     INNER JOIN user_to_book_series ubs ON ubs.series_id = bs.id
-    WHERE ubs.user_id = $1 AND ubs.is_favorite = TRUE
+    WHERE ubs.user_id = $1 AND ubs.is_favorite = TRUE AND bs.library_section = 'books'
     ORDER BY bs.sort_title
     LIMIT $2 OFFSET $3`, [userId, options.pageSize, offset]);
   const items = await Promise.all(series.map(async (entry) => ({
@@ -317,13 +329,15 @@ export async function listFavoriteBookSeries(userId: string, options: { page: nu
 export async function listFavoriteBookVolumes(userId: string, options: { page: number; pageSize: number }) {
   const count = await queryOne<{ count: string }>(`
     SELECT COUNT(*)::text AS count
-    FROM user_to_books
-    WHERE user_id = $1 AND is_favorite = TRUE`, [userId]);
+    FROM user_to_books ub
+    INNER JOIN book_volumes bv ON bv.id = ub.volume_id
+    INNER JOIN book_series bs ON bs.id = bv.series_id
+    WHERE ub.user_id = $1 AND ub.is_favorite = TRUE AND bs.library_section = 'books'`, [userId]);
   const total = Number(count?.count ?? "0");
   const offset = Math.max(0, options.page - 1) * options.pageSize;
   const rows = await query<BookRow>(`${BOOK_SELECT}
     INNER JOIN user_to_books ub ON ub.volume_id = bv.id
-    WHERE ub.user_id = $1 AND ub.is_favorite = TRUE
+    WHERE ub.user_id = $1 AND ub.is_favorite = TRUE AND bs.library_section = 'books'
     ORDER BY bs.sort_title, bv.number NULLS LAST, bv.sort_title
     LIMIT $2 OFFSET $3`, [userId, options.pageSize, offset]);
   const items = await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
@@ -331,12 +345,12 @@ export async function listFavoriteBookVolumes(userId: string, options: { page: n
   return { items, total, totalPages: Math.max(1, Math.ceil(total / options.pageSize)) };
 }
 
-export async function listBooksInProgress(userId: string, limit = 12): Promise<Array<BookVolume & { progression: number; lastReadAt: Date | null }>> {
+export async function listBooksInProgress(userId: string, limit = 12, librarySection: BookLibrarySection = "books"): Promise<Array<BookVolume & { progression: number; lastReadAt: Date | null }>> {
   const select = BOOK_SELECT.replace("  FROM book_volumes", "  , ub.progression, ub.last_read_at\n  FROM book_volumes");
   const rows = await query<BookRow & { progression: number; last_read_at: Date | null }>(`${select}
     INNER JOIN user_to_books ub ON ub.volume_id = bv.id
-    WHERE ub.user_id = $1 AND ub.cfi IS NOT NULL AND ub.is_read = FALSE
-    ORDER BY ub.last_read_at DESC NULLS LAST LIMIT $2`, [userId, limit]);
+    WHERE ub.user_id = $1 AND ub.cfi IS NOT NULL AND ub.is_read = FALSE AND bs.library_section = $2
+    ORDER BY ub.last_read_at DESC NULLS LAST LIMIT $3`, [userId, librarySection, limit]);
   const books = await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
   return books.map((book, index) => ({
     ...book,
@@ -361,13 +375,14 @@ export async function listBookProgressByIds(userId: string, volumeIds: string[])
 
 export async function getBookReaderStats(userId: string): Promise<{ totalVolumes: number; totalSeries: number; totalUnread: number }> {
   const [volumes, series, unread] = await Promise.all([
-    queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_volumes"),
-    queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_series WHERE is_oneshot = FALSE"),
+    queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_volumes bv INNER JOIN book_series bs ON bs.id = bv.series_id WHERE bs.library_section = 'books'"),
+    queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_series WHERE is_oneshot = FALSE AND library_section = 'books'"),
     queryOne<{ count: string }>(`
       SELECT COUNT(*)::text AS count
       FROM book_volumes bv
       LEFT JOIN user_to_books ub ON ub.volume_id = bv.id AND ub.user_id = $1
-      WHERE COALESCE(ub.is_read, FALSE) = FALSE`, [userId]),
+      INNER JOIN book_series bs ON bs.id = bv.series_id
+      WHERE COALESCE(ub.is_read, FALSE) = FALSE AND bs.library_section = 'books'`, [userId]),
   ]);
 
   return {
@@ -380,7 +395,7 @@ export async function getBookReaderStats(userId: string): Promise<{ totalVolumes
 export async function listRecentlyReadBooks(userId: string, limit = 12): Promise<BookVolume[]> {
   const rows = await query<BookRow>(`${BOOK_SELECT}
     INNER JOIN user_to_books ub ON ub.volume_id = bv.id
-    WHERE ub.user_id = $1 AND ub.is_read = TRUE AND ub.last_read_at IS NOT NULL
+    WHERE ub.user_id = $1 AND ub.is_read = TRUE AND ub.last_read_at IS NOT NULL AND bs.library_section = 'books'
     ORDER BY ub.last_read_at DESC LIMIT $2`, [userId, limit]);
   return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
 }
@@ -388,23 +403,24 @@ export async function listRecentlyReadBooks(userId: string, limit = 12): Promise
 export async function listBookSeries(): Promise<Array<BookSeries & { volumeCount: number }>> {
   return query<BookSeries & { volumeCount: number }>(`
     SELECT bs.id, bs.slug, bs.title, bs.path, bs.is_oneshot AS "isOneshot", bs.status,
-      bs.collection_type AS "collectionType",
+      bs.collection_type AS "collectionType", bs.library_section AS "librarySection",
       COUNT(bv.id)::int AS "volumeCount"
     FROM book_series bs LEFT JOIN book_volumes bv ON bv.series_id = bs.id
+    WHERE bs.library_section = 'books'
     GROUP BY bs.id ORDER BY bs.sort_title`);
 }
 
 export async function findBookSeriesBySlug(slug: string): Promise<BookSeries | null> {
   return queryOne<BookSeries>(`
     SELECT id, slug, title, path, is_oneshot AS "isOneshot", status,
-      collection_type AS "collectionType"
+      collection_type AS "collectionType", library_section AS "librarySection"
     FROM book_series WHERE slug = $1 LIMIT 1`, [slug]);
 }
 
 export async function findBookSeriesById(id: string): Promise<BookSeries | null> {
   return queryOne<BookSeries>(`
     SELECT id, slug, title, path, is_oneshot AS "isOneshot", status,
-      collection_type AS "collectionType"
+      collection_type AS "collectionType", library_section AS "librarySection"
     FROM book_series WHERE id = $1 LIMIT 1`, [id]);
 }
 

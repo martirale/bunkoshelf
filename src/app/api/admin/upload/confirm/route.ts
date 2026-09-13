@@ -12,6 +12,7 @@ import { upsertFileChecksumRecord } from "@/lib/db/ingestion";
 import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 import type { ComicMetadata } from "@/lib/types/manga";
 import { indexBook } from "@/lib/books/indexer";
+import path from "path";
 
 function generateChecksum(): string {
   return crypto.randomBytes(8).toString("hex");
@@ -71,6 +72,7 @@ export async function POST(request: NextRequest) {
     const dirWithSuffix = `${directoryName}${isNew ? suffix : ""}`;
 
     for (const file of files) {
+      const isEpub = path.extname(file.fileName).toLowerCase() === ".epub";
       const checksum = generateChecksum();
       const txtFileName = `${file.baseName}.txt`;
       const txtKey = `${file.key.substring(
@@ -88,17 +90,19 @@ export async function POST(request: NextRequest) {
       );
       await upsertFileChecksumRecord(`/${txtKey}`, checksum);
 
-      if (libraryType === "books") {
-        await indexBook({
+      const bookResult = libraryType === "books" || (libraryType === "others" && isEpub)
+        ? await indexBook({
           fullPath: `/${file.key}`,
           filename: file.fileName,
-          seriesPath: `/library/books/${dirWithSuffix}`,
+          seriesPath: `/library/${libraryType}/${dirWithSuffix}`,
           seriesName: dirWithSuffix,
           size: file.fileSize || 0,
           mtime: new Date(),
           isOneshot,
-        });
-      } else if (file.volumeMetadata) {
+          librarySection: libraryType === "others" ? "other" : "books",
+        })
+        : null;
+      if (libraryType !== "books" && (file.volumeMetadata || bookResult)) {
         const seriesPath = `/library/${libraryType}/${dirWithSuffix}`;
         await indexUploadedVolume({
           fileName: file.fileName,
@@ -107,8 +111,8 @@ export async function POST(request: NextRequest) {
           seriesPath,
           isOneshot,
           coverFilename: file.coverFilename || null,
-          metadata: file.volumeMetadata?.metadata || null,
-          genres: file.volumeMetadata?.genres || [],
+          metadata: bookResult?.comicMetadata ?? file.volumeMetadata?.metadata ?? null,
+          genres: bookResult?.genres ?? file.volumeMetadata?.genres ?? [],
           tags: file.volumeMetadata?.tags || [],
           fileSize: file.fileSize || 0,
           librarySection: libraryType === "others" ? "other" : libraryType as "manga" | "comic",

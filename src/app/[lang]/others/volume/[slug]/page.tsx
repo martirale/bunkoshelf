@@ -9,6 +9,9 @@ import {
 } from "@/lib/db/reading";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import { findVolumeBySlug } from "@/lib/db/library";
+import { findBookVolumeBySlug } from "@/lib/db/books/library";
+import { findBookProgress, listBookReadingEntries } from "@/lib/db/books/reading";
+import BookVolumeContent from "@/components/library/books/BookVolumeContent";
 import {
   getLibrarySection,
   getLibraryVolumeHref,
@@ -40,6 +43,34 @@ export async function OthersVolumePageContent({ params, section = "others" }: Ot
         <div className="text-center mt-8">
           {(intl?.errors?.notFound as string) || "Volumen no encontrado."}
         </div>
+      );
+    }
+
+    if (volumeEntry.filename.toLowerCase().endsWith(".epub")) {
+      const book = await findBookVolumeBySlug(slug);
+      if (!book || book.series.librarySection !== "other") {
+        return (
+          <div className="text-center mt-8">
+            {(intl?.errors?.notFound as string) || "Volumen no encontrado."}
+          </div>
+        );
+      }
+      const [readingEntries, progress]: [Awaited<ReturnType<typeof listBookReadingEntries>>, Awaited<ReturnType<typeof findBookProgress>>] = user
+        ? await Promise.all([
+            listBookReadingEntries(user.id, book.id),
+            findBookProgress(user.id, book.id),
+          ])
+        : [[], null];
+
+      return (
+        <BookVolumeContent
+          volume={book}
+          lang={lang as Locale}
+          intl={intl}
+          readingEntries={readingEntries}
+          personalRating={progress?.personalRating ?? null}
+          isAdmin={user?.isAdmin === true}
+        />
       );
     }
 

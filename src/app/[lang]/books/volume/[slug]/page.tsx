@@ -15,7 +15,7 @@ async function BookVolumePageContent({ params }: { params: Promise<{ lang: strin
   const { lang, slug } = await params;
   const user = await verifySession();
   const volume = await findBookVolumeBySlug(slug);
-  if (!volume) notFound();
+  if (!volume || volume.series.librarySection !== "books") notFound();
   const intl = await getDictionary(lang as Locale);
   const [readingEntries, progress]: [Awaited<ReturnType<typeof listBookReadingEntries>>, Awaited<ReturnType<typeof findBookProgress>>] = user
     ? await Promise.all([

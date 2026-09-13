@@ -121,6 +121,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
 
     for (let i = 0; i < acceptedFiles.length; i++) {
       const file = acceptedFiles[i];
+      if (file.name.toLowerCase().endsWith(".epub")) continue;
       try {
         const result = await extractFromArchive(file);
 
@@ -526,6 +527,7 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
                 "application/pdf": [".pdf"],
                 "application/zip": [".zip", ".cbz"],
                 "application/x-rar-compressed": [".rar", ".cbr"],
+                ...(libraryType === "others" ? { "application/epub+zip": [".epub"] } : {}),
               }}
           intl={intl}
         />

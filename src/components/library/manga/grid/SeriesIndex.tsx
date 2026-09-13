@@ -110,7 +110,7 @@ export default async function SeriesIndex({
               title={
                 isOneshot
                   ? firstVolume?.meta?.title ?? firstVolume?.title ?? entry.title
-                  : firstVolume?.meta?.series ?? entry.title
+                  : firstVolume?.meta?.series ?? firstVolume?.title ?? entry.title
               }
               href={
                 isOneshot && firstVolume
@@ -122,6 +122,7 @@ export default async function SeriesIndex({
               onGoing={!isOneshot && entry.status === "ONGOING"}
               onPause={!isOneshot && entry.status === "HIATUS"}
               volumeCount={isOneshot ? null : totalVolumes}
+              countLabel={section === "others" ? intl.libraries.otherWorks as string : undefined}
               cover={entry.coverImage}
               progressRatio={progressRatio}
               isDragging={false}

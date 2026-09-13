@@ -124,7 +124,9 @@ export default function SeriesContent({
 
           <p className="mt-4">
             {meta.year ? (meta.year as number) : null} &bull; {volumeCount}{" "}
-            {intl.manga.volumes as string}
+            {section === "others"
+              ? (intl.libraries.otherWorks as string)
+              : (intl.manga.volumes as string)}
           </p>
 
           {meta.summary ? (
@@ -150,7 +152,9 @@ export default function SeriesContent({
 
       <section>
         <Separator />
-        <h2>{intl.manga.seriesVolumes as string}</h2>
+        <h2>{section === "others"
+          ? (intl.libraries.otherCollectionWorks as string)
+          : (intl.manga.seriesVolumes as string)}</h2>
 
         <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 mt-4">
           {volumes && volumes.length > 0 ? (

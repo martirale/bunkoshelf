@@ -122,6 +122,7 @@ export default async function SeriesIndexFav({
               onGoing={entry.status === "ONGOING"}
               onPause={entry.status === "HIATUS"}
               volumeCount={isSeries ? totalVolumes : null}
+              countLabel={section === "others" ? intl.libraries.otherWorks as string : undefined}
               cover={entry.coverImage}
               progressRatio={progressRatio}
               isDragging={false}
