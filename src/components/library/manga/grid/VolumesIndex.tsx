@@ -73,7 +73,9 @@ export default async function VolumesIndex({
       <div className="flex items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg mr-4">
           <BookCopyIcon size={28} className="mr-2" />
-          {intl.manga.allVolumes as string}
+          {section === "others"
+            ? (intl.libraries.otherWorks as string)
+            : (intl.manga.allVolumes as string)}
         </h2>
 
         <FiltersDrawer intl={intl} scope={scope} />

@@ -4,6 +4,9 @@ import SeriesContent from "@/components/library/manga/SeriesContent";
 import DetailSkeleton from "@/components/library/manga/DetailSkeleton";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listVolumeRatings, findSeriesFavoriteState } from "@/lib/db/reading";
+import { listBookProgressByIds, listBookVolumes } from "@/lib/db/books/library";
+import { findBookSeriesFavorite, listBookRatings } from "@/lib/db/books/reading";
+import BookSeriesContent from "@/components/library/books/BookSeriesContent";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import {
   findSeriesBySlugBasic,
@@ -72,7 +75,38 @@ export async function OthersSeriesPageContent({
   const intl = await getDictionary(lang as Locale);
 
   try {
-    const user = await verifySession();
+    const [user, books] = await Promise.all([
+      verifySession(),
+      listBookVolumes({ seriesSlug: series, librarySection: "other" }),
+    ]);
+
+    if (books.length > 0) {
+      const [progressById, isFavorite, personalRatings] = user
+        ? await Promise.all([
+            listBookProgressByIds(user.id, books.map((book) => book.id)),
+            findBookSeriesFavorite(user.id, books[0].series.id),
+            listBookRatings(user.id, books.map((book) => book.id)),
+          ])
+        : [{}, false, new Map<string, number>()] as const;
+      const ratings = books
+        .map((book) => personalRatings.get(book.id))
+        .filter((rating): rating is number => rating !== undefined);
+      const averageRating = ratings.length
+        ? Math.round((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length) * 2) / 2
+        : null;
+
+      return (
+        <BookSeriesContent
+          volumes={books}
+          lang={lang as Locale}
+          intl={intl}
+          progressById={progressById}
+          isFavorite={isFavorite}
+          averageRating={averageRating}
+          isAdmin={user?.isAdmin === true}
+        />
+      );
+    }
 
     const serie = await findSeriesBySlugBasic(series);
 

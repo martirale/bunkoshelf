@@ -90,7 +90,9 @@ export default async function SeriesIndex({
       <div className="flex items-center mb-4">
         <h2 className="flex items-center text-base md:text-lg mr-4">
           <LibraryBigIcon size={28} className="mr-2" />
-          {intl.manga.allSeries as string}
+          {section === "others"
+            ? (intl.libraries.otherCollections as string)
+            : (intl.manga.allSeries as string)}
         </h2>
 
         <FiltersDrawer intl={intl} scope={scope} />
