@@ -109,7 +109,7 @@ export default function VolumesContent({
             <div className="py-2">
               <Link
                 href={`/${lang}/${section}/${seriesSlug}`}
-                className="italic hover:underline"
+                className="text-2xl not-italic hover:underline"
               >
                 {seriesLabel} {(meta.series as string) || seriesTitle}
               </Link>

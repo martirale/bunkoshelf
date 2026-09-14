@@ -54,10 +54,10 @@ export default function BookVolumeContent({ volume, lang, intl, readingEntries, 
         </div>
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">{volume.metadata.title}</h1>
-          {volume.metadata.subtitle && <p className="py-2 italic">{volume.metadata.subtitle}</p>}
+          {volume.metadata.subtitle && <p className="py-2 text-2xl not-italic">{volume.metadata.subtitle}</p>}
           {!volume.series.isOneshot && (
             <div className="py-2">
-              <Link href={`/${lang}/${libraryRoot}/${volume.series.slug}`} className="italic hover:underline">
+              <Link href={`/${lang}/${libraryRoot}/${volume.series.slug}`} className="text-2xl not-italic hover:underline">
                 {seriesLabel} {volume.series.title}
               </Link>
             </div>
