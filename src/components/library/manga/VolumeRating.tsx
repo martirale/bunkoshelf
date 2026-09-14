@@ -75,9 +75,9 @@ export default function VolumeRating({
     return (
       <button
         onClick={openPanel}
-        className="mt-4 flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
+        className="mt-4 flex items-center gap-1.5 text-xl uppercase text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
       >
-        <StarIcon size={14} />
+        <StarIcon size={20} />
         <span>Valorar</span>
       </button>
     );

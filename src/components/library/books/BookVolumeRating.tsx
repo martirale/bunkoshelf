@@ -60,8 +60,8 @@ export default function BookVolumeRating({ volumeId, initialPersonalRating, intl
 
   if (!hasRating && !isOpen) {
     return (
-      <button type="button" onClick={open} className="mt-4 flex cursor-pointer items-center gap-1.5 text-sm text-neutral-500 transition-colors hover:text-neutral-300">
-        <StarIcon size={14} />
+      <button type="button" onClick={open} className="mt-4 flex cursor-pointer items-center gap-1.5 text-xl uppercase text-neutral-500 transition-colors hover:text-neutral-300">
+        <StarIcon size={20} />
         <span>{books.rate}</span>
       </button>
     );
