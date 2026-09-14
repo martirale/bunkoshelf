@@ -12,33 +12,29 @@ const PACKAGE_NAME = "@itsmrtr/bunkoshelf";
 const REPOSITORY_NAME = "martirale/bunkoshelf";
 const REGISTRY_URL = `https://registry.npmjs.org/${encodeURIComponent(PACKAGE_NAME)}/latest`;
 
-async function resolveGithubTarget(version) {
-  if (version !== "latest") {
-    return `github:${REPOSITORY_NAME}#${version}`;
-  }
-
+async function resolveLatestVersion() {
   try {
     const response = await fetch(REGISTRY_URL, {
       headers: {
         Accept: "application/json",
+        "Cache-Control": "no-cache",
       },
+      cache: "no-store",
       signal: AbortSignal.timeout(4000),
     });
 
-    if (!response.ok) {
-      return `github:${REPOSITORY_NAME}#main`;
-    }
+    if (!response.ok) return null;
 
     const payload = await response.json();
-    const latestVersion =
-      payload && typeof payload.version === "string" ? payload.version : null;
-
-    return latestVersion
-      ? `github:${REPOSITORY_NAME}#${latestVersion}`
-      : `github:${REPOSITORY_NAME}#main`;
+    return payload && typeof payload.version === "string" ? payload.version : null;
   } catch {
-    return `github:${REPOSITORY_NAME}#main`;
+    return null;
   }
+}
+
+function resolveGithubTarget(version, latestVersion) {
+  const targetVersion = version === "latest" ? latestVersion : version;
+  return `github:${REPOSITORY_NAME}#${targetVersion ?? "main"}`;
 }
 
 function isRegistryTarballNotFound(error) {
@@ -85,12 +81,15 @@ export async function update(version = "latest") {
     throw new Error(`Current project does not depend on ${PACKAGE_NAME}.`);
   }
 
-  const progress = spinner();
-  const target = `${PACKAGE_NAME}@${version}`;
+  const latestVersion = version === "latest" ? await resolveLatestVersion() : null;
+  const targetVersion = latestVersion ?? version;
+  const target = `${PACKAGE_NAME}@${targetVersion}`;
   const packageManager = await detectPackageManager(process.cwd());
   const updateCommand = getUpdateDependencyCommand(packageManager, target);
+  const progress = spinner();
+  let installedTarget = target;
 
-  progress.start(`Updating ${PACKAGE_NAME} to ${chalk.cyan(version)}...`);
+  progress.start(`Updating ${PACKAGE_NAME} to ${chalk.cyan(targetVersion)}...`);
 
   try {
     await runPackageManagerCommand(
@@ -104,7 +103,7 @@ export async function update(version = "latest") {
       throw error;
     }
 
-    const fallbackTarget = await resolveGithubTarget(version);
+    const fallbackTarget = resolveGithubTarget(version, latestVersion);
 
     progress.message(
       `Registry tarball unavailable, retrying from ${chalk.cyan(fallbackTarget)}...`
@@ -121,6 +120,7 @@ export async function update(version = "latest") {
         fallbackCommand.args,
         process.cwd()
       );
+      installedTarget = fallbackTarget;
     } catch (fallbackError) {
       progress.stop(chalk.red("Update failed"));
       throw fallbackError;
@@ -128,5 +128,5 @@ export async function update(version = "latest") {
   }
 
   progress.stop(`Updated ${PACKAGE_NAME}`);
-  outro(`Bunko Shelf is now installed from ${chalk.cyan(target)}`);
+  outro(`Bunko Shelf is now installed from ${chalk.cyan(installedTarget)}`);
 }
