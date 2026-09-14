@@ -30,6 +30,19 @@ export interface BookVolume {
   metadata: EpubMetadata & { id: string };
 }
 
+export interface BookSearchEntry {
+  id: string;
+  slug: string;
+  title: string;
+  seriesId: string;
+  seriesSlug: string;
+  seriesTitle: string;
+  seriesIsOneshot: boolean;
+  librarySection: BookLibrarySection;
+  writer: string;
+  subjects: string;
+}
+
 interface BookRow {
   volume_id: string;
   volume_slug: string;
@@ -408,6 +421,33 @@ export async function listBookSeries(): Promise<Array<BookSeries & { volumeCount
     FROM book_series bs LEFT JOIN book_volumes bv ON bv.series_id = bs.id
     WHERE bs.library_section = 'books'
     GROUP BY bs.id ORDER BY bs.sort_title`);
+}
+
+export async function listBookSearchEntries(): Promise<BookSearchEntry[]> {
+  return query<BookSearchEntry>(`
+    SELECT bv.id, bv.slug, bm.title,
+      bs.id AS "seriesId", bs.slug AS "seriesSlug", bs.title AS "seriesTitle",
+      bs.is_oneshot AS "seriesIsOneshot", bs.library_section AS "librarySection",
+      COALESCE(
+        STRING_AGG(DISTINCT BTRIM(bp.name), ', ') FILTER (
+          WHERE bp.kind = 'creator'
+            AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
+            AND BTRIM(bp.name) <> ''
+        ),
+        ''
+      ) AS writer,
+      COALESCE(
+        STRING_AGG(DISTINCT BTRIM(bsub.name), ', ') FILTER (WHERE BTRIM(bsub.name) <> ''),
+        ''
+      ) AS subjects
+    FROM book_volumes bv
+    INNER JOIN book_series bs ON bs.id = bv.series_id
+    INNER JOIN book_metadata bm ON bm.volume_id = bv.id
+    LEFT JOIN book_people bp ON bp.metadata_id = bm.id
+    LEFT JOIN book_subjects bsub ON bsub.metadata_id = bm.id
+    GROUP BY bv.id, bv.slug, bv.number, bv.sort_title, bm.title, bs.id, bs.slug, bs.title, bs.is_oneshot, bs.library_section, bs.sort_title
+    ORDER BY bs.sort_title, bv.number NULLS LAST, bv.sort_title
+  `);
 }
 
 export async function findBookSeriesBySlug(slug: string): Promise<BookSeries | null> {

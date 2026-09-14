@@ -3,6 +3,7 @@
 import MiniSearch from "minisearch";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listSeries, listVolumes } from "@/lib/db/library";
+import { listBookSearchEntries } from "@/lib/db/books/library";
 import { getLibrarySection } from "@/lib/librarySection";
 import type { SearchResult } from "@/lib/types";
 
@@ -15,7 +16,7 @@ interface SeriesDoc {
   title: string;
   slug: string;
   isOneshot: boolean;
-  section: "manga" | "comic" | "others";
+  section: "manga" | "comic" | "others" | "books";
   writer: string;
   series: string;
 }
@@ -27,7 +28,7 @@ interface VolumeDoc {
   series: string;
   slug: string;
   isOneshot: boolean;
-  section: "manga" | "comic" | "others";
+  section: "manga" | "comic" | "others" | "books";
   genres: string;
   tags: string;
 }
@@ -52,10 +53,14 @@ export async function searchManga({ query }: SearchParams) {
     return { success: true, data: [] };
   }
 
-  const volumes = await listVolumes({
-    includeGenres: true,
-    includeTags: true,
-  });
+  const [volumes, seriesList, bookEntries] = await Promise.all([
+    listVolumes({
+      includeGenres: true,
+      includeTags: true,
+    }),
+    listSeries(),
+    listBookSearchEntries(),
+  ]);
 
   const writerBySeriesId = new Map<string, string>();
   const seriesNameById = new Map<string, string>();
@@ -79,9 +84,7 @@ export async function searchManga({ query }: SearchParams) {
     }
   }
 
-  const seriesList = await listSeries();
-
-  const seriesDocs: SeriesDoc[] = seriesList.map((s) => ({
+  const mangaSeriesDocs: SeriesDoc[] = seriesList.map((s) => ({
     id: `series-${s.id}`,
     title: s.title,
     slug: s.slug,
@@ -90,6 +93,32 @@ export async function searchManga({ query }: SearchParams) {
     writer: writerBySeriesId.get(s.id) || "",
     series: seriesNameById.get(s.id) || s.title,
   }));
+
+  const bookSeries = new Map<string, { entry: typeof bookEntries[number]; writers: Set<string> }>();
+
+  for (const entry of bookEntries) {
+    const current = bookSeries.get(entry.seriesId);
+    if (current) {
+      if (entry.writer) current.writers.add(entry.writer);
+      continue;
+    }
+    bookSeries.set(entry.seriesId, {
+      entry,
+      writers: new Set(entry.writer ? [entry.writer] : []),
+    });
+  }
+
+  const bookSeriesDocs: SeriesDoc[] = Array.from(bookSeries.values()).map(({ entry, writers }) => ({
+    id: `book-series-${entry.seriesId}`,
+    title: entry.seriesTitle,
+    slug: entry.seriesSlug,
+    isOneshot: entry.seriesIsOneshot,
+    section: entry.librarySection === "books" ? "books" : "others",
+    writer: Array.from(writers).join(", "),
+    series: entry.seriesTitle,
+  }));
+
+  const seriesDocs = [...mangaSeriesDocs, ...bookSeriesDocs];
 
   const seriesMap = new Map<string, SeriesDoc>(seriesDocs.map((s) => [s.id, s]));
 
@@ -120,7 +149,7 @@ export async function searchManga({ query }: SearchParams) {
     };
   });
 
-  const volumeDocs: VolumeDoc[] = volumes.map((vol) => {
+  const mangaVolumeDocs: VolumeDoc[] = volumes.map((vol) => {
     const genreNames = vol.genres
       .map((genre) => genre.name?.trim())
       .filter((name): name is string => Boolean(name));
@@ -141,6 +170,20 @@ export async function searchManga({ query }: SearchParams) {
       tags: tagNames.join(", "),
     };
   });
+
+  const bookVolumeDocs: VolumeDoc[] = bookEntries.map((entry) => ({
+    id: `book-volume-${entry.id}`,
+    title: entry.title,
+    writer: entry.writer,
+    series: entry.seriesTitle,
+    slug: entry.slug,
+    isOneshot: entry.seriesIsOneshot,
+    section: entry.librarySection === "books" ? "books" : "others",
+    genres: entry.subjects,
+    tags: "",
+  }));
+
+  const volumeDocs = [...mangaVolumeDocs, ...bookVolumeDocs];
 
   const volumesMap = new Map<string, VolumeDoc>(volumeDocs.map((doc) => [doc.id, doc]));
 
