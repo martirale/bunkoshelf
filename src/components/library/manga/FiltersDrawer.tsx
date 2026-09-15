@@ -6,6 +6,7 @@ import { ChevronRightIcon } from "lucide-react";
 import Accordion from "@/components/ui/Accordion";
 import clsx from "clsx";
 import { getLibraryFilters } from "@/actions/library";
+import { getBookLibraryFilters } from "@/actions/books";
 import { usePwa } from "@/components/pwa/PwaProvider";
 import type { OfflineVolume } from "@/lib/client/offlineLibrary";
 import type { LibraryScope } from "@/lib/librarySection";
@@ -30,12 +31,14 @@ function splitFilterParam(value: string | null) {
 interface FiltersDrawerProps {
   intl: DictionarySection;
   scope?: LibraryScope;
+  library?: "books";
   offlineVolumes?: OfflineVolume[];
 }
 
 export default function FiltersDrawer({
   intl,
   scope = "all",
+  library,
   offlineVolumes,
 }: FiltersDrawerProps) {
   const router = useRouter();
@@ -90,7 +93,9 @@ export default function FiltersDrawer({
       }
 
       try {
-        const data = await getLibraryFilters({ scope });
+        const data = library === "books"
+          ? await getBookLibraryFilters()
+          : await getLibraryFilters({ scope });
         if (!data || "error" in data) throw new Error("Error fetching filters");
         setAuthors(data.authors);
         setGenres(data.genres);
@@ -100,7 +105,7 @@ export default function FiltersDrawer({
       }
     }
     fetchFilters();
-  }, [offlineVolumes, online, scope]);
+  }, [library, offlineVolumes, online, scope]);
 
   function navigate(params: URLSearchParams) {
     const href = `?${params.toString()}`;

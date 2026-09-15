@@ -2,6 +2,7 @@ import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getBookCoverUrl } from "@/lib/books/cover";
 import { listBookProgressByIds, listBookVolumes } from "@/lib/db/books/library";
+import FiltersDrawer from "@/components/library/manga/FiltersDrawer";
 import { LibraryBigIcon } from "lucide-react";
 import type { Dictionary, Locale } from "@/lib/types";
 
@@ -9,17 +10,23 @@ export default async function SeriesIndex({
   lang,
   intl,
   authorFilter,
+  genreFilter,
+  tagFilter,
   includeOneshots = false,
 }: {
   lang: Locale;
   intl: Dictionary;
   authorFilter?: string;
+  genreFilter?: string;
+  tagFilter?: string;
   includeOneshots?: boolean;
 }) {
   const labels = intl.books as Record<string, string>;
   const user = await verifySession();
-  const authorNames = authorFilter?.trim() ? [authorFilter.trim()] : undefined;
-  const books = await listBookVolumes({ authorNames });
+  const authorNames = authorFilter?.trim() ? authorFilter.split(",").map((author) => author.trim()).filter(Boolean) : undefined;
+  const genreNames = genreFilter?.trim() ? genreFilter.split(",").map((genre) => genre.trim()).filter(Boolean) : undefined;
+  const tagNames = tagFilter?.trim() ? tagFilter.split(",").map((tag) => tag.trim()).filter(Boolean) : undefined;
+  const books = await listBookVolumes({ authorNames, genreNames, tagNames });
   const visibleBooks = includeOneshots
     ? books
     : books.filter((book) => !book.series.isOneshot);
@@ -41,7 +48,8 @@ export default async function SeriesIndex({
 
   return <>
     <div className="mb-4 flex items-center">
-      <h2 className="flex items-center text-base md:text-lg"><LibraryBigIcon size={28} className="mr-2" />{intl.libraries.series as string}</h2>
+      <h2 className="mr-4 flex items-center text-base md:text-lg"><LibraryBigIcon size={28} className="mr-2" />{intl.libraries.series as string}</h2>
+      <FiltersDrawer intl={intl} library="books" />
     </div>
     <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
       {series.map((item) => {

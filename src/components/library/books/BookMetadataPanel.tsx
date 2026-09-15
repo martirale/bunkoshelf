@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { getBookIdentifierScheme, getBookIdentifierValue } from "@/lib/books/metadata";
-import type { BookVolume } from "@/lib/db/books/library";
+import { classifyBookSubjects, type BookVolume } from "@/lib/db/books/library";
 import type { Dictionary, Locale } from "@/lib/types";
 
 function MetadataField({ label, children }: { label: string; children: ReactNode }) {
@@ -13,7 +13,7 @@ function MetadataField({ label, children }: { label: string; children: ReactNode
   );
 }
 
-export default function BookMetadataPanel({
+export default async function BookMetadataPanel({
   volume,
   lang,
   intl,
@@ -27,6 +27,8 @@ export default function BookMetadataPanel({
   const authors = metadata.people.filter((person) => person.kind === "creator" && (!person.role || person.role.toLowerCase() === "aut"));
   const contributors = metadata.people.filter((person) => !authors.includes(person));
   const isbnIdentifiers = metadata.identifiers.filter((identifier) => getBookIdentifierScheme(identifier.value, identifier.scheme) === "ISBN");
+  const subjectFilters = await classifyBookSubjects(metadata.subjects.map((subject) => subject.name));
+  const subjectFilterByName = new Map(subjectFilters.map((subject) => [subject.subject.toLowerCase(), subject]));
   const roleLabels: Record<string, string> = {
     aut: books.author,
     bkp: books.digitalProduction,
@@ -77,7 +79,12 @@ export default function BookMetadataPanel({
         <div className="mt-8 flex max-w-3xl flex-row items-baseline">
           <p className="w-1/3 text-sm uppercase md:w-1/5">{books.subjects}</p>
           <div className="flex w-2/3 flex-wrap gap-2 md:w-4/5">
-            {metadata.subjects.map((subject) => <span key={subject.name} className="rounded-md bg-neutral-700 px-2 py-1 text-xs uppercase">{subject.name}</span>)}
+            {metadata.subjects.map((subject) => {
+              const filter = subjectFilterByName.get(subject.name.trim().toLowerCase());
+              const query = filter?.type ?? "tag";
+              const name = filter?.name ?? subject.name;
+              return <Link key={subject.name} href={{ pathname: `/${lang}/books/volumes`, query: { [query]: name } }} className="rounded-md bg-neutral-700 px-2 py-1 text-xs uppercase transition-all duration-300 hover:bg-lilah">{subject.name}</Link>;
+            })}
           </div>
         </div>
       )}

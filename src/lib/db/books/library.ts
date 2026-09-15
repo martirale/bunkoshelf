@@ -43,6 +43,12 @@ export interface BookSearchEntry {
   subjects: string;
 }
 
+export interface BookSubjectFilter {
+  subject: string;
+  name: string;
+  type: "genre" | "tag";
+}
+
 interface BookRow {
   volume_id: string;
   volume_slug: string;
@@ -261,6 +267,8 @@ export async function findBookFileBySlug(slug: string): Promise<{ filename: stri
 export async function listBookVolumes(options?: {
   seriesSlug?: string;
   authorNames?: string[];
+  genreNames?: string[];
+  tagNames?: string[];
   limit?: number;
   librarySection?: BookLibrarySection;
 }): Promise<BookVolume[]> {
@@ -303,11 +311,184 @@ export async function listBookVolumes(options?: {
     `);
   }
 
+  if (options?.genreNames && options.genreNames.length > 0) {
+    for (const genreName of options.genreNames) {
+      params.push(genreName);
+      const genreParam = params.length;
+      conditions.push(`
+        EXISTS (
+          SELECT 1
+          FROM book_subjects bsub
+          INNER JOIN book_metadata subject_metadata ON subject_metadata.id = bsub.metadata_id
+          WHERE subject_metadata.volume_id = bv.id
+            AND LOWER(BTRIM(bsub.name)) = LOWER(BTRIM($${genreParam}))
+            AND EXISTS (
+              SELECT 1
+              FROM genres g
+              INNER JOIN volume_to_genres vtg ON vtg.genre_id = g.id
+              WHERE LOWER(BTRIM(g.name)) = LOWER(BTRIM(bsub.name))
+            )
+        )
+      `);
+    }
+  }
+
+  if (options?.tagNames && options.tagNames.length > 0) {
+    for (const tagName of options.tagNames) {
+      params.push(tagName);
+      const tagParam = params.length;
+      conditions.push(`
+        EXISTS (
+          SELECT 1
+          FROM book_subjects bsub
+          INNER JOIN book_metadata subject_metadata ON subject_metadata.id = bsub.metadata_id
+          WHERE subject_metadata.volume_id = bv.id
+            AND LOWER(BTRIM(bsub.name)) = LOWER(BTRIM($${tagParam}))
+            AND NOT EXISTS (
+              SELECT 1
+              FROM genres g
+              INNER JOIN volume_to_genres vtg ON vtg.genre_id = g.id
+              WHERE LOWER(BTRIM(g.name)) = LOWER(BTRIM(bsub.name))
+            )
+        )
+      `);
+    }
+  }
+
   const where = conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
   const limit = options?.limit ?? 100;
   params.push(limit);
   const rows = await query<BookRow>(`${BOOK_SELECT}${where} ORDER BY bs.sort_title, bv.number NULLS LAST, bv.sort_title LIMIT $${params.length}`, params);
   return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
+}
+
+export async function listBookLibraryFilters(): Promise<{
+  authors: Array<{ id: string; name: string }>;
+  genres: Array<{ id: string; name: string }>;
+  tags: Array<{ id: string; name: string }>;
+}> {
+  const [authors, genres, tags] = await Promise.all([
+    query<{ id: string; name: string }>(`
+      SELECT DISTINCT author.name AS id, author.name
+      FROM book_volumes bv
+      INNER JOIN book_series bs ON bs.id = bv.series_id
+      INNER JOIN book_metadata bm ON bm.volume_id = bv.id
+      CROSS JOIN LATERAL (
+        SELECT BTRIM(bp.name) AS name
+        FROM book_people bp
+        WHERE bp.metadata_id = bm.id
+          AND bp.kind = 'creator'
+          AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
+          AND BTRIM(bp.name) <> ''
+
+        UNION ALL
+
+        SELECT '__unknown__'
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM book_people bp
+          WHERE bp.metadata_id = bm.id
+            AND bp.kind = 'creator'
+            AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
+            AND BTRIM(bp.name) <> ''
+        )
+      ) AS author
+      WHERE bs.library_section = 'books'
+      ORDER BY name ASC
+    `),
+    query<{ id: string; name: string }>(`
+      SELECT DISTINCT g.id, g.name
+      FROM genres g
+      INNER JOIN volume_to_genres vtg ON vtg.genre_id = g.id
+      WHERE EXISTS (
+        SELECT 1
+        FROM book_subjects bsub
+        INNER JOIN book_metadata bm ON bm.id = bsub.metadata_id
+        INNER JOIN book_volumes bv ON bv.id = bm.volume_id
+        INNER JOIN book_series bs ON bs.id = bv.series_id
+        WHERE bs.library_section = 'books'
+          AND LOWER(BTRIM(bsub.name)) = LOWER(BTRIM(g.name))
+      )
+      ORDER BY g.name ASC
+    `),
+    query<{ id: string; name: string }>(`
+      WITH active_genres AS (
+        SELECT DISTINCT LOWER(BTRIM(g.name)) AS normalized_name
+        FROM genres g
+        INNER JOIN volume_to_genres vtg ON vtg.genre_id = g.id
+      ),
+      active_tags AS (
+        SELECT DISTINCT ON (LOWER(BTRIM(t.name)))
+          LOWER(BTRIM(t.name)) AS normalized_name,
+          t.id,
+          t.name
+        FROM tags t
+        INNER JOIN volume_to_tags vtt ON vtt.tag_id = t.id
+        ORDER BY LOWER(BTRIM(t.name)), t.name
+      ),
+      book_subjects_without_genres AS (
+        SELECT DISTINCT ON (LOWER(BTRIM(bsub.name)))
+          LOWER(BTRIM(bsub.name)) AS normalized_name,
+          BTRIM(bsub.name) AS name
+        FROM book_subjects bsub
+        INNER JOIN book_metadata bm ON bm.id = bsub.metadata_id
+        INNER JOIN book_volumes bv ON bv.id = bm.volume_id
+        INNER JOIN book_series bs ON bs.id = bv.series_id
+        WHERE bs.library_section = 'books'
+          AND BTRIM(bsub.name) <> ''
+          AND NOT EXISTS (
+            SELECT 1
+            FROM active_genres ag
+            WHERE ag.normalized_name = LOWER(BTRIM(bsub.name))
+          )
+        ORDER BY LOWER(BTRIM(bsub.name)), BTRIM(bsub.name)
+      )
+      SELECT COALESCE(at.id, bswg.normalized_name) AS id, COALESCE(at.name, bswg.name) AS name
+      FROM book_subjects_without_genres bswg
+      LEFT JOIN active_tags at ON at.normalized_name = bswg.normalized_name
+      ORDER BY name ASC
+    `),
+  ]);
+
+  return { authors, genres, tags };
+}
+
+export async function classifyBookSubjects(subjectNames: string[]): Promise<BookSubjectFilter[]> {
+  const subjects = subjectNames.map((subject) => subject.trim()).filter(Boolean);
+  if (!subjects.length) return [];
+
+  return query<BookSubjectFilter>(`
+    WITH requested_subjects AS (
+      SELECT DISTINCT BTRIM(subject.name) AS subject
+      FROM unnest($1::text[]) AS subject(name)
+      WHERE BTRIM(subject.name) <> ''
+    ),
+    active_genres AS (
+      SELECT DISTINCT ON (LOWER(BTRIM(g.name)))
+        LOWER(BTRIM(g.name)) AS normalized_name,
+        g.name
+      FROM genres g
+      INNER JOIN volume_to_genres vtg ON vtg.genre_id = g.id
+      ORDER BY LOWER(BTRIM(g.name)), g.name
+    ),
+    active_tags AS (
+      SELECT DISTINCT ON (LOWER(BTRIM(t.name)))
+        LOWER(BTRIM(t.name)) AS normalized_name,
+        t.name
+      FROM tags t
+      INNER JOIN volume_to_tags vtt ON vtt.tag_id = t.id
+      ORDER BY LOWER(BTRIM(t.name)), t.name
+    )
+    SELECT
+      requested_subjects.subject,
+      COALESCE(active_genres.name, active_tags.name, requested_subjects.subject) AS name,
+      CASE WHEN active_genres.name IS NOT NULL THEN 'genre' ELSE 'tag' END AS type
+    FROM requested_subjects
+    LEFT JOIN active_genres
+      ON active_genres.normalized_name = LOWER(requested_subjects.subject)
+    LEFT JOIN active_tags
+      ON active_tags.normalized_name = LOWER(requested_subjects.subject)
+  `, [subjects]);
 }
 
 export async function listRecentlyAddedBooks(limit = 8, librarySection: BookLibrarySection = "books"): Promise<BookVolume[]> {

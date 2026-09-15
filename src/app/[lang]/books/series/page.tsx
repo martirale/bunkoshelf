@@ -15,9 +15,9 @@ async function BookSeriesIndexContent({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const { lang } = await params;
-  const { author, includeOneshots } = await searchParams;
+  const { author, genre, tag, includeOneshots } = await searchParams;
   const intl = await getDictionary(lang as Locale);
-  return <SeriesIndex lang={lang as Locale} intl={intl} authorFilter={author} includeOneshots={includeOneshots === "true"} />;
+  return <SeriesIndex lang={lang as Locale} intl={intl} authorFilter={author} genreFilter={genre} tagFilter={tag} includeOneshots={includeOneshots === "true"} />;
 }
 
 export default function BookSeriesIndex(props: {

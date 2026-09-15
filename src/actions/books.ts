@@ -3,6 +3,7 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import {
   getBookReaderStats,
+  listBookLibraryFilters,
   listBooksInProgress,
 } from "@/lib/db/books/library";
 
@@ -27,4 +28,10 @@ export async function getBooksReaderStats() {
   const user = await verifySession();
   if (!user) return { error: "Unauthorized" as const };
   return getBookReaderStats(user.id);
+}
+
+export async function getBookLibraryFilters() {
+  const user = await verifySession();
+  if (!user) return { error: "Unauthorized" as const };
+  return listBookLibraryFilters();
 }
