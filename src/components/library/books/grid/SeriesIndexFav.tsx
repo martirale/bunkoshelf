@@ -31,7 +31,7 @@ export default async function SeriesIndexFav({ lang, intl, page = 1 }: { lang: L
         const href = series.isOneshot && firstVolume
           ? `/${lang}/books/volume/${firstVolume.slug}`
           : `/${lang}/books/${series.slug}`;
-        return <MangaCard key={series.id} title={series.title} href={href} isSeries={!series.isOneshot} isOneshot={series.isOneshot} onGoing={false} onPause={false} volumeCount={series.isOneshot ? null : series.volumes.length} countLabel={books.books} cover={firstVolume ? getBookCoverUrl(firstVolume.slug, firstVolume.metadata.coverPath) : null} progressRatio={progressRatio} isDragging={false} seriesSlug={series.slug} intl={intl} className="font-roboto text-base font-bold leading-5 2xl:text-lg" />;
+        return <MangaCard key={series.id} title={series.title} href={href} isSeries={!series.isOneshot} isOneshot={series.isOneshot} onGoing={!series.isOneshot && series.status === "ONGOING"} onPause={false} volumeCount={series.isOneshot ? null : series.volumes.length} countLabel={books.books} cover={firstVolume ? getBookCoverUrl(firstVolume.slug, firstVolume.metadata.coverPath) : null} progressRatio={progressRatio} isDragging={false} seriesSlug={series.slug} intl={intl} className="font-roboto text-base font-bold leading-5 2xl:text-lg" />;
       })}
     </div>
     {favorites.total > LIBRARY_PAGE_SIZE && <div className="mt-8"><Pagination currentPage={page} totalPages={favorites.totalPages} intl={intl} /></div>}

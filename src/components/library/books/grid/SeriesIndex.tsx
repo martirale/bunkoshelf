@@ -37,7 +37,7 @@ export default async function SeriesIndex({
     current.volumeIds.push(book.id);
     map.set(book.series.id, current);
     return map;
-  }, new Map<string, { id: string; slug: string; title: string; isOneshot: boolean; cover: string | null; firstSlug: string; volumeIds: string[] }>()).values());
+  }, new Map<string, { id: string; slug: string; title: string; isOneshot: boolean; status: string; cover: string | null; firstSlug: string; volumeIds: string[] }>()).values());
 
   return <>
     <div className="mb-4 flex items-center">
@@ -48,7 +48,7 @@ export default async function SeriesIndex({
         const progressRatio = item.volumeIds.length
           ? item.volumeIds.filter((id) => progressById[id]?.isRead).length / item.volumeIds.length
           : 0;
-        return <MangaCard key={item.id} title={item.title} href={item.isOneshot ? `/${lang}/books/volume/${item.firstSlug}` : `/${lang}/books/${item.slug}`} isSeries={!item.isOneshot} isOneshot={item.isOneshot} onGoing={false} onPause={false} volumeCount={item.isOneshot ? null : item.volumeIds.length} countLabel={labels.books} cover={item.cover} progressRatio={progressRatio} intl={intl} isDragging={false} seriesSlug={item.slug} className="font-roboto font-bold leading-5 text-base 2xl:text-lg" />;
+        return <MangaCard key={item.id} title={item.title} href={item.isOneshot ? `/${lang}/books/volume/${item.firstSlug}` : `/${lang}/books/${item.slug}`} isSeries={!item.isOneshot} isOneshot={item.isOneshot} onGoing={!item.isOneshot && item.status === "ONGOING"} onPause={false} volumeCount={item.isOneshot ? null : item.volumeIds.length} countLabel={labels.books} cover={item.cover} progressRatio={progressRatio} intl={intl} isDragging={false} seriesSlug={item.slug} className="font-roboto font-bold leading-5 text-base 2xl:text-lg" />;
       })}
     </section>
   </>;
