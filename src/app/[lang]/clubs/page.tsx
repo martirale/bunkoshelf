@@ -9,6 +9,6 @@ export default async function ClubsPage({ params }: { params: Promise<{ lang: st
   const { lang } = await params;
   const user = await verifySession();
   if (!user) redirect(`/${lang}/login`);
-  const [clubs, intl] = await Promise.all([listClubsForUser(user.id), getDictionary(lang as Locale)]);
-  return <ClubList clubs={clubs} lang={lang} canCreate={user.role !== "GUEST"} intl={intl} />;
+  const [clubs, intl] = await Promise.all([listClubsForUser(user.id, { includePublic: user.role !== "GUEST" }), getDictionary(lang as Locale)]);
+  return <ClubList clubs={clubs} lang={lang} canCreate={user.role !== "GUEST"} isAdmin={user.isAdmin} intl={intl} />;
 }

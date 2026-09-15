@@ -1,5 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { getBookCoverUrl } from "@/lib/books/cover";
+import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { execute, query, queryOne } from "./query";
 
 export type ClubMemberStatus = "PENDING" | "APPROVED" | "REJECTED" | "REVOKED";
@@ -14,6 +16,10 @@ export interface ReadingClub {
   ownerId: string;
   status: "ACTIVE" | "ARCHIVED";
   createdAt: Date;
+  participantCount: number;
+  membershipStatus: ClubMemberStatus | null;
+  workTitle: string | null;
+  workCover: string | null;
 }
 
 export interface ClubMember {
@@ -34,11 +40,51 @@ export interface ClubCycle {
   selectedType: ClubSourceType | null;
   selectedId: string | null;
   workTitle: string | null;
+  workCover: string | null;
   startedAt: Date | null;
 }
 
+export interface ClubCandidate {
+  id: string;
+  source_type: ClubSourceType;
+  source_id: string;
+  title: string | null;
+  section: string | null;
+  is_oneshot: boolean;
+  votes: string;
+  cover: string | null;
+}
+
+function getWorkCover(row: Record<string, unknown>): string | null {
+  if (row.source_type === "LIBRARY_SERIES" && typeof row.library_cover_slug === "string") {
+    return getMangaCoverUrl({
+      slug: row.library_cover_slug,
+      coverImage: row.library_cover_image as string | null,
+      updatedAt: row.library_cover_updated_at as Date | string | null,
+    });
+  }
+
+  if (row.source_type === "BOOK_SERIES" && typeof row.book_cover_slug === "string") {
+    return getBookCoverUrl(row.book_cover_slug, row.book_cover_path as string | null);
+  }
+
+  return null;
+}
+
 function mapClub(row: Record<string, unknown>): ReadingClub {
-  return { id: row.id as string, slug: row.slug as string, name: row.name as string, description: row.description as string | null, ownerId: row.owner_id as string, status: row.status as ReadingClub["status"], createdAt: row.created_at as Date };
+  return {
+    id: row.id as string,
+    slug: row.slug as string,
+    name: row.name as string,
+    description: row.description as string | null,
+    ownerId: row.owner_id as string,
+    status: row.status as ReadingClub["status"],
+    createdAt: row.created_at as Date,
+    participantCount: Number(row.participant_count ?? 0),
+    membershipStatus: (row.membership_status as ClubMemberStatus | null) ?? null,
+    workTitle: (row.work_title as string | null) ?? null,
+    workCover: getWorkCover(row),
+  };
 }
 
 export async function findClubBySlug(slug: string): Promise<ReadingClub | null> {
@@ -46,12 +92,66 @@ export async function findClubBySlug(slug: string): Promise<ReadingClub | null> 
   return row ? mapClub(row) : null;
 }
 
-export async function listClubsForUser(userId: string): Promise<ReadingClub[]> {
+export async function listClubsForUser(userId: string, options?: { includePublic?: boolean }): Promise<ReadingClub[]> {
   const rows = await query<Record<string, unknown>>(`
-    SELECT DISTINCT c.* FROM reading_clubs c
-    LEFT JOIN reading_club_members m ON m.club_id = c.id
-    WHERE c.owner_id = $1 OR (m.user_id = $1 AND m.status = 'APPROVED')
-    ORDER BY c.status, c.created_at DESC`, [userId]);
+    SELECT c.*, members.participant_count, viewer.status AS membership_status, COALESCE(library_series.title, book_series.title) AS work_title,
+      selected.source_type,
+      library_cover.slug AS library_cover_slug, library_cover.cover_image AS library_cover_image, library_cover.updated_at AS library_cover_updated_at,
+      book_cover.slug AS book_cover_slug, book_cover.cover_path AS book_cover_path
+    FROM reading_clubs c
+    LEFT JOIN LATERAL (
+      SELECT COUNT(*)::text AS participant_count
+      FROM reading_club_members member_count
+      WHERE member_count.club_id = c.id AND member_count.status = 'APPROVED'
+    ) members ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT membership.status
+      FROM reading_club_members membership
+      WHERE membership.club_id = c.id AND membership.user_id = $1
+    ) viewer ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT source_type, source_id
+      FROM (
+        SELECT cycle.selected_type AS source_type, cycle.selected_id AS source_id, 0 AS priority, 0 AS votes
+        FROM reading_club_cycles cycle
+        WHERE cycle.club_id = c.id AND cycle.status = 'READING'
+
+        UNION ALL
+
+        SELECT candidate.source_type, candidate.source_id, 1 AS priority, COUNT(vote.id)::int AS votes
+        FROM reading_club_cycles cycle
+        INNER JOIN reading_club_candidates candidate ON candidate.cycle_id = cycle.id
+        LEFT JOIN reading_club_votes vote ON vote.candidate_id = candidate.id
+        WHERE cycle.club_id = c.id AND cycle.status = 'VOTING'
+        GROUP BY candidate.id
+      ) work
+      WHERE source_id IS NOT NULL
+      ORDER BY priority, votes DESC, source_id
+      LIMIT 1
+    ) selected ON TRUE
+    LEFT JOIN library_series ON selected.source_type = 'LIBRARY_SERIES' AND library_series.id = selected.source_id
+    LEFT JOIN book_series ON selected.source_type = 'BOOK_SERIES' AND book_series.id = selected.source_id
+    LEFT JOIN LATERAL (
+      SELECT volume.slug, volume.cover_image, volume.updated_at
+      FROM library_volumes volume
+      WHERE selected.source_type = 'LIBRARY_SERIES' AND volume.series_id = selected.source_id
+      ORDER BY volume.created_at
+      LIMIT 1
+    ) library_cover ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT volume.slug, metadata.cover_path
+      FROM book_volumes volume
+      INNER JOIN book_metadata metadata ON metadata.volume_id = volume.id
+      WHERE selected.source_type = 'BOOK_SERIES' AND volume.series_id = selected.source_id
+      ORDER BY volume.number NULLS FIRST, volume.title
+      LIMIT 1
+    ) book_cover ON TRUE
+    WHERE ($2::boolean AND c.status = 'ACTIVE') OR c.owner_id = $1 OR EXISTS (
+      SELECT 1
+      FROM reading_club_members membership
+      WHERE membership.club_id = c.id AND membership.user_id = $1 AND membership.status = 'APPROVED'
+    )
+    ORDER BY c.status, c.created_at DESC`, [userId, options?.includePublic ?? false]);
   return rows.map(mapClub);
 }
 
@@ -119,7 +219,17 @@ export async function createCycleRecord(clubId: string, title: string, voteClose
 }
 
 function mapCycle(row: Record<string, unknown>): ClubCycle {
-  return { id: row.id as string, title: row.title as string, status: row.status as ClubCycleStatus, voteClosesAt: row.vote_closes_at as Date | null, selectedType: row.selected_type as ClubSourceType | null, selectedId: row.selected_id as string | null, workTitle: row.work_title as string | null, startedAt: row.started_at as Date | null };
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    status: row.status as ClubCycleStatus,
+    voteClosesAt: row.vote_closes_at as Date | null,
+    selectedType: row.selected_type as ClubSourceType | null,
+    selectedId: row.selected_id as string | null,
+    workTitle: (row.work_title as string | null) ?? null,
+    workCover: getWorkCover(row),
+    startedAt: row.started_at as Date | null,
+  };
 }
 
 export async function addCandidateRecord(cycleId: string, sourceType: ClubSourceType, sourceId: string): Promise<void> {
@@ -166,9 +276,27 @@ export async function getClubDashboard(club: ReadingClub, userId: string) {
     query<Record<string, unknown>>(`SELECT m.id,m.user_id,u.username,u.name,u.role,m.status
       FROM reading_club_members m INNER JOIN users u ON u.id=m.user_id WHERE m.club_id=$1 AND m.status <> 'REVOKED' ORDER BY m.status, COALESCE(u.name,u.username)`, [club.id]),
     query<Record<string, unknown>>(`SELECT c.id,c.title,c.status,c.vote_closes_at,c.selected_type,c.selected_id,c.started_at,
-      COALESCE(ls.title,bs.title) AS work_title FROM reading_club_cycles c
+      COALESCE(ls.title,bs.title) AS work_title,
+      library_cover.slug AS library_cover_slug, library_cover.cover_image AS library_cover_image, library_cover.updated_at AS library_cover_updated_at,
+      book_cover.slug AS book_cover_slug, book_cover.cover_path AS book_cover_path
+      FROM reading_club_cycles c
       LEFT JOIN library_series ls ON c.selected_type='LIBRARY_SERIES' AND ls.id=c.selected_id
       LEFT JOIN book_series bs ON c.selected_type='BOOK_SERIES' AND bs.id=c.selected_id
+      LEFT JOIN LATERAL (
+        SELECT volume.slug, volume.cover_image, volume.updated_at
+        FROM library_volumes volume
+        WHERE c.selected_type='LIBRARY_SERIES' AND volume.series_id=c.selected_id
+        ORDER BY volume.created_at
+        LIMIT 1
+      ) library_cover ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT volume.slug, metadata.cover_path
+        FROM book_volumes volume
+        INNER JOIN book_metadata metadata ON metadata.volume_id=volume.id
+        WHERE c.selected_type='BOOK_SERIES' AND volume.series_id=c.selected_id
+        ORDER BY volume.number NULLS FIRST, volume.title
+        LIMIT 1
+      ) book_cover ON TRUE
       WHERE c.club_id=$1 ORDER BY c.created_at DESC`, [club.id]),
     query<{ id: string; type: string; created_at: Date; username: string; name: string | null; label: string | null }>(`
       SELECT a.id,a.type,a.created_at,u.username,u.name,ms.label FROM reading_club_activities a
@@ -209,13 +337,47 @@ export async function listClubWorks() {
   return [...library.map((work) => ({ ...work, type: "LIBRARY_SERIES" as const })), ...books.map((work) => ({ ...work, type: "BOOK_SERIES" as const }))];
 }
 
-export async function listCycleCandidates(cycleId: string) {
-  return query<{ id: string; source_type: ClubSourceType; source_id: string; title: string | null; section: string | null; is_oneshot: boolean; votes: string }>(`
-    SELECT ca.id,ca.source_type,ca.source_id,COALESCE(ls.title,bs.title) AS title,COALESCE(ls.library_section,bs.library_section) AS section,COALESCE(ls.is_oneshot,bs.is_oneshot,FALSE) AS is_oneshot,COUNT(v.id)::text AS votes
+export async function listCycleCandidates(cycleId: string): Promise<ClubCandidate[]> {
+  const rows = await query<Record<string, unknown>>(`
+    SELECT ca.id,ca.source_type,ca.source_id,COALESCE(ls.title,bs.title) AS title,COALESCE(ls.library_section,bs.library_section) AS section,COALESCE(ls.is_oneshot,bs.is_oneshot,FALSE) AS is_oneshot,
+      vote_count.votes,
+      library_cover.slug AS library_cover_slug, library_cover.cover_image AS library_cover_image, library_cover.updated_at AS library_cover_updated_at,
+      book_cover.slug AS book_cover_slug, book_cover.cover_path AS book_cover_path
     FROM reading_club_candidates ca LEFT JOIN library_series ls ON ca.source_type='LIBRARY_SERIES' AND ls.id=ca.source_id
     LEFT JOIN book_series bs ON ca.source_type='BOOK_SERIES' AND bs.id=ca.source_id
-    LEFT JOIN reading_club_votes v ON v.candidate_id=ca.id WHERE ca.cycle_id=$1
-    GROUP BY ca.id,ls.title,bs.title,ls.library_section,bs.library_section,ls.is_oneshot,bs.is_oneshot ORDER BY title`, [cycleId]);
+    LEFT JOIN LATERAL (
+      SELECT COUNT(*)::text AS votes
+      FROM reading_club_votes vote
+      WHERE vote.candidate_id=ca.id
+    ) vote_count ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT volume.slug, volume.cover_image, volume.updated_at
+      FROM library_volumes volume
+      WHERE ca.source_type='LIBRARY_SERIES' AND volume.series_id=ca.source_id
+      ORDER BY volume.created_at
+      LIMIT 1
+    ) library_cover ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT volume.slug, metadata.cover_path
+      FROM book_volumes volume
+      INNER JOIN book_metadata metadata ON metadata.volume_id=volume.id
+      WHERE ca.source_type='BOOK_SERIES' AND volume.series_id=ca.source_id
+      ORDER BY volume.number NULLS FIRST, volume.title
+      LIMIT 1
+    ) book_cover ON TRUE
+    WHERE ca.cycle_id=$1
+    ORDER BY title`, [cycleId]);
+
+  return rows.map((row) => ({
+    id: row.id as string,
+    source_type: row.source_type as ClubSourceType,
+    source_id: row.source_id as string,
+    title: row.title as string | null,
+    section: row.section as string | null,
+    is_oneshot: row.is_oneshot === true,
+    votes: row.votes as string,
+    cover: getWorkCover(row),
+  }));
 }
 
 export async function listCycleMilestones(cycleId: string) {

@@ -69,6 +69,16 @@ export async function joinClubWithSession(token: string): Promise<Result & { slu
   return { success: true, slug: invite.club_slug };
 }
 
+export async function requestToJoinClub(slug: string): Promise<Result> {
+  const user = await verifySession();
+  const club = await findClubBySlug(slug);
+  if (!user || user.role === "GUEST" || !club || club.status !== "ACTIVE") return { success: false, error: "Unauthorized" };
+  await requestMembership(club.id, user.id);
+  revalidatePath("/es/clubs");
+  revalidatePath("/en/clubs");
+  return { success: true };
+}
+
 export async function joinClubAsGuest(input: { token: string; username: string; password: string }): Promise<Result & { slug?: string }> {
   const invite = await findFixedClubInvite(input.token);
   const username = input.username.trim();
