@@ -93,7 +93,6 @@ export default function VolumesContent({
                   alt={`Cover for ${(volume.title as string) || (volume.filename as string)}`}
                   width={0}
                   height={0}
-                  unoptimized
                   sizes="100vw"
                   className="w-full h-auto object-contain rounded-lg"
                 />

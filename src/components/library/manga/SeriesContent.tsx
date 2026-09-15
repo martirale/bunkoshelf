@@ -75,7 +75,6 @@ export default function SeriesContent({
                   alt={`Cover for ${(serieData.title as string) || (serieData.filename as string)}`}
                   width={0}
                   height={0}
-                  unoptimized
                   sizes="100vw"
                   className="w-full h-auto object-contain rounded-lg"
                 />

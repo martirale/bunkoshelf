@@ -4,8 +4,6 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import type { NextRequest } from "next/server";
 import { findVolumeBySlugBasic } from "@/lib/db/ingestion";
-import { verifySession } from "@/lib/auth/verifySession";
-import { canAccessLibraryVolume } from "@/lib/clubs/access";
 
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
@@ -27,9 +25,6 @@ export async function GET(
   if (!volume || !volume.coverImage || !volume.seriesPath) {
     return servePlaceholder();
   }
-  const user = await verifySession();
-  if (!user || !(await canAccessLibraryVolume(user, volume.id))) return new Response("Forbidden", { status: 403 });
-
   try {
     if (LIB_PROVIDER === "cloud") {
       const seriesPath = volume.seriesPath.replace(/^\//, "");

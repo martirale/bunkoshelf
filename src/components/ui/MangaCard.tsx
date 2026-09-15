@@ -127,7 +127,6 @@ export default function MangaCard({
             src={cover || "/placeholder.svg?=v1"}
             alt={`Cover for ${title ?? ""}`}
             fill
-            unoptimized
             sizes={imageSizes ?? "(max-width: 768px) 50vw, (max-width: 1280px) 20vw, 14vw"}
             className="object-cover z-0"
           />
