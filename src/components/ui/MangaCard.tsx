@@ -27,6 +27,7 @@ interface MangaCardProps {
   offlineVolumeId?: string | null;
   offlineSeriesId?: string | null;
   imageSizes?: string;
+  coverAspectRatio?: "auto" | "uniform";
 }
 
 export default function MangaCard({
@@ -47,6 +48,7 @@ export default function MangaCard({
   offlineVolumeId,
   offlineSeriesId,
   imageSizes,
+  coverAspectRatio = "auto",
 }: MangaCardProps) {
   const t = intl;
   const ratio = progressRatio ?? 0;
@@ -62,11 +64,13 @@ export default function MangaCard({
       : href.includes("/books/")
         ? "books"
         : "manga";
-  const coverAspectRatio = section === "manga"
+  const coverAspectRatioClass = coverAspectRatio === "uniform"
     ? "aspect-[7/10]"
-    : section === "comic"
-      ? "aspect-[13/20]"
-      : "aspect-[2/3]";
+    : section === "manga"
+      ? "aspect-[7/10]"
+      : section === "comic"
+        ? "aspect-[13/20]"
+        : "aspect-[2/3]";
   const oneshotLabel = getOneshotLabel(section, manga);
   const volumeSlug = href.split("?")[0].split("/").pop();
   const isOfflineCover = cover?.startsWith("/offline/") ?? false;
@@ -118,7 +122,7 @@ export default function MangaCard({
         }
       }}
     >
-      <div className={clsx("relative isolate w-full flex-shrink-0", coverAspectRatio)}>
+      <div className={clsx("relative isolate w-full flex-shrink-0", coverAspectRatioClass)}>
         {isOfflineCover ? (
           // IndexedDB pages are served by the service worker and cannot use Next's image optimizer.
           // eslint-disable-next-line @next/next/no-img-element
