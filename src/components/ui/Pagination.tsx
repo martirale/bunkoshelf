@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { usePwa } from "@/components/pwa/PwaProvider";
+import Button from "@/components/ui/Button";
 import type { DictionarySection } from "@/lib/types";
 
 interface PaginationProps {
@@ -43,25 +44,29 @@ export default function Pagination({
 
   return (
     <div className="flex justify-center items-center gap-2">
-      <button
+      <Button
         type="button"
+        variant="dark"
+        size="icon"
         disabled={currentPage === 1 || isPending}
         onClick={() => goToPage(currentPage - 1)}
-        className="p-3 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none"
+        className="size-11 disabled:pointer-events-none disabled:opacity-40"
       >
         <ChevronLeftIcon size={20} />
-      </button>
+      </Button>
       <span className="px-2">
         {(intl as Record<string, DictionarySection>).reader.page as string} {currentPage} / {totalPages}
       </span>
-      <button
+      <Button
         type="button"
+        variant="dark"
+        size="icon"
         disabled={currentPage === totalPages || isPending}
         onClick={() => goToPage(currentPage + 1)}
-        className="p-3 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none"
+        className="size-11 disabled:pointer-events-none disabled:opacity-40"
       >
         <ChevronRightIcon size={20} />
-      </button>
+      </Button>
     </div>
   );
 }

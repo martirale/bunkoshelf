@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Button from "@/components/ui/Button";
 import { ChevronDownIcon, ChevronUpIcon, type LucideIcon } from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -64,11 +65,12 @@ export default function MobileSecondaryNav({ items }: MobileSecondaryNavProps) {
 
   return (
     <div ref={containerRef} className="md:hidden mt-4 relative">
-      <button
+      <Button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
-        className="w-full flex items-center justify-between gap-3 p-4 rounded-lg bg-sand text-onix leading-tight transition-all duration-300"
+        variant="lightAlt"
+        className="w-full justify-between gap-3 p-4 normal-case leading-tight"
       >
         <span className="flex items-center min-w-0">
           <ActiveIcon size={20} className="mr-2 shrink-0" />
@@ -84,7 +86,7 @@ export default function MobileSecondaryNav({ items }: MobileSecondaryNavProps) {
         ) : (
           <ChevronDownIcon size={20} className="shrink-0" />
         )}
-      </button>
+      </Button>
 
       {open && (
         <div className="absolute left-0 right-0 top-full mt-2 z-20 rounded-lg bg-blackamber p-2">

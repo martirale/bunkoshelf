@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import { useAlertDialog } from "@/components/AlertDialogProvider";
+import Button from "@/components/ui/Button";
 import useScanPolling from "@/hooks/useScanPolling";
 import Modal from "@/components/ui/Modal";
 import UploadMangaForm from "./UploadMangaForm";
@@ -298,17 +299,18 @@ export default function LibSettingsButtons({
   function ActionButton({ action }: { action: ActionItem }) {
     const Icon = action.icon;
     return (
-      <button
+      <Button
         onClick={action.onClick}
         disabled={action.disabled}
-        className="flex flex-col items-center justify-center text-base leading-5.5 bg-blackamber rounded-lg p-4 hover:text-onix hover:bg-pearl transition-all duration-300 cursor-pointer disabled:opacity-50"
+        variant="dark"
+        className="flex-col p-4 text-base leading-5.5 disabled:opacity-50"
       >
         <Icon
           size={36}
           className={`mb-4 ${action.spinning ? "animate-spin" : ""}`}
         />
         {action.label}
-      </button>
+      </Button>
     );
   }
 

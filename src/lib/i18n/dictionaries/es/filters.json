@@ -6,7 +6,7 @@
     "authors": "Autores",
     "genres": "Géneros",
     "tags": "Etiquetas",
-    "apply": "Aplicar filtros",
-    "clean": "Limpiar filtros"
+    "apply": "Aplicar",
+    "clean": "Limpiar"
   }
 }

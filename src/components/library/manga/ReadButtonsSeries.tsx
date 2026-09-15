@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { HeartIcon, HeartOffIcon } from "lucide-react";
-import clsx from "clsx";
 import StatusSelect from "./StatusSelect";
 import { toggleSeriesFavorite } from "@/actions/favorites";
 import OfflineDownloadButton from "@/components/pwa/OfflineDownloadButton";
+import Button from "@/components/ui/Button";
 import { enqueueOfflineOperation } from "@/lib/client/offlineLibrary";
 import type { LibrarySection } from "@/lib/librarySection";
 import type { Locale, Dictionary } from "@/lib/types";
@@ -64,19 +64,16 @@ export default function ReadButtonsSeries({
   return (
     <div className="flex flex-row mt-4 gap-2">
       <StatusSelect lang={lang} intl={intl} seriesId={seriesId} />
-      <button
+      <Button
         onClick={toggleFavorite}
         disabled={isLoading}
-        className={clsx(
-          "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
-          isFavorite
-            ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl"
-            : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"
-        )}
+        variant={isFavorite ? "lightAlt" : "dark"}
+        size="icon"
+        className="size-11 2xl:size-13"
         title={isFavorite ? "Eliminar de favoritos" : "Marcar como favorito"}
       >
         {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
-      </button>
+      </Button>
       <OfflineDownloadButton userId={userId} section={section} slug={seriesSlug} seriesId={seriesId} intl={intl} />
     </div>
   );

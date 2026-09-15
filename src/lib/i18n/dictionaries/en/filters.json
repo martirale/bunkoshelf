@@ -6,7 +6,7 @@
     "authors": "Authors",
     "genres": "Genres",
     "tags": "Tags",
-    "apply": "Apply Filters",
-    "clean": "Clean Filters"
+    "apply": "Apply",
+    "clean": "Clear"
   }
 }

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import clsx from "clsx";
 import {
   BookCheckIcon,
   HatGlassesIcon,
@@ -16,6 +15,7 @@ import { updateReadState } from "@/actions/read";
 import { syncReadingProgress } from "@/actions/progress";
 import { sendPush } from "@/actions/web-push";
 import OfflineDownloadButton from "@/components/pwa/OfflineDownloadButton";
+import Button from "@/components/ui/Button";
 import { enqueueOfflineOperation, getOfflineImages, updateOfflineVolume } from "@/lib/client/offlineLibrary";
 import {
   getLibraryRootHref,
@@ -251,55 +251,46 @@ export default function ReadButtonsVolume({
   return (
     <>
       <div className="flex flex-row mt-4 gap-2">
-        <button
+        <Button
           onClick={openNormalReader}
-          className="flex items-center font-bold px-5 py-2 2xl:px-6 2xl:py-4 rounded-lg leading-none uppercase text-sand bg-lilah border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
+          variant="accent"
+          className="px-5 py-2 2xl:px-6 2xl:py-4"
         >
           <BookCheckIcon size={20} className="mr-2" />
           {intl.manga.read as string}
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={openYoureiReader}
           title="Leer de incógnito"
-          className="p-3 2xl:p-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl cursor-pointer transition-all duration-300"
+          variant="dark"
+          size="icon"
+          className="size-11 2xl:size-13"
         >
           <HatGlassesIcon size={20} />
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={toggleRead}
           disabled={isLoading}
           title={isRead ? "Marcar como no leído" : "Marcar como leído"}
-          className={clsx(
-            "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
-            {
-              "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl":
-                isRead,
-              "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl":
-                !isRead,
-            },
-          )}
+          variant={isRead ? "lightAlt" : "dark"}
+          size="icon"
+          className="size-11 2xl:size-13"
         >
           <CheckIcon size={20} />
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={toggleFavorite}
           disabled={isLoading}
           title={isFavorite ? "Eliminar de favoritos" : "Marcar como favorito"}
-          className={clsx(
-            "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
-            {
-              "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl":
-                isFavorite,
-              "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl":
-                !isFavorite,
-            },
-          )}
+          variant={isFavorite ? "lightAlt" : "dark"}
+          size="icon"
+          className="size-11 2xl:size-13"
         >
           {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
-        </button>
+        </Button>
 
         <OfflineDownloadButton userId={userId} section={section} slug={slug} volumeId={volumeId} intl={intl} />
       </div>

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Loader from "@/components/ui/Loader";
 import VolumeRating from "@/components/library/manga/VolumeRating";
+import Button from "@/components/ui/Button";
 import type { DictionarySection } from "@/lib/types";
 
 interface MangaReaderProps {
@@ -256,14 +257,15 @@ export default function MangaReader({
           />
           <div className="flex flex-col md:flex-row gap-4 mt-2 w-full md:w-auto">
             {onToggleFavorite && (
-              <button
+              <Button
                 onClick={onToggleFavorite}
                 title={
                   isFavorite
                     ? reader.finishUnfavorite as string
                     : reader.finishFavorite as string
                 }
-                className="flex items-center justify-center gap-2 w-full md:w-auto px-5 py-2 rounded-lg border border-blackamber bg-blackamber text-sand hover:bg-pearl hover:text-onix hover:border-pearl transition-all duration-300 cursor-pointer font-bold uppercase"
+                variant="dark"
+                className="w-full gap-2 px-5 py-2 md:w-auto"
               >
                 {isFavorite ? (
                   <HeartOffIcon size={20} />
@@ -273,16 +275,17 @@ export default function MangaReader({
                 {isFavorite
                   ? reader.finishUnfavorite as string
                   : reader.finishFavorite as string}
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               onClick={onClose}
               title={reader.ttExit as string}
-              className="flex items-center justify-center gap-2 w-full md:w-auto px-5 py-2 rounded-lg border border-blackamber bg-blackamber text-sand hover:bg-pearl hover:text-onix hover:border-pearl transition-all duration-300 cursor-pointer font-bold uppercase"
+              variant="dark"
+              className="w-full gap-2 px-5 py-2 md:w-auto"
             >
               <Minimize2Icon size={20} />
               {reader.ttExit as string}
-            </button>
+            </Button>
           </div>
         </div>
       ) : (

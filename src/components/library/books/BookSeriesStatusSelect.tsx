@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
+import Button from "@/components/ui/Button";
 import {
   CircleCheckBig,
   CircleFadingArrowUpIcon,
@@ -76,18 +77,20 @@ export default function BookSeriesStatusSelect({ seriesId, intl }: BookSeriesSta
 
   return (
     <div className="relative" ref={selectRef}>
-      <button
+      <Button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         disabled={isLoading}
         title={currentOption?.label ?? books.selectStatus}
-        className="group cursor-pointer rounded-lg border border-blackamber bg-blackamber p-3 leading-none text-sand transition-all duration-300 hover:border-pearl hover:bg-pearl hover:text-onix 2xl:p-4"
+        variant="dark"
+        size="icon"
+        className="group size-11 2xl:size-13"
       >
         <CurrentIcon
           size={20}
           className={clsx(COLORS[currentStatus ?? ""] ?? "text-sand", "transition-colors", currentStatus === "FINISHED" && "group-hover:text-onix")}
         />
-      </button>
+      </Button>
       {isOpen && (
         <div className="absolute left-0 top-full z-10 mt-2 min-w-[180px] overflow-hidden rounded-lg bg-blackamber shadow-lg">
           {options.map((option) => {

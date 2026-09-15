@@ -20,6 +20,10 @@ export interface ReadingClub {
   membershipStatus: ClubMemberStatus | null;
   workTitle: string | null;
   workCover: string | null;
+  workSourceType: ClubSourceType | null;
+  workSection: string | null;
+  workIsOneshot: boolean;
+  workVotes: number | null;
 }
 
 export interface ClubMember {
@@ -84,6 +88,10 @@ function mapClub(row: Record<string, unknown>): ReadingClub {
     membershipStatus: (row.membership_status as ClubMemberStatus | null) ?? null,
     workTitle: (row.work_title as string | null) ?? null,
     workCover: getWorkCover(row),
+    workSourceType: (row.source_type as ClubSourceType | null) ?? null,
+    workSection: (row.work_section as string | null) ?? null,
+    workIsOneshot: row.work_is_oneshot === true,
+    workVotes: row.work_votes === null || row.work_votes === undefined ? null : Number(row.work_votes),
   };
 }
 
@@ -96,6 +104,9 @@ export async function listClubsForUser(userId: string, options?: { includePublic
   const rows = await query<Record<string, unknown>>(`
     SELECT c.*, members.participant_count, viewer.status AS membership_status, COALESCE(library_series.title, book_series.title) AS work_title,
       selected.source_type,
+      COALESCE(library_series.library_section, book_series.library_section) AS work_section,
+      COALESCE(library_series.is_oneshot, book_series.is_oneshot, FALSE) AS work_is_oneshot,
+      selected.votes AS work_votes,
       library_cover.slug AS library_cover_slug, library_cover.cover_image AS library_cover_image, library_cover.updated_at AS library_cover_updated_at,
       book_cover.slug AS book_cover_slug, book_cover.cover_path AS book_cover_path
     FROM reading_clubs c
@@ -110,9 +121,9 @@ export async function listClubsForUser(userId: string, options?: { includePublic
       WHERE membership.club_id = c.id AND membership.user_id = $1
     ) viewer ON TRUE
     LEFT JOIN LATERAL (
-      SELECT source_type, source_id
+      SELECT source_type, source_id, votes
       FROM (
-        SELECT cycle.selected_type AS source_type, cycle.selected_id AS source_id, 0 AS priority, 0 AS votes
+        SELECT cycle.selected_type AS source_type, cycle.selected_id AS source_id, 0 AS priority, NULL::int AS votes
         FROM reading_club_cycles cycle
         WHERE cycle.club_id = c.id AND cycle.status = 'READING'
 

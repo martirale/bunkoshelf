@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { login } from "@/actions/login";
+import Button from "@/components/ui/Button";
 import type { Dictionary, Locale } from "@/lib/types";
 
 interface LoginFormProps {
@@ -59,12 +60,13 @@ export default function LoginForm({ lang, intl }: LoginFormProps) {
         )}
 
         <div className="flex items-center justify-between">
-          <button
+          <Button
             type="submit"
-            className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300 cursor-pointer"
+            variant="dark"
+            className="px-8 py-4"
           >
             {intl.login.login as string}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

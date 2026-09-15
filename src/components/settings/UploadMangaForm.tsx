@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { BookOpenIcon } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import DropzoneUpload from "@/components/DropzoneUpload";
+import Button from "@/components/ui/Button";
 import { extractFromArchive } from "@/lib/client/archiveExtractor";
 import { parseComicInfo } from "@/lib/client/comicInfoParser";
 import { generateCoverFilename } from "@/lib/client/coverHasher";
@@ -550,17 +551,18 @@ export default function UploadMangaForm({ intl, lang }: UploadMangaFormProps) {
           </div>
 
           <div className="text-right">
-            <button
+            <Button
               type="submit"
               disabled={isLoading || isProcessing || files.length === 0}
-              className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="lightAlt"
+              className="px-8 py-4 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isProcessing
                 ? "Procesando..."
                 : isLoading
                   ? (intl.settings.uploadLibraryUploading as string)
                   : (intl.settings.uploadLibraryBtn as string)}
-            </button>
+            </Button>
           </div>
         </div>
       </form>

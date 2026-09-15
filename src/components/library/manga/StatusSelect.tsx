@@ -9,6 +9,7 @@ import {
   CircleXIcon,
 } from "lucide-react";
 import { getSeriesStatus, updateSeriesStatus } from "@/actions/series-status";
+import Button from "@/components/ui/Button";
 import type { Locale, Dictionary } from "@/lib/types";
 import type { LucideIcon } from "lucide-react";
 
@@ -117,13 +118,12 @@ export default function StatusSelect({ intl, seriesId }: StatusSelectProps) {
 
   return (
     <div className="relative" ref={selectRef}>
-      <button
+      <Button
         onClick={() => setIsOpen(!isOpen)}
         disabled={isLoading}
-        className={clsx(
-          "group p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
-          "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl"
-        )}
+        variant="dark"
+        size="icon"
+        className="group size-11 2xl:size-13"
         title={(currentOption?.label as string) || "Seleccionar estado"}
       >
         <CurrentIcon
@@ -134,7 +134,7 @@ export default function StatusSelect({ intl, seriesId }: StatusSelectProps) {
             currentStatus === "FINISHED" && "group-hover:text-onix"
           )}
         />
-      </button>
+      </Button>
 
       {isOpen && (
         <div className="absolute top-full mt-2 left-0 bg-blackamber rounded-lg shadow-lg overflow-hidden z-10 min-w-[180px]">

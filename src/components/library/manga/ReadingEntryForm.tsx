@@ -3,6 +3,7 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { PenLineIcon } from "lucide-react";
 import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
 import { useAlertDialog } from "@/components/AlertDialogProvider";
 import {
   createReadingEntry,
@@ -99,13 +100,14 @@ export default function ReadingEntryForm({
         </div>
 
         <div className="flex gap-3">
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer disabled:opacity-50"
+            variant="lightAlt"
+            className="px-8 py-4 disabled:opacity-50"
           >
             {intl.manga.save as string}
-          </button>
+          </Button>
 
           {isEdit && (
             <button

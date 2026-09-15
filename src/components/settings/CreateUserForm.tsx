@@ -4,6 +4,7 @@ import { useState } from "react";
 import { UserRoundPlusIcon } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import { createUser } from "@/actions/users";
+import Button from "@/components/ui/Button";
 import type { Dictionary } from "@/lib/types";
 import type { Role } from "@/lib/types/auth";
 
@@ -133,12 +134,13 @@ export default function CreateUserForm({ intl }: CreateUserFormProps) {
             <option value="GUEST">{intl.settings.roleGuest as string}</option>
           </select>
         </div>
-        <button
+        <Button
           type="submit"
-          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix transition-all duration-300 cursor-pointer"
+          variant="lightAlt"
+          className="px-8 py-4"
         >
           {intl.settings.createUser as string}
-        </button>
+        </Button>
       </form>
     </div>
   );

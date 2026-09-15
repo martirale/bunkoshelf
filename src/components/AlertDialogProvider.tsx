@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import Button from "@/components/ui/Button";
 
 type DialogMode = "alert" | "confirm";
 
@@ -164,24 +165,26 @@ function AlertDialog({
         </div>
         <div className="grid gap-3">
           {isConfirmation && (
-            <button
+            <Button
               type="button"
               onClick={() => onClose(false)}
-              className="w-full rounded-lg border border-onix px-4 py-3 text-sm font-bold uppercase transition-colors hover:bg-sand"
+              variant="light"
+              className="w-full px-4 py-3 text-sm"
             >
               {request.cancelLabel || labels.cancel}
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             ref={confirmButtonRef}
             type="button"
             onClick={() => onClose(true)}
+            variant={request.destructive ? "dark" : "dark"}
             className={request.destructive
-              ? "w-full rounded-lg border border-danger-alt bg-danger-alt px-4 py-3 text-sm font-bold uppercase text-pearl transition-colors hover:border-black hover:bg-black"
-              : "w-full rounded-lg border border-onix bg-onix px-4 py-3 text-sm font-bold uppercase text-pearl transition-colors hover:border-black hover:bg-black"}
+              ? "w-full border-danger-alt bg-danger-alt px-4 py-3 text-sm text-pearl hover:border-black hover:bg-black hover:text-pearl"
+              : "w-full px-4 py-3 text-sm"}
           >
             {isConfirmation ? request.confirmLabel || labels.confirm : labels.close}
-          </button>
+          </Button>
         </div>
       </section>
     </div>

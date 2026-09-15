@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Trash2Icon } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import Avatar from "@/components/ui/Avatar";
+import Button from "@/components/ui/Button";
 import { updateProfile } from "@/actions/profile";
 import { getProfileImageUrl } from "@/lib/profileImageUrl";
 import type { Session, DictionarySection } from "@/lib/types";
@@ -164,12 +165,13 @@ export default function ProfileForm({ lang, user, intl }: ProfileFormProps) {
           className="text-sand bg-onix border border-neutral-700 hover:border-pearl rounded-lg w-full px-5 py-3 transition-all duration-300"
           placeholder={profile.password as string}
         />
-        <button
+        <Button
           type="submit"
-          className="font-bold px-8 py-4 rounded-lg leading-none uppercase text-sand bg-blackamber border border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300 cursor-pointer"
+          variant="dark"
+          className="px-8 py-4"
         >
           {profile.save as string}
-        </button>
+        </Button>
       </form>
     </div>
   );

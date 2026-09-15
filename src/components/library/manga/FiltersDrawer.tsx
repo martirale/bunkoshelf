@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRightIcon } from "lucide-react";
 import Accordion from "@/components/ui/Accordion";
+import Button from "@/components/ui/Button";
 import clsx from "clsx";
 import { getLibraryFilters } from "@/actions/library";
 import { getBookLibraryFilters } from "@/actions/books";
@@ -269,18 +270,20 @@ export default function FiltersDrawer({
         </div>
 
         <footer className="p-4 flex justify-between gap-4">
-          <button
+          <Button
             onClick={clearFilters}
-            className="px-2 py-3 w-full bg-pearl text-onix leading-none rounded-lg hover:bg-lilah hover:text-pearl cursor-pointer transition-all duration-300"
+            variant="light"
+            className="w-full px-2 py-3"
           >
             {filters.clean as string}
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={applyFilters}
-            className="px-2 py-3 w-full bg-pearl text-onix leading-none rounded-lg hover:bg-lilah hover:text-pearl cursor-pointer transition-all duration-300"
+            variant="light"
+            className="w-full px-2 py-3"
           >
             {filters.apply as string}
-          </button>
+          </Button>
         </footer>
       </aside>
     </>

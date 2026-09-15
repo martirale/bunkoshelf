@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { DownloadIcon, Trash2Icon } from "lucide-react";
 import clsx from "clsx";
 import { useAlertDialog } from "@/components/AlertDialogProvider";
+import Button from "@/components/ui/Button";
 import {
   downloadSeriesBySlug,
   downloadVolumeBySlug,
@@ -133,16 +134,15 @@ export default function OfflineDownloadButton({ userId, section, slug, volumeId,
 
   const title = isReady ? offline?.remove : isDownloading ? offline?.downloading : offline?.download;
   return (
-    <button
+    <Button
       onClick={handleClick}
       disabled={!userId || (!isOnline && !isReady) || isDownloading}
       title={title || "Descargar para leer sin conexión"}
-      className={clsx(
-        "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
-        isReady ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl" : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl",
-      )}
+      variant={isReady ? "lightAlt" : "dark"}
+      size="icon"
+      className="size-11 2xl:size-13"
     >
       {isDownloading ? <ProgressRing value={progress} /> : isReady ? <Trash2Icon size={20} /> : <DownloadIcon size={20} />}
-    </button>
+    </Button>
   );
 }

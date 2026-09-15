@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { BookCheckIcon, CheckIcon, HeartIcon, HeartOffIcon } from "lucide-react";
 import EpubReader from "@/components/reader/EpubReader";
+import Button from "@/components/ui/Button";
 import { updateBookReadState } from "@/actions/books-reading";
 import type { Dictionary } from "@/lib/types";
 
@@ -78,38 +79,37 @@ export default function BookReaderButton({ slug, title, layout, intl }: BookRead
 
   return <>
     <div className="flex flex-row mt-4 gap-2">
-      <button
+      <Button
         onClick={() => setOpen(true)}
         aria-label={books.read}
-        className="flex items-center gap-2 px-4 py-3 2xl:px-5 2xl:py-4 rounded-lg leading-none border border-lilah bg-lilah text-pearl hover:bg-pearl hover:text-onix hover:border-pearl transition-all duration-300 cursor-pointer"
+        variant="accent"
+        className="gap-2 px-4 py-3 2xl:px-5 2xl:py-4"
       >
         <BookCheckIcon size={20} />
         <span className="font-bold uppercase">{books.read}</span>
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={() => void toggleRead()}
         disabled={isLoading}
-        className={clsx(
-          "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
-          isRead ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl" : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl",
-        )}
+        variant={isRead ? "lightAlt" : "dark"}
+        size="icon"
+        className="size-11 2xl:size-13"
         title={isRead ? books.markUnread : books.markRead}
         aria-label={isRead ? books.markUnread : books.markRead}
       >
         <CheckIcon size={20} />
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={() => void updateProgress({ isFavorite: !favorite })}
         disabled={isLoading}
-        className={clsx(
-          "p-3 2xl:p-4 rounded-lg leading-none border transition-all duration-300 cursor-pointer",
-          favorite ? "text-onix bg-sand border-sand hover:bg-pearl hover:border-pearl" : "text-sand bg-blackamber border-blackamber hover:text-onix hover:bg-pearl hover:border-pearl",
-        )}
+        variant={favorite ? "lightAlt" : "dark"}
+        size="icon"
+        className="size-11 2xl:size-13"
         title={favorite ? books.removeFavorite : books.addFavorite}
         aria-label={favorite ? books.removeFavorite : books.addFavorite}
       >
         {favorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
-      </button>
+      </Button>
     </div>
     <EpubReader isOpen={open} onClose={() => setOpen(false)} slug={slug} title={title} layout={layout} intl={intl} />
   </>;
