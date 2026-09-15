@@ -4,6 +4,7 @@ import { listVolumeProgressByIds } from "@/lib/db/library";
 import { listVolumes, findSeriesBySlugBasic } from "@/lib/db/library";
 import { getLibrarySection, getLibraryScope, type LibrarySection } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import { canAccessLibraryVolume } from "@/lib/clubs/access";
 
 export async function GET(
   _request: Request,
@@ -22,6 +23,7 @@ export async function GET(
   if (!volumes.length || getLibrarySection(volumes[0].series.librarySection) !== section) {
     return NextResponse.json({ error: "Series not found" }, { status: 404 });
   }
+  if (!(await canAccessLibraryVolume(user, volumes[0].id))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const progressById = await listVolumeProgressByIds(user.id, volumes.map((volume) => volume.id));
 
   return NextResponse.json({

@@ -9,6 +9,8 @@ import {
   upsertVolumeProgress,
 } from "@/lib/db/reading";
 import { findVolumeBySlug } from "@/lib/db/library";
+import { canAccessLibraryVolume } from "@/lib/clubs/access";
+import { recordClubProgressActivities } from "@/lib/db/clubs";
 
 interface SyncProgressParams {
   volumeSlug: string;
@@ -43,6 +45,7 @@ export async function syncReadingProgress({
     if (!volume) {
       return { error: "Volume not found", status: 404 };
     }
+    if (!(await canAccessLibraryVolume(user, volume.id))) return { error: "Forbidden", status: 403 };
 
     const userId = user.id;
     const volumeId = volume.id;
@@ -55,6 +58,7 @@ export async function syncReadingProgress({
       lastReadAt: new Date(lastReadAt),
       isRead: isNowRead,
     });
+    await recordClubProgressActivities(userId, "LIBRARY_SERIES", volume.seriesId);
 
     if (isNowRead) {
       await createReadingEntryRecord(userId, volumeId, date);

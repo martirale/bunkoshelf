@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import { findBookVolumeBySlug } from "@/lib/db/books/library";
 import { createBookAnnotation, deleteBookAnnotation, listBookAnnotations, updateBookAnnotationNote } from "@/lib/db/books/reading";
+import { canAccessBookVolume } from "@/lib/clubs/access";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const user = await verifySession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const volume = await findBookVolumeBySlug((await params).slug);
   if (!volume) return NextResponse.json({ error: "Book not found" }, { status: 404 });
+  if (!(await canAccessBookVolume(user, volume.id))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   return NextResponse.json(await listBookAnnotations(user.id, volume.id));
 }
 
@@ -17,6 +19,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const volume = await findBookVolumeBySlug((await params).slug);
   const body = await request.json() as { cfiRange?: string; excerpt?: string; note?: string; color?: string };
   if (!volume || !body.cfiRange) return NextResponse.json({ error: "Invalid annotation" }, { status: 400 });
+  if (!(await canAccessBookVolume(user, volume.id))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   return NextResponse.json(await createBookAnnotation(user.id, volume.id, {
     cfiRange: body.cfiRange, excerpt: body.excerpt ?? null, note: body.note ?? null,
     color: ["lilah", "yellow", "green", "blue", "pink"].includes(body.color ?? "") ? body.color! : "lilah",

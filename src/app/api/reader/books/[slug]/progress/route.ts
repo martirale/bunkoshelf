@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import { findBookVolumeBySlug } from "@/lib/db/books/library";
 import { findBookProgress, upsertBookProgress } from "@/lib/db/books/reading";
+import { canAccessBookVolume } from "@/lib/clubs/access";
+import { recordClubProgressActivities } from "@/lib/db/clubs";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const user = await verifySession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const volume = await findBookVolumeBySlug((await params).slug);
   if (!volume) return NextResponse.json({ error: "Book not found" }, { status: 404 });
+  if (!(await canAccessBookVolume(user, volume.id))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   return NextResponse.json(await findBookProgress(user.id, volume.id));
 }
 
@@ -16,6 +19,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ slug
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const volume = await findBookVolumeBySlug((await params).slug);
   if (!volume) return NextResponse.json({ error: "Book not found" }, { status: 404 });
+  if (!(await canAccessBookVolume(user, volume.id))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const body = await request.json() as Record<string, unknown>;
   const progression = typeof body.progression === "number" ? Math.min(1, Math.max(0, body.progression)) : undefined;
   const readingDate = typeof body.readingDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.readingDate)
@@ -34,5 +38,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ slug
     lastReadAt: hasReadingLocation || isRead === true ? new Date() : undefined,
     readingDate,
   });
+  await recordClubProgressActivities(user.id, "BOOK_SERIES", volume.series.id);
   return NextResponse.json(result);
 }

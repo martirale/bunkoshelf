@@ -4,6 +4,7 @@ import { findVolumeProgress } from "@/lib/db/reading";
 import { findVolumeBySlug } from "@/lib/db/library";
 import { getLibrarySection, type LibrarySection } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import { canAccessLibraryVolume } from "@/lib/clubs/access";
 
 function metadata(value: Awaited<ReturnType<typeof findVolumeBySlug>>) {
   const source = value?.metadataObj;
@@ -27,6 +28,7 @@ export async function GET(
   if (!volume || getLibrarySection(volume.series.librarySection) !== section) {
     return NextResponse.json({ error: "Volume not found" }, { status: 404 });
   }
+  if (!(await canAccessLibraryVolume(user, volume.id))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const progress = await findVolumeProgress(user.id, volume.id);
   const resolvedSection = section as LibrarySection;
 

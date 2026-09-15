@@ -6,6 +6,7 @@ import {
   listBookAnnotations,
   listBookBookmarks,
 } from "@/lib/db/books/reading";
+import { canAccessBookVolume } from "@/lib/clubs/access";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const user = await verifySession();
@@ -13,6 +14,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
   const volume = await findBookVolumeBySlug((await params).slug);
   if (!volume) return NextResponse.json({ error: "Book not found" }, { status: 404 });
+  if (!(await canAccessBookVolume(user, volume.id))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const [progress, bookmarks, annotations] = await Promise.all([
     findBookProgress(user.id, volume.id),

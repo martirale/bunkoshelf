@@ -26,6 +26,7 @@ const dictionaries: Record<Locale, () => Promise<Record<string, DictionarySectio
       import("./dictionaries/en/push.json").then((m) => m.default),
       import("./dictionaries/en/months.json").then((m) => m.default),
       import("./dictionaries/en/stats.json").then((m) => m.default),
+      import("./dictionaries/en/clubs.json").then((m) => m.default),
     ]),
   es: () =>
     Promise.all([
@@ -51,6 +52,7 @@ const dictionaries: Record<Locale, () => Promise<Record<string, DictionarySectio
       import("./dictionaries/es/push.json").then((m) => m.default),
       import("./dictionaries/es/months.json").then((m) => m.default),
       import("./dictionaries/es/stats.json").then((m) => m.default),
+      import("./dictionaries/es/clubs.json").then((m) => m.default),
     ]),
 };
 

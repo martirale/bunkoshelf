@@ -14,6 +14,7 @@ import { queryOne } from "@/lib/db/query";
 import { extractImagesCbz } from "@/lib/reader/manga/cbz";
 import { extractImagesCbr } from "@/lib/reader/manga/cbr";
 import type { StorageProvider } from "@/lib/types";
+import { canAccessLibraryVolume } from "@/lib/clubs/access";
 
 type Extractor = (
   volume: LibraryVolume,
@@ -57,6 +58,7 @@ export async function getMangaImages({ slug }: { slug: string }) {
     if (!volume) {
       return { error: "Volume not found", status: 404 };
     }
+    if (!(await canAccessLibraryVolume(user, volume.id))) return { error: "Forbidden", status: 403 };
 
     const extractor = getExtractorForFile(volume.fullPath);
 
@@ -100,6 +102,7 @@ export async function getReadingProgress({ slug }: { slug: string }) {
     if (!volume) {
       return { error: "Volume not found", status: 404 };
     }
+    if (!(await canAccessLibraryVolume(user, volume.id))) return { error: "Forbidden", status: 403 };
 
     const progress = await findVolumeProgress(user.id, volume.id);
 

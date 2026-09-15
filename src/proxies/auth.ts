@@ -20,8 +20,10 @@ export async function authProxy(
   const token = cookiesInstance.get("yomimono_key")?.value;
 
   const isLoginPage = pathname === `/${lang}/login`;
+  const isPublicClubInvitation = pathname.startsWith(`/${lang}/clubs/join/`);
 
   if (!token) {
+    if (isPublicClubInvitation) return null;
     if (!isLoginPage) {
       return NextResponse.redirect(new URL(`/${lang}/login`, request.url));
     }
@@ -34,13 +36,17 @@ export async function authProxy(
       new TextEncoder().encode(process.env.JWT_SECRET)
     );
 
-    if (isLoginPage) {
+    if (isLoginPage && payload.role !== "GUEST") {
       return NextResponse.redirect(new URL(`/${lang}/`, request.url));
     }
 
     const isAdminUser = payload.isAdmin === true || payload.role === "ADMIN";
     if (pathname.startsWith(`/${lang}/settings`) && !isAdminUser) {
       return NextResponse.redirect(new URL(`/${lang}/`, request.url));
+    }
+
+    if (payload.role === "GUEST" && !pathname.startsWith(`/${lang}/clubs`)) {
+      return NextResponse.redirect(new URL(`/${lang}/clubs`, request.url));
     }
 
     return null;

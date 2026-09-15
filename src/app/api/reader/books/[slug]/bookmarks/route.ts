@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import { findBookVolumeBySlug } from "@/lib/db/books/library";
 import { createBookBookmark, deleteBookBookmark, listBookBookmarks } from "@/lib/db/books/reading";
+import { canAccessBookVolume } from "@/lib/clubs/access";
 
 async function getVolume(slug: string) { return findBookVolumeBySlug(slug); }
 
@@ -10,6 +11,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const volume = await getVolume((await params).slug);
   if (!volume) return NextResponse.json({ error: "Book not found" }, { status: 404 });
+  if (!(await canAccessBookVolume(user, volume.id))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   return NextResponse.json(await listBookBookmarks(user.id, volume.id));
 }
 
@@ -19,6 +21,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const volume = await getVolume((await params).slug);
   const body = await request.json() as { cfi?: string; label?: string; chapterLabel?: string };
   if (!volume || !body.cfi) return NextResponse.json({ error: "Invalid bookmark" }, { status: 400 });
+  if (!(await canAccessBookVolume(user, volume.id))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   return NextResponse.json(await createBookBookmark(user.id, volume.id, { cfi: body.cfi, label: body.label ?? null, chapterLabel: body.chapterLabel ?? null }));
 }
 

@@ -34,7 +34,7 @@ export async function findUserByUsername(
       SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year
       , profile_image
       FROM users
-      WHERE username = $1
+      WHERE username = $1 AND disabled_at IS NULL
       LIMIT 1
     `,
     [username]
@@ -49,7 +49,7 @@ export async function findUserSessionById(id: string): Promise<PublicUser | null
       SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year
       , profile_image
       FROM users
-      WHERE id = $1
+      WHERE id = $1 AND disabled_at IS NULL
       LIMIT 1
     `,
     [id]

@@ -5,6 +5,7 @@ import {
   LibraryBigIcon,
   UserRoundIcon,
   BookAIcon,
+  UsersRoundIcon,
 } from "lucide-react";
 import { requireRole, ROLES } from "@/lib/auth/roles";
 import type { Dictionary, Role, Session } from "@/lib/types";
@@ -96,6 +97,13 @@ export function getMainNavLinks({
       href: `/${lang}/catalog`,
       icon: BookAIcon,
       isActive: pathname.startsWith(`/${lang}/catalog`),
+      minRole: ROLES.MEMBER,
+    },
+    {
+      label: intl.sidebar.clubs as string,
+      href: `/${lang}/clubs`,
+      icon: UsersRoundIcon,
+      isActive: pathname.startsWith(`/${lang}/clubs`),
       minRole: ROLES.MEMBER,
     },
     {

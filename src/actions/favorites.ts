@@ -5,6 +5,7 @@ import {
   upsertSeriesFavorite,
   upsertVolumeProgress,
 } from "@/lib/db/reading";
+import { canAccessLibraryVolume } from "@/lib/clubs/access";
 
 interface ToggleSeriesFavoriteParams {
   seriesId: string | number | null | undefined;
@@ -31,6 +32,7 @@ export async function toggleSeriesFavorite({ seriesId, favorite }: ToggleSeriesF
         ? ""
         : String(seriesId);
     const normalizedFavorite = favorite === true || String(favorite) === "true";
+    if (user.role === "GUEST") return { error: "Forbidden", status: 403 };
 
     if (
       typeof normalizedSeriesId !== "string" ||
@@ -76,6 +78,7 @@ export async function toggleVolumeFavorite({ volumeId, favorite }: ToggleVolumeF
     ) {
       return { error: "Invalid payload", status: 400 };
     }
+    if (!(await canAccessLibraryVolume(user, normalizedVolumeId))) return { error: "Forbidden", status: 403 };
 
     await upsertVolumeProgress(user.id, normalizedVolumeId, {
       isFavorite: normalizedFavorite,

@@ -3,6 +3,8 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import { findBookVolumeBySlug } from "@/lib/db/books/library";
 import { upsertBookProgress } from "@/lib/db/books/reading";
+import { canAccessBookVolume } from "@/lib/clubs/access";
+import { recordClubProgressActivities } from "@/lib/db/clubs";
 
 function isDate(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -17,6 +19,7 @@ export async function updateBookReadState({ slug, read, readAt }: { slug: string
 
   const volume = await findBookVolumeBySlug(slug);
   if (!volume) return { success: false as const, error: "Book not found" };
+  if (!(await canAccessBookVolume(user, volume.id))) return { success: false as const, error: "Forbidden" };
 
   await upsertBookProgress(user.id, volume.id, {
     isRead: read,
@@ -24,6 +27,7 @@ export async function updateBookReadState({ slug, read, readAt }: { slug: string
     lastReadAt: read ? new Date() : null,
     readingDate: readAt,
   });
+  await recordClubProgressActivities(user.id, "BOOK_SERIES", volume.series.id);
 
   return { success: true as const };
 }

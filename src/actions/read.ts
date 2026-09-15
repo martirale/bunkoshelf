@@ -7,6 +7,9 @@ import {
   upsertVolumeProgress,
 } from "@/lib/db/reading";
 import { syncFirstRead } from "@/actions/readingHistory";
+import { canAccessLibraryVolume } from "@/lib/clubs/access";
+import { queryOne } from "@/lib/db/query";
+import { recordClubProgressActivities } from "@/lib/db/clubs";
 
 interface UpdateReadStateParams {
   volumeId: string;
@@ -57,6 +60,7 @@ export async function updateReadState({
       totalPages: normalizedTotalPages,
       lastReadAt: normalizedRead ? new Date(lastReadAt || Date.now()) : null,
     };
+    if (!(await canAccessLibraryVolume(user, normalizedVolumeId))) return { error: "Forbidden", status: 403 };
 
     await upsertVolumeProgress(user.id, normalizedVolumeId, {
       isRead: updatePayload.isRead,
@@ -64,6 +68,8 @@ export async function updateReadState({
       totalPages: updatePayload.totalPages,
       lastReadAt: updatePayload.lastReadAt,
     });
+    const volume = await queryOne<{ series_id: string }>("SELECT series_id FROM library_volumes WHERE id=$1", [normalizedVolumeId]);
+    if (volume) await recordClubProgressActivities(user.id, "LIBRARY_SERIES", volume.series_id);
 
     if (normalizedRead && typeof firstRead === "string") {
       await createReadingEntryRecord(user.id, normalizedVolumeId, firstRead);
