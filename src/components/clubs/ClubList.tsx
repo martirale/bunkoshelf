@@ -1,18 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { createClub } from "@/actions/clubs";
 import type { ReadingClub } from "@/lib/db/clubs";
 import type { Dictionary } from "@/lib/types";
 
 export default function ClubList({ clubs, lang, canCreate, intl }: { clubs: ReadingClub[]; lang: string; canCreate: boolean; intl: Dictionary }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const labels = intl.clubs as Record<string, string>;
+  useEffect(() => {
+    setName("");
+    setDescription("");
+    setError("");
+  }, [pathname]);
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     const result = await createClub({ name, description });
