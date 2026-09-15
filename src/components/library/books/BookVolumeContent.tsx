@@ -44,6 +44,7 @@ export default function BookVolumeContent({ volume, lang, intl, readingEntries, 
                 alt={`${books.coverOf} ${volume.metadata.title}`}
                 width={0}
                 height={0}
+                unoptimized
                 sizes="100vw"
                 className="w-full h-auto object-contain rounded-lg"
               />
