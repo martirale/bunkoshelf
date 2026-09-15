@@ -62,6 +62,11 @@ export default function MangaCard({
       : href.includes("/books/")
         ? "books"
         : "manga";
+  const coverAspectRatio = section === "manga"
+    ? "aspect-[7/10]"
+    : section === "comic"
+      ? "aspect-[13/20]"
+      : "aspect-[2/3]";
   const oneshotLabel = getOneshotLabel(section, manga);
   const volumeSlug = href.split("?")[0].split("/").pop();
   const isOfflineCover = cover?.startsWith("/offline/") ?? false;
@@ -113,7 +118,7 @@ export default function MangaCard({
         }
       }}
     >
-      <div className="relative isolate aspect-[7/10.5] w-full flex-shrink-0">
+      <div className={clsx("relative isolate w-full flex-shrink-0", coverAspectRatio)}>
         {isOfflineCover ? (
           // IndexedDB pages are served by the service worker and cannot use Next's image optimizer.
           // eslint-disable-next-line @next/next/no-img-element
