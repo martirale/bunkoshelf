@@ -15,6 +15,7 @@ import type { Dictionary } from "@/lib/types";
 
 type ReaderTheme = "light" | "sepia" | "dark";
 type ReaderFlow = "paginated" | "scrolled-continuous";
+type ReaderHandedness = "right" | "left";
 type TocEntry = { label: string; href: string; subitems?: TocEntry[] };
 type ReaderState = {
   progress: { cfi?: string | null; progression?: number | null } | null;
@@ -41,6 +42,7 @@ interface EpubReaderProps {
 
 const fileCache = new Map<string, ArrayBuffer>();
 const maxCachedBooks = 3;
+const handednessStorageKey = "bunko:epub-reader-handedness";
 
 const themeStyles: Record<ReaderTheme, { background: string; color: string }> = {
   light: { background: "#fffdf7", color: "#1f1b16" },
@@ -121,6 +123,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
   const [lineHeight, setLineHeight] = useState(1.6);
   const [margin, setMargin] = useState(24);
   const [columnWidth, setColumnWidth] = useState(720);
+  const [handedness, setHandedness] = useState<ReaderHandedness>("right");
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [showToc, setShowToc] = useState(false);
   const [coverVisible, setCoverVisible] = useState(false);
@@ -257,6 +260,23 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
     const timer = setTimeout(() => setBookmarkMessage(null), 2400);
     return () => clearTimeout(timer);
   }, [bookmarkMessage]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    try {
+      setHandedness(window.localStorage.getItem(handednessStorageKey) === "left" ? "left" : "right");
+    } catch {
+      setHandedness("right");
+    }
+  }, [isOpen]);
+
+  const updateHandedness = useCallback((nextHandedness: ReaderHandedness) => {
+    setHandedness(nextHandedness);
+    try {
+      if (nextHandedness === "left") window.localStorage.setItem(handednessStorageKey, nextHandedness);
+      else window.localStorage.removeItem(handednessStorageKey);
+    } catch {}
+  }, []);
 
   useEffect(() => {
     if (!isOpen || layout === "pre-paginated") return;
@@ -693,7 +713,7 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
             <button onClick={() => setTocTab("contents")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "contents" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.contents}</button>
             <button onClick={() => setTocTab("bookmarks")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "bookmarks" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.bookmarks} {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</button>
             <button onClick={() => setTocTab("annotations")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "annotations" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.annotations} {annotations.length > 0 ? `(${annotations.length})` : ""}</button>
-            {layout === "reflowable" && <button onClick={() => setTocTab("settings")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "settings" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.settings}</button>}
+            <button onClick={() => setTocTab("settings")} className={`cursor-pointer px-2 pb-2 text-base ${tocTab === "settings" ? "border-b-2 border-lilah text-lilah" : "text-sand"}`}>{reader.settings}</button>
           </div>
           {tocTab === "contents" ? <>
             <div className="mb-4 flex gap-2"><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && runSearch()} placeholder={reader.searchPlaceholder} className="min-w-0 flex-1 rounded bg-onix px-3 py-2 text-base" /><button onClick={runSearch} aria-label={reader.searchPlaceholder} className="cursor-pointer rounded bg-lilah p-2 text-onix"><SearchIcon size={20} /></button></div>
@@ -704,13 +724,16 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           </div> : tocTab === "annotations" ? <div className="space-y-2">
             {annotations.length === 0 ? <p className="py-2 text-base text-neutral-400">{reader.noAnnotations}</p> : annotations.map((annotation) => <div key={annotation.id} className="rounded bg-onix/60 p-3"><button onClick={() => openToc(annotation.cfiRange)} className="block w-full cursor-pointer text-left hover:text-lilah"><span className="block text-base leading-relaxed">{annotation.excerpt || reader.highlightedText}</span><span className="mt-2 block text-sm text-lilah">{reader.goToLocation}</span></button>{annotation.note && <p className="mt-3 border-t border-white/10 pt-3 text-base text-sand"><span className="mr-2 text-sm uppercase text-neutral-400">{reader.note}</span>{annotation.note}</p>}<button onClick={() => removeAnnotation(annotation)} className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-neutral-400 hover:text-lilah"><Trash2Icon size={16} />{reader.deleteHighlight}</button></div>)}
           </div> : <div className="grid gap-4 text-base">
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.theme}<select value={theme} onChange={(event) => setTheme(event.target.value as ReaderTheme)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="light">{reader.light}</option><option value="sepia">{reader.sepia}</option><option value="dark">{reader.dark}</option></select></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.flow}<select value={flow} onChange={(event) => setFlow(event.target.value as ReaderFlow)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="paginated">{reader.paginated}</option><option value="scrolled-continuous">{reader.scrolled}</option></select></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.font}<select value={fontFamily} onChange={(event) => setFontFamily(event.target.value as "serif" | "sans")} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="serif">{reader.serif}</option><option value="sans">{reader.sans}</option></select></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.fontSize}<input className="w-full cursor-pointer accent-lilah" type="range" min="80" max="160" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.lineHeight}<input className="w-full cursor-pointer accent-lilah" type="range" min="1.2" max="2.4" step="0.1" value={lineHeight} onChange={(event) => setLineHeight(Number(event.target.value))} /></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.margin}<input className="w-full cursor-pointer accent-lilah" type="range" min="0" max="80" value={margin} onChange={(event) => setMargin(Number(event.target.value))} /></label>
-            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.column}<input className="w-full cursor-pointer accent-lilah" type="range" min="320" max="1200" value={columnWidth} onChange={(event) => setColumnWidth(Number(event.target.value))} /></label>
+            <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.handedness}<select value={handedness} onChange={(event) => updateHandedness(event.target.value as ReaderHandedness)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="right">{reader.rightHanded}</option><option value="left">{reader.leftHanded}</option></select></label>
+            {layout === "reflowable" && <>
+              <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.theme}<select value={theme} onChange={(event) => setTheme(event.target.value as ReaderTheme)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="light">{reader.light}</option><option value="sepia">{reader.sepia}</option><option value="dark">{reader.dark}</option></select></label>
+              <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.flow}<select value={flow} onChange={(event) => setFlow(event.target.value as ReaderFlow)} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="paginated">{reader.paginated}</option><option value="scrolled-continuous">{reader.scrolled}</option></select></label>
+              <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.font}<select value={fontFamily} onChange={(event) => setFontFamily(event.target.value as "serif" | "sans")} className="cursor-pointer rounded bg-onix px-3 py-2 text-base"><option value="serif">{reader.serif}</option><option value="sans">{reader.sans}</option></select></label>
+              <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.fontSize}<input className="w-full cursor-pointer accent-lilah" type="range" min="80" max="160" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label>
+              <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.lineHeight}<input className="w-full cursor-pointer accent-lilah" type="range" min="1.2" max="2.4" step="0.1" value={lineHeight} onChange={(event) => setLineHeight(Number(event.target.value))} /></label>
+              <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.margin}<input className="w-full cursor-pointer accent-lilah" type="range" min="0" max="80" value={margin} onChange={(event) => setMargin(Number(event.target.value))} /></label>
+              <label className="grid grid-cols-[7rem_1fr] items-center gap-3">{reader.column}<input className="w-full cursor-pointer accent-lilah" type="range" min="320" max="1200" value={columnWidth} onChange={(event) => setColumnWidth(Number(event.target.value))} /></label>
+            </>}
           </div>}
         </aside>
       )}
@@ -754,13 +777,26 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
       <footer className="absolute inset-x-0 bottom-0 z-30 h-[calc(3.5rem+max(0.75rem,env(safe-area-inset-bottom)))] pb-[max(0.75rem,env(safe-area-inset-bottom))] md:h-14 md:pb-0" style={themeStyles[theme]}>
         <div className="flex h-14 items-center justify-between px-2">
           <div className="flex items-center gap-1">
-            <button onClick={closeReader} title={reader.close} aria-label={reader.close} className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
-            <button onClick={toggleBookmark} title={isBookmarked ? reader.removeBookmark : reader.addBookmark} aria-label={isBookmarked ? reader.removeBookmark : reader.addBookmark} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
-            <button ref={tocToggleRef} onClick={toggleToc} title={reader.contents} aria-label={reader.contents} className="cursor-pointer p-2"><MenuIcon size={24} /></button>
+            {handedness === "left" && <>
+              <button onClick={closeReader} title={reader.close} aria-label={reader.close} className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
+              <button onClick={toggleBookmark} title={isBookmarked ? reader.removeBookmark : reader.addBookmark} aria-label={isBookmarked ? reader.removeBookmark : reader.addBookmark} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
+              <button ref={tocToggleRef} onClick={toggleToc} title={reader.contents} aria-label={reader.contents} className="cursor-pointer p-2"><MenuIcon size={24} /></button>
+            </>}
+            {handedness === "right" && <>
+              <button onClick={navigatePrevious} title={reader.previous} aria-label={reader.previous} className="cursor-pointer p-2"><ChevronLeftIcon size={24} /></button>
+              <button onClick={navigateNext} title={reader.next} aria-label={reader.next} className="cursor-pointer p-2"><ChevronRightIcon size={24} /></button>
+            </>}
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={navigatePrevious} title={reader.previous} aria-label={reader.previous} className="cursor-pointer p-2"><ChevronLeftIcon size={24} /></button>
-            <button onClick={navigateNext} title={reader.next} aria-label={reader.next} className="cursor-pointer p-2"><ChevronRightIcon size={24} /></button>
+            {handedness === "right" && <>
+              <button ref={tocToggleRef} onClick={toggleToc} title={reader.contents} aria-label={reader.contents} className="cursor-pointer p-2"><MenuIcon size={24} /></button>
+              <button onClick={toggleBookmark} title={isBookmarked ? reader.removeBookmark : reader.addBookmark} aria-label={isBookmarked ? reader.removeBookmark : reader.addBookmark} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
+              <button onClick={closeReader} title={reader.close} aria-label={reader.close} className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
+            </>}
+            {handedness === "left" && <>
+              <button onClick={navigatePrevious} title={reader.previous} aria-label={reader.previous} className="cursor-pointer p-2"><ChevronLeftIcon size={24} /></button>
+              <button onClick={navigateNext} title={reader.next} aria-label={reader.next} className="cursor-pointer p-2"><ChevronRightIcon size={24} /></button>
+            </>}
           </div>
         </div>
       </footer>
