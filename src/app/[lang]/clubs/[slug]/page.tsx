@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import ClubDashboard from "@/components/clubs/ClubDashboard";
 import { verifySession } from "@/lib/auth/verifySession";
-import { canAccessClub, canManageClub, findClubBySlug, getClubDashboard, listClubWorks, listCycleCandidates, listCycleMilestones, listSelectedCycleVolumes } from "@/lib/db/clubs";
+import { canAccessClub, canManageClub, findClubBySlug, getClubDashboard, getFixedClubInviteToken, listClubWorks, listCycleCandidates, listCycleMilestones, listSelectedCycleVolumes } from "@/lib/db/clubs";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import type { Locale } from "@/lib/types";
 
@@ -21,5 +21,5 @@ export default async function ClubPage({ params }: { params: Promise<{ lang: str
     active ? listCycleMilestones(active.id) : Promise.resolve([]),
     listSelectedCycleVolumes(active ?? null),
   ]);
-  return <ClubDashboard club={club} cycles={dashboard.cycles} members={dashboard.members} activities={dashboard.activities} activeCandidates={activeCandidates} milestones={milestones} works={works} readingVolumes={readingVolumes} isManager={isManager} lang={lang} intl={intl} />;
+  return <ClubDashboard club={club} cycles={dashboard.cycles} members={dashboard.members} activities={dashboard.activities} activeCandidates={activeCandidates} milestones={milestones} works={works} readingVolumes={readingVolumes} isManager={isManager} inviteToken={isManager ? getFixedClubInviteToken(club) : null} lang={lang} intl={intl} />;
 }

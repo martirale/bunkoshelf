@@ -1,4 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { execute, query, queryOne } from "./query";
 
 export type ClubMemberStatus = "PENDING" | "APPROVED" | "REJECTED" | "REVOKED";
@@ -78,15 +79,24 @@ export async function createClubRecord(input: { slug: string; name: string; desc
   return mapClub(row);
 }
 
-export async function createInviteRecord(clubId: string, tokenHash: string, createdBy: string): Promise<void> {
-  await execute("INSERT INTO reading_club_invites (id, club_id, token_hash, created_by) VALUES ($1,$2,$3,$4)", [createId(), clubId, tokenHash, createdBy]);
+export function getFixedClubInviteToken(club: ReadingClub) {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET is required");
+  const signature = createHmac("sha256", secret).update(`reading-club-invite:${club.id}`).digest("base64url");
+  return `${club.slug}.${signature}`;
 }
 
-export async function findInviteByTokenHash(tokenHash: string) {
-  return queryOne<{ id: string; club_id: string; club_slug: string; club_name: string; club_status: "ACTIVE" | "ARCHIVED" }>(`
-    SELECT i.id, i.club_id, c.slug AS club_slug, c.name AS club_name, c.status AS club_status
-    FROM reading_club_invites i INNER JOIN reading_clubs c ON c.id = i.club_id
-    WHERE i.token_hash = $1 AND i.revoked_at IS NULL`, [tokenHash]);
+export async function findFixedClubInvite(token: string) {
+  const separator = token.lastIndexOf(".");
+  if (separator <= 0) return null;
+  const slug = token.slice(0, separator);
+  const signature = token.slice(separator + 1);
+  const club = await findClubBySlug(slug);
+  if (!club) return null;
+  const expectedToken = getFixedClubInviteToken(club);
+  const expectedSignature = expectedToken.slice(expectedToken.lastIndexOf(".") + 1);
+  if (signature.length !== expectedSignature.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) return null;
+  return { club_id: club.id, club_slug: club.slug, club_name: club.name, club_status: club.status };
 }
 
 export async function requestMembership(clubId: string, userId: string): Promise<void> {
@@ -140,7 +150,6 @@ export async function castVoteRecord(cycleId: string, candidateId: string, membe
 
 export async function archiveClubRecord(clubId: string): Promise<void> {
   await execute("UPDATE reading_clubs SET status='ARCHIVED', archived_at=NOW(), updated_at=NOW() WHERE id=$1", [clubId]);
-  await execute("UPDATE reading_club_invites SET revoked_at=NOW() WHERE club_id=$1 AND revoked_at IS NULL", [clubId]);
   await execute(`UPDATE users SET disabled_at=NOW() FROM reading_club_guest_accounts g
     WHERE g.club_id=$1 AND g.user_id=users.id`, [clubId]);
 }

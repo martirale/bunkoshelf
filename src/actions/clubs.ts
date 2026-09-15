@@ -2,7 +2,6 @@
 
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createId } from "@paralleldrive/cuid2";
@@ -18,10 +17,9 @@ import {
   castVoteRecord,
   createClubRecord,
   createCycleRecord,
-  createInviteRecord,
   deleteClubRecord,
   findClubBySlug,
-  findInviteByTokenHash,
+  findFixedClubInvite,
   getMembership,
   removeCandidateRecord,
   replaceCycleCandidates,
@@ -35,10 +33,6 @@ type Result = { success: true } | { success: false; error: string };
 
 function slugify(value: string) {
   return value.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
-}
-
-function inviteHash(token: string) {
-  return createHash("sha256").update(token).digest("hex");
 }
 
 async function manager(slug: string) {
@@ -66,17 +60,9 @@ export async function createClub(input: { name: string; description?: string }):
   return { success: true, slug };
 }
 
-export async function createClubInvite(slug: string): Promise<Result & { token?: string }> {
-  const context = await manager(slug);
-  if (!context || context.club.status !== "ACTIVE") return { success: false, error: "Unauthorized" };
-  const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
-  await createInviteRecord(context.club.id, inviteHash(token), context.user.id);
-  return { success: true, token };
-}
-
 export async function joinClubWithSession(token: string): Promise<Result & { slug?: string }> {
   const user = await verifySession();
-  const invite = await findInviteByTokenHash(inviteHash(token));
+  const invite = await findFixedClubInvite(token);
   if (!user || !invite || invite.club_status !== "ACTIVE") return { success: false, error: "Invalid invitation" };
   if (user.role === "GUEST") return { success: false, error: "Guest accounts are limited to their club" };
   await requestMembership(invite.club_id, user.id);
@@ -84,7 +70,7 @@ export async function joinClubWithSession(token: string): Promise<Result & { slu
 }
 
 export async function joinClubAsGuest(input: { token: string; username: string; password: string }): Promise<Result & { slug?: string }> {
-  const invite = await findInviteByTokenHash(inviteHash(input.token));
+  const invite = await findFixedClubInvite(input.token);
   const username = input.username.trim();
   if (!invite || invite.club_status !== "ACTIVE") return { success: false, error: "Invalid invitation" };
   if (!/^[a-zA-Z0-9_-]{3,32}$/.test(username) || input.password.length < 8) return { success: false, error: "Use a name of 3–32 characters and a password of at least 8 characters" };
