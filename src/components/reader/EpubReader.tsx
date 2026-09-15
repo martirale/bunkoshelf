@@ -760,8 +760,8 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
           setAnnotationNoteEditorOpen(false);
         }
       }}>
-        {loading && <div className="absolute inset-0 z-20 grid place-items-center bg-onix">{reader.opening}</div>}
-        {error && <div className="absolute inset-0 z-20 grid place-items-center bg-onix p-6 text-center">{error}</div>}
+        {loading && <div className="absolute inset-0 z-20 grid place-items-center" style={themeStyles[theme]}>{reader.opening}</div>}
+        {error && <div className="absolute inset-0 z-20 grid place-items-center p-6 text-center" style={themeStyles[theme]}>{error}</div>}
         {coverVisible && <div className="absolute inset-0 z-10" style={themeStyles[theme]}>
           <Image src={`/api/library/books/cover/${encodeURIComponent(slug)}`} alt={title} fill priority unoptimized sizes="100vw" className="object-contain" />
         </div>}
