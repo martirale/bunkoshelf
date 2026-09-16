@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, connection } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import fs from "fs/promises";
 import path from "path";
@@ -6,6 +6,7 @@ import path from "path";
 const STATUS_PATH = path.join(process.cwd(), "tmp", "scan-status.json");
 
 export async function GET() {
+  await connection();
   try {
     const user = await verifySession();
     if (!user) {

@@ -17,8 +17,8 @@ import { indexBook } from "@/lib/books/indexer";
 
 export const maxDuration = 300;
 
-const LIBRARY_PATH = path.resolve(process.cwd(), "../library");
-const TEMP_PATH = path.resolve(process.cwd(), "../temp");
+const LIBRARY_PATH = path.resolve(/*turbopackIgnore: true*/ process.cwd(), "../library");
+const TEMP_PATH = path.resolve(/*turbopackIgnore: true*/ process.cwd(), "../temp");
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
 function generateChecksum(): string {
