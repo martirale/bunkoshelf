@@ -8,6 +8,10 @@ export interface Session {
   name: string | null;
   lastname: string | null;
   birthYear: number | null;
+  birthMonth: number | null;
+  birthDay: number | null;
+  parentalControlEnabled: boolean;
+  parentalControlMode: "flexible" | "strict";
   profileImage: string | null;
 }
 

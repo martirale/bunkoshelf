@@ -11,6 +11,10 @@ function mapUser(row: UserRow): PublicUser {
     name: row.name,
     lastname: row.lastname,
     birthYear: row.birth_year,
+    birthMonth: row.birth_month,
+    birthDay: row.birth_day,
+    parentalControlEnabled: row.parental_control_enabled,
+    parentalControlMode: row.parental_control_mode,
     profileImage: row.profile_image,
   };
 }
@@ -31,7 +35,7 @@ export async function findUserByUsername(
 ): Promise<UserWithPassword | null> {
   const row = await queryOne<UserRow>(
     `
-      SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year
+      SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year, birth_month, birth_day, parental_control_enabled, parental_control_mode
       , profile_image
       FROM users
       WHERE username = $1 AND disabled_at IS NULL
@@ -46,7 +50,7 @@ export async function findUserByUsername(
 export async function findUserSessionById(id: string): Promise<PublicUser | null> {
   const row = await queryOne<UserRow>(
     `
-      SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year
+      SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year, birth_month, birth_day, parental_control_enabled, parental_control_mode
       , profile_image
       FROM users
       WHERE id = $1 AND disabled_at IS NULL
@@ -60,7 +64,7 @@ export async function findUserSessionById(id: string): Promise<PublicUser | null
 
 export async function listUsers(): Promise<PublicUser[]> {
   const rows = await query<UserRow>(`
-    SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year
+    SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year, birth_month, birth_day, parental_control_enabled, parental_control_mode
     , profile_image
     FROM users
     ORDER BY COALESCE(name, username) ASC, username ASC
@@ -106,6 +110,8 @@ export interface CreateUserInput {
   name?: string | null;
   lastname?: string | null;
   birthYear?: number | null;
+  birthMonth?: number | null;
+  birthDay?: number | null;
   isAdmin?: boolean;
   role?: Role;
 }
@@ -124,10 +130,12 @@ export async function createUserRecord(
         name,
         lastname,
         birth_year,
+        birth_month,
+        birth_day,
         profile_image
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING id, created_at, username, password, is_admin, role, name, lastname, birth_year, profile_image
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING id, created_at, username, password, is_admin, role, name, lastname, birth_year, birth_month, birth_day, parental_control_enabled, parental_control_mode, profile_image
     `,
     [
       crypto.randomUUID(),
@@ -138,6 +146,8 @@ export async function createUserRecord(
       input.name ?? null,
       input.lastname ?? null,
       input.birthYear ?? null,
+      input.birthMonth ?? null,
+      input.birthDay ?? null,
       null,
     ]
   );
@@ -157,6 +167,10 @@ export async function updateUserRecord(
     name?: string | null;
     lastname?: string | null;
     birthYear?: number | null;
+    birthMonth?: number | null;
+    birthDay?: number | null;
+    parentalControlEnabled?: boolean;
+    parentalControlMode?: "flexible" | "strict";
     isAdmin?: boolean;
     role?: Role;
     profileImage?: string | null;
@@ -190,6 +204,26 @@ export async function updateUserRecord(
     assignments.push(`birth_year = $${values.length}`);
   }
 
+  if (input.birthMonth !== undefined) {
+    values.push(input.birthMonth);
+    assignments.push(`birth_month = $${values.length}`);
+  }
+
+  if (input.birthDay !== undefined) {
+    values.push(input.birthDay);
+    assignments.push(`birth_day = $${values.length}`);
+  }
+
+  if (input.parentalControlEnabled !== undefined) {
+    values.push(input.parentalControlEnabled);
+    assignments.push(`parental_control_enabled = $${values.length}`);
+  }
+
+  if (input.parentalControlMode !== undefined) {
+    values.push(input.parentalControlMode);
+    assignments.push(`parental_control_mode = $${values.length}`);
+  }
+
   if (input.isAdmin !== undefined) {
     values.push(input.isAdmin);
     assignments.push(`is_admin = $${values.length}`);
@@ -216,7 +250,7 @@ export async function updateUserRecord(
       UPDATE users
       SET ${assignments.join(", ")}
       WHERE id = $${values.length}
-      RETURNING id, created_at, username, password, is_admin, role, name, lastname, birth_year, profile_image
+      RETURNING id, created_at, username, password, is_admin, role, name, lastname, birth_year, birth_month, birth_day, parental_control_enabled, parental_control_mode, profile_image
     `,
     values
   );

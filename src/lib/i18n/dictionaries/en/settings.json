@@ -21,7 +21,9 @@
     "edit": "Edit",
     "nameOpt": "Name (optional)",
     "lastnameOpt": "Lastname (optional)",
-    "birthYearOpt": "Birth Year (optional)",
+    "birthYearOpt": "Birth year",
+    "birthMonth": "Birth month",
+    "birthDay": "Birth day",
     "isAdmin": "Super Admin",
     "role": "Role",
     "roleAdmin": "Admin",
@@ -71,6 +73,16 @@
     "regeneratingCovers": "Regenerating...",
     "regenerateCovers": "Regenerate Covers",
     "reprocessingMeta": "Processing...",
-    "reprocessMetadata": "Process Metadata"
+    "reprocessMetadata": "Process Metadata",
+    "parentalControl": "Parental control",
+    "parentalControlGlobalHelp": "Enable age protection across the entire library. Adults keep control over their own filters.",
+    "parentalControlGlobalOn": "Global parental control is enabled.",
+    "parentalControlGlobalOff": "Global parental control is disabled.",
+    "parentalControlGlobalLevel": "Global level",
+    "parentalControlFlexible": "Flexible",
+    "parentalControlStrict": "Strict",
+    "parentalControlGlobalFlexibleHelp": "Protects minors according to their age and lets adults choose their own filter.",
+    "parentalControlGlobalStrictHelp": "Applies a 15+ limit and hides unrated works for minor accounts.",
+    "parentalControlUpdateError": "Could not update parental control."
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import type { LibrarySection } from "@/lib/librarySection";
+import { ageRatingMap } from "@/lib/mangaMetadata";
 
 const DB_NAME = "bunko-pwa";
 const DB_VERSION = 1;
@@ -31,6 +32,12 @@ export interface OfflineVolume {
   isFavorite: boolean;
   lastPage: number;
   totalPages: number;
+}
+
+export interface OfflineContentVisibilityPolicy {
+  enabled: boolean;
+  maxAge: number | null;
+  allowUnrated: boolean;
 }
 
 export interface OfflineDownload {
@@ -171,6 +178,26 @@ export async function getReadyVolumes(userId: string, section?: LibrarySection) 
   const readyIds = new Set(downloads.filter((download) => download.status === "ready").map((download) => download.volumeId));
   const ready = volumes.filter((volume) => readyIds.has(volume.id)).map(withoutKey);
   return ready.sort((a, b) => a.title.localeCompare(b.title));
+}
+
+export async function purgeRestrictedVolumes(userId: string, policy: OfflineContentVisibilityPolicy) {
+  if (!policy.enabled) return;
+  const db = await openOfflineLibrary();
+  const tx = db.transaction([VOLUMES, PAGES, DOWNLOADS], "readwrite");
+  const volumes = await request<Array<OfflineVolume & { key: string }>>(tx.objectStore(VOLUMES).index("userId").getAll(userId));
+  for (const volume of volumes) {
+    const ageRating = typeof volume.metadata.ageRating === "string" ? volume.metadata.ageRating : null;
+    const minimum = ageRatingMap(ageRating);
+    const allowed = minimum === null ? policy.allowUnrated : minimum <= (policy.maxAge ?? 18);
+    if (allowed) continue;
+    const pageKeys = await request<IDBValidKey[]>(tx.objectStore(PAGES).index("volume").getAllKeys([userId, volume.id]));
+    for (const key of pageKeys) tx.objectStore(PAGES).delete(key);
+    tx.objectStore(VOLUMES).delete(volume.key);
+    tx.objectStore(DOWNLOADS).delete(downloadKey(userId, volume.id));
+  }
+  await transactionDone(tx);
+  db.close();
+  emitChange();
 }
 
 export async function getDownload(userId: string, volumeId: string) {

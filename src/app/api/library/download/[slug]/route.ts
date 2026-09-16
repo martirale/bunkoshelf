@@ -2,7 +2,7 @@ import { NextResponse, connection } from "next/server";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { verifySession } from "@/lib/auth/verifySession";
-import { findVolumeBySlugBasic } from "@/lib/db/ingestion";
+import { findVolumeBySlug } from "@/lib/db/library";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
@@ -38,7 +38,7 @@ export async function GET(
       return NextResponse.json({ error: "Missing volume slug" }, { status: 400 });
     }
 
-    const volume = await findVolumeBySlugBasic(slug);
+    const volume = await findVolumeBySlug({ slug });
     if (!volume) {
       return NextResponse.json({ error: "Volume not found" }, { status: 404 });
     }

@@ -20,6 +20,8 @@ interface CreateUserParams {
   name?: string;
   lastname?: string;
   birthYear?: number | null;
+  birthMonth?: number | null;
+  birthDay?: number | null;
   isAdmin?: boolean;
   role?: Role;
 }
@@ -38,8 +40,24 @@ interface AdminUpdateUserParams {
   name?: string;
   lastname?: string;
   birthYear?: number | null;
+  birthMonth?: number | null;
+  birthDay?: number | null;
   isAdmin?: boolean;
   role?: Role;
+}
+
+function isValidBirthDate(
+  year: number | null | undefined,
+  month: number | null | undefined,
+  day: number | null | undefined,
+  requireComplete: boolean,
+): boolean {
+  if (year === null || year === undefined) return !requireComplete && month == null && day == null;
+  if (month == null && day == null) return !requireComplete;
+  if (month == null || day == null) return false;
+  const value = new Date(year, month - 1, day);
+  return value.getFullYear() === year && value.getMonth() === month - 1 && value.getDate() === day
+    && year >= 1900 && year <= new Date().getFullYear();
 }
 
 interface AdminUpdateUserResult {
@@ -65,6 +83,8 @@ export async function createUser({
   name,
   lastname,
   birthYear,
+  birthMonth,
+  birthDay,
   isAdmin,
   role,
 }: CreateUserParams): Promise<CreateUserResult | undefined> {
@@ -84,6 +104,9 @@ export async function createUser({
     if (!username || !password) {
       return { error: "Faltan campos requeridos", status: 400 };
     }
+    if (!isValidBirthDate(birthYear, birthMonth, birthDay, true)) {
+      return { error: "Fecha de nacimiento inválida", status: 400 };
+    }
 
     if (await usernameExists(username)) {
       return { error: "El nombre de usuario ya existe", status: 400 };
@@ -95,6 +118,8 @@ export async function createUser({
       name: name || null,
       lastname: lastname || null,
       birthYear: birthYear || null,
+      birthMonth: birthMonth || null,
+      birthDay: birthDay || null,
       isAdmin: !!isAdmin,
       role: role || "MEMBER",
     });
@@ -131,6 +156,8 @@ export async function adminUpdateUser({
   name,
   lastname,
   birthYear,
+  birthMonth,
+  birthDay,
   isAdmin,
   role,
 }: AdminUpdateUserParams): Promise<AdminUpdateUserResult> {
@@ -148,6 +175,9 @@ export async function adminUpdateUser({
     if (!id || !username) {
       return { error: "Faltan campos requeridos", status: 400 };
     }
+    if (!isValidBirthDate(birthYear, birthMonth, birthDay, false)) {
+      return { error: "Fecha de nacimiento inválida", status: 400 };
+    }
 
     if (await usernameExists(username, id)) {
       return { error: "El nombre de usuario ya existe", status: 400 };
@@ -158,6 +188,8 @@ export async function adminUpdateUser({
       name: name || null,
       lastname: lastname || null,
       birthYear: birthYear || null,
+      birthMonth: birthMonth || null,
+      birthDay: birthDay || null,
       isAdmin: !!isAdmin,
       role: role || "MEMBER",
       ...(password && password.length > 0

@@ -84,7 +84,7 @@ export async function searchManga({ query }: SearchParams) {
     }
   }
 
-  const mangaSeriesDocs: SeriesDoc[] = seriesList.map((s) => ({
+  const mangaSeriesDocs: SeriesDoc[] = seriesList.filter((s) => sectionBySeriesId.has(s.id)).map((s) => ({
     id: `series-${s.id}`,
     title: s.title,
     slug: s.slug,

@@ -5,6 +5,7 @@ import { UserRoundPlusIcon } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import { createUser } from "@/actions/users";
 import Button from "@/components/ui/Button";
+import Switch from "@/components/ui/Switch";
 import type { Dictionary } from "@/lib/types";
 import type { Role } from "@/lib/types/auth";
 
@@ -18,6 +19,8 @@ export default function CreateUserForm({ intl }: CreateUserFormProps) {
   const [name, setName] = useState("");
   const [lastname, setLastname] = useState("");
   const [birthYear, setBirthYear] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthDay, setBirthDay] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [role, setRole] = useState<Role>("MEMBER");
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +36,8 @@ export default function CreateUserForm({ intl }: CreateUserFormProps) {
       name,
       lastname,
       birthYear: birthYear ? parseInt(birthYear) : null,
+      birthMonth: birthMonth ? parseInt(birthMonth) : null,
+      birthDay: birthDay ? parseInt(birthDay) : null,
       isAdmin,
       role,
     };
@@ -50,6 +55,8 @@ export default function CreateUserForm({ intl }: CreateUserFormProps) {
       setName("");
       setLastname("");
       setBirthYear("");
+      setBirthMonth("");
+      setBirthDay("");
       setIsAdmin(false);
       setRole("MEMBER");
       setError(null);
@@ -75,72 +82,24 @@ export default function CreateUserForm({ intl }: CreateUserFormProps) {
       {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder={intl.settings.username as string}
-          className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
-          required
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={intl.settings.password as string}
-          className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
-          required
-        />
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={intl.settings.nameOpt as string}
-          className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
-        />
-        <input
-          type="text"
-          value={lastname}
-          onChange={(e) => setLastname(e.target.value)}
-          placeholder={intl.settings.lastnameOpt as string}
-          className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
-        />
-        <input
-          type="number"
-          value={birthYear}
-          onChange={(e) => setBirthYear(e.target.value)}
-          placeholder={intl.settings.birthYearOpt as string}
-          className="bg-pearl border border-onix rounded-lg w-full px-5 py-3"
-        />
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={isAdmin}
-            onChange={() => setIsAdmin(!isAdmin)}
-            id="isAdmin"
-          />
-          <label htmlFor="isAdmin">{intl.settings.isAdmin as string}</label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder={intl.settings.username as string} className="bg-pearl border border-onix rounded-lg w-full px-5 py-3" required />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={intl.settings.password as string} className="bg-pearl border border-onix rounded-lg w-full px-5 py-3" required />
         </div>
-        <div className="flex flex-col space-y-1">
-          <label htmlFor="role">{intl.settings.role as string}</label>
-          <select
-            id="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value as Role)}
-            className="bg-pearl border border-onix rounded-lg px-5 py-3"
-          >
-            <option value="ADMIN">{intl.settings.roleAdmin as string}</option>
-            <option value="MEMBER">{intl.settings.roleMember as string}</option>
-            <option value="GUEST">{intl.settings.roleGuest as string}</option>
-          </select>
+        <div className="grid gap-4 md:grid-cols-2">
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={intl.settings.nameOpt as string} className="bg-pearl border border-onix rounded-lg w-full px-5 py-3" />
+          <input type="text" value={lastname} onChange={(e) => setLastname(e.target.value)} placeholder={intl.settings.lastnameOpt as string} className="bg-pearl border border-onix rounded-lg w-full px-5 py-3" />
         </div>
-        <Button
-          type="submit"
-          variant="lightAlt"
-          className="px-8 py-4"
-        >
-          {intl.settings.createUser as string}
-        </Button>
+        <div className="grid gap-4 md:grid-cols-3">
+          <input type="number" min="1" max="31" value={birthDay} onChange={(e) => setBirthDay(e.target.value)} placeholder={intl.settings.birthDay as string} className="bg-pearl border border-onix rounded-lg w-full px-5 py-3" required />
+          <input type="number" min="1" max="12" value={birthMonth} onChange={(e) => setBirthMonth(e.target.value)} placeholder={intl.settings.birthMonth as string} className="bg-pearl border border-onix rounded-lg w-full px-5 py-3" required />
+          <input type="number" value={birthYear} onChange={(e) => setBirthYear(e.target.value)} placeholder={intl.settings.birthYearOpt as string} className="bg-pearl border border-onix rounded-lg w-full px-5 py-3" required />
+        </div>
+        <div className="grid items-center gap-4 md:grid-cols-2">
+          <select aria-label={intl.settings.role as string} value={role} onChange={(e) => setRole(e.target.value as Role)} className="bg-pearl border border-onix rounded-lg px-5 py-3"><option value="ADMIN">{intl.settings.roleAdmin as string}</option><option value="MEMBER">{intl.settings.roleMember as string}</option><option value="GUEST">{intl.settings.roleGuest as string}</option></select>
+          <div className="flex items-center justify-between gap-4 px-5 py-3"><span>{intl.settings.isAdmin as string}</span><Switch checked={isAdmin} onCheckedChange={setIsAdmin} /></div>
+        </div>
+        <Button type="submit" variant="lightAlt" className="px-8 py-4">{intl.settings.createUser as string}</Button>
       </form>
     </div>
   );

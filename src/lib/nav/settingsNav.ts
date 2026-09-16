@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { FolderCogIcon, LayoutPanelTopIcon } from "lucide-react";
+import { FolderCogIcon, LayoutPanelTopIcon, ShieldCheckIcon } from "lucide-react";
 import type { Dictionary } from "@/lib/types";
 
 export interface SettingsNavLink {
@@ -34,6 +34,12 @@ export function getSettingsNavLinks({
       href: `/${lang}/settings/library`,
       icon: FolderCogIcon,
       isActive: pathname.startsWith(`/${lang}/settings/library`),
+    },
+    {
+      label: intl.settings.parentalControl as string,
+      href: `/${lang}/settings/parental-control`,
+      icon: ShieldCheckIcon,
+      isActive: pathname.startsWith(`/${lang}/settings/parental-control`),
     },
   ];
 }

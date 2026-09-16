@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BellIcon,
   LayoutPanelTopIcon,
+  ShieldCheckIcon,
   UserRoundPenIcon,
 } from "lucide-react";
 import type { DictionarySection } from "@/lib/types";
@@ -44,6 +45,12 @@ export function getProfileNavLinks({
       href: `/${lang}/profile/notifications`,
       icon: BellIcon,
       isActive: pathname === `/${lang}/profile/notifications`,
+    },
+    {
+      label: profile.parentalControl as string,
+      href: `/${lang}/profile/parental-control`,
+      icon: ShieldCheckIcon,
+      isActive: pathname === `/${lang}/profile/parental-control`,
     },
   ];
 }

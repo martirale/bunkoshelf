@@ -2,6 +2,8 @@ import { createId } from "@paralleldrive/cuid2";
 import { buildNaturalSortKey } from "@/lib/naturalSort";
 import type { EpubMetadata } from "@/lib/books/types";
 import { execute, query, queryOne } from "../query";
+import { getCurrentContentVisibilityPolicy } from "@/lib/parentalControlServer";
+import { canViewAgeRating } from "@/lib/parentalControl";
 
 export type BookLibrarySection = "books" | "other";
 
@@ -41,6 +43,7 @@ export interface BookSearchEntry {
   librarySection: BookLibrarySection;
   writer: string;
   subjects: string;
+  ageRating: string | null;
 }
 
 export interface BookSubjectFilter {
@@ -176,6 +179,11 @@ async function hydrateMetadata(volume: BookVolume): Promise<BookVolume> {
   return volume;
 }
 
+async function filterVisibleBooks(books: BookVolume[]): Promise<BookVolume[]> {
+  const policy = await getCurrentContentVisibilityPolicy();
+  return books.filter((book) => canViewAgeRating(book.metadata.ageRating, "book", policy));
+}
+
 export async function upsertBook(input: {
   seriesTitle: string;
   seriesPath: string;
@@ -246,22 +254,28 @@ export async function upsertBook(input: {
   ]);
   await execute(`DELETE FROM book_series
     WHERE id <> $1 AND NOT EXISTS (SELECT 1 FROM book_volumes WHERE book_volumes.series_id = book_series.id)`, [series.id]);
-  const result = await findBookVolumeBySlug(input.volumeSlug);
+  const result = await findBookVolumeBySlugRaw(input.volumeSlug);
   if (!result) throw new Error("Failed to read indexed book");
   return result;
 }
 
 export async function findBookVolumeBySlug(slug: string): Promise<BookVolume | null> {
+  const volume = await findBookVolumeBySlugRaw(slug);
+  return (await filterVisibleBooks(volume ? [volume] : []))[0] ?? null;
+}
+
+async function findBookVolumeBySlugRaw(slug: string): Promise<BookVolume | null> {
   const row = await queryOne<BookRow>(`${BOOK_SELECT} WHERE bv.slug = $1 LIMIT 1`, [slug]);
   return row ? hydrateMetadata(mapBook(row)) : null;
 }
 
 export async function findBookFileBySlug(slug: string): Promise<{ filename: string; fullPath: string } | null> {
-  const row = await queryOne<{ filename: string; full_path: string }>(
-    "SELECT filename, full_path FROM book_volumes WHERE slug = $1 LIMIT 1",
+  const row = await queryOne<{ filename: string; full_path: string; age_rating: string | null }>(
+    "SELECT bv.filename, bv.full_path, bm.age_rating FROM book_volumes bv INNER JOIN book_metadata bm ON bm.volume_id = bv.id WHERE bv.slug = $1 LIMIT 1",
     [slug],
   );
-  return row ? { filename: row.filename, fullPath: row.full_path } : null;
+  const policy = await getCurrentContentVisibilityPolicy();
+  return row && canViewAgeRating(row.age_rating, "book", policy) ? { filename: row.filename, fullPath: row.full_path } : null;
 }
 
 export async function listBookVolumes(options?: {
@@ -359,7 +373,7 @@ export async function listBookVolumes(options?: {
   const limit = options?.limit ?? 100;
   params.push(limit);
   const rows = await query<BookRow>(`${BOOK_SELECT}${where} ORDER BY bs.sort_title, bv.number NULLS LAST, bv.sort_title LIMIT $${params.length}`, params);
-  return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
+  return filterVisibleBooks(await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row)))));
 }
 
 export async function listBookLibraryFilters(): Promise<{
@@ -493,7 +507,7 @@ export async function classifyBookSubjects(subjectNames: string[]): Promise<Book
 
 export async function listRecentlyAddedBooks(limit = 8, librarySection: BookLibrarySection = "books"): Promise<BookVolume[]> {
   const rows = await query<BookRow>(`${BOOK_SELECT} WHERE bs.library_section = $1 ORDER BY bv.created_at DESC LIMIT $2`, [librarySection, limit]);
-  return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
+  return filterVisibleBooks(await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row)))));
 }
 
 export async function listFavoriteBookSeries(userId: string, options: { page: number; pageSize: number }) {
@@ -534,7 +548,7 @@ export async function listFavoriteBookVolumes(userId: string, options: { page: n
     WHERE ub.user_id = $1 AND ub.is_favorite = TRUE AND bs.library_section = 'books'
     ORDER BY bs.sort_title, bv.number NULLS LAST, bv.sort_title
     LIMIT $2 OFFSET $3`, [userId, options.pageSize, offset]);
-  const items = await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
+  const items = await filterVisibleBooks(await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row)))));
 
   return { items, total, totalPages: Math.max(1, Math.ceil(total / options.pageSize)) };
 }
@@ -545,11 +559,12 @@ export async function listBooksInProgress(userId: string, limit = 12, librarySec
     INNER JOIN user_to_books ub ON ub.volume_id = bv.id
     WHERE ub.user_id = $1 AND ub.cfi IS NOT NULL AND ub.is_read = FALSE AND bs.library_section = $2
     ORDER BY ub.last_read_at DESC NULLS LAST LIMIT $3`, [userId, librarySection, limit]);
-  const books = await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
-  return books.map((book, index) => ({
+  const books = await filterVisibleBooks(await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row)))));
+  const progressById = new Map(rows.map((row) => [row.volume_id, row]));
+  return books.map((book) => ({
     ...book,
-    progression: Number(rows[index].progression ?? 0),
-    lastReadAt: rows[index].last_read_at,
+    progression: Number(progressById.get(book.id)?.progression ?? 0),
+    lastReadAt: progressById.get(book.id)?.last_read_at ?? null,
   }));
 }
 
@@ -591,7 +606,7 @@ export async function listRecentlyReadBooks(userId: string, limit = 12): Promise
     INNER JOIN user_to_books ub ON ub.volume_id = bv.id
     WHERE ub.user_id = $1 AND ub.is_read = TRUE AND ub.last_read_at IS NOT NULL AND bs.library_section = 'books'
     ORDER BY ub.last_read_at DESC LIMIT $2`, [userId, limit]);
-  return Promise.all(rows.map((row) => hydrateMetadata(mapBook(row))));
+  return filterVisibleBooks(await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row)))));
 }
 
 export async function listBookSeries(): Promise<Array<BookSeries & { volumeCount: number }>> {
@@ -605,8 +620,8 @@ export async function listBookSeries(): Promise<Array<BookSeries & { volumeCount
 }
 
 export async function listBookSearchEntries(): Promise<BookSearchEntry[]> {
-  return query<BookSearchEntry>(`
-    SELECT bv.id, bv.slug, bm.title,
+  const entries = await query<BookSearchEntry>(`
+    SELECT bv.id, bv.slug, bm.title, bm.age_rating AS "ageRating",
       bs.id AS "seriesId", bs.slug AS "seriesSlug", bs.title AS "seriesTitle",
       bs.is_oneshot AS "seriesIsOneshot", bs.library_section AS "librarySection",
       COALESCE(
@@ -626,9 +641,11 @@ export async function listBookSearchEntries(): Promise<BookSearchEntry[]> {
     INNER JOIN book_metadata bm ON bm.volume_id = bv.id
     LEFT JOIN book_people bp ON bp.metadata_id = bm.id
     LEFT JOIN book_subjects bsub ON bsub.metadata_id = bm.id
-    GROUP BY bv.id, bv.slug, bv.number, bv.sort_title, bm.title, bs.id, bs.slug, bs.title, bs.is_oneshot, bs.library_section, bs.sort_title
+    GROUP BY bv.id, bv.slug, bv.number, bv.sort_title, bm.title, bm.age_rating, bs.id, bs.slug, bs.title, bs.is_oneshot, bs.library_section, bs.sort_title
     ORDER BY bs.sort_title, bv.number NULLS LAST, bv.sort_title
   `);
+  const policy = await getCurrentContentVisibilityPolicy();
+  return entries.filter((entry) => canViewAgeRating(entry.ageRating, "book", policy));
 }
 
 export async function findBookSeriesBySlug(slug: string): Promise<BookSeries | null> {

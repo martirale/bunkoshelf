@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { findBookVolumeBySlug } from "@/lib/db/books/library";
 import { getEpubEntry } from "@/lib/books/epubParser";
 import { readBookFile } from "@/lib/books/storage";
+import { verifySession } from "@/lib/auth/verifySession";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string[] }> }) {
+  if (!(await verifySession())) return NextResponse.json({ error: "Cover not found" }, { status: 404 });
   const { slug: parts } = await params;
   const slug = parts[0];
   if (!slug) return NextResponse.json({ error: "Missing book" }, { status: 400 });

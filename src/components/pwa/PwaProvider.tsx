@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { flushOfflineOperations, getReadyVolumes, resumeOfflineDownloads } from "@/lib/client/offlineLibrary";
+import { flushOfflineOperations, getReadyVolumes, purgeRestrictedVolumes, resumeOfflineDownloads, type OfflineContentVisibilityPolicy } from "@/lib/client/offlineLibrary";
 
 interface PwaContextValue {
   online: boolean;
@@ -30,7 +30,7 @@ function subscribe(callback: () => void) {
   };
 }
 
-export default function PwaProvider({ userId, children }: { userId?: string; children: React.ReactNode }) {
+export default function PwaProvider({ userId, contentVisibility, children }: { userId?: string; contentVisibility: OfflineContentVisibilityPolicy; children: React.ReactNode }) {
   const online = useSyncExternalStore(subscribe, () => navigator.onLine, () => true);
   const router = useRouter();
   const [offlineSlugs, setOfflineSlugs] = useState<Set<string>>(new Set());
@@ -90,6 +90,11 @@ export default function PwaProvider({ userId, children }: { userId?: string; chi
     window.addEventListener("bunko:offline-change", load);
     return () => window.removeEventListener("bunko:offline-change", load);
   }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    void purgeRestrictedVolumes(userId, contentVisibility);
+  }, [contentVisibility, userId]);
 
   useEffect(() => {
     document.documentElement.dataset.offline = online ? "false" : "true";

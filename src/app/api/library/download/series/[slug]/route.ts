@@ -2,10 +2,7 @@ import { NextResponse, connection } from "next/server";
 import { Readable } from "node:stream";
 import { GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { verifySession } from "@/lib/auth/verifySession";
-import {
-  findSeriesBySlugBasic,
-  listVolumesBySeriesId,
-} from "@/lib/db/ingestion";
+import { findSeriesBySlug } from "@/lib/db/library";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { createZipStream } from "@/lib/zipStream";
 
@@ -48,12 +45,12 @@ export async function GET(
       return NextResponse.json({ error: "Missing series slug" }, { status: 400 });
     }
 
-    const series = await findSeriesBySlugBasic(slug);
+    const series = await findSeriesBySlug({ slug });
     if (!series) {
       return NextResponse.json({ error: "Series not found" }, { status: 404 });
     }
 
-    const volumes = await listVolumesBySeriesId(series.id);
+    const volumes = series.volumes;
     if (volumes.length === 0) {
       return NextResponse.json({ error: "Series has no volumes" }, { status: 404 });
     }

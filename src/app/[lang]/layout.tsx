@@ -14,6 +14,8 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import { getChallengeData } from "@/lib/utils";
 import { getVersionInfo } from "@/lib/versionInfo";
 import { getLibrarySectionCounts } from "@/lib/db/library";
+import { getAppSettings } from "@/lib/db/appSettings";
+import { getContentVisibilityPolicy } from "@/lib/parentalControl";
 import type { Locale } from "@/lib/types";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
@@ -48,11 +50,12 @@ async function AppShell({
 }) {
   await connection();
 
-  const [intl, user, versionData, libraryCounts] = await Promise.all([
+  const [intl, user, versionData, libraryCounts, appSettings] = await Promise.all([
     getDictionary(lang),
     verifySession(),
     getVersionInfo(),
     getLibrarySectionCounts(),
+    getAppSettings(),
   ]);
   const challengeData = user?.role === "GUEST" ? null : await getChallengeData(user);
 
@@ -75,7 +78,7 @@ async function AppShell({
         libraryCounts={libraryCounts}
       />
       <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
-        <PwaProvider userId={user?.id}>
+        <PwaProvider userId={user?.id} contentVisibility={getContentVisibilityPolicy(user, appSettings.parentalControlEnabled, appSettings.parentalControlMode)}>
           <ToastProvider>
             <AlertDialogProvider
               labels={{

@@ -21,7 +21,9 @@
     "edit": "Editar",
     "nameOpt": "Nombre (opcional)",
     "lastnameOpt": "Apellido (opcional)",
-    "birthYearOpt": "Año de nacimiento (opcional)",
+    "birthYearOpt": "Año de nacimiento",
+    "birthMonth": "Mes de nacimiento",
+    "birthDay": "Día de nacimiento",
     "isAdmin": "Super Admin",
     "role": "Rol",
     "roleAdmin": "Admin",
@@ -71,6 +73,16 @@
     "regeneratingCovers": "Regenerando...",
     "regenerateCovers": "Regenerar portadas",
     "reprocessingMeta": "Procesando...",
-    "reprocessMetadata": "Procesar metadatos"
+    "reprocessMetadata": "Procesar metadatos",
+    "parentalControl": "Control parental",
+    "parentalControlGlobalHelp": "Activa la protección por edad para toda la biblioteca. Los adultos conservan control sobre sus propios filtros.",
+    "parentalControlGlobalOn": "El control parental global está activado.",
+    "parentalControlGlobalOff": "El control parental global está desactivado.",
+    "parentalControlGlobalLevel": "Nivel global",
+    "parentalControlFlexible": "Flexible",
+    "parentalControlStrict": "Estricto",
+    "parentalControlGlobalFlexibleHelp": "Protege a menores según su edad y permite a los adultos elegir su propio filtro.",
+    "parentalControlGlobalStrictHelp": "Aplica un límite de 15+ y oculta obras sin clasificación para cuentas de menores.",
+    "parentalControlUpdateError": "No se pudo actualizar el control parental."
   }
 }

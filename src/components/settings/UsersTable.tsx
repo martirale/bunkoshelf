@@ -14,6 +14,8 @@ interface UserRow {
   name: string | null;
   lastname: string | null;
   birthYear: number | null;
+  birthMonth: number | null;
+  birthDay: number | null;
 }
 
 interface UsersTableProps {

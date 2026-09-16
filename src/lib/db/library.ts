@@ -6,6 +6,8 @@ import {
 } from "@/lib/librarySection";
 import { MANGA_LIBRARY_TAG } from "@/lib/mangaLibraryCache";
 import { query, queryOne } from "./query";
+import { getCurrentContentVisibilityPolicy } from "@/lib/parentalControlServer";
+import { canViewAgeRating, type ContentVisibilityPolicy } from "@/lib/parentalControl";
 
 export interface GenreFilter {
   id: string;
@@ -147,6 +149,7 @@ interface FindSeriesOptions {
 }
 
 export interface SeriesVolumeAggregate {
+  ageRating: string | null;
   communityRating: number | null;
   format: string | null;
   id: string;
@@ -677,6 +680,9 @@ export async function listPagedCatalogLibraryVolumes(
   options?: PagedQueryOptions & { userId?: string | null }
 ): Promise<PaginatedResult<CatalogLibraryVolume>> {
   const pagination = buildPagination(options);
+  const policy = await getCurrentContentVisibilityPolicy();
+  const catalogLimit = policy.enabled ? 50_000 : pagination.pageSize;
+  const catalogOffset = policy.enabled ? 0 : pagination.offset;
 
   const [countRow, rows] = await Promise.all([
     queryOne<{ total: string | number }>(
@@ -790,19 +796,22 @@ export async function listPagedCatalogLibraryVolumes(
         LIMIT $2
         OFFSET $3
       `,
-      [options?.userId ?? null, pagination.pageSize, pagination.offset]
+      [options?.userId ?? null, catalogLimit, catalogOffset]
     ),
   ]);
 
   const total = parseCount(countRow?.total ?? 0);
 
-  return mapPaginatedResult(
-    rows.map((row) => ({
+  const items: CatalogLibraryVolume[] = rows.filter((row) => canViewAgeRating(
+    row.age_rating,
+    row.library_section === "books" ? "book" : "manga",
+    policy
+  )).map((row) => ({
       id: row.id,
       slug: row.slug,
-      section: row.library_section === "books"
+      section: (row.library_section === "books"
         ? "books"
-        : getLibrarySection(row.library_section),
+        : getLibrarySection(row.library_section)) as CatalogLibraryVolume["section"],
       title: row.title,
       series: row.series,
       number: row.number,
@@ -814,8 +823,13 @@ export async function listPagedCatalogLibraryVolumes(
       gtin: row.gtin,
       isRead: row.is_read === true,
       isFavorite: row.is_favorite === true,
-    })),
-    total,
+    }));
+
+  return mapPaginatedResult(
+    policy.enabled
+      ? items.slice(pagination.offset, pagination.offset + pagination.pageSize)
+      : items,
+    policy.enabled ? items.length : total,
     pagination
   );
 }
@@ -1364,11 +1378,10 @@ async function listVolumesCached(options: SharedVolumeQueryOptions = {}) {
 export async function listVolumes(
   options?: VolumeQueryOptions
 ): Promise<LibraryVolume[]> {
-  if (options?.userId || options?.onlyUnreadForUser) {
-    return listVolumesRaw(options);
-  }
-
-  return listVolumesCached({
+  const policy = await getCurrentContentVisibilityPolicy();
+  const result = options?.userId || options?.onlyUnreadForUser
+    ? await listVolumesRaw(options)
+    : await listVolumesCached({
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
     authorNames: options?.authorNames,
@@ -1377,7 +1390,12 @@ export async function listVolumes(
     seriesIds: options?.seriesIds,
     volumeIds: options?.volumeIds,
     scope: options?.scope,
-  });
+    });
+  return filterVisibleVolumes(result, policy);
+}
+
+function filterVisibleVolumes(volumes: LibraryVolume[], policy: ContentVisibilityPolicy): LibraryVolume[] {
+  return volumes.filter((volume) => canViewAgeRating(volume.metadataObj?.ageRating, "manga", policy));
 }
 
 async function listPagedVolumeIdsRaw(
@@ -1451,6 +1469,23 @@ export async function listPagedVolumes(
       includeTags?: boolean;
     }
 ): Promise<PaginatedResult<LibraryVolume>> {
+  const policy = await getCurrentContentVisibilityPolicy();
+  if (policy.enabled) {
+    const all = await listVolumes({
+      includeGenres: options?.includeGenres,
+      includeTags: options?.includeTags,
+      authorNames: options?.authorNames,
+      genreNames: options?.genreNames,
+      tagNames: options?.tagNames,
+      seriesIds: options?.seriesIds,
+      volumeIds: options?.volumeIds,
+      userId: options?.userId,
+      onlyUnreadForUser: options?.onlyUnreadForUser,
+      scope: options?.scope,
+    });
+    const pagination = buildPagination(options);
+    return mapPaginatedResult(all.slice(pagination.offset, pagination.offset + pagination.pageSize), all.length, pagination);
+  }
   const pagedIds = options?.userId || options?.onlyUnreadForUser
     ? await listPagedVolumeIdsRaw(options)
     : await listPagedVolumeIdsCached({
@@ -1600,7 +1635,8 @@ async function listSeriesWithVolumesCached(
 export async function listSeriesWithVolumes(
   options?: SharedSeriesQueryOptions
 ): Promise<LibrarySeriesWithVolumes[]> {
-  return listSeriesWithVolumesCached({
+  const policy = await getCurrentContentVisibilityPolicy();
+  const series = await listSeriesWithVolumesCached({
     authorNames: options?.authorNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
@@ -1609,6 +1645,7 @@ export async function listSeriesWithVolumes(
     includeTags: options?.includeTags,
     scope: options?.scope,
   });
+  return series.map((entry) => ({ ...entry, volumes: filterVisibleVolumes(entry.volumes, policy) })).filter((entry) => entry.volumes.length > 0);
 }
 
 async function listPagedSeriesIdsRaw(
@@ -1689,6 +1726,20 @@ export async function listPagedSeriesWithVolumes(
       excludeOneshots?: boolean;
     }
 ): Promise<PaginatedResult<LibrarySeriesWithVolumes>> {
+  const policy = await getCurrentContentVisibilityPolicy();
+  if (policy.enabled) {
+    const all = await listSeriesWithVolumes({
+      authorNames: options?.authorNames,
+      genreNames: options?.genreNames,
+      tagNames: options?.tagNames,
+      seriesIds: options?.seriesIds,
+      includeGenres: options?.includeGenres,
+      includeTags: options?.includeTags,
+      scope: options?.scope,
+    });
+    const pagination = buildPagination(options);
+    return mapPaginatedResult(all.slice(pagination.offset, pagination.offset + pagination.pageSize), all.length, pagination);
+  }
   const pagedIds = await listPagedSeriesIdsCached({
     authorNames: options?.authorNames,
     genreNames: options?.genreNames,
@@ -1844,7 +1895,8 @@ export async function listSeriesVolumeAggregates(
 ): Promise<SeriesVolumeAggregate[]> {
   return query<{
     volume_id: string;
-    community_rating: number | null;
+      community_rating: number | null;
+      age_rating: string | null;
     writer: string | null;
     penciller: string | null;
     inker: string | null;
@@ -1860,6 +1912,7 @@ export async function listSeriesVolumeAggregates(
       SELECT
         mv.id AS volume_id,
         vm.community_rating,
+        vm.age_rating,
         vm.writer,
         vm.penciller,
         vm.inker,
@@ -1876,9 +1929,11 @@ export async function listSeriesVolumeAggregates(
       ORDER BY mv.sort_title ASC, mv.id ASC
     `,
     [seriesId]
-  ).then((rows) =>
-    rows.map((row) => ({
+  ).then(async (rows) => {
+    const policy = await getCurrentContentVisibilityPolicy();
+    return rows.filter((row) => canViewAgeRating(row.age_rating, "manga", policy)).map((row) => ({
       id: row.volume_id,
+      ageRating: row.age_rating,
       communityRating: row.community_rating,
       writer: row.writer,
       penciller: row.penciller,
@@ -1890,8 +1945,8 @@ export async function listSeriesVolumeAggregates(
       publisher: row.publisher,
       imprint: row.imprint,
       format: row.format,
-    }))
-  );
+    }));
+  });
 }
 
 async function findSeriesBySlugRaw(
@@ -1934,11 +1989,11 @@ async function findSeriesBySlugCached(options: FindSeriesOptions) {
 export async function findSeriesBySlug(
   options: FindSeriesOptions
 ): Promise<LibrarySeriesWithVolumes | null> {
-  if (options.userId) {
-    return findSeriesBySlugRaw(options);
-  }
-
-  return findSeriesBySlugCached(options);
+  const series = options.userId ? await findSeriesBySlugRaw(options) : await findSeriesBySlugCached(options);
+  if (!series) return null;
+  const policy = await getCurrentContentVisibilityPolicy();
+  const volumes = filterVisibleVolumes(series.volumes, policy);
+  return volumes.length ? { ...series, volumes } : null;
 }
 
 async function findVolumeBySlugRaw(
@@ -1981,16 +2036,15 @@ async function findVolumeBySlugCached(options: FindSeriesOptions) {
 export async function findVolumeBySlug(
   options: FindVolumeOptions
 ): Promise<LibraryVolume | null> {
-  if (options.userId) {
-    return findVolumeBySlugRaw(options);
-  }
-
-  return findVolumeBySlugCached({
+  const volume = options.userId ? await findVolumeBySlugRaw(options) : await findVolumeBySlugCached({
     slug: options.slug,
     includeGenres: options.includeGenres,
     includeTags: options.includeTags,
     scope: options.scope,
   });
+  if (!volume) return null;
+  const policy = await getCurrentContentVisibilityPolicy();
+  return canViewAgeRating(volume.metadataObj?.ageRating, "manga", policy) ? volume : null;
 }
 
 export async function findVolumePageCountById(
