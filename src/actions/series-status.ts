@@ -2,6 +2,7 @@
 
 import { verifySession } from "@/lib/auth/verifySession";
 import { queryOne } from "@/lib/db/query";
+import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 
 interface UpdateSeriesStatusParams {
   seriesId: string | number | null | undefined;
@@ -44,6 +45,8 @@ export async function updateSeriesStatus({ seriesId, status }: UpdateSeriesStatu
     if (!updated) {
       return { error: "no encontrado", status: 404 };
     }
+
+    revalidateMangaLibraryCache();
 
     return { status: updated.status, statusCode: 200 };
   } catch (err) {

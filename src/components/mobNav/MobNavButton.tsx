@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { MenuIcon, SearchIcon } from "lucide-react";
 import MobNavModal from "./MobNavModal";
-import Button from "@/components/ui/Button";
 import type { Dictionary, Session, ChallengeData } from "@/lib/types";
 import type { VersionInfo } from "@/lib/versionInfo";
 import type { LibrarySectionCounts } from "@/lib/db/library";
@@ -31,9 +30,7 @@ export default function MobNavButton({
   const pathname = usePathname();
 
   useEffect(() => {
-    if (open) {
-      setOpen(false);
-    }
+    setOpen(false);
   }, [pathname]);
 
   return (
@@ -46,15 +43,13 @@ export default function MobNavButton({
         <SearchIcon size={28} className="text-onix" />
       </Link>
 
-      <Button
+      <button
         onClick={() => setOpen(true)}
-        variant="light"
-        size="icon"
-        className="size-14 rounded-full"
+        className="bg-pearl border border-stone-300 rounded-full p-3"
         aria-label="Open menu"
       >
         <MenuIcon size={28} className="text-onix" />
-      </Button>
+      </button>
 
       <MobNavModal
         isOpen={open}
