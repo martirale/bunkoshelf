@@ -3,6 +3,17 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   output: "standalone",
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/node-unrar-js/esm/js/unrar.wasm"],
+  },
+  turbopack: {
+    ignoreIssue: [
+      {
+        path: "./next.config.ts",
+        title: "Encountered unexpected file in NFT list",
+      },
+    ],
+  },
   images: {
     localPatterns: [
       {

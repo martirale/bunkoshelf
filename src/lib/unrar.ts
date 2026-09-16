@@ -1,8 +1,14 @@
 import fsp from "fs/promises";
-import { createRequire } from "module";
+import path from "path";
 
-const require = createRequire(import.meta.url);
-const unrarWasmPath = require.resolve("node-unrar-js/esm/js/unrar.wasm");
+const unrarWasmPath = path.join(
+  /*turbopackIgnore: true*/ process.cwd(),
+  "node_modules",
+  "node-unrar-js",
+  "esm",
+  "js",
+  "unrar.wasm"
+);
 
 export async function loadUnrarWasmBinary(): Promise<Buffer> {
   return fsp.readFile(unrarWasmPath);
