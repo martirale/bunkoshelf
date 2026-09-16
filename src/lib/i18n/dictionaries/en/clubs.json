@@ -58,6 +58,7 @@
     "startVote": "Start vote",
     "chooseDifferentWorks": "Choose a different work for each candidate.",
     "voteDeadlineRequired": "Choose a future date before starting the vote.",
+    "votingMustClose": "Voting must close before choosing a work.",
     "archive": "Archive club",
     "milestones": "Milestones",
     "milestoneLabel": "For example, Volume 3",
@@ -70,6 +71,6 @@
     "joinGuest": "Join as a guest",
     "username": "Username",
     "password": "Password (8 characters minimum)",
-    "createGuest": "Create access and request"
+    "createGuest": "Request"
   }
 }

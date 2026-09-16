@@ -54,7 +54,7 @@ async function AppShell({
     getVersionInfo(),
     getLibrarySectionCounts(),
   ]);
-  const challengeData = await getChallengeData(user);
+  const challengeData = user?.role === "GUEST" ? null : await getChallengeData(user);
 
   return (
     <>

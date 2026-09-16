@@ -81,7 +81,7 @@ export async function requestToJoinClub(slug: string): Promise<Result> {
 
 export async function joinClubAsGuest(input: { token: string; username: string; password: string }): Promise<Result & { slug?: string }> {
   const invite = await findFixedClubInvite(input.token);
-  const username = input.username.trim();
+  const username = input.username.trim().toLowerCase().replace(/\s+/g, "");
   if (!invite || invite.club_status !== "ACTIVE") return { success: false, error: "Invalid invitation" };
   if (!/^[a-zA-Z0-9_-]{3,32}$/.test(username) || input.password.length < 8) return { success: false, error: "Use a name of 3–32 characters and a password of at least 8 characters" };
   if (await usernameExists(username)) return { success: false, error: "That name is already in use" };

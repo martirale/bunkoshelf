@@ -58,6 +58,7 @@
     "startVote": "Iniciar votación",
     "chooseDifferentWorks": "Elegí obras distintas para cada candidata.",
     "voteDeadlineRequired": "Definí una fecha futura para iniciar la votación.",
+    "votingMustClose": "La votación debe cerrar antes de elegir una obra.",
     "archive": "Archivar club",
     "milestones": "Hitos",
     "milestoneLabel": "Ej. Volumen 3",
@@ -70,6 +71,6 @@
     "joinGuest": "Unirme como invitado",
     "username": "Nombre de usuario",
     "password": "Contraseña (8 caracteres mínimo)",
-    "createGuest": "Crear acceso y solicitar"
+    "createGuest": "Solicitar"
   }
 }
