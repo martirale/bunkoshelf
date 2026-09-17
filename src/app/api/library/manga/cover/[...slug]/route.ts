@@ -3,8 +3,7 @@ import fs from "fs/promises";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import type { NextRequest } from "next/server";
-import { findVolumeBySlug } from "@/lib/db/library";
-import { verifySession } from "@/lib/auth/verifySession";
+import { findVolumeBySlugBasic } from "@/lib/db/ingestion";
 
 const LIB_PROVIDER = process.env.LIB_PROVIDER || "local";
 
@@ -12,7 +11,6 @@ export async function GET(
   _req: NextRequest,
   context: { params: Promise<{ slug: string[] }> }
 ) {
-  if (!(await verifySession())) return servePlaceholder();
   const params = await context.params;
   const segments = params?.slug;
 
@@ -22,14 +20,14 @@ export async function GET(
 
   const volumeSlug = segments[0];
 
-  const volume = await findVolumeBySlug({ slug: volumeSlug });
+  const volume = await findVolumeBySlugBasic(volumeSlug);
 
-  if (!volume || !volume.coverImage || !volume.series.path) {
+  if (!volume || !volume.coverImage || !volume.seriesPath) {
     return servePlaceholder();
   }
   try {
     if (LIB_PROVIDER === "cloud") {
-      const seriesPath = volume.series.path.replace(/^\//, "");
+      const seriesPath = volume.seriesPath.replace(/^\//, "");
       const coverKey = `${seriesPath}/${volume.coverImage}`;
 
       const command = new GetObjectCommand({
@@ -48,7 +46,7 @@ export async function GET(
         },
       });
     } else {
-      const coverPath = path.join(volume.series.path, volume.coverImage);
+      const coverPath = path.join(volume.seriesPath, volume.coverImage);
 
       await fs.access(coverPath);
       const file = await fs.readFile(coverPath);
