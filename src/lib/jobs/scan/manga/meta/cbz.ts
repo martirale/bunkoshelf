@@ -4,6 +4,7 @@ import xml2js from "xml2js";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import type { StorageProvider, ComicMetadata, ComicInfoResult } from "@/lib/types";
+import { normalizeComicInfoXml } from "@/lib/comicInfoXml";
 
 const parser = new xml2js.Parser();
 
@@ -18,7 +19,7 @@ async function parseXmlContent(xml: string): Promise<Record<string, string[]> | 
   let error: Error | null = null;
 
   try {
-    const result = await parser.parseStringPromise(xml.replace(/^\uFEFF/, ""));
+    const result = await parser.parseStringPromise(normalizeComicInfoXml(xml));
     const comicInfoKey = Object.keys(result).find(
       (key) => key.toLowerCase() === "comicinfo"
     );

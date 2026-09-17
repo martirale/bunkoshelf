@@ -1,4 +1,5 @@
 import type { ComicMetadata, ComicInfoResult } from "@/lib/types";
+import { normalizeComicInfoXml } from "@/lib/comicInfoXml";
 
 function getTextContent(doc: Element, tagName: string): string | null {
   const el = doc.getElementsByTagNameNS("*", tagName)[0] ?? doc.getElementsByTagName(tagName)[0];
@@ -68,7 +69,7 @@ function extractGenresAndTags(doc: Element): { genres: string[]; tags: string[] 
 
 export function parseComicInfo(xmlString: string): ComicInfoResult | null {
   const parser = new DOMParser();
-  const doc = parser.parseFromString(xmlString, "text/xml");
+  const doc = parser.parseFromString(normalizeComicInfoXml(xmlString), "text/xml");
 
   const errorNode = doc.querySelector("parsererror");
   if (errorNode) {
