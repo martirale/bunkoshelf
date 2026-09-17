@@ -8,7 +8,12 @@ import r2Client, { R2_BUCKET } from "@/lib/r2";
 import { loadUnrarWasmBinary } from "@/lib/unrar";
 import type { StorageProvider } from "@/lib/types";
 
-const wasmBinary = await loadUnrarWasmBinary();
+let wasmBinaryPromise: Promise<Buffer> | null = null;
+
+function getWasmBinary(): Promise<Buffer> {
+  wasmBinaryPromise ??= loadUnrarWasmBinary();
+  return wasmBinaryPromise;
+}
 
 async function extractCoverFromR2(fullPath: string, outputDir: string): Promise<string | null> {
   let error: Error | null = null;
@@ -22,6 +27,7 @@ async function extractCoverFromR2(fullPath: string, outputDir: string): Promise<
 
     const buffer = Buffer.from(await response.Body!.transformToByteArray());
 
+    const wasmBinary = await getWasmBinary();
     const extractor = await createExtractorFromData({
       data: new Uint8Array(buffer).buffer as ArrayBuffer,
       wasmBinary: new Uint8Array(wasmBinary).buffer as ArrayBuffer,
@@ -86,6 +92,7 @@ async function extractCoverLocal(filePath: string, outputDir: string): Promise<s
     }
 
     const buffer = await fsp.readFile(filePath);
+    const wasmBinary = await getWasmBinary();
     const extractor = await createExtractorFromData({
       data: new Uint8Array(buffer).buffer as ArrayBuffer,
       wasmBinary: new Uint8Array(wasmBinary).buffer as ArrayBuffer,

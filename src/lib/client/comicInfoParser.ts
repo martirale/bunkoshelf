@@ -1,7 +1,7 @@
 import type { ComicMetadata, ComicInfoResult } from "@/lib/types";
 
 function getTextContent(doc: Element, tagName: string): string | null {
-  const el = doc.getElementsByTagName(tagName)[0];
+  const el = doc.getElementsByTagNameNS("*", tagName)[0] ?? doc.getElementsByTagName(tagName)[0];
   return el ? el.textContent || null : null;
 }
 
@@ -76,7 +76,9 @@ export function parseComicInfo(xmlString: string): ComicInfoResult | null {
     return null;
   }
 
-  const comicInfo = doc.getElementsByTagName("ComicInfo")[0];
+  const comicInfo = doc.documentElement?.localName.toLowerCase() === "comicinfo"
+    ? doc.documentElement
+    : doc.getElementsByTagNameNS("*", "ComicInfo")[0] ?? doc.getElementsByTagName("ComicInfo")[0];
   if (!comicInfo) {
     return null;
   }

@@ -7,12 +7,22 @@ import type { StorageProvider, ComicMetadata, ComicInfoResult } from "@/lib/type
 
 const parser = new xml2js.Parser();
 
+function findComicInfoEntry(zip: AdmZip) {
+  return zip.getEntries().find((entry) => {
+    const name = entry.entryName.split(/[\\/]/).pop();
+    return !entry.isDirectory && name?.toLowerCase() === "comicinfo.xml";
+  });
+}
+
 async function parseXmlContent(xml: string): Promise<Record<string, string[]> | null> {
   let error: Error | null = null;
 
   try {
-    const result = await parser.parseStringPromise(xml);
-    return result && result.ComicInfo ? result.ComicInfo : null;
+    const result = await parser.parseStringPromise(xml.replace(/^\uFEFF/, ""));
+    const comicInfoKey = Object.keys(result).find(
+      (key) => key.toLowerCase() === "comicinfo"
+    );
+    return comicInfoKey ? result[comicInfoKey] : null;
   } catch (err) {
     error = err as Error;
   } finally {
@@ -37,7 +47,7 @@ async function extractMetaFromR2(fullPath: string): Promise<Record<string, strin
 
     const buffer = Buffer.from(await response.Body!.transformToByteArray());
     const zip = new AdmZip(buffer);
-    const comicInfoEntry = zip.getEntry("ComicInfo.xml");
+    const comicInfoEntry = findComicInfoEntry(zip);
 
     if (!comicInfoEntry) {
       console.warn(`ComicInfo.xml no encontrado en: ${fullPath}`);
@@ -68,7 +78,7 @@ async function extractMetaLocal(filePath: string): Promise<Record<string, string
     }
 
     const zip = new AdmZip(filePath);
-    const comicInfoEntry = zip.getEntry("ComicInfo.xml");
+    const comicInfoEntry = findComicInfoEntry(zip);
 
     if (!comicInfoEntry) {
       console.warn(`ComicInfo.xml no encontrado en: ${filePath}`);

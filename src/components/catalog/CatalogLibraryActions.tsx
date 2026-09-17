@@ -71,8 +71,8 @@ export default function CatalogLibraryActions({
 
       addToast({
         title: (intl?.manga?.scanComplete as string) || "Escaneo completado",
-        description: `${result.coversUpdated} portada(s), ${result.metaUpdated} metadatos`,
-        variant: "success",
+        description: `${result.coversUpdated} portada(s), ${result.metaUpdated} metadatos${result.errors ? `, ${result.errors} error(es)` : ""}`,
+        variant: result.errors ? "error" : "success",
       });
 
       router.refresh();

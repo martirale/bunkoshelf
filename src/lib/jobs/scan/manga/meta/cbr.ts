@@ -9,14 +9,26 @@ import type { StorageProvider, ComicMetadata, ComicInfoResult } from "@/lib/type
 
 const parser = new xml2js.Parser();
 
-const wasmBinary = await loadUnrarWasmBinary();
+let wasmBinaryPromise: Promise<Buffer> | null = null;
+
+function getWasmBinary(): Promise<Buffer> {
+  wasmBinaryPromise ??= loadUnrarWasmBinary();
+  return wasmBinaryPromise;
+}
+
+function isComicInfoFile(name: string): boolean {
+  return name.split(/[\\/]/).pop()?.toLowerCase() === "comicinfo.xml";
+}
 
 async function parseXmlContent(xml: string): Promise<Record<string, string[]> | null> {
   let error: Error | null = null;
 
   try {
-    const result = await parser.parseStringPromise(xml);
-    return result && result.ComicInfo ? result.ComicInfo : null;
+    const result = await parser.parseStringPromise(xml.replace(/^\uFEFF/, ""));
+    const comicInfoKey = Object.keys(result).find(
+      (key) => key.toLowerCase() === "comicinfo"
+    );
+    return comicInfoKey ? result[comicInfoKey] : null;
   } catch (err) {
     error = err as Error;
   } finally {
@@ -41,6 +53,7 @@ async function extractMetaFromR2(fullPath: string): Promise<Record<string, strin
 
     const buffer = Buffer.from(await response.Body!.transformToByteArray());
 
+    const wasmBinary = await getWasmBinary();
     const extractor = await createExtractorFromData({
       data: new Uint8Array(buffer).buffer as ArrayBuffer,
       wasmBinary: new Uint8Array(wasmBinary).buffer as ArrayBuffer,
@@ -48,16 +61,14 @@ async function extractMetaFromR2(fullPath: string): Promise<Record<string, strin
     const list = extractor.getFileList();
     const fileHeaders = [...list.fileHeaders];
 
-    const comicInfoFile = fileHeaders.find(
-      (header) => header.name === "ComicInfo.xml"
-    );
+    const comicInfoFile = fileHeaders.find((header) => isComicInfoFile(header.name));
 
     if (!comicInfoFile) {
       console.warn(`ComicInfo.xml no encontrado en: ${fullPath}`);
       return null;
     }
 
-    const extracted = extractor.extract({ files: ["ComicInfo.xml"] });
+    const extracted = extractor.extract({ files: [comicInfoFile.name] });
     const files = [...extracted.files];
 
     if (files.length === 0) {
@@ -89,6 +100,7 @@ async function extractMetaLocal(filePath: string): Promise<Record<string, string
     }
 
     const buffer = await fsp.readFile(filePath);
+    const wasmBinary = await getWasmBinary();
     const extractor = await createExtractorFromData({
       data: new Uint8Array(buffer).buffer as ArrayBuffer,
       wasmBinary: new Uint8Array(wasmBinary).buffer as ArrayBuffer,
@@ -96,16 +108,14 @@ async function extractMetaLocal(filePath: string): Promise<Record<string, string
     const list = extractor.getFileList();
     const fileHeaders = [...list.fileHeaders];
 
-    const comicInfoFile = fileHeaders.find(
-      (header) => header.name === "ComicInfo.xml"
-    );
+    const comicInfoFile = fileHeaders.find((header) => isComicInfoFile(header.name));
 
     if (!comicInfoFile) {
       console.warn(`ComicInfo.xml no encontrado en: ${filePath}`);
       return null;
     }
 
-    const extracted = extractor.extract({ files: ["ComicInfo.xml"] });
+    const extracted = extractor.extract({ files: [comicInfoFile.name] });
     const files = [...extracted.files];
 
     if (files.length === 0) {

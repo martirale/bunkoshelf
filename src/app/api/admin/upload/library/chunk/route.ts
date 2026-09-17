@@ -14,6 +14,7 @@ import { upsertFileChecksumRecord } from "@/lib/db/ingestion";
 import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 import type { ComicMetadata } from "@/lib/types/manga";
 import { indexBook } from "@/lib/books/indexer";
+import { extractArchiveMetadata } from "@/lib/jobs/scan/manga/extractors";
 
 export const maxDuration = 300;
 
@@ -186,6 +187,17 @@ export async function POST(request: NextRequest) {
           : null;
         if (libraryType !== "books") {
           const seriesPath = `/library/${libraryType}/${dirWithSuffix}`;
+          const archiveMetadata = !bookResult && !volumeMeta?.metadata
+            ? await extractArchiveMetadata(`/${r2Key}`, "cloud")
+            : null;
+          const resolvedMetadata = volumeMeta?.metadata
+            ? volumeMeta
+            : archiveMetadata;
+
+          if (!bookResult && !resolvedMetadata) {
+            console.warn(`No se encontraron metadatos en: /${r2Key}`);
+          }
+
           await indexUploadedVolume({
             fileName,
             fullPath: `/${r2Key}`,
@@ -193,9 +205,9 @@ export async function POST(request: NextRequest) {
             seriesPath,
             isOneshot,
             coverFilename: coverFilename || null,
-            metadata: bookResult?.comicMetadata ?? volumeMeta?.metadata ?? null,
-            genres: bookResult?.genres ?? volumeMeta?.genres ?? [],
-            tags: volumeMeta?.tags || [],
+            metadata: bookResult?.comicMetadata ?? resolvedMetadata?.metadata ?? null,
+            genres: bookResult?.genres ?? resolvedMetadata?.genres ?? [],
+            tags: resolvedMetadata?.tags ?? [],
             fileSize: fileBuffer.length,
             librarySection: libraryType === "others" ? "other" : libraryType as "manga" | "comic",
           });
@@ -259,6 +271,17 @@ export async function POST(request: NextRequest) {
           })
           : null;
         if (libraryType !== "books") {
+          const archiveMetadata = !bookResult && !volumeMeta?.metadata
+            ? await extractArchiveMetadata(finalPath, "local")
+            : null;
+          const resolvedMetadata = volumeMeta?.metadata
+            ? volumeMeta
+            : archiveMetadata;
+
+          if (!bookResult && !resolvedMetadata) {
+            console.warn(`No se encontraron metadatos en: ${finalPath}`);
+          }
+
           await indexUploadedVolume({
             fileName,
             fullPath: finalPath,
@@ -266,9 +289,9 @@ export async function POST(request: NextRequest) {
             seriesPath: targetDirectory,
             isOneshot,
             coverFilename: coverFilename || null,
-            metadata: bookResult?.comicMetadata ?? volumeMeta?.metadata ?? null,
-            genres: bookResult?.genres ?? volumeMeta?.genres ?? [],
-            tags: volumeMeta?.tags || [],
+            metadata: bookResult?.comicMetadata ?? resolvedMetadata?.metadata ?? null,
+            genres: bookResult?.genres ?? resolvedMetadata?.genres ?? [],
+            tags: resolvedMetadata?.tags ?? [],
             fileSize: fileBuffer.length,
             librarySection: libraryType === "others" ? "other" : libraryType as "manga" | "comic",
           });

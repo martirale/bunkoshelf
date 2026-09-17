@@ -3,9 +3,8 @@ import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import fsp from "fs/promises";
 import path from "path";
-import { extractMetadataCbz } from "@/lib/jobs/scan/manga/meta/cbz";
-import { extractMetadataCbr } from "@/lib/jobs/scan/manga/meta/cbr";
-import type { StorageProvider, ComicInfoResult } from "@/lib/types/manga";
+import { getMetadataExtractor } from "@/lib/jobs/scan/manga/extractors";
+import type { StorageProvider } from "@/lib/types/manga";
 import {
   cleanupOrphanedGenresAndTags,
   listAllVolumePaths,
@@ -23,25 +22,6 @@ const CHECKSUM_STATUS_PATH = path.join(
   "tmp",
   "checksum-status.json"
 );
-
-type MetaExtractor = (
-  fullPath: string,
-  provider: StorageProvider
-) => Promise<ComicInfoResult | null>;
-
-function getExtractorForFile(filePath: string): MetaExtractor | null {
-  const ext = path.extname(filePath).toLowerCase();
-
-  if (ext === ".cbz" || ext === ".zip") {
-    return extractMetadataCbz;
-  }
-
-  if (ext === ".cbr" || ext === ".rar") {
-    return extractMetadataCbr;
-  }
-
-  return null;
-}
 
 export async function POST(request: NextRequest) {
   let error: Error | null = null;
@@ -80,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     for (const volume of volumesToProcess) {
       try {
-        const extractor = getExtractorForFile(volume.fullPath);
+        const extractor = await getMetadataExtractor(volume.fullPath);
 
         if (!extractor) {
           console.log(`Formato no soportado: ${volume.fullPath}`);

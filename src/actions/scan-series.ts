@@ -3,13 +3,13 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import path from "path";
 import fsp from "fs/promises";
-import { extractCoverCbz } from "@/lib/jobs/scan/manga/covers/cbz";
-import { extractCoverCbr } from "@/lib/jobs/scan/manga/covers/cbr";
-import { extractMetadataCbz } from "@/lib/jobs/scan/manga/meta/cbz";
-import { extractMetadataCbr } from "@/lib/jobs/scan/manga/meta/cbr";
+import {
+  getCoverExtractor,
+  getMetadataExtractor,
+} from "@/lib/jobs/scan/manga/extractors";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
-import type { StorageProvider, ComicInfoResult } from "@/lib/types";
+import type { StorageProvider } from "@/lib/types";
 import {
   findSeriesWithVolumesById,
   findVolumeWithSeriesPathById,
@@ -24,6 +24,7 @@ import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 
 const LIB_PROVIDER: StorageProvider = (process.env.LIB_PROVIDER as StorageProvider) || "local";
 const TEMP_PATH = path.resolve(process.cwd(), "../temp");
+const SCAN_CONCURRENCY = 3;
 
 interface VolumeScanResult {
   coversUpdated: number;
@@ -40,23 +41,6 @@ interface ScanResult {
   totalVolumes?: number;
 }
 
-type CoverExtractor = (fullPath: string, outputDir: string, provider: StorageProvider) => Promise<string | null>;
-type MetaExtractor = (fullPath: string, provider: StorageProvider) => Promise<ComicInfoResult | null>;
-
-function getCoverExtractor(filePath: string): CoverExtractor | null {
-  const ext = path.extname(filePath).toLowerCase();
-  if (ext === ".cbz" || ext === ".zip") return extractCoverCbz;
-  if (ext === ".cbr" || ext === ".rar") return extractCoverCbr;
-  return null;
-}
-
-function getMetaExtractor(filePath: string): MetaExtractor | null {
-  const ext = path.extname(filePath).toLowerCase();
-  if (ext === ".cbz" || ext === ".zip") return extractMetadataCbz;
-  if (ext === ".cbr" || ext === ".rar") return extractMetadataCbr;
-  return null;
-}
-
 async function processVolumeScan(
   volume: IndexedVolume,
   seriesPath: string
@@ -65,7 +49,7 @@ async function processVolumeScan(
   let metaUpdated = 0;
   let errors = 0;
 
-  const coverExtractor = getCoverExtractor(volume.fullPath);
+  const coverExtractor = await getCoverExtractor(volume.fullPath);
   if (coverExtractor) {
     try {
       let outputDir: string;
@@ -125,7 +109,7 @@ async function processVolumeScan(
     }
   }
 
-  const metaExtractor = getMetaExtractor(volume.fullPath);
+  const metaExtractor = await getMetadataExtractor(volume.fullPath);
   if (metaExtractor) {
     try {
       const result = await metaExtractor(volume.fullPath, LIB_PROVIDER);
@@ -177,11 +161,17 @@ export async function scanSeries(seriesId: string): Promise<ScanResult | undefin
     let metaUpdated = 0;
     let errors = 0;
 
-    for (const volume of series.volumes) {
-      const result = await processVolumeScan(volume, series.path);
-      coversUpdated += result.coversUpdated;
-      metaUpdated += result.metaUpdated;
-      errors += result.errors;
+    for (let index = 0; index < series.volumes.length; index += SCAN_CONCURRENCY) {
+      const volumes = series.volumes.slice(index, index + SCAN_CONCURRENCY);
+      const results = await Promise.all(
+        volumes.map((volume) => processVolumeScan(volume, series.path))
+      );
+
+      for (const result of results) {
+        coversUpdated += result.coversUpdated;
+        metaUpdated += result.metaUpdated;
+        errors += result.errors;
+      }
     }
 
     revalidateMangaLibraryCache();

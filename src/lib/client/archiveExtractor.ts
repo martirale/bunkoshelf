@@ -36,9 +36,10 @@ export async function extractFromArchive(file: File): Promise<ExtractionResult |
       return fullA.localeCompare(fullB);
     });
 
-  const comicInfoEntry = entries.find(
-    (entry) => entry.file.name.toLowerCase() === "comicinfo.xml"
-  );
+  const comicInfoEntry = entries.find((entry) => {
+    const name = entry.file.name.trim().split(/[\\/]/).pop();
+    return name?.toLowerCase() === "comicinfo.xml";
+  });
 
   let coverBlob: Blob | null = null;
   let coverExt: string | null = null;

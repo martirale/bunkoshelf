@@ -3,8 +3,7 @@ import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import fsp from "fs/promises";
 import path from "path";
-import { extractCoverCbz } from "@/lib/jobs/scan/manga/covers/cbz";
-import { extractCoverCbr } from "@/lib/jobs/scan/manga/covers/cbr";
+import { getCoverExtractor } from "@/lib/jobs/scan/manga/extractors";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import type { StorageProvider } from "@/lib/types/manga";
@@ -22,26 +21,6 @@ const CHECKSUM_STATUS_PATH = path.join(
   "tmp",
   "checksum-status.json"
 );
-
-type CoverExtractor = (
-  fullPath: string,
-  outputDir: string,
-  provider: StorageProvider
-) => Promise<string | null>;
-
-function getExtractorForFile(filePath: string): CoverExtractor | null {
-  const ext = path.extname(filePath).toLowerCase();
-
-  if (ext === ".cbz" || ext === ".zip") {
-    return extractCoverCbz;
-  }
-
-  if (ext === ".cbr" || ext === ".rar") {
-    return extractCoverCbr;
-  }
-
-  return null;
-}
 
 export async function POST(request: NextRequest) {
   let updated = 0;
@@ -88,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     for (const volume of volumesToProcess) {
       try {
-        const extractor = getExtractorForFile(volume.fullPath);
+        const extractor = await getCoverExtractor(volume.fullPath);
 
         if (!extractor) {
           console.log(`Formato no soportado: ${volume.fullPath}`);

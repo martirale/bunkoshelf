@@ -40,8 +40,8 @@ export default function ScanSeriesButton({ seriesId, volumeId, intl }: ScanSerie
 
       addToast({
         title: (intl?.manga?.scanComplete as string) || "Escaneo completado",
-        description: `${result.coversUpdated} portada(s), ${result.metaUpdated} metadatos`,
-        variant: "success",
+        description: `${result.coversUpdated} portada(s), ${result.metaUpdated} metadatos${result.errors ? `, ${result.errors} error(es)` : ""}`,
+        variant: result.errors ? "error" : "success",
       });
 
       setTimeout(() => {
