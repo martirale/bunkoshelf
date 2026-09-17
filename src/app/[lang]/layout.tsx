@@ -18,7 +18,7 @@ import { getAppSettings } from "@/lib/db/appSettings";
 import { getContentVisibilityPolicy } from "@/lib/parentalControl";
 import type { Locale } from "@/lib/types";
 import type { ReactNode } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 const VALID_LOCALES: Locale[] = ["es", "en"];
 
@@ -30,6 +30,13 @@ export const metadata: Metadata = {
     apple: "/icons/bunkoshelf-icon-any.png",
   },
   manifest: "/manifest.webmanifest",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#151515",
 };
 
 export async function generateStaticParams() {
@@ -77,7 +84,7 @@ async function AppShell({
         versionData={versionData}
         libraryCounts={libraryCounts}
       />
-      <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto">
+      <main className="min-h-0 w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto overscroll-y-contain">
         <PwaProvider userId={user?.id} contentVisibility={getContentVisibilityPolicy(user, appSettings.parentalControlEnabled, appSettings.parentalControlMode)}>
           <ToastProvider>
             <AlertDialogProvider
@@ -120,14 +127,14 @@ export default async function RootLayout({ children, params }: RootLayoutProps) 
         <meta name="googlebot" content="noindex,nofollow" />
       </head>
 
-      <body className="flex h-screen overflow-hidden text-lg relative">
+      <body className="relative flex h-dvh overflow-hidden pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-lg">
         <div className="fixed inset-0 -z-10 pointer-events-none bg-seigaiha-pattern-k opacity-50" />
 
         <Suspense
           fallback={(
             <>
               <aside className="hidden md:flex md:w-[35%] lg:w-[25%] xl:w-[21%] 2xl:w-[17%] bg-blackamber flex-col" />
-              <main className="w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto" />
+              <main className="min-h-0 w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto overscroll-y-contain" />
             </>
           )}
         >

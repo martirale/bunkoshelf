@@ -21,7 +21,7 @@ export default function MobNav({
   libraryCounts,
 }: MobNavProps) {
   return (
-    <div className="fixed bottom-8 right-6 z-50 md:hidden">
+    <div className="fixed right-[max(1.5rem,env(safe-area-inset-right))] bottom-[max(2rem,env(safe-area-inset-bottom))] z-50 md:hidden">
       <MobNavButton
         lang={lang}
         intl={intl}

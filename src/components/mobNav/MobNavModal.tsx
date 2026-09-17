@@ -66,7 +66,7 @@ export default function MobNavModal({
       id="mob-nav-modal"
       ref={modalRef}
       tabIndex={-1}
-      className="fixed inset-0 z-50 bg-pearl text-onix flex p-4 pointer-events-auto transition-opacity duration-200 ease-in-out opacity-100"
+      className="fixed inset-0 z-50 flex bg-pearl pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] text-onix pointer-events-auto transition-opacity duration-200 ease-in-out opacity-100"
     >
       <div
         className="flex flex-col justify-between w-full max-w-5xl relative"
