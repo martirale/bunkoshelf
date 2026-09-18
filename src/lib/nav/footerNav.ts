@@ -1,11 +1,13 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  UserRoundIcon,
   BookOpenIcon,
   LanguagesIcon,
   LogOutIcon,
   Settings2Icon,
 } from "lucide-react";
-import type { Dictionary, Session } from "@/lib/types";
+import { requireRole, ROLES } from "@/lib/auth/roles";
+import type { Dictionary, Role, Session } from "@/lib/types";
 
 export type FooterButton =
   | {
@@ -14,12 +16,14 @@ export type FooterButton =
       href: string;
       target: string;
       title: string;
+      minRole?: Role;
     }
   | {
       type: "button";
       icon: LucideIcon;
       title: string;
       onClick: () => void;
+      minRole?: Role;
     };
 
 interface GetFooterButtonsParams {
@@ -41,19 +45,27 @@ export function getFooterButtons({
   onToggleLang,
   onLogout,
 }: GetFooterButtonsParams): FooterButton[] {
-  return [
+  const buttons: FooterButton[] = [
     {
       type: "link",
-      icon: BookOpenIcon,
-      href: "https://bunko.alemartir.com/guides/manga",
-      target: "_blank",
-      title: intl.tooltip.userGuide as string,
+      icon: UserRoundIcon,
+      href: `/${lang}/profile`,
+      target: "_self",
+      title: intl.sidebar.profile as string,
+      minRole: ROLES.MEMBER,
     },
     {
       type: "button",
       icon: LanguagesIcon,
       title: intl.tooltip.switchLang as string,
       onClick: onToggleLang,
+    },
+    {
+      type: "link",
+      icon: BookOpenIcon,
+      href: "https://bunko.alemartir.com/guides/manga",
+      target: "_blank",
+      title: intl.tooltip.userGuide as string,
     },
     ...(user?.isAdmin
       ? [
@@ -77,4 +89,6 @@ export function getFooterButtons({
         ]
       : []),
   ];
+
+  return buttons.filter((button) => !button.minRole || requireRole(user, button.minRole));
 }
