@@ -30,12 +30,16 @@ export const metadata: Metadata = {
     apple: "/icons/bunkoshelf-icon-any.png",
   },
   manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Bunko Shelf",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  viewportFit: "cover",
   themeColor: "#151515",
 };
 
@@ -127,7 +131,7 @@ export default async function RootLayout({ children, params }: RootLayoutProps) 
         <meta name="googlebot" content="noindex,nofollow" />
       </head>
 
-      <body className="relative flex h-dvh overflow-hidden pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-lg">
+      <body className="relative flex h-dvh overflow-hidden text-lg">
         <div className="fixed inset-0 -z-10 pointer-events-none bg-seigaiha-pattern-k opacity-50" />
 
         <Suspense
