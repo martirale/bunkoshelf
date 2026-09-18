@@ -41,6 +41,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#151515",
+  colorScheme: "dark",
 };
 
 export async function generateStaticParams() {
