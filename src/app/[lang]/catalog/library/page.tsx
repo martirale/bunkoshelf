@@ -4,6 +4,7 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import { listPagedCatalogLibraryVolumes } from "@/lib/db/library";
 import { verifySession } from "@/lib/auth/verifySession";
 import CatalogLibraryTable from "@/components/catalog/CatalogLibraryTable";
+import CatalogLibraryUpload from "@/components/catalog/CatalogLibraryUpload";
 import type { Locale } from "@/lib/types";
 
 interface CatalogLibraryPageProps {
@@ -38,10 +39,15 @@ async function CatalogLibraryPageContent({
 
   return (
     <>
-      <h2 className="flex items-center mb-4">
-        <LibraryBigIcon size={28} className="mr-2" />
-        {intl.catalog.library as string}
-      </h2>
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <h2 className="flex items-center">
+          <LibraryBigIcon size={28} className="mr-2" />
+          {intl.catalog.library as string}
+        </h2>
+        {user?.isAdmin === true && (
+          <CatalogLibraryUpload intl={intl} lang={lang as Locale} />
+        )}
+      </div>
 
       <CatalogLibraryTable
         data={volumes}

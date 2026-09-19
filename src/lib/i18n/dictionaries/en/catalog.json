@@ -2,6 +2,7 @@
   "catalog": {
     "title": "Catalog",
     "library": "Library",
+    "uploadLibrary": "Upload works",
     "authors": "Authors",
     "genres": "Genres",
     "tags": "Tags",

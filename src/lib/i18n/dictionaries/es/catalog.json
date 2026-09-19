@@ -2,6 +2,7 @@
   "catalog": {
     "title": "Catálogo",
     "library": "Biblioteca",
+    "uploadLibrary": "Subir obras",
     "authors": "Autores",
     "genres": "Géneros",
     "tags": "Etiquetas",

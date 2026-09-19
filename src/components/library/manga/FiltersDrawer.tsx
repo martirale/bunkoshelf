@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRightIcon } from "lucide-react";
 import Accordion from "@/components/ui/Accordion";
 import Button from "@/components/ui/Button";
-import clsx from "clsx";
 import { getLibraryFilters } from "@/actions/library";
 import { getBookLibraryFilters } from "@/actions/books";
 import { usePwa } from "@/components/pwa/PwaProvider";
@@ -168,14 +167,11 @@ export default function FiltersDrawer({
 
   return (
     <>
-      <button
+      <Button
+        type="button"
         onClick={() => setIsOpen(true)}
-        className={clsx(
-          "text-sm px-3 py-1 rounded-md cursor-pointer transition-all duration-300",
-          isFiltering
-            ? "bg-lilah text-pearl"
-            : "bg-pearl text-onix hover:bg-lilah hover:text-pearl"
-        )}
+        variant={isFiltering ? "accent" : "light"}
+        size="small"
         aria-label="Abrir filtros"
       >
         {isFiltering ? (
@@ -185,7 +181,7 @@ export default function FiltersDrawer({
         ) : (
           <span className="uppercase">{filters.filter as string}</span>
         )}
-      </button>
+      </Button>
 
       {isOpen && (
         <div

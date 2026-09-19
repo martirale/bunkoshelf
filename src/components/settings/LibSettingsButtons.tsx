@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import {
-  FolderUpIcon,
   DatabaseBackupIcon,
   HardDriveUploadIcon,
   ServerIcon,
@@ -12,8 +11,6 @@ import { useToast } from "@/components/ToastProvider";
 import { useAlertDialog } from "@/components/AlertDialogProvider";
 import Button from "@/components/ui/Button";
 import useScanPolling from "@/hooks/useScanPolling";
-import Modal from "@/components/ui/Modal";
-import UploadMangaForm from "./UploadMangaForm";
 import {
   reindexLibrary,
   regenerateCovers,
@@ -44,7 +41,6 @@ export default function LibSettingsButtons({
   intl,
   libProvider,
 }: LibSettingsButtonsProps) {
-  const [uploadOpen, setUploadOpen] = useState(false);
   const [loadingAction, setLoadingAction] = useState<LoadingActionType>(null);
   const dbFileInputRef = useRef<HTMLInputElement>(null);
   const { addToast, updateToast } = useToast()!;
@@ -55,10 +51,6 @@ export default function LibSettingsButtons({
     addToast,
     updateToast,
   });
-
-  const handleUploadMangas = () => {
-    setUploadOpen(true);
-  };
 
   const handleFullScan = async () => {
     let _err: unknown;
@@ -274,13 +266,6 @@ export default function LibSettingsButtons({
       icon: ProviderIcon,
     },
     {
-      key: "upload",
-      label: intl.settings.uploadLibrary as string,
-      icon: FolderUpIcon,
-      onClick: handleUploadMangas,
-      disabled: isLoading,
-    },
-    {
       key: "backup",
       label: intl.settings.backupdb as string,
       icon: DatabaseBackupIcon,
@@ -315,7 +300,7 @@ export default function LibSettingsButtons({
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       {ACTIONS.map((a) => (
         <ActionButton key={a.key} action={a} />
       ))}
@@ -327,10 +312,6 @@ export default function LibSettingsButtons({
         className="hidden"
         onChange={handleRestoreDB}
       />
-
-      <Modal isOpen={uploadOpen} onClose={() => setUploadOpen(false)}>
-        <UploadMangaForm intl={intl} lang={lang} />
-      </Modal>
     </div>
   );
 }
