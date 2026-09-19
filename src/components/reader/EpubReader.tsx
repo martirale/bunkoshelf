@@ -12,6 +12,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import type { Dictionary } from "@/lib/types";
+import { publishResourceState } from "@/lib/client/resourceState";
 
 type ReaderTheme = "light" | "sepia" | "dark";
 type ReaderFlow = "paginated" | "scrolled-continuous";
@@ -34,6 +35,7 @@ const highlightStyles = {
 interface EpubReaderProps {
   isOpen: boolean;
   onClose: () => void;
+  progressResourceId: string;
   slug: string;
   title: string;
   layout: "reflowable" | "pre-paginated";
@@ -94,7 +96,7 @@ function isCoverSection(document: Document, sectionHref: string, coverPath?: str
   });
 }
 
-export default function EpubReader({ isOpen, onClose, slug, title, layout, intl }: EpubReaderProps) {
+export default function EpubReader({ isOpen, onClose, progressResourceId, slug, title, layout, intl }: EpubReaderProps) {
   const reader = intl.epubReader as Record<string, string>;
   const viewerRef = useRef<HTMLDivElement>(null);
   const tocPanelRef = useRef<HTMLElement>(null);
@@ -228,10 +230,21 @@ export default function EpubReader({ isOpen, onClose, slug, title, layout, intl 
         isRead: isComplete,
         readingDate: getLocalDateString(),
       }),
-    }).then((response) => {
-      if (response.ok && isComplete) window.dispatchEvent(new Event("bunko:challenge-updated"));
+    }).then(async (response) => {
+      if (!response.ok) return;
+      const savedProgress = await response.json() as {
+        isRead: boolean;
+        isFavorite: boolean;
+        progression: number | null;
+      };
+      publishResourceState("book-volume", progressResourceId, {
+        isRead: savedProgress.isRead,
+        isFavorite: savedProgress.isFavorite,
+        progression: savedProgress.progression,
+      });
+      if (isComplete) window.dispatchEvent(new Event("bunko:challenge-updated"));
     });
-  }, [slug]);
+  }, [progressResourceId, slug]);
 
   const applyStyles = useCallback(() => {
     const rendition = renditionRef.current;

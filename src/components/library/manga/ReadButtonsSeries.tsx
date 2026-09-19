@@ -7,6 +7,11 @@ import { toggleSeriesFavorite } from "@/actions/favorites";
 import OfflineDownloadButton from "@/components/pwa/OfflineDownloadButton";
 import Button from "@/components/ui/Button";
 import { enqueueOfflineOperation } from "@/lib/client/offlineLibrary";
+import {
+  publishResourceState,
+  useResourceMutation,
+  useResourceState,
+} from "@/lib/client/resourceState";
 import type { LibrarySection } from "@/lib/librarySection";
 import type { Locale, Dictionary } from "@/lib/types";
 
@@ -29,8 +34,13 @@ export default function ReadButtonsSeries({
   section = "manga",
   userId,
 }: ReadButtonsSeriesProps) {
-  const [isFavorite, setIsFavorite] = useState(initFavorite);
   const [isLoading, setIsLoading] = useState(false);
+  const { isFavorite = initFavorite } = useResourceState(
+    "manga-series",
+    seriesId,
+    { isFavorite: initFavorite },
+  );
+  const mutateResource = useResourceMutation();
 
   const toggleFavorite = async () => {
     setIsLoading(true);
@@ -39,19 +49,20 @@ export default function ReadButtonsSeries({
       if (!navigator.onLine && userId) {
         const favorite = !isFavorite;
         await enqueueOfflineOperation(userId, "series-favorite", { seriesId, favorite });
-        setIsFavorite(favorite);
+        publishResourceState("manga-series", seriesId, { isFavorite: favorite });
         return;
       }
-      const result = await toggleSeriesFavorite({
-        seriesId,
-        favorite: !isFavorite,
+      const result = await mutateResource({
+        resource: "manga-series",
+        id: seriesId,
+        patch: { isFavorite: !isFavorite },
+        mutate: () => toggleSeriesFavorite({ seriesId, favorite: !isFavorite }),
+        isSuccess: (value) => Boolean(value?.success),
       });
 
       if (!result) return;
 
-      if (result.success) {
-        setIsFavorite((prev) => !prev);
-      } else if ("error" in result) {
+      if (!result.success && "error" in result) {
         console.error("Failed to toggle favorite:", result.error);
       }
     } catch (err) {

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StarIcon, MinusIcon, PlusIcon } from "lucide-react";
 import { updatePersonalRating } from "@/actions/rating";
+import { useResourceMutation, useResourceState } from "@/lib/client/resourceState";
 
 const MIN = 0.5;
 const MAX = 10;
@@ -18,28 +19,36 @@ export default function VolumeRating({
   communityRating,
   initialPersonalRating,
 }: VolumeRatingProps) {
-  const [personalRating, setPersonalRating] = useState(initialPersonalRating);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [draft, setDraft] = useState(5);
   const panelRef = useRef<HTMLDivElement>(null);
+  const { personalRating = initialPersonalRating } = useResourceState(
+    "manga-volume",
+    volumeId,
+    { personalRating: initialPersonalRating },
+  );
+  const mutateResource = useResourceMutation();
 
   const hasPersonal = personalRating !== null && personalRating !== undefined;
   const displayRating = hasPersonal ? personalRating : communityRating;
   const hasRating = displayRating !== null && displayRating !== undefined;
 
-  const closeAndSave = async (value: number) => {
+  const closeAndSave = useCallback(async (value: number) => {
     setIsOpen(false);
     setIsLoading(true);
-    const result = await updatePersonalRating({
-      volumeId,
-      rating: value,
-    });
-    if (result?.success) {
-      setPersonalRating(value);
+    try {
+      await mutateResource({
+        resource: "manga-volume",
+        id: volumeId,
+        patch: { personalRating: value },
+        mutate: () => updatePersonalRating({ volumeId, rating: value }),
+        isSuccess: (result) => Boolean(result?.success),
+      });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
-  };
+  }, [mutateResource, volumeId]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -51,7 +60,7 @@ export default function VolumeRating({
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, draft]);
+  }, [isOpen, draft, closeAndSave]);
 
   const openPanel = () => {
     setDraft(hasPersonal ? personalRating! : 5);
@@ -60,15 +69,18 @@ export default function VolumeRating({
 
   const handleRemove = async () => {
     setIsLoading(true);
-    const result = await updatePersonalRating({
-      volumeId,
-      rating: null,
-    });
-    if (result?.success) {
-      setPersonalRating(null);
+    try {
+      await mutateResource({
+        resource: "manga-volume",
+        id: volumeId,
+        patch: { personalRating: null },
+        mutate: () => updatePersonalRating({ volumeId, rating: null }),
+        isSuccess: (result) => Boolean(result?.success),
+      });
+    } finally {
+      setIsLoading(false);
+      setIsOpen(false);
     }
-    setIsLoading(false);
-    setIsOpen(false);
   };
 
   if (!hasRating && !isOpen) {

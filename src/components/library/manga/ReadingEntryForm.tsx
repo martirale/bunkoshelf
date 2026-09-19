@@ -10,6 +10,7 @@ import {
   updateReadingEntry,
   deleteReadingEntry,
 } from "@/actions/readingHistory";
+import { useResourceMutation } from "@/lib/client/resourceState";
 import type { Dictionary } from "@/lib/types";
 
 interface ReadingEntry {
@@ -35,6 +36,7 @@ export default function ReadingEntryForm({
   const [readAt, setReadAt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { confirm } = useAlertDialog()!;
+  const mutateResource = useResourceMutation();
 
   const isEdit = !!entry;
 
@@ -50,14 +52,22 @@ export default function ReadingEntryForm({
 
     setIsLoading(true);
 
-    const result = isEdit
-      ? await updateReadingEntry({ entryId: entry!.id, readAt })
-      : await createReadingEntry({ volumeId, readAt });
+    const result = await mutateResource({
+      resource: "manga-volume",
+      id: volumeId,
+      patch: { isRead: true },
+      mutate: () => isEdit
+        ? updateReadingEntry({ entryId: entry!.id, readAt })
+        : createReadingEntry({ volumeId, readAt }),
+      isSuccess: (value) => Boolean(value?.success),
+      getConfirmedPatch: (value) => value?.progress,
+    });
 
     setIsLoading(false);
 
     if (result?.success) {
-      window.location.reload();
+      window.dispatchEvent(new Event("bunko:challenge-updated"));
+      onClose();
     }
   };
 
@@ -71,10 +81,19 @@ export default function ReadingEntryForm({
     if (!confirmResult) return;
 
     setIsLoading(true);
-    const result = await deleteReadingEntry({ entryId: entry!.id });
+    const result = await mutateResource({
+      resource: "manga-volume",
+      id: volumeId,
+      patch: {},
+      mutate: () => deleteReadingEntry({ entryId: entry!.id }),
+      isSuccess: (value) => Boolean(value?.success),
+      getConfirmedPatch: (value) => value?.progress,
+    });
+    setIsLoading(false);
 
     if (result?.success) {
-      window.location.reload();
+      window.dispatchEvent(new Event("bunko:challenge-updated"));
+      onClose();
     }
   };
 

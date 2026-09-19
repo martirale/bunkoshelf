@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   BookCheckIcon,
   HatGlassesIcon,
@@ -17,6 +16,12 @@ import { sendPush } from "@/actions/web-push";
 import OfflineDownloadButton from "@/components/pwa/OfflineDownloadButton";
 import Button from "@/components/ui/Button";
 import { enqueueOfflineOperation, getOfflineImages, updateOfflineVolume } from "@/lib/client/offlineLibrary";
+import {
+  publishResourceState,
+  useResourceMutation,
+  useResourceRefresh,
+  useResourceState,
+} from "@/lib/client/resourceState";
 import {
   getLibraryRootHref,
   type LibrarySection,
@@ -54,13 +59,17 @@ export default function ReadButtonsVolume({
   section = "manga",
   userId,
 }: ReadButtonsVolumeProps) {
-  const router = useRouter();
-  const [isFavorite, setIsFavorite] = useState(initFavorite);
-  const [isRead, setIsRead] = useState(initRead);
   const [isLoading, setIsLoading] = useState(false);
   const [isReaderOpen, setIsReaderOpen] = useState(false);
   const [isYoureiMode, setIsYoureiMode] = useState(false);
   const [offlineImages, setOfflineImages] = useState<string[] | undefined>();
+  const { isFavorite = initFavorite, isRead = initRead } = useResourceState(
+    "manga-volume",
+    volumeId,
+    { isFavorite: initFavorite, isRead: initRead },
+  );
+  const mutateResource = useResourceMutation();
+  const refreshResources = useResourceRefresh();
 
   const readingDirection =
     mangaStyle === "YesLTR" || mangaStyle === "No" ? "ltr" : "rtl";
@@ -107,7 +116,7 @@ export default function ReadButtonsVolume({
         const localDate = getLocalDateString();
         await updateOfflineVolume(userId, volumeId, { isRead: nextRead, lastPage: nextRead ? totalPages - 1 : 0, totalPages });
         await enqueueOfflineOperation(userId, "read", { volumeId, read: nextRead, totalPages, lastReadAt: now.toISOString(), firstRead: localDate });
-        setIsRead(nextRead);
+        publishResourceState("manga-volume", volumeId, { isRead: nextRead });
         return;
       }
       const imagesRes = await fetch("/api/reader/manga", {
@@ -126,18 +135,23 @@ export default function ReadButtonsVolume({
       const now = new Date();
       const localDate = getLocalDateString();
 
-      const result = await updateReadState({
-        volumeId,
-        read: !isRead,
-        totalPages,
-        lastReadAt: !isRead ? now.toISOString() : undefined,
-        firstRead: !isRead ? localDate : undefined,
+      const result = await mutateResource({
+        resource: "manga-volume",
+        id: volumeId,
+        patch: { isRead: !isRead },
+        mutate: () => updateReadState({
+          volumeId,
+          read: !isRead,
+          totalPages,
+          lastReadAt: !isRead ? now.toISOString() : undefined,
+          firstRead: !isRead ? localDate : undefined,
+        }),
+        isSuccess: (value) => Boolean(value?.success),
       });
 
       if (!result) return;
 
       if (result.success) {
-        setIsRead((prev) => !prev);
         window.dispatchEvent(new Event("bunko:challenge-updated"));
       } else if ("error" in result) {
         console.error("Failed to toggle read state:", result.error);
@@ -161,19 +175,20 @@ export default function ReadButtonsVolume({
         const nextFavorite = !isFavorite;
         await updateOfflineVolume(userId, volumeId, { isFavorite: nextFavorite });
         await enqueueOfflineOperation(userId, "favorite", { volumeId, favorite: nextFavorite });
-        setIsFavorite(nextFavorite);
+        publishResourceState("manga-volume", volumeId, { isFavorite: nextFavorite });
         return;
       }
-      const result = await toggleVolumeFavorite({
-        volumeId,
-        favorite: !isFavorite,
+      const result = await mutateResource({
+        resource: "manga-volume",
+        id: volumeId,
+        patch: { isFavorite: !isFavorite },
+        mutate: () => toggleVolumeFavorite({ volumeId, favorite: !isFavorite }),
+        isSuccess: (value) => Boolean(value?.success),
       });
 
       if (!result) return;
 
-      if (result.success) {
-        setIsFavorite((prev) => !prev);
-      } else if ("error" in result) {
+      if (!result.success && "error" in result) {
         console.error("Failed to toggle favorite:", result.error);
       }
     } catch (err) {
@@ -210,7 +225,7 @@ export default function ReadButtonsVolume({
         if (!navigator.onLine && userId) {
           await updateOfflineVolume(userId, volumeId, { lastPage, totalPages, isRead: isFinished });
           await enqueueOfflineOperation(userId, "progress", body);
-          if (isFinished) setIsRead(true);
+          if (isFinished) publishResourceState("manga-volume", volumeId, { isRead: true });
           return;
         }
 
@@ -221,9 +236,11 @@ export default function ReadButtonsVolume({
         }
 
         if (isFinished && data?.success) {
-          setIsRead(true);
+          publishResourceState("manga-volume", volumeId, { isRead: true });
           window.dispatchEvent(new Event("bunko:challenge-updated"));
         }
+
+        if (data?.success) refreshResources();
 
         if (isFinished && data?.success) {
           try {
@@ -244,7 +261,6 @@ export default function ReadButtonsVolume({
         console.error("Error syncing progress:", error);
       }
       setIsReaderOpen(false);
-      router.refresh();
     }
   };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BookOpenCheckIcon,
   RepeatIcon,
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { createReadingEntry } from "@/actions/readingHistory";
 import ReadingEntryForm from "./ReadingEntryForm";
+import { useResourceMutation } from "@/lib/client/resourceState";
 import type { Dictionary } from "@/lib/types";
 
 interface ReadingEntry {
@@ -33,6 +34,11 @@ export default function ReadingHistory({
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<ReadingEntry | null>(null);
   const [isMigrating, setIsMigrating] = useState(false);
+  const mutateResource = useResourceMutation();
+
+  useEffect(() => {
+    setEntries(initialEntries || []);
+  }, [initialEntries]);
 
   const canMigrate = firstRead && entries.length === 0;
 
@@ -51,9 +57,16 @@ export default function ReadingHistory({
 
   const handleMigrate = async () => {
     setIsMigrating(true);
-    const result = await createReadingEntry({ volumeId, readAt: firstRead! });
+    const result = await mutateResource({
+      resource: "manga-volume",
+      id: volumeId,
+      patch: { isRead: true },
+      mutate: () => createReadingEntry({ volumeId, readAt: firstRead! }),
+      isSuccess: (value) => Boolean(value?.success),
+      getConfirmedPatch: (value) => value?.progress,
+    });
     if (result?.success) {
-      window.location.reload();
+      window.dispatchEvent(new Event("bunko:challenge-updated"));
     }
     setIsMigrating(false);
   };

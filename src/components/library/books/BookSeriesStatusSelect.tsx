@@ -11,6 +11,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { getBookSeriesStatus, updateBookSeriesStatus } from "@/actions/books-series-status";
+import {
+  publishResourceState,
+  useResourceMutation,
+  useResourceState,
+} from "@/lib/client/resourceState";
 import type { Dictionary } from "@/lib/types";
 
 interface BookSeriesStatusSelectProps {
@@ -39,17 +44,24 @@ export default function BookSeriesStatusSelect({ seriesId, intl }: BookSeriesSta
     { value: "HIATUS", label: books.hiatus, icon: CirclePauseIcon },
     { value: "CANCELLED", label: books.cancelled, icon: CircleXIcon },
   ];
-  const [currentStatus, setCurrentStatus] = useState<string | null>(null);
+  const { status: currentStatus = null } = useResourceState(
+    "book-series",
+    seriesId,
+    { status: null },
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
+  const mutateResource = useResourceMutation();
   const currentOption = options.find((option) => option.value === currentStatus);
   const CurrentIcon = currentOption?.icon ?? CircleFadingArrowUpIcon;
 
   useEffect(() => {
     let active = true;
     void getBookSeriesStatus({ seriesId }).then((result) => {
-      if (active && !("error" in result)) setCurrentStatus(result.status);
+      if (active && !("error" in result)) {
+        publishResourceState("book-series", seriesId, { status: result.status });
+      }
     });
     return () => { active = false; };
   }, [seriesId]);
@@ -65,9 +77,17 @@ export default function BookSeriesStatusSelect({ seriesId, intl }: BookSeriesSta
   const changeStatus = async (status: string) => {
     setIsLoading(true);
     try {
-      const result = await updateBookSeriesStatus({ seriesId, status });
+      const result = await mutateResource({
+        resource: "book-series",
+        id: seriesId,
+        patch: { status },
+        mutate: () => updateBookSeriesStatus({ seriesId, status }),
+        isSuccess: (value) => !("error" in value),
+        getConfirmedPatch: (value) => (
+          typeof value.status === "string" ? { status: value.status } : undefined
+        ),
+      });
       if (!("error" in result)) {
-        setCurrentStatus(result.status);
         setIsOpen(false);
       }
     } finally {

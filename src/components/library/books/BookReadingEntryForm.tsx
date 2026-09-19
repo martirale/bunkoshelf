@@ -10,6 +10,7 @@ import {
   deleteBookReadingEntry,
   updateBookReadingEntry,
 } from "@/actions/books-reading-history";
+import { useResourceMutation } from "@/lib/client/resourceState";
 import type { Dictionary } from "@/lib/types";
 
 interface BookReadingEntry {
@@ -36,6 +37,7 @@ export default function BookReadingEntryForm({
   const [readAt, setReadAt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { confirm } = useAlertDialog()!;
+  const mutateResource = useResourceMutation();
   const isEdit = Boolean(entry);
 
   useEffect(() => {
@@ -47,12 +49,26 @@ export default function BookReadingEntryForm({
     if (!readAt) return;
 
     setIsLoading(true);
-    const result = isEdit
-      ? await updateBookReadingEntry({ entryId: entry!.id, readAt })
-      : await createBookReadingEntry({ volumeId, readAt });
+    const result = await mutateResource({
+      resource: "book-volume",
+      id: volumeId,
+      patch: { isRead: true, progression: 1 },
+      mutate: () => isEdit
+        ? updateBookReadingEntry({ entryId: entry!.id, readAt })
+        : createBookReadingEntry({ volumeId, readAt }),
+      isSuccess: (value) => value.success,
+      getConfirmedPatch: (value) => value.progress ? {
+        isRead: value.progress.isRead,
+        isFavorite: value.progress.isFavorite,
+        progression: value.progress.progression,
+      } : undefined,
+    });
     setIsLoading(false);
 
-    if (result.success) window.location.reload();
+    if (result.success) {
+      window.dispatchEvent(new Event("bunko:challenge-updated"));
+      onClose();
+    }
   };
 
   const handleDelete = async () => {
@@ -65,10 +81,24 @@ export default function BookReadingEntryForm({
     if (!confirmed) return;
 
     setIsLoading(true);
-    const result = await deleteBookReadingEntry({ entryId: entry!.id });
+    const result = await mutateResource({
+      resource: "book-volume",
+      id: volumeId,
+      patch: {},
+      mutate: () => deleteBookReadingEntry({ entryId: entry!.id }),
+      isSuccess: (value) => value.success,
+      getConfirmedPatch: (value) => value.progress ? {
+        isRead: value.progress.isRead,
+        isFavorite: value.progress.isFavorite,
+        progression: value.progress.progression,
+      } : undefined,
+    });
     setIsLoading(false);
 
-    if (result.success) window.location.reload();
+    if (result.success) {
+      window.dispatchEvent(new Event("bunko:challenge-updated"));
+      onClose();
+    }
   };
 
   return (

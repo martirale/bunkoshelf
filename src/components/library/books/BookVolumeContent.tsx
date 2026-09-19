@@ -63,7 +63,7 @@ export default function BookVolumeContent({ volume, lang, intl, readingEntries, 
             </div>
           )}
 
-          <BookReaderButton slug={volume.slug} title={volume.metadata.title} layout={volume.metadata.renditionLayout} intl={intl} />
+          <BookReaderButton volumeId={volume.id} slug={volume.slug} title={volume.metadata.title} layout={volume.metadata.renditionLayout} intl={intl} />
 
           <div className="mt-8">
             <BookVolumeRating volumeId={volume.id} initialPersonalRating={personalRating} intl={intl} />

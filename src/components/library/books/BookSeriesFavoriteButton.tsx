@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { HeartIcon, HeartOffIcon } from "lucide-react";
 import { toggleBookSeriesFavorite } from "@/actions/books-favorites";
 import Button from "@/components/ui/Button";
+import { useResourceMutation, useResourceState } from "@/lib/client/resourceState";
 import type { Dictionary } from "@/lib/types";
 
 interface BookSeriesFavoriteButtonProps {
@@ -14,18 +14,26 @@ interface BookSeriesFavoriteButtonProps {
 }
 
 export default function BookSeriesFavoriteButton({ seriesId, initialFavorite, intl }: BookSeriesFavoriteButtonProps) {
-  const router = useRouter();
-  const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isLoading, setIsLoading] = useState(false);
   const books = intl.books as Record<string, string>;
+  const { isFavorite = initialFavorite } = useResourceState(
+    "book-series",
+    seriesId,
+    { isFavorite: initialFavorite },
+  );
+  const mutateResource = useResourceMutation();
 
   const toggleFavorite = async () => {
     setIsLoading(true);
     try {
-      const result = await toggleBookSeriesFavorite({ seriesId, favorite: !isFavorite });
+      const result = await mutateResource({
+        resource: "book-series",
+        id: seriesId,
+        patch: { isFavorite: !isFavorite },
+        mutate: () => toggleBookSeriesFavorite({ seriesId, favorite: !isFavorite }),
+        isSuccess: (value) => value.success,
+      });
       if (result.success) {
-        setIsFavorite((current) => !current);
-        router.refresh();
       }
     } finally {
       setIsLoading(false);

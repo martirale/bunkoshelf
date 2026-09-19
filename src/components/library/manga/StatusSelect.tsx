@@ -10,6 +10,11 @@ import {
 } from "lucide-react";
 import { getSeriesStatus, updateSeriesStatus } from "@/actions/series-status";
 import Button from "@/components/ui/Button";
+import {
+  publishResourceState,
+  useResourceMutation,
+  useResourceState,
+} from "@/lib/client/resourceState";
 import type { Locale, Dictionary } from "@/lib/types";
 import type { LucideIcon } from "lucide-react";
 
@@ -58,10 +63,15 @@ export default function StatusSelect({ intl, seriesId }: StatusSelectProps) {
     },
   ];
 
-  const [currentStatus, setCurrentStatus] = useState<string | null>(null);
+  const { status: currentStatus = null } = useResourceState(
+    "manga-series",
+    seriesId,
+    { status: null },
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
+  const mutateResource = useResourceMutation();
 
   const currentOption = STATUS_OPTIONS.find(
     (opt) => opt.value === currentStatus
@@ -76,7 +86,9 @@ export default function StatusSelect({ intl, seriesId }: StatusSelectProps) {
     const load = async () => {
       const data = await getSeriesStatus({ seriesId });
       if (data && !("error" in data) && mounted) {
-        setCurrentStatus(data.status || "FINISHED");
+        publishResourceState("manga-series", seriesId, {
+          status: data.status || "FINISHED",
+        });
       }
     };
 
@@ -106,9 +118,17 @@ export default function StatusSelect({ intl, seriesId }: StatusSelectProps) {
   const handleStatusChange = async (newStatus: string) => {
     setIsLoading(true);
     try {
-      const result = await updateSeriesStatus({ seriesId, status: newStatus });
+      const result = await mutateResource({
+        resource: "manga-series",
+        id: seriesId,
+        patch: { status: newStatus },
+        mutate: () => updateSeriesStatus({ seriesId, status: newStatus }),
+        isSuccess: (value) => Boolean(value && !("error" in value)),
+        getConfirmedPatch: (value) => (
+          typeof value?.status === "string" ? { status: value.status } : undefined
+        ),
+      });
       if (result && !("error" in result)) {
-        setCurrentStatus(result.status);
         setIsOpen(false);
       }
     } finally {

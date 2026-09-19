@@ -41,6 +41,8 @@ export async function syncFirstRead(userId: string, volumeId: string) {
     isRead: hasEntries,
     ...progressUpdate,
   });
+
+  return { isRead: hasEntries, firstRead: oldest ?? null };
 }
 
 export async function getReadingHistory({ volumeId }: { volumeId: string }) {
@@ -69,9 +71,9 @@ export async function createReadingEntry({ volumeId, readAt }: { volumeId: strin
     const entry = await createReadingEntryRecord(user.id, volumeId, readAt);
     await ensureDailyReadingLog(user.id, readAt);
 
-    await syncFirstRead(user.id, volumeId);
+    const progress = await syncFirstRead(user.id, volumeId);
 
-    return { success: true, entry };
+    return { success: true, entry, progress };
   } catch (e) {
     error = e as Error;
   } finally {
@@ -103,9 +105,9 @@ export async function updateReadingEntry({ entryId, readAt }: { entryId: string;
     const entry = await updateReadingEntryRecord(entryId, readAt);
     await ensureDailyReadingLog(user.id, readAt);
 
-    await syncFirstRead(user.id, existing.volume_id);
+    const progress = await syncFirstRead(user.id, existing.volume_id);
 
-    return { success: true, entry };
+    return { success: true, entry, progress };
   } catch (e) {
     error = e as Error;
   } finally {
@@ -136,9 +138,9 @@ export async function deleteReadingEntry({ entryId }: { entryId: string }) {
 
     await deleteReadingEntryRecord(entryId);
 
-    await syncFirstRead(user.id, existing.volume_id);
+    const progress = await syncFirstRead(user.id, existing.volume_id);
 
-    return { success: true };
+    return { success: true, progress };
   } catch (e) {
     error = e as Error;
   } finally {

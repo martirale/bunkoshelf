@@ -20,7 +20,7 @@ async function syncBookReadState(userId: string, volumeId: string) {
   const oldestEntry = await findOldestBookReadingEntryDate(userId, volumeId);
   const progress = await findBookProgress(userId, volumeId);
 
-  await upsertBookProgress(userId, volumeId, {
+  return upsertBookProgress(userId, volumeId, {
     isRead: Boolean(oldestEntry),
     progression: oldestEntry ? 1 : 0,
     lastReadAt: oldestEntry ? progress?.lastReadAt ?? null : null,
@@ -35,9 +35,9 @@ export async function createBookReadingEntry({ volumeId, readAt }: { volumeId: s
 
   const entry = await createBookReadingEntryRecord(user.id, volumeId, readAt);
   await ensureDailyReadingLog(user.id, readAt);
-  await syncBookReadState(user.id, volumeId);
+  const progress = await syncBookReadState(user.id, volumeId);
 
-  return { success: true as const, entry };
+  return { success: true as const, entry, progress };
 }
 
 export async function updateBookReadingEntry({ entryId, readAt }: { entryId: string; readAt: string }) {
@@ -50,9 +50,9 @@ export async function updateBookReadingEntry({ entryId, readAt }: { entryId: str
 
   const entry = await updateBookReadingEntryRecord(entryId, readAt);
   await ensureDailyReadingLog(user.id, readAt);
-  await syncBookReadState(user.id, existing.volumeId);
+  const progress = await syncBookReadState(user.id, existing.volumeId);
 
-  return { success: true as const, entry };
+  return { success: true as const, entry, progress };
 }
 
 export async function deleteBookReadingEntry({ entryId }: { entryId: string }) {
@@ -64,7 +64,7 @@ export async function deleteBookReadingEntry({ entryId }: { entryId: string }) {
   if (!existing || existing.userId !== user.id) return { success: false as const, error: "Not found" };
 
   await deleteBookReadingEntryRecord(entryId);
-  await syncBookReadState(user.id, existing.volumeId);
+  const progress = await syncBookReadState(user.id, existing.volumeId);
 
-  return { success: true as const };
+  return { success: true as const, progress };
 }
