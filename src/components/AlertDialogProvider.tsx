@@ -168,7 +168,7 @@ function AlertDialog({
             <Button
               type="button"
               onClick={() => onClose(false)}
-              variant="light"
+              variant="lightAlt"
               className="w-full px-4 py-3 text-sm"
             >
               {request.cancelLabel || labels.cancel}
@@ -178,10 +178,8 @@ function AlertDialog({
             ref={confirmButtonRef}
             type="button"
             onClick={() => onClose(true)}
-            variant={request.destructive ? "dark" : "dark"}
-            className={request.destructive
-              ? "w-full border-danger-alt bg-danger-alt px-4 py-3 text-sm text-pearl hover:border-black hover:bg-black hover:text-pearl"
-              : "w-full px-4 py-3 text-sm"}
+            variant={request.destructive ? "destructive" : "dark"}
+            className="w-full px-4 py-3 text-sm"
           >
             {isConfirmation ? request.confirmLabel || labels.confirm : labels.close}
           </Button>

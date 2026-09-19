@@ -81,36 +81,38 @@ async function AppShell({
         versionData={versionData}
         libraryCounts={libraryCounts}
       />
-      <Sidebar
-        lang={lang}
-        intl={intl}
-        user={user}
-        challengeData={challengeData}
-        versionData={versionData}
-        libraryCounts={libraryCounts}
-      />
-      <main className="min-h-0 w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto overscroll-y-contain">
-        <PwaProvider userId={user?.id} contentVisibility={getContentVisibilityPolicy(user, appSettings.parentalControlEnabled, appSettings.parentalControlMode)}>
-          <ToastProvider>
-            <AlertDialogProvider
-              labels={{
-                alertTitle: intl.alerts.alertTitle as string,
-                confirmTitle: intl.alerts.confirmTitle as string,
-                confirmEyebrow: intl.alerts.confirmEyebrow as string,
-                destructiveEyebrow: intl.alerts.destructiveEyebrow as string,
-                irreversibleDescription: intl.alerts.irreversibleDescription as string,
-                confirm: intl.alerts.confirm as string,
-                cancel: intl.alerts.cancel as string,
-                close: intl.alerts.close as string,
-              }}
-            >
-              <OfflineGate lang={lang} intl={intl} user={user}>
-                {children}
-              </OfflineGate>
-            </AlertDialogProvider>
-          </ToastProvider>
-        </PwaProvider>
-      </main>
+      <div className="fixed top-0 right-0 left-0 flex h-dvh overflow-hidden">
+        <Sidebar
+          lang={lang}
+          intl={intl}
+          user={user}
+          challengeData={challengeData}
+          versionData={versionData}
+          libraryCounts={libraryCounts}
+        />
+        <main className="min-h-0 w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto overscroll-y-contain">
+          <PwaProvider userId={user?.id} contentVisibility={getContentVisibilityPolicy(user, appSettings.parentalControlEnabled, appSettings.parentalControlMode)}>
+            <ToastProvider>
+              <AlertDialogProvider
+                labels={{
+                  alertTitle: intl.alerts.alertTitle as string,
+                  confirmTitle: intl.alerts.confirmTitle as string,
+                  confirmEyebrow: intl.alerts.confirmEyebrow as string,
+                  destructiveEyebrow: intl.alerts.destructiveEyebrow as string,
+                  irreversibleDescription: intl.alerts.irreversibleDescription as string,
+                  confirm: intl.alerts.confirm as string,
+                  cancel: intl.alerts.cancel as string,
+                  close: intl.alerts.close as string,
+                }}
+              >
+                <OfflineGate lang={lang} intl={intl} user={user}>
+                  {children}
+                </OfflineGate>
+              </AlertDialogProvider>
+            </ToastProvider>
+          </PwaProvider>
+        </main>
+      </div>
     </>
   );
 }
@@ -132,15 +134,15 @@ export default async function RootLayout({ children, params }: RootLayoutProps) 
         <meta name="googlebot" content="noindex,nofollow" />
       </head>
 
-      <body className="relative flex h-dvh overflow-hidden text-lg">
+      <body className="relative h-dvh overflow-hidden text-lg">
         <div className="fixed inset-0 -z-10 pointer-events-none bg-seigaiha-pattern-k opacity-50" />
 
         <Suspense
           fallback={(
-            <>
+              <div className="fixed top-0 right-0 left-0 flex h-dvh overflow-hidden">
               <aside className="hidden md:flex md:w-[35%] lg:w-[25%] xl:w-[21%] 2xl:w-[17%] bg-blackamber flex-col" />
               <main className="min-h-0 w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto overscroll-y-contain" />
-            </>
+            </div>
           )}
         >
           <AppShell lang={lang}>{children}</AppShell>
