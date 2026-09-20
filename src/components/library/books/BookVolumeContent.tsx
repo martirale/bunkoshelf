@@ -44,7 +44,7 @@ export default function BookVolumeContent({ volume, lang, intl, readingEntries, 
     <div className="p-4">
       <section className="flex flex-col md:flex-row">
         <div className="w-full md:w-5/12 2xl:w-1/3">
-          <div className="mb-8 md:mb-0 md:mr-4 px-16 md:px-0 md:sticky md:top-4 md:self-start">
+          <div className="relative mb-8 md:mb-0 md:mr-4 px-16 md:px-0 md:sticky md:top-4 md:self-start">
             {coverImage ? (
               <Image
                 src={coverImage}

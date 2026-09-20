@@ -20,7 +20,7 @@ export default function DetailNavigation({ allSeries, allVolumes, previous, next
     const link = allSeries ?? allVolumes!;
 
     return (
-      <nav className="mt-2 hidden md:block">
+      <nav className="mt-2 flex justify-center md:justify-start">
         <Link href={link.href} className={linkClassName}>
           <ListIcon size={16} />
           {link.label}
@@ -32,19 +32,33 @@ export default function DetailNavigation({ allSeries, allVolumes, previous, next
   if (!previous && !next) return null;
 
   return (
-    <nav className="mt-2 hidden md:flex w-full items-center justify-between gap-2">
-      {previous ? (
-        <Link href={previous.href} className={linkClassName}>
-          <ChevronLeftIcon size={16} />
-          {previous.label}
-        </Link>
-      ) : <span />}
-      {next ? (
-        <Link href={next.href} className={linkClassName}>
-          {next.label}
-          <ChevronRightIcon size={16} />
-        </Link>
-      ) : <span />}
-    </nav>
+    <>
+      <nav className="absolute inset-x-0 top-1/2 flex -translate-y-1/2 items-center justify-between md:hidden">
+        {previous ? (
+          <Link href={previous.href} aria-label={previous.label} className="p-2 text-sand">
+            <ChevronLeftIcon size={32} />
+          </Link>
+        ) : <span />}
+        {next ? (
+          <Link href={next.href} aria-label={next.label} className="p-2 text-sand">
+            <ChevronRightIcon size={32} />
+          </Link>
+        ) : <span />}
+      </nav>
+      <nav className="mt-2 hidden w-full items-center justify-between gap-2 md:flex">
+        {previous ? (
+          <Link href={previous.href} className={linkClassName}>
+            <ChevronLeftIcon size={16} />
+            {previous.label}
+          </Link>
+        ) : <span />}
+        {next ? (
+          <Link href={next.href} className={linkClassName}>
+            {next.label}
+            <ChevronRightIcon size={16} />
+          </Link>
+        ) : <span />}
+      </nav>
+    </>
   );
 }

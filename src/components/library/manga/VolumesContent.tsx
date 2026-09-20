@@ -91,7 +91,7 @@ export default function VolumesContent({
       <section className="flex flex-col md:flex-row">
         <div className="w-full md:w-5/12 2xl:w-1/3">
           {coverImage && (
-            <div className="mb-8 md:mb-0 md:mr-4 px-16 md:px-0 md:sticky md:top-4 md:self-start">
+            <div className="relative mb-8 md:mb-0 md:mr-4 px-16 md:px-0 md:sticky md:top-4 md:self-start">
               {isOfflineCover ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={coverImage} alt={`Cover for ${(volume.title as string) || (volume.filename as string)}`} className="w-full h-auto object-contain rounded-lg" />
