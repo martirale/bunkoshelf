@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import DetailNavigation from "@/components/library/DetailNavigation";
 import { DownloadIcon } from "lucide-react";
 import ReadButtonsVolume from "./ReadButtonsVolume";
 import ReadingHistory from "./ReadingHistory";
@@ -12,6 +13,7 @@ import Separator from "@/components/ui/Separator";
 import Tabs from "@/components/ui/Tabs";
 import VolumeRating from "./VolumeRating";
 import { getOneshotLabel, type LibrarySection } from "@/lib/librarySection";
+import { getDetailNavigationLabels } from "@/lib/detailNavigation";
 import type { Locale, Dictionary, DictionarySection, Session } from "@/lib/types";
 
 interface ReadingEntry {
@@ -30,6 +32,10 @@ interface VolumesContentProps {
   readingEntries: ReadingEntry[];
   firstRead: string | null;
   section?: LibrarySection;
+  navigation?: {
+    previousHref?: string;
+    nextHref?: string;
+  };
 }
 
 export default function VolumesContent({
@@ -43,6 +49,7 @@ export default function VolumesContent({
   readingEntries,
   firstRead,
   section = "manga",
+  navigation,
 }: VolumesContentProps) {
   if (!volumeData) {
     return (
@@ -77,6 +84,7 @@ export default function VolumesContent({
   const coverImage = volume.coverImage as string | undefined;
   const isOfflineCover = coverImage?.startsWith("/offline/") ?? false;
   const canDownloadOriginal = process.env.LIB_PROVIDER === "cloud";
+  const navigationLabels = getDetailNavigationLabels(section, intl);
 
   return (
     <div className="p-4">
@@ -97,6 +105,20 @@ export default function VolumesContent({
                   className="w-full h-auto object-contain rounded-lg"
                 />
               )}
+              <DetailNavigation
+                allVolumes={isOneshot ? {
+                  href: `/${lang}/${section}/volumes`,
+                  label: navigationLabels.allVolumes,
+                } : undefined}
+                previous={navigation?.previousHref ? {
+                  href: navigation.previousHref,
+                  label: navigationLabels.previous,
+                } : undefined}
+                next={navigation?.nextHref ? {
+                  href: navigation.nextHref,
+                  label: navigationLabels.next,
+                } : undefined}
+              />
             </div>
           )}
         </div>

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import DetailNavigation from "@/components/library/DetailNavigation";
 import Separator from "@/components/ui/Separator";
 import Tabs from "@/components/ui/Tabs";
 import BookReaderButton from "./BookReaderButton";
@@ -11,6 +12,7 @@ import BookAdminActions from "./BookAdminActions";
 import BookSummary from "./BookSummary";
 import { getBookCoverUrl } from "@/lib/books/cover";
 import { getBookPublicationYear, toPlainBookText } from "@/lib/books/metadata";
+import { getDetailNavigationLabels } from "@/lib/detailNavigation";
 import type { BookVolume } from "@/lib/db/books/library";
 import type { BookReadingEntry } from "@/lib/db/books/reading";
 import type { Dictionary, Locale } from "@/lib/types";
@@ -22,9 +24,13 @@ interface BookVolumeContentProps {
   readingEntries: BookReadingEntry[];
   personalRating: number | null;
   isAdmin: boolean;
+  navigation?: {
+    previousHref?: string;
+    nextHref?: string;
+  };
 }
 
-export default function BookVolumeContent({ volume, lang, intl, readingEntries, personalRating, isAdmin }: BookVolumeContentProps) {
+export default function BookVolumeContent({ volume, lang, intl, readingEntries, personalRating, isAdmin, navigation }: BookVolumeContentProps) {
   const books = intl.books as Record<string, string>;
   const coverImage = getBookCoverUrl(volume.slug, volume.metadata.coverPath);
   const description = toPlainBookText(volume.metadata.description);
@@ -32,6 +38,7 @@ export default function BookVolumeContent({ volume, lang, intl, readingEntries, 
   const seriesLabel = libraryRoot === "others"
     ? (intl.libraries.otherCollection as string)
     : books.series;
+  const navigationLabels = getDetailNavigationLabels(libraryRoot, intl);
 
   return (
     <div className="p-4">
@@ -50,6 +57,20 @@ export default function BookVolumeContent({ volume, lang, intl, readingEntries, 
             ) : (
               <div className="aspect-[7/10.5] grid place-items-center rounded-lg bg-sand p-6 text-center text-onix">{books.noCover}</div>
             )}
+            <DetailNavigation
+              allVolumes={volume.series.isOneshot ? {
+                href: `/${lang}/${libraryRoot}/volumes`,
+                label: navigationLabels.allVolumes,
+              } : undefined}
+              previous={navigation?.previousHref ? {
+                href: navigation.previousHref,
+                label: navigationLabels.previous,
+              } : undefined}
+              next={navigation?.nextHref ? {
+                href: navigation.nextHref,
+                label: navigationLabels.next,
+              } : undefined}
+            />
           </div>
         </div>
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">

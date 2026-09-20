@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { DownloadIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
+import DetailNavigation from "@/components/library/DetailNavigation";
 import ReadButtonsSeries from "./ReadButtonsSeries";
 import MetadataPanel from "./MetadataPanel";
 import MangaSummary from "./MangaSummary";
@@ -12,6 +13,7 @@ import SeriesRating from "./SeriesRating";
 import Pagination from "@/components/ui/Pagination";
 import type { LibrarySection } from "@/lib/librarySection";
 import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
+import { getDetailNavigationLabels } from "@/lib/detailNavigation";
 import type { Locale, Dictionary, Session } from "@/lib/types";
 
 interface SeriesContentProps {
@@ -59,6 +61,7 @@ export default function SeriesContent({
     meta.mangaStyle === "YesLTR" || meta.mangaStyle === "No";
   const isOfflineCover = coverImage?.startsWith("/offline/") ?? false;
   const canDownloadOriginal = process.env.LIB_PROVIDER === "cloud";
+  const navigationLabels = getDetailNavigationLabels(section, intl);
 
   return (
     <div className="p-4">
@@ -79,6 +82,12 @@ export default function SeriesContent({
                   className="w-full h-auto object-contain rounded-lg"
                 />
               )}
+              <DetailNavigation
+                allSeries={{
+                  href: `/${lang}/${section}/series`,
+                  label: navigationLabels.allSeries,
+                }}
+              />
             </div>
           )}
         </div>

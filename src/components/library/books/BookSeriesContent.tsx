@@ -1,5 +1,6 @@
 import Image from "next/image";
 import MangaCard from "@/components/ui/MangaCard";
+import DetailNavigation from "@/components/library/DetailNavigation";
 import Separator from "@/components/ui/Separator";
 import BookSeriesFavoriteButton from "./BookSeriesFavoriteButton";
 import BookSeriesStatusSelect from "./BookSeriesStatusSelect";
@@ -11,6 +12,7 @@ import BookSummary from "./BookSummary";
 import { getBookCoverUrl } from "@/lib/books/cover";
 import { getBookAgeMinimum, getBookPublicationYear, normalizeBookAgeRating, toPlainBookText, type BookAgeRating } from "@/lib/books/metadata";
 import { getBookProgressRatio } from "@/lib/books/readingProgress";
+import { getDetailNavigationLabels } from "@/lib/detailNavigation";
 import type { BookVolume } from "@/lib/db/books/library";
 import type { Dictionary, Locale } from "@/lib/types";
 
@@ -43,6 +45,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
   const seriesWorksLabel = libraryRoot === "others"
     ? (intl.libraries.otherCollectionWorks as string)
     : books.seriesBooks;
+  const navigationLabels = getDetailNavigationLabels(libraryRoot, intl);
 
   return (
     <div className="p-4">
@@ -54,6 +57,12 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
             ) : (
               <div className="aspect-[7/10.5] grid place-items-center rounded-lg bg-sand p-6 text-center text-onix">{books.noCover}</div>
             )}
+            <DetailNavigation
+              allSeries={{
+                href: `/${lang}/${libraryRoot}/series`,
+                label: navigationLabels.allSeries,
+              }}
+            />
           </div>
         </div>
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">

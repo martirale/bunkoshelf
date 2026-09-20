@@ -8,12 +8,13 @@ import {
   listReadingEntries,
 } from "@/lib/db/reading";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import { findVolumeBySlug } from "@/lib/db/library";
+import { findVolumeBySlug, listVolumes } from "@/lib/db/library";
 import {
   getLibrarySection,
   getLibraryVolumeHref,
 } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import { getAdjacentSlugs } from "@/lib/adjacentNavigation";
 import type { Locale } from "@/lib/types";
 
 interface VolumeMangaPageProps {
@@ -46,6 +47,13 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
     if (targetSection !== "manga") {
       redirect(getLibraryVolumeHref(lang, targetSection, volumeEntry.slug));
     }
+
+    const adjacent = volumeEntry.series.isOneshot
+      ? {}
+      : getAdjacentSlugs(
+          await listVolumes({ seriesIds: [volumeEntry.seriesId], scope: targetSection }),
+          volumeEntry.slug,
+        );
 
     const meta = {
       ...(volumeEntry.metadataObj || null),
@@ -99,6 +107,14 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
         readingEntries={readingEntries}
         firstRead={firstRead}
         section="manga"
+        navigation={{
+          previousHref: adjacent.previousSlug
+            ? getLibraryVolumeHref(lang, targetSection, adjacent.previousSlug)
+            : undefined,
+          nextHref: adjacent.nextSlug
+            ? getLibraryVolumeHref(lang, targetSection, adjacent.nextSlug)
+            : undefined,
+        }}
       />
     );
   } catch (error) {

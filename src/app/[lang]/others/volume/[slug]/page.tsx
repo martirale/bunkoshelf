@@ -8,8 +8,8 @@ import {
   listReadingEntries,
 } from "@/lib/db/reading";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import { findVolumeBySlug } from "@/lib/db/library";
-import { findBookVolumeBySlug } from "@/lib/db/books/library";
+import { findVolumeBySlug, listVolumes } from "@/lib/db/library";
+import { findBookVolumeBySlug, listBookVolumes } from "@/lib/db/books/library";
 import { findBookProgress, listBookReadingEntries } from "@/lib/db/books/reading";
 import BookVolumeContent from "@/components/library/books/BookVolumeContent";
 import {
@@ -17,6 +17,7 @@ import {
   getLibraryVolumeHref,
 } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
+import { getAdjacentSlugs } from "@/lib/adjacentNavigation";
 import type { Locale } from "@/lib/types";
 import type { LibrarySection } from "@/lib/librarySection";
 
@@ -61,6 +62,15 @@ export async function OthersVolumePageContent({ params, section = "others" }: Ot
             findBookProgress(user.id, book.id),
           ])
         : [[], null];
+      const adjacent = book.series.isOneshot
+        ? {}
+        : getAdjacentSlugs(
+            await listBookVolumes({
+              seriesSlug: book.series.slug,
+              librarySection: book.series.librarySection,
+            }),
+            book.slug,
+          );
 
       return (
         <BookVolumeContent
@@ -70,6 +80,14 @@ export async function OthersVolumePageContent({ params, section = "others" }: Ot
           readingEntries={readingEntries}
           personalRating={progress?.personalRating ?? null}
           isAdmin={user?.isAdmin === true}
+          navigation={{
+            previousHref: adjacent.previousSlug
+              ? `/${lang}/${section}/volume/${adjacent.previousSlug}`
+              : undefined,
+            nextHref: adjacent.nextSlug
+              ? `/${lang}/${section}/volume/${adjacent.nextSlug}`
+              : undefined,
+          }}
         />
       );
     }
@@ -79,6 +97,13 @@ export async function OthersVolumePageContent({ params, section = "others" }: Ot
     if (targetSection !== section) {
       redirect(getLibraryVolumeHref(lang, targetSection, volumeEntry.slug));
     }
+
+    const adjacent = volumeEntry.series.isOneshot
+      ? {}
+      : getAdjacentSlugs(
+          await listVolumes({ seriesIds: [volumeEntry.seriesId], scope: targetSection }),
+          volumeEntry.slug,
+        );
 
     const meta = {
       ...(volumeEntry.metadataObj || null),
@@ -132,6 +157,14 @@ export async function OthersVolumePageContent({ params, section = "others" }: Ot
         readingEntries={readingEntries}
         firstRead={firstRead}
         section={section}
+        navigation={{
+          previousHref: adjacent.previousSlug
+            ? getLibraryVolumeHref(lang, targetSection, adjacent.previousSlug)
+            : undefined,
+          nextHref: adjacent.nextSlug
+            ? getLibraryVolumeHref(lang, targetSection, adjacent.nextSlug)
+            : undefined,
+        }}
       />
     );
   } catch (error) {
