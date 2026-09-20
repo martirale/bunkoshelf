@@ -6,8 +6,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Bunko Shelf",
     start_url: "/es",
     display: "standalone",
-    background_color: "#151515",
-    theme_color: "#151515",
+    background_color: "#000000",
+    theme_color: "#000000",
     icons: [
       {
         src: "/icons/bunkoshelf-icon-any.png",

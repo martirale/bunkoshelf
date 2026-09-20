@@ -61,6 +61,18 @@ export default function MangaReader({
   const reader = intl.reader as DictionarySection;
 
   useEffect(() => {
+    if (!isOpen) return;
+
+    document.body.dataset.readerOpen = "true";
+    window.dispatchEvent(new Event("bunko:reader-state"));
+
+    return () => {
+      delete document.body.dataset.readerOpen;
+      window.dispatchEvent(new Event("bunko:reader-state"));
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen || !slug) return;
 
     async function fetchPages() {

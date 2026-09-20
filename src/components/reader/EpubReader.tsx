@@ -143,6 +143,18 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   const [matches, setMatches] = useState<Array<{ label: string; cfi: string }>>([]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
+    document.body.dataset.readerOpen = "true";
+    window.dispatchEvent(new Event("bunko:reader-state"));
+
+    return () => {
+      delete document.body.dataset.readerOpen;
+      window.dispatchEvent(new Event("bunko:reader-state"));
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     annotationsRef.current = annotations;
   }, [annotations]);
 

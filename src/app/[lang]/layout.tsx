@@ -130,6 +130,8 @@ export default async function RootLayout({ children, params }: RootLayoutProps) 
       className={`${robotoCondensed.variable} ${boldonse.variable} antialiased`}
     >
       <head>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="theme-color" content="#000000" />
         <meta name="robots" content="noindex,nofollow" />
         <meta name="googlebot" content="noindex,nofollow" />
       </head>
