@@ -136,7 +136,7 @@ export default async function RootLayout({ children, params }: RootLayoutProps) 
         <meta name="googlebot" content="noindex,nofollow" />
       </head>
 
-      <body className="relative h-dvh overflow-hidden text-lg">
+      <body className="relative h-dvh overflow-hidden bg-black text-lg">
         <div className="fixed inset-0 -z-10 pointer-events-none bg-seigaiha-pattern-k opacity-50" />
 
         <Suspense

@@ -731,7 +731,7 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   const isBookmarked = !!cfi && bookmarkCfis.includes(cfi);
 
   return (
-    <div className="fixed inset-0 z-[60] overflow-hidden text-sand" style={{ background: themeStyles[theme].background }}>
+    <div className="fixed inset-x-0 bottom-0 top-[env(safe-area-inset-top)] z-[60] overflow-hidden text-sand" style={{ background: themeStyles[theme].background }}>
       {showToc && (
         <aside ref={tocPanelRef} className="absolute bottom-[calc(3.5rem+max(0.75rem,env(safe-area-inset-bottom)))] left-0 top-0 z-40 w-full overflow-y-auto bg-blackamber p-5 shadow-xl md:bottom-14 md:w-96">
           <div className="mb-4 flex flex-wrap gap-2 border-b border-white/15">
