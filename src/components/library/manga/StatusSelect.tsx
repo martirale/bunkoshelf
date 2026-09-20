@@ -142,8 +142,8 @@ export default function StatusSelect({ intl, seriesId }: StatusSelectProps) {
         onClick={() => setIsOpen(!isOpen)}
         disabled={isLoading}
         variant="dark"
-        size="icon"
-        className="group size-11 2xl:size-13"
+        size="actionIcon"
+        className="group"
         title={(currentOption?.label as string) || "Seleccionar estado"}
       >
         <CurrentIcon

@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 import type { ButtonHTMLAttributes } from "react";
 
 type ButtonVariant = "light" | "dark" | "accent" | "lightAlt" | "destructive";
-type ButtonSize = "default" | "small" | "icon";
+type ButtonSize = "default" | "small" | "icon" | "action" | "actionIcon";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -27,6 +27,8 @@ const sizeStyles: Record<ButtonSize, string> = {
   small:
     "rounded-md border-transparent px-[11px] py-[3px] text-sm font-normal leading-normal",
   icon: "rounded-lg size-10 p-0 font-bold leading-none",
+  action: "h-11 rounded-lg px-4 font-bold leading-none 2xl:h-13 2xl:px-5",
+  actionIcon: "size-11 rounded-lg p-0 font-bold leading-none 2xl:size-13",
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(

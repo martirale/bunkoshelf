@@ -49,8 +49,7 @@ export default function BookSeriesFavoriteButton({ seriesId, initialFavorite, in
       title={label}
       aria-label={label}
       variant={isFavorite ? "lightAlt" : "dark"}
-      size="icon"
-      className="size-11 2xl:size-13"
+      size="actionIcon"
     >
       {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
     </Button>

@@ -102,7 +102,8 @@ export default function BookReaderButton({ volumeId, slug, title, layout, intl }
         onClick={() => setOpen(true)}
         aria-label={books.read}
         variant="accent"
-        className="gap-2 px-4 py-3 2xl:px-5 2xl:py-4"
+        size="action"
+        className="gap-2"
       >
         <BookCheckIcon size={20} />
         <span className="font-bold uppercase">{books.read}</span>
@@ -111,8 +112,7 @@ export default function BookReaderButton({ volumeId, slug, title, layout, intl }
         onClick={() => void toggleRead()}
         disabled={isLoading}
         variant={isRead ? "lightAlt" : "dark"}
-        size="icon"
-        className="size-11 2xl:size-13"
+        size="actionIcon"
         title={isRead ? books.markUnread : books.markRead}
         aria-label={isRead ? books.markUnread : books.markRead}
       >
@@ -122,8 +122,7 @@ export default function BookReaderButton({ volumeId, slug, title, layout, intl }
         onClick={() => void updateProgress({ isFavorite: !favorite })}
         disabled={isLoading}
         variant={favorite ? "lightAlt" : "dark"}
-        size="icon"
-        className="size-11 2xl:size-13"
+        size="actionIcon"
         title={favorite ? books.removeFavorite : books.addFavorite}
         aria-label={favorite ? books.removeFavorite : books.addFavorite}
       >

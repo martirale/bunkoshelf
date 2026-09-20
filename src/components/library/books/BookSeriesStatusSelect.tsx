@@ -103,8 +103,8 @@ export default function BookSeriesStatusSelect({ seriesId, intl }: BookSeriesSta
         disabled={isLoading}
         title={currentOption?.label ?? books.selectStatus}
         variant="dark"
-        size="icon"
-        className="group size-11 2xl:size-13"
+        size="actionIcon"
+        className="group"
       >
         <CurrentIcon
           size={20}

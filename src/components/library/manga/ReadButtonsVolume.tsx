@@ -270,9 +270,10 @@ export default function ReadButtonsVolume({
         <Button
           onClick={openNormalReader}
           variant="accent"
-          className="px-5 py-2 2xl:px-6 2xl:py-4"
-        >
-          <BookCheckIcon size={20} className="mr-2" />
+        size="action"
+        className="gap-2"
+      >
+          <BookCheckIcon size={20} />
           {intl.manga.read as string}
         </Button>
 
@@ -280,8 +281,7 @@ export default function ReadButtonsVolume({
           onClick={openYoureiReader}
           title="Leer de incógnito"
           variant="dark"
-          size="icon"
-          className="size-11 2xl:size-13"
+          size="actionIcon"
         >
           <HatGlassesIcon size={20} />
         </Button>
@@ -291,8 +291,7 @@ export default function ReadButtonsVolume({
           disabled={isLoading}
           title={isRead ? "Marcar como no leído" : "Marcar como leído"}
           variant={isRead ? "lightAlt" : "dark"}
-          size="icon"
-          className="size-11 2xl:size-13"
+          size="actionIcon"
         >
           <CheckIcon size={20} />
         </Button>
@@ -302,8 +301,7 @@ export default function ReadButtonsVolume({
           disabled={isLoading}
           title={isFavorite ? "Eliminar de favoritos" : "Marcar como favorito"}
           variant={isFavorite ? "lightAlt" : "dark"}
-          size="icon"
-          className="size-11 2xl:size-13"
+          size="actionIcon"
         >
           {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
         </Button>

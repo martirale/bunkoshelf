@@ -215,7 +215,7 @@ export default function MangaReader({
   if (!isOpen) return null;
   if (loading)
     return (
-      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+      <div className="fixed inset-0 z-[60] bg-black flex items-center justify-center">
         <Loader />
       </div>
     );
@@ -227,7 +227,7 @@ export default function MangaReader({
       id="mob-nav-modal"
       ref={modalRef}
       tabIndex={-1}
-      className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center pointer-events-auto transition-opacity duration-200 ease-in-out opacity-100"
+      className="fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center pointer-events-auto transition-opacity duration-200 ease-in-out opacity-100"
     >
       <button
         onClick={onClose}

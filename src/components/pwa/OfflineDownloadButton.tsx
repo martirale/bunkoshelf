@@ -139,8 +139,7 @@ export default function OfflineDownloadButton({ userId, section, slug, volumeId,
       disabled={!userId || (!isOnline && !isReady) || isDownloading}
       title={title || "Descargar para leer sin conexión"}
       variant={isReady ? "lightAlt" : "dark"}
-      size="icon"
-      className="size-11 2xl:size-13"
+      size="actionIcon"
     >
       {isDownloading ? <ProgressRing value={progress} /> : isReady ? <Trash2Icon size={20} /> : <DownloadIcon size={20} />}
     </Button>

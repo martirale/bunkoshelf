@@ -79,8 +79,7 @@ export default function ReadButtonsSeries({
         onClick={toggleFavorite}
         disabled={isLoading}
         variant={isFavorite ? "lightAlt" : "dark"}
-        size="icon"
-        className="size-11 2xl:size-13"
+        size="actionIcon"
         title={isFavorite ? "Eliminar de favoritos" : "Marcar como favorito"}
       >
         {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
