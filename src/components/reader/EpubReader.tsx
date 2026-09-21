@@ -49,7 +49,7 @@ const handednessStorageKey = "bunko:epub-reader-handedness";
 const themeStyles: Record<ReaderTheme, { background: string; color: string }> = {
   light: { background: "#fffdf7", color: "#1f1b16" },
   sepia: { background: "#f3e7cf", color: "#47382a" },
-  dark: { background: "#181716", color: "#f5efe4" },
+  dark: { background: "#000000", color: "#f5efe4" },
 };
 
 async function getBookBuffer(slug: string): Promise<ArrayBuffer> {

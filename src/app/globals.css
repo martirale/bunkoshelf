@@ -9,6 +9,10 @@
   --font-display: var(--font-boldonse), Georgia, serif;
 }
 
+html {
+  background: #000000;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -54,7 +58,7 @@
 }
 
 body {
-  background: var(--color-background);
+  background: #000000;
   color: var(--color-sand);
   font-family: var(--font-sans);
 }
