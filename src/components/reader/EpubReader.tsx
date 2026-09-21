@@ -6,9 +6,12 @@ import {
   BookmarkIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  CoffeeIcon,
   MenuIcon,
   Minimize2Icon,
+  MoonIcon,
   SearchIcon,
+  SunIcon,
   Trash2Icon,
 } from "lucide-react";
 import type { Dictionary } from "@/lib/types";
@@ -45,6 +48,7 @@ interface EpubReaderProps {
 const fileCache = new Map<string, ArrayBuffer>();
 const maxCachedBooks = 3;
 const handednessStorageKey = "bunko:epub-reader-handedness";
+const themeOrder: ReaderTheme[] = ["light", "sepia", "dark"];
 
 const themeStyles: Record<ReaderTheme, { background: string; color: string }> = {
   light: { background: "#fffdf7", color: "#1f1b16" },
@@ -103,6 +107,7 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   const tocToggleRef = useRef<HTMLButtonElement>(null);
   const bookRef = useRef<any>(null);
   const renditionRef = useRef<any>(null);
+  const applyStylesRef = useRef<() => void>(() => undefined);
   const annotationsRef = useRef<ReaderState["annotations"]>([]);
   const pendingSelectionRef = useRef<{ cfiRange: string; contents: any } | null>(null);
   const flushPendingSelectionRef = useRef<() => void>(() => undefined);
@@ -276,6 +281,10 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
       },
     });
   }, [flow, fontFamily, fontSize, layout, lineHeight, margin, theme]);
+
+  useEffect(() => {
+    applyStylesRef.current = applyStyles;
+  }, [applyStyles]);
 
   useEffect(() => { applyStyles(); }, [applyStyles]);
   useEffect(() => { flowRef.current = flow; }, [flow]);
@@ -458,7 +467,7 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
           document.addEventListener("touchend", showPendingSelection);
           document.addEventListener("pointerup", markPointerUp);
         });
-        if (layout === "reflowable") applyStyles();
+        if (layout === "reflowable") applyStylesRef.current();
         const refreshAnnotationLayers = () => {
           requestAnimationFrame(() => requestAnimationFrame(() => {
             if (cancelled) return;
@@ -513,7 +522,7 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
       bookRef.current?.destroy();
       bookRef.current = null;
     };
-  }, [applyStyles, closePanels, findAnnotationAtPoint, isOpen, layout, openAnnotationMenu, persistProgress, reader.openFailed, renderAnnotation, slug]);
+  }, [closePanels, findAnnotationAtPoint, isOpen, layout, openAnnotationMenu, persistProgress, reader.openFailed, renderAnnotation, slug]);
 
   useEffect(() => {
     if (!isOpen || !("wakeLock" in navigator)) return;
@@ -727,8 +736,14 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
     setShowToc((visible) => !visible);
   };
 
+  const cycleTheme = () => {
+    setTheme((current) => themeOrder[(themeOrder.indexOf(current) + 1) % themeOrder.length]);
+  };
+
   if (!isOpen) return null;
   const isBookmarked = !!cfi && bookmarkCfis.includes(cfi);
+  const nextTheme = themeOrder[(themeOrder.indexOf(theme) + 1) % themeOrder.length];
+  const ThemeIcon = theme === "light" ? SunIcon : theme === "sepia" ? CoffeeIcon : MoonIcon;
 
   return (
     <div className="fixed inset-x-0 bottom-0 top-[env(safe-area-inset-top)] z-[60] overflow-hidden text-sand" style={{ background: themeStyles[theme].background }}>
@@ -804,6 +819,7 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
           <div className="flex items-center gap-1">
             {handedness === "left" && <>
               <button onClick={closeReader} title={reader.close} aria-label={reader.close} className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
+              {layout === "reflowable" && <button onClick={cycleTheme} title={`${reader.changeTheme}: ${reader[nextTheme]}`} aria-label={`${reader.changeTheme}: ${reader[nextTheme]}`} className="cursor-pointer p-2"><ThemeIcon size={24} /></button>}
               <button onClick={toggleBookmark} title={isBookmarked ? reader.removeBookmark : reader.addBookmark} aria-label={isBookmarked ? reader.removeBookmark : reader.addBookmark} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
               <button ref={tocToggleRef} onClick={toggleToc} title={reader.contents} aria-label={reader.contents} className="cursor-pointer p-2"><MenuIcon size={24} /></button>
             </>}
@@ -816,6 +832,7 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
             {handedness === "right" && <>
               <button ref={tocToggleRef} onClick={toggleToc} title={reader.contents} aria-label={reader.contents} className="cursor-pointer p-2"><MenuIcon size={24} /></button>
               <button onClick={toggleBookmark} title={isBookmarked ? reader.removeBookmark : reader.addBookmark} aria-label={isBookmarked ? reader.removeBookmark : reader.addBookmark} className="cursor-pointer p-2"><BookmarkIcon size={24} className={isBookmarked ? "fill-lilah text-lilah" : ""} /></button>
+              {layout === "reflowable" && <button onClick={cycleTheme} title={`${reader.changeTheme}: ${reader[nextTheme]}`} aria-label={`${reader.changeTheme}: ${reader[nextTheme]}`} className="cursor-pointer p-2"><ThemeIcon size={24} /></button>}
               <button onClick={closeReader} title={reader.close} aria-label={reader.close} className="cursor-pointer p-2"><Minimize2Icon size={24} /></button>
             </>}
             {handedness === "left" && <>
