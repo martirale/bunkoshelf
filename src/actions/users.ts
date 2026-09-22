@@ -107,6 +107,9 @@ export async function createUser({
     if (!isValidBirthDate(birthYear, birthMonth, birthDay, true)) {
       return { error: "Fecha de nacimiento inválida", status: 400 };
     }
+    if (role === "GUEST") {
+      return { error: "Las cuentas invitadas se crean desde los clubes", status: 400 };
+    }
 
     if (await usernameExists(username)) {
       return { error: "El nombre de usuario ya existe", status: 400 };
@@ -183,6 +186,14 @@ export async function adminUpdateUser({
       return { error: "El nombre de usuario ya existe", status: 400 };
     }
 
+    const currentUser = await findUserSessionById(id);
+    if (!currentUser) {
+      return { error: "Usuario no encontrado", status: 404 };
+    }
+    if (currentUser.role === "GUEST" || role === "GUEST") {
+      return { error: "Las cuentas invitadas se administran desde los clubes", status: 403 };
+    }
+
     const updatedUser = await updateUserRecord(id, {
       username,
       name: name || null,
@@ -251,6 +262,9 @@ export async function deleteUser({
 
     if (!userToDelete) {
       return { error: "Usuario no encontrado", status: 404 };
+    }
+    if (userToDelete.role === "GUEST") {
+      return { error: "Las cuentas invitadas se administran desde los clubes", status: 403 };
     }
 
     await deleteUserRecord(id);

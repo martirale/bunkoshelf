@@ -31,6 +31,8 @@
     "reachedMilestone": "reached the milestone",
     "noActivity": "No activity has been recorded yet.",
     "manage": "Manage",
+    "selectUser": "Select user",
+    "addMember": "Add participant",
     "createInvite": "Create invitation",
     "copyInvite": "Copy invitation",
     "inviteCopied": "Invitation copied",

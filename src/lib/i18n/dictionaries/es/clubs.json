@@ -31,6 +31,8 @@
     "reachedMilestone": "alcanzó el hito",
     "noActivity": "Aún no hay actividad registrada.",
     "manage": "Administrar",
+    "selectUser": "Seleccionar usuario",
+    "addMember": "Añadir participante",
     "createInvite": "Crear invitación",
     "copyInvite": "Copiar invitación",
     "inviteCopied": "Invitación copiada",

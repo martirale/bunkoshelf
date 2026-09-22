@@ -137,7 +137,7 @@ export default async function RootLayout({ children, params }: RootLayoutProps) 
       </head>
 
       <body className="relative h-dvh overflow-hidden bg-black text-lg">
-        <div aria-hidden="true" className="pointer-events-none fixed top-0 right-0 left-0 z-[100] h-[env(safe-area-inset-top)] bg-black" />
+        <div aria-hidden="true" className="pointer-events-none fixed top-0 right-0 left-0 z-[100] h-[max(1px,env(safe-area-inset-top))] bg-black" />
         <div className="pointer-events-none fixed inset-0 z-0 bg-seigaiha-pattern-k opacity-50" />
 
         <Suspense

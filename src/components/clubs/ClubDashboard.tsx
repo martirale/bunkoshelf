@@ -7,6 +7,7 @@ import Image from "next/image";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import {
   addClubCandidate,
+  addClubMember,
   addClubMilestone,
   archiveClub,
   completeClubCycle,
@@ -25,6 +26,7 @@ import type {
   ClubCandidate,
   ClubCycle,
   ClubMember,
+  ClubUser,
   ReadingClub,
   ClubSourceType,
 } from "@/lib/db/clubs";
@@ -53,6 +55,7 @@ export default function ClubDashboard({
   milestones,
   works,
   readingVolumes,
+  users,
   isManager,
   inviteToken,
   lang,
@@ -78,6 +81,7 @@ export default function ClubDashboard({
     kind: string;
     manga_style: string | null;
   }>;
+  users: ClubUser[];
   isManager: boolean;
   inviteToken: string | null;
   lang: string;
@@ -101,6 +105,11 @@ export default function ClubDashboard({
     ? `${origin}/${lang}/clubs/join/${inviteToken}`
     : "";
   const refresh = () => router.refresh();
+  const availableUsers = users.filter(
+    (user) => !members.some(
+      (member) => member.userId === user.id && ["APPROVED", "PENDING"].includes(member.status),
+    ),
+  );
   const copyInvite = async () => {
     try {
       await navigator.clipboard.writeText(
@@ -125,6 +134,13 @@ export default function ClubDashboard({
       form.reset();
       refresh();
     }
+  };
+  const submitMember = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const userId = String(new FormData(event.currentTarget).get("userId") ?? "");
+    const result = await addClubMember(club.slug, userId);
+    if (!result.success) setMessage(result.error);
+    else refresh();
   };
   const submitMilestone = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -559,6 +575,17 @@ export default function ClubDashboard({
                 <CopyIcon size={20} className="shrink-0" />
               )}
             </button>
+          )}
+          {availableUsers.length > 0 && (
+            <form onSubmit={submitMember} className="grid gap-4 xl:grid-cols-[1fr_auto] xl:items-end">
+              <select name="userId" aria-label={labels.selectUser} defaultValue="" required className="h-14 rounded-lg border border-neutral-700 bg-onix px-5 text-sand">
+                <option value="" disabled>{labels.selectUser}</option>
+                {availableUsers.map((user) => (
+                  <option key={user.id} value={user.id}>{user.name ? `${user.name} (@${user.username})` : user.username} · {user.role}</option>
+                ))}
+              </select>
+              <Button variant="lightAlt" className="px-8 py-4">{labels.addMember}</Button>
+            </form>
           )}
           <form
             onSubmit={submitCycle}

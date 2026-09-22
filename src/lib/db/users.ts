@@ -67,6 +67,7 @@ export async function listUsers(): Promise<PublicUser[]> {
     SELECT id, created_at, username, password, is_admin, role, name, lastname, birth_year, birth_month, birth_day, parental_control_enabled, parental_control_mode
     , profile_image
     FROM users
+    WHERE disabled_at IS NULL
     ORDER BY COALESCE(name, username) ASC, username ASC
   `);
 

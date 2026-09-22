@@ -90,14 +90,16 @@ export default function UsersTable({
                     <div className="p-4 text-center">{age}</div>
                   </div>
                   <div className="w-24 shrink-0 sticky right-0 bg-blackamber p-4 flex items-center justify-center">
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(user)}
-                      title={intl.settings.edit as string}
-                      className="border border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
-                    >
-                      <UserRoundPenIcon size={16} />
-                    </button>
+                    {user.role !== "GUEST" && (
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(user)}
+                        title={intl.settings.edit as string}
+                        className="border border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah"
+                      >
+                        <UserRoundPenIcon size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               );

@@ -36,6 +36,13 @@ export interface ClubMember {
   progress: number | null;
 }
 
+export interface ClubUser {
+  id: string;
+  username: string;
+  name: string | null;
+  role: string;
+}
+
 export interface ClubCycle {
   id: string;
   title: string;
@@ -217,6 +224,47 @@ export async function requestMembership(clubId: string, userId: string): Promise
   [createId(), clubId, userId]);
 }
 
+export async function addApprovedMembership(clubId: string, userId: string): Promise<void> {
+  await execute(`INSERT INTO reading_club_members (id, club_id, user_id, status, reviewed_at)
+    VALUES ($1,$2,$3,'APPROVED',NOW()) ON CONFLICT (club_id, user_id)
+    DO UPDATE SET status = 'APPROVED', reviewed_at = NOW()`,
+  [createId(), clubId, userId]);
+}
+
+export async function listClubUsers(): Promise<ClubUser[]> {
+  return query<ClubUser>(`SELECT id, username, name, role
+    FROM users
+    WHERE disabled_at IS NULL
+    ORDER BY COALESCE(name, username) ASC, username ASC`);
+}
+
+export async function deleteGuestWithoutActiveClubs(userId: string): Promise<void> {
+  await execute(`DELETE FROM users
+    WHERE id = $1
+      AND role = 'GUEST'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM reading_club_members member
+        INNER JOIN reading_clubs club ON club.id = member.club_id
+        WHERE member.user_id = users.id
+          AND member.status IN ('PENDING', 'APPROVED')
+          AND club.status = 'ACTIVE'
+      )`, [userId]);
+}
+
+async function deleteGuestsWithoutActiveClubs(): Promise<void> {
+  await execute(`DELETE FROM users
+    WHERE role = 'GUEST'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM reading_club_members member
+        INNER JOIN reading_clubs club ON club.id = member.club_id
+        WHERE member.user_id = users.id
+          AND member.status IN ('PENDING', 'APPROVED')
+          AND club.status = 'ACTIVE'
+      )`);
+}
+
 export async function reviewMembership(memberId: string, status: Extract<ClubMemberStatus, "APPROVED" | "REJECTED" | "REVOKED">): Promise<void> {
   await execute("UPDATE reading_club_members SET status = $2, reviewed_at = NOW() WHERE id = $1", [memberId, status]);
 }
@@ -271,15 +319,12 @@ export async function castVoteRecord(cycleId: string, candidateId: string, membe
 
 export async function archiveClubRecord(clubId: string): Promise<void> {
   await execute("UPDATE reading_clubs SET status='ARCHIVED', archived_at=NOW(), updated_at=NOW() WHERE id=$1", [clubId]);
-  await execute(`UPDATE users SET disabled_at=NOW() FROM reading_club_guest_accounts g
-    WHERE g.club_id=$1 AND g.user_id=users.id`, [clubId]);
+  await deleteGuestsWithoutActiveClubs();
 }
 
 export async function deleteClubRecord(clubId: string): Promise<void> {
-  await execute(`DELETE FROM users WHERE id IN (
-    SELECT user_id FROM reading_club_guest_accounts WHERE club_id=$1
-  )`, [clubId]);
   await execute("DELETE FROM reading_clubs WHERE id=$1", [clubId]);
+  await deleteGuestsWithoutActiveClubs();
 }
 
 export async function getClubDashboard(club: ReadingClub, userId: string) {

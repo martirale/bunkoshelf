@@ -96,7 +96,7 @@ export default function CreateUserForm({ intl }: CreateUserFormProps) {
           <input type="number" value={birthYear} onChange={(e) => setBirthYear(e.target.value)} placeholder={intl.settings.birthYearOpt as string} className="bg-pearl border border-onix rounded-lg w-full px-5 py-3" required />
         </div>
         <div className="grid items-center gap-4 md:grid-cols-2">
-          <select aria-label={intl.settings.role as string} value={role} onChange={(e) => setRole(e.target.value as Role)} className="bg-pearl border border-onix rounded-lg px-5 py-3"><option value="ADMIN">{intl.settings.roleAdmin as string}</option><option value="MEMBER">{intl.settings.roleMember as string}</option><option value="GUEST">{intl.settings.roleGuest as string}</option></select>
+          <select aria-label={intl.settings.role as string} value={role} onChange={(e) => setRole(e.target.value as Role)} className="bg-pearl border border-onix rounded-lg px-5 py-3"><option value="ADMIN">{intl.settings.roleAdmin as string}</option><option value="MEMBER">{intl.settings.roleMember as string}</option></select>
           <div className="flex items-center justify-between gap-4 px-5 py-3"><span>{intl.settings.isAdmin as string}</span><Switch checked={isAdmin} onCheckedChange={setIsAdmin} /></div>
         </div>
         <Button type="submit" variant="lightAlt" className="px-8 py-4">{intl.settings.createUser as string}</Button>

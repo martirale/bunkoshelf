@@ -10,6 +10,7 @@ import { createUserRecord, usernameExists } from "@/lib/db/users";
 import { execute, queryOne } from "@/lib/db/query";
 import {
   addCandidateRecord,
+  addApprovedMembership,
   addMilestoneRecord,
   archiveClubRecord,
   canAccessClub,
@@ -17,6 +18,7 @@ import {
   castVoteRecord,
   createClubRecord,
   createCycleRecord,
+  deleteGuestWithoutActiveClubs,
   deleteClubRecord,
   findClubBySlug,
   findFixedClubInvite,
@@ -64,7 +66,6 @@ export async function joinClubWithSession(token: string): Promise<Result & { slu
   const user = await verifySession();
   const invite = await findFixedClubInvite(token);
   if (!user || !invite || invite.club_status !== "ACTIVE") return { success: false, error: "Invalid invitation" };
-  if (user.role === "GUEST") return { success: false, error: "Guest accounts are limited to their club" };
   await requestMembership(invite.club_id, user.id);
   return { success: true, slug: invite.club_slug };
 }
@@ -86,7 +87,6 @@ export async function joinClubAsGuest(input: { token: string; username: string; 
   if (!/^[a-zA-Z0-9_-]{3,32}$/.test(username) || input.password.length < 8) return { success: false, error: "Use a name of 3–32 characters and a password of at least 8 characters" };
   if (await usernameExists(username)) return { success: false, error: "That name is already in use" };
   const user = await createUserRecord({ username, password: await bcrypt.hash(input.password, 10), role: "GUEST", name: username });
-  await execute("INSERT INTO reading_club_guest_accounts (user_id,club_id) VALUES ($1,$2)", [user.id, invite.club_id]);
   await requestMembership(invite.club_id, user.id);
   const token = jwt.sign({ id: user.id, username: user.username, isAdmin: false, role: user.role }, process.env.JWT_SECRET!, { expiresIn: "180d", algorithm: "HS256" });
   const cookieStore = await cookies();
@@ -97,9 +97,13 @@ export async function joinClubAsGuest(input: { token: string; username: string; 
 export async function reviewClubMember(slug: string, memberId: string, status: "APPROVED" | "REJECTED" | "REVOKED"): Promise<Result> {
   const context = await manager(slug);
   if (!context) return { success: false, error: "Unauthorized" };
-  const member = await queryOne<{ id: string }>("SELECT id FROM reading_club_members WHERE id=$1 AND club_id=$2", [memberId, context.club.id]);
+  const member = await queryOne<{ id: string; user_id: string; role: string }>(`SELECT m.id,m.user_id,u.role
+    FROM reading_club_members m
+    INNER JOIN users u ON u.id=m.user_id
+    WHERE m.id=$1 AND m.club_id=$2`, [memberId, context.club.id]);
   if (!member) return { success: false, error: "Member not found" };
   await reviewMembership(memberId, status);
+  if (member.role === "GUEST") await deleteGuestWithoutActiveClubs(member.user_id);
   revalidatePath(`/es/clubs/${slug}`);
   revalidatePath(`/en/clubs/${slug}`);
   return { success: true };
@@ -111,7 +115,18 @@ export async function removeClubMember(slug: string, memberId: string): Promise<
   const member = await queryOne<{ user_id: string; role: string }>("SELECT m.user_id,u.role FROM reading_club_members m INNER JOIN users u ON u.id=m.user_id WHERE m.id=$1 AND m.club_id=$2", [memberId, context.club.id]);
   if (!member || member.user_id === context.club.ownerId) return { success: false, error: "Unauthorized" };
   await reviewMembership(memberId, "REVOKED");
-  if (member.role === "GUEST") await execute("UPDATE users SET disabled_at=NOW() WHERE id=$1", [member.user_id]);
+  if (member.role === "GUEST") await deleteGuestWithoutActiveClubs(member.user_id);
+  revalidatePath(`/es/clubs/${slug}`);
+  revalidatePath(`/en/clubs/${slug}`);
+  return { success: true };
+}
+
+export async function addClubMember(slug: string, userId: string): Promise<Result> {
+  const context = await manager(slug);
+  if (!context || context.club.status !== "ACTIVE" || !userId) return { success: false, error: "Unauthorized" };
+  const user = await queryOne<{ id: string }>("SELECT id FROM users WHERE id=$1 AND disabled_at IS NULL", [userId]);
+  if (!user) return { success: false, error: "User not found" };
+  await addApprovedMembership(context.club.id, user.id);
   revalidatePath(`/es/clubs/${slug}`);
   revalidatePath(`/en/clubs/${slug}`);
   return { success: true };
