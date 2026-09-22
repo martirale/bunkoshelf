@@ -38,10 +38,21 @@ test("aplica los modos flexible, estricto y fecha ausente", () => {
   assert.equal(missingDate.maxAge, 15);
 });
 
+test("aplica el nivel global a invitados", () => {
+  const guest = user({ role: "GUEST", birthYear: null, birthMonth: null, birthDay: null });
+  const flexible = getContentVisibilityPolicy(guest, true, "flexible");
+  const strict = getContentVisibilityPolicy(guest, true, "strict");
+  assert.equal(flexible.maxAge, 17);
+  assert.equal(flexible.allowUnrated, true);
+  assert.equal(strict.maxAge, 15);
+  assert.equal(strict.allowUnrated, false);
+});
+
 test("acepta 29 de febrero en años bisiestos", () => {
   const leapDayUser = user({ birthYear: 2008, birthMonth: 2, birthDay: 29 });
   assert.equal(getContentVisibilityPolicy(leapDayUser, true, "flexible", new Date(2026, 1, 28)).maxAge, 17);
   assert.equal(getContentVisibilityPolicy(leapDayUser, true, "flexible", new Date(2026, 2, 1)).enabled, false);
+});
 
 test("el nivel global estricto no anula preferencias de adultos", () => {
   const unfiltered = getContentVisibilityPolicy(user({ parentalControlEnabled: false }), true, "strict");
@@ -50,5 +61,4 @@ test("el nivel global estricto no anula preferencias de adultos", () => {
   assert.equal(unfiltered.enabled, false);
   assert.equal(flexible.maxAge, 17);
   assert.equal(strict.maxAge, 15);
-});
 });

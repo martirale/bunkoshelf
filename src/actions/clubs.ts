@@ -8,6 +8,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { verifySession } from "@/lib/auth/verifySession";
 import { createUserRecord, usernameExists } from "@/lib/db/users";
 import { execute, queryOne } from "@/lib/db/query";
+import { canClubMembersAccessWork, canUserAccessClubReading } from "@/lib/clubs/access";
 import {
   addCandidateRecord,
   addApprovedMembership,
@@ -102,6 +103,9 @@ export async function reviewClubMember(slug: string, memberId: string, status: "
     INNER JOIN users u ON u.id=m.user_id
     WHERE m.id=$1 AND m.club_id=$2`, [memberId, context.club.id]);
   if (!member) return { success: false, error: "Member not found" };
+  if (status === "APPROVED" && !(await canUserAccessClubReading(member.user_id, context.club.id))) {
+    return { success: false, error: "This user cannot access the club's current reading" };
+  }
   await reviewMembership(memberId, status);
   if (member.role === "GUEST") await deleteGuestWithoutActiveClubs(member.user_id);
   revalidatePath(`/es/clubs/${slug}`);
@@ -126,6 +130,9 @@ export async function addClubMember(slug: string, userId: string): Promise<Resul
   if (!context || context.club.status !== "ACTIVE" || !userId) return { success: false, error: "Unauthorized" };
   const user = await queryOne<{ id: string }>("SELECT id FROM users WHERE id=$1 AND disabled_at IS NULL", [userId]);
   if (!user) return { success: false, error: "User not found" };
+  if (!(await canUserAccessClubReading(user.id, context.club.id))) {
+    return { success: false, error: "This user cannot access the club's current reading" };
+  }
   await addApprovedMembership(context.club.id, user.id);
   revalidatePath(`/es/clubs/${slug}`);
   revalidatePath(`/en/clubs/${slug}`);
@@ -150,6 +157,9 @@ export async function confirmClubCandidates(slug: string, cycleId: string, candi
   if (!context || context.club.status !== "ACTIVE" || !(await belongsToClub(cycleId, context.club.id)) || !uniqueCandidates.length) return { success: false, error: "Choose at least one work" };
   const cycle = await queryOne<{ status: string; vote_closes_at: Date | null }>("SELECT status,vote_closes_at FROM reading_club_cycles WHERE id=$1", [cycleId]);
   if (!cycle || cycle.status !== "DRAFT") return { success: false, error: "This cycle cannot be changed" };
+  if (!(await Promise.all(uniqueCandidates.map((candidate) => canClubMembersAccessWork(context.club.id, candidate.sourceType, candidate.sourceId)))).every(Boolean)) {
+    return { success: false, error: "The selected work is restricted for a club participant" };
+  }
   if (uniqueCandidates.length === 1) {
     await execute("UPDATE reading_club_cycles SET status='COMPLETED', completed_at=NOW(), updated_at=NOW() WHERE club_id=$1 AND status='READING' AND id<>$2", [context.club.id, cycleId]);
     await selectCycleWork(cycleId, uniqueCandidates[0].sourceType, uniqueCandidates[0].sourceId);
@@ -184,6 +194,9 @@ export async function addClubCandidate(slug: string, cycleId: string, sourceType
   if (!context || context.club.status !== "ACTIVE" || !sourceId || !(await belongsToClub(cycleId, context.club.id))) return { success: false, error: "Unauthorized" };
   const cycle = await queryOne<{ status: string; vote_closes_at: Date | null }>("SELECT status,vote_closes_at FROM reading_club_cycles WHERE id=$1", [cycleId]);
   if (cycle?.status !== "VOTING" || (cycle.vote_closes_at && cycle.vote_closes_at <= new Date())) return { success: false, error: "Candidates can only be added to an open vote" };
+  if (!(await canClubMembersAccessWork(context.club.id, sourceType, sourceId))) {
+    return { success: false, error: "The selected work is restricted for a club participant" };
+  }
   await addCandidateRecord(cycleId, sourceType, sourceId);
   return { success: true };
 }
@@ -193,6 +206,9 @@ export async function selectClubWork(slug: string, cycleId: string, sourceType: 
   if (!context || context.club.status !== "ACTIVE" || !sourceId || !(await belongsToClub(cycleId, context.club.id))) return { success: false, error: "Unauthorized" };
   const cycle = await queryOne<{ status: string; vote_closes_at: Date | null }>("SELECT status,vote_closes_at FROM reading_club_cycles WHERE id=$1", [cycleId]);
   if (!cycle || (cycle.status === "VOTING" && (!cycle.vote_closes_at || cycle.vote_closes_at > new Date()))) return { success: false, error: "Voting must be closed before choosing a work" };
+  if (!(await canClubMembersAccessWork(context.club.id, sourceType, sourceId))) {
+    return { success: false, error: "The selected work is restricted for a club participant" };
+  }
   if (cycle.status === "VOTING") {
     const candidate = await queryOne<{ id: string }>("SELECT id FROM reading_club_candidates WHERE cycle_id=$1 AND source_type=$2 AND source_id=$3", [cycleId, sourceType, sourceId]);
     if (!candidate) return { success: false, error: "Choose one of the voting candidates" };

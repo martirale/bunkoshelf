@@ -35,6 +35,12 @@ export function getContentVisibilityPolicy(
     return { enabled: false, maxAge: null, allowUnrated: true };
   }
 
+  if (user.role === "GUEST") {
+    return globalMode === "strict"
+      ? { enabled: true, maxAge: 15, allowUnrated: false }
+      : { enabled: true, maxAge: 17, allowUnrated: true };
+  }
+
   const age = getExactAge(user, now);
   if (age === null) return { enabled: true, maxAge: 15, allowUnrated: false };
   if (age < 18) return {
