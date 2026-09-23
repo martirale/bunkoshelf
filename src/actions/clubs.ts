@@ -38,6 +38,19 @@ function slugify(value: string) {
   return value.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
 }
 
+async function getGuestUsername(name: string, lastname: string): Promise<string | null> {
+  const base = slugify(`${name}-${lastname}`).slice(0, 32);
+  if (base.length < 3) return null;
+
+  for (let suffixNumber = 1; suffixNumber <= 100; suffixNumber += 1) {
+    const suffix = suffixNumber === 1 ? "" : `-${suffixNumber}`;
+    const username = `${base.slice(0, 32 - suffix.length)}${suffix}`;
+    if (!(await usernameExists(username))) return username;
+  }
+
+  return null;
+}
+
 async function manager(slug: string) {
   const user = await verifySession();
   const club = await findClubBySlug(slug);
@@ -81,13 +94,16 @@ export async function requestToJoinClub(slug: string): Promise<Result> {
   return { success: true };
 }
 
-export async function joinClubAsGuest(input: { token: string; username: string; password: string }): Promise<Result & { slug?: string }> {
+export async function joinClubAsGuest(input: { token: string; name: string; lastname: string; password: string }): Promise<Result & { slug?: string }> {
   const invite = await findFixedClubInvite(input.token);
-  const username = input.username.trim().toLowerCase().replace(/\s+/g, "");
+  const name = input.name.trim();
+  const lastname = input.lastname.trim();
   if (!invite || invite.club_status !== "ACTIVE") return { success: false, error: "Invalid invitation" };
-  if (!/^[a-zA-Z0-9_-]{3,32}$/.test(username) || input.password.length < 8) return { success: false, error: "Use a name of 3–32 characters and a password of at least 8 characters" };
-  if (await usernameExists(username)) return { success: false, error: "That name is already in use" };
-  const user = await createUserRecord({ username, password: await bcrypt.hash(input.password, 10), role: "GUEST", name: username });
+  if (!name || !lastname) return { success: false, error: "guestNameRequired" };
+  if (input.password.length < 8) return { success: false, error: "guestPasswordTooShort" };
+  const username = await getGuestUsername(name, lastname);
+  if (!username) return { success: false, error: "guestUsernameInvalid" };
+  const user = await createUserRecord({ username, password: await bcrypt.hash(input.password, 10), role: "GUEST", name, lastname });
   await requestMembership(invite.club_id, user.id);
   const token = jwt.sign({ id: user.id, username: user.username, isAdmin: false, role: user.role }, process.env.JWT_SECRET!, { expiresIn: "180d", algorithm: "HS256" });
   const cookieStore = await cookies();
@@ -104,7 +120,7 @@ export async function reviewClubMember(slug: string, memberId: string, status: "
     WHERE m.id=$1 AND m.club_id=$2`, [memberId, context.club.id]);
   if (!member) return { success: false, error: "Member not found" };
   if (status === "APPROVED" && !(await canUserAccessClubReading(member.user_id, context.club.id))) {
-    return { success: false, error: "This user cannot access the club's current reading" };
+    return { success: false, error: "clubReadingRestricted" };
   }
   await reviewMembership(memberId, status);
   if (member.role === "GUEST") await deleteGuestWithoutActiveClubs(member.user_id);
@@ -131,7 +147,7 @@ export async function addClubMember(slug: string, userId: string): Promise<Resul
   const user = await queryOne<{ id: string }>("SELECT id FROM users WHERE id=$1 AND disabled_at IS NULL", [userId]);
   if (!user) return { success: false, error: "User not found" };
   if (!(await canUserAccessClubReading(user.id, context.club.id))) {
-    return { success: false, error: "This user cannot access the club's current reading" };
+    return { success: false, error: "clubReadingRestricted" };
   }
   await addApprovedMembership(context.club.id, user.id);
   revalidatePath(`/es/clubs/${slug}`);
@@ -158,7 +174,7 @@ export async function confirmClubCandidates(slug: string, cycleId: string, candi
   const cycle = await queryOne<{ status: string; vote_closes_at: Date | null }>("SELECT status,vote_closes_at FROM reading_club_cycles WHERE id=$1", [cycleId]);
   if (!cycle || cycle.status !== "DRAFT") return { success: false, error: "This cycle cannot be changed" };
   if (!(await Promise.all(uniqueCandidates.map((candidate) => canClubMembersAccessWork(context.club.id, candidate.sourceType, candidate.sourceId)))).every(Boolean)) {
-    return { success: false, error: "The selected work is restricted for a club participant" };
+    return { success: false, error: "clubWorkRestricted" };
   }
   if (uniqueCandidates.length === 1) {
     await execute("UPDATE reading_club_cycles SET status='COMPLETED', completed_at=NOW(), updated_at=NOW() WHERE club_id=$1 AND status='READING' AND id<>$2", [context.club.id, cycleId]);
@@ -195,7 +211,7 @@ export async function addClubCandidate(slug: string, cycleId: string, sourceType
   const cycle = await queryOne<{ status: string; vote_closes_at: Date | null }>("SELECT status,vote_closes_at FROM reading_club_cycles WHERE id=$1", [cycleId]);
   if (cycle?.status !== "VOTING" || (cycle.vote_closes_at && cycle.vote_closes_at <= new Date())) return { success: false, error: "Candidates can only be added to an open vote" };
   if (!(await canClubMembersAccessWork(context.club.id, sourceType, sourceId))) {
-    return { success: false, error: "The selected work is restricted for a club participant" };
+    return { success: false, error: "clubWorkRestricted" };
   }
   await addCandidateRecord(cycleId, sourceType, sourceId);
   return { success: true };
@@ -207,7 +223,7 @@ export async function selectClubWork(slug: string, cycleId: string, sourceType: 
   const cycle = await queryOne<{ status: string; vote_closes_at: Date | null }>("SELECT status,vote_closes_at FROM reading_club_cycles WHERE id=$1", [cycleId]);
   if (!cycle || (cycle.status === "VOTING" && (!cycle.vote_closes_at || cycle.vote_closes_at > new Date()))) return { success: false, error: "Voting must be closed before choosing a work" };
   if (!(await canClubMembersAccessWork(context.club.id, sourceType, sourceId))) {
-    return { success: false, error: "The selected work is restricted for a club participant" };
+    return { success: false, error: "clubWorkRestricted" };
   }
   if (cycle.status === "VOTING") {
     const candidate = await queryOne<{ id: string }>("SELECT id FROM reading_club_candidates WHERE cycle_id=$1 AND source_type=$2 AND source_id=$3", [cycleId, sourceType, sourceId]);

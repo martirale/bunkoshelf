@@ -46,6 +46,10 @@ type Milestone = {
   target_date: string;
 };
 
+function displayName(name: string | null, lastname: string | null, username: string) {
+  return [name, lastname].filter(Boolean).join(" ") || username;
+}
+
 export default function ClubDashboard({
   club,
   cycles,
@@ -70,6 +74,7 @@ export default function ClubDashboard({
     created_at: Date;
     username: string;
     name: string | null;
+    lastname: string | null;
     label: string | null;
   }>;
   activeCandidates: ClubCandidate[];
@@ -94,6 +99,10 @@ export default function ClubDashboard({
   const [message, setMessage] = useState("");
   const [candidateValues, setCandidateValues] = useState<string[]>([""]);
   const labels = intl.clubs as Record<string, string>;
+  const errorMessage = (value: string) =>
+    value === "Voting must be closed before choosing a work"
+      ? labels.votingMustClose
+      : labels[value] ?? value;
   const bookLabels = intl.books as Record<string, string>;
   const libraryLabels = intl.libraries as Record<string, string>;
   const mangaLabels = intl.manga as Record<string, string>;
@@ -129,7 +138,7 @@ export default function ClubDashboard({
       title: String(data.get("title")),
       voteClosesAt: String(data.get("voteClosesAt") || ""),
     });
-    if (!result.success) setMessage(result.error);
+    if (!result.success) setMessage(errorMessage(result.error));
     else {
       form.reset();
       refresh();
@@ -139,7 +148,7 @@ export default function ClubDashboard({
     event.preventDefault();
     const userId = String(new FormData(event.currentTarget).get("userId") ?? "");
     const result = await addClubMember(club.slug, userId);
-    if (!result.success) setMessage(result.error);
+    if (!result.success) setMessage(errorMessage(result.error));
     else refresh();
   };
   const submitMilestone = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -152,7 +161,7 @@ export default function ClubDashboard({
       position: Number(data.get("position")),
       targetDate: String(data.get("targetDate")),
     });
-    if (!result.success) setMessage(result.error);
+    if (!result.success) setMessage(errorMessage(result.error));
     else {
       form.reset();
       refresh();
@@ -164,7 +173,7 @@ export default function ClubDashboard({
       cycle.status === "VOTING"
         ? await addClubCandidate(club.slug, cycle.id, sourceType, sourceId)
         : await selectClubWork(club.slug, cycle.id, sourceType, sourceId);
-    if (!result.success) setMessage(result.error);
+    if (!result.success) setMessage(errorMessage(result.error));
     else refresh();
   };
   const memberStatus = (status: ClubMember["status"]) =>
@@ -231,7 +240,7 @@ export default function ClubDashboard({
       voting.id,
       candidate.id,
     );
-    if (!result.success) setMessage(result.error);
+    if (!result.success) setMessage(errorMessage(result.error));
     else refresh();
   };
   const chooseCandidate = async (candidate: ClubCandidate) => {
@@ -242,12 +251,7 @@ export default function ClubDashboard({
       candidate.source_type,
       candidate.source_id,
     );
-    if (!result.success)
-      setMessage(
-        result.error === "Voting must be closed before choosing a work"
-          ? labels.votingMustClose
-          : result.error,
-      );
+    if (!result.success) setMessage(errorMessage(result.error));
     else refresh();
   };
   const confirmCandidateRemoval = async (candidateId: string) => {
@@ -262,7 +266,7 @@ export default function ClubDashboard({
     )
       return;
     const result = await removeClubCandidate(club.slug, voting.id, candidateId);
-    if (!result.success) setMessage(result.error);
+    if (!result.success) setMessage(errorMessage(result.error));
     else refresh();
   };
   const confirmMemberRemoval = async (memberId: string) => {
@@ -276,7 +280,7 @@ export default function ClubDashboard({
     )
       return;
     const result = await removeClubMember(club.slug, memberId);
-    if (!result.success) setMessage(result.error);
+    if (!result.success) setMessage(errorMessage(result.error));
     else refresh();
   };
   const confirmArchive = async () => {
@@ -290,7 +294,7 @@ export default function ClubDashboard({
     )
       return;
     const result = await archiveClub(club.slug);
-    if (!result.success) setMessage(result.error);
+    if (!result.success) setMessage(errorMessage(result.error));
     else refresh();
   };
   const confirmClubDeletion = async () => {
@@ -305,7 +309,7 @@ export default function ClubDashboard({
     )
       return;
     const result = await deleteClub(club.slug);
-    if (!result.success) return setMessage(result.error);
+    if (!result.success) return setMessage(errorMessage(result.error));
     router.push(`/${lang}/clubs`);
     router.refresh();
   };
@@ -386,7 +390,7 @@ export default function ClubDashboard({
               variant="accent"
               onClick={async () => {
                 const result = await completeClubCycle(club.slug, active.id);
-                if (!result.success) setMessage(result.error);
+                if (!result.success) setMessage(errorMessage(result.error));
                 else refresh();
               }}
               className="mt-5 px-4 py-2 text-xs"
@@ -471,7 +475,7 @@ export default function ClubDashboard({
             {members.map((member) => (
               <div key={member.id} className="flex gap-3 items-center">
                 <div className="flex-1">
-                  <p>{member.name ?? member.username}</p>
+                  <p>{displayName(member.name, member.lastname, member.username)}</p>
                   <div className="mt-1 flex items-center gap-3">
                     <p className="text-xs uppercase text-sand">
                       {memberStatus(member.status)}
@@ -507,12 +511,13 @@ export default function ClubDashboard({
                   <div className="flex gap-2">
                     <button
                       onClick={async () => {
-                        await reviewClubMember(
+                        const result = await reviewClubMember(
                           club.slug,
                           member.id,
                           "APPROVED",
                         );
-                        refresh();
+                        if (!result.success) setMessage(errorMessage(result.error));
+                        else refresh();
                       }}
                       className="text-xs uppercase hover:underline cursor-pointer"
                     >
@@ -520,12 +525,13 @@ export default function ClubDashboard({
                     </button>
                     <button
                       onClick={async () => {
-                        await reviewClubMember(
+                        const result = await reviewClubMember(
                           club.slug,
                           member.id,
                           "REJECTED",
                         );
-                        refresh();
+                        if (!result.success) setMessage(errorMessage(result.error));
+                        else refresh();
                       }}
                       className="text-xs uppercase text-danger-alt hover:underline cursor-pointer"
                     >
@@ -543,7 +549,7 @@ export default function ClubDashboard({
             {activities.map((activity) => (
               <p key={activity.id}>
                 <span className="font-bold">
-                  {activity.name ?? activity.username}
+                  {displayName(activity.name, activity.lastname, activity.username)}
                 </span>{" "}
                 {activity.type === "COMPLETED"
                   ? labels.completedReading
@@ -581,7 +587,7 @@ export default function ClubDashboard({
               <select name="userId" aria-label={labels.selectUser} defaultValue="" required className="h-14 rounded-lg border border-neutral-700 bg-onix px-5 text-sand">
                 <option value="" disabled>{labels.selectUser}</option>
                 {availableUsers.map((user) => (
-                  <option key={user.id} value={user.id}>{user.name ? `${user.name} (@${user.username})` : user.username} · {user.role}</option>
+                  <option key={user.id} value={user.id}>{`${displayName(user.name, user.lastname, user.username)} (@${user.username})`} · {user.role}</option>
                 ))}
               </select>
               <Button variant="lightAlt" className="px-8 py-4">{labels.addMember}</Button>
@@ -692,7 +698,7 @@ export default function ClubDashboard({
                       draft.id,
                       candidates,
                     );
-                    if (!result.success) setMessage(result.error);
+                    if (!result.success) setMessage(errorMessage(result.error));
                     else refresh();
                   }}
                   className="px-4 py-2"

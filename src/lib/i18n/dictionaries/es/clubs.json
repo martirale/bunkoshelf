@@ -71,6 +71,13 @@
     "invitePending": "Tu solicitud quedará pendiente hasta que el owner del club la apruebe.",
     "requestJoin": "Solicitar unirme",
     "joinGuest": "Unirme como invitado",
+    "name": "Nombre",
+    "lastname": "Apellido",
+    "guestNameRequired": "Ingresá tu nombre y apellido.",
+    "guestPasswordTooShort": "Usá una contraseña de al menos 8 caracteres.",
+    "guestUsernameInvalid": "Usá un nombre y apellido que incluyan letras o números.",
+    "clubReadingRestricted": "Esta persona no puede acceder a la lectura actual del club.",
+    "clubWorkRestricted": "La obra seleccionada tiene restricciones para una persona participante del club.",
     "username": "Nombre de usuario",
     "password": "Contraseña (8 caracteres mínimo)",
     "createGuest": "Solicitar"

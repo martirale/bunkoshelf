@@ -31,6 +31,7 @@ export interface ClubMember {
   userId: string;
   username: string;
   name: string | null;
+  lastname: string | null;
   role: string;
   status: ClubMemberStatus;
   progress: number | null;
@@ -40,6 +41,7 @@ export interface ClubUser {
   id: string;
   username: string;
   name: string | null;
+  lastname: string | null;
   role: string;
 }
 
@@ -232,7 +234,7 @@ export async function addApprovedMembership(clubId: string, userId: string): Pro
 }
 
 export async function listClubUsers(): Promise<ClubUser[]> {
-  return query<ClubUser>(`SELECT id, username, name, role
+  return query<ClubUser>(`SELECT id, username, name, lastname, role
     FROM users
     WHERE disabled_at IS NULL
     ORDER BY COALESCE(name, username) ASC, username ASC`);
@@ -329,7 +331,7 @@ export async function deleteClubRecord(clubId: string): Promise<void> {
 
 export async function getClubDashboard(club: ReadingClub, userId: string) {
   const [members, cycles, activities] = await Promise.all([
-    query<Record<string, unknown>>(`SELECT m.id,m.user_id,u.username,u.name,u.role,m.status
+    query<Record<string, unknown>>(`SELECT m.id,m.user_id,u.username,u.name,u.lastname,u.role,m.status
       FROM reading_club_members m INNER JOIN users u ON u.id=m.user_id WHERE m.club_id=$1 AND m.status <> 'REVOKED' ORDER BY m.status, COALESCE(u.name,u.username)`, [club.id]),
     query<Record<string, unknown>>(`SELECT c.id,c.title,c.status,c.vote_closes_at,c.selected_type,c.selected_id,c.started_at,
       COALESCE(ls.title,bs.title) AS work_title,
@@ -354,8 +356,8 @@ export async function getClubDashboard(club: ReadingClub, userId: string) {
         LIMIT 1
       ) book_cover ON TRUE
       WHERE c.club_id=$1 ORDER BY c.created_at DESC`, [club.id]),
-    query<{ id: string; type: string; created_at: Date; username: string; name: string | null; label: string | null }>(`
-      SELECT a.id,a.type,a.created_at,u.username,u.name,ms.label FROM reading_club_activities a
+    query<{ id: string; type: string; created_at: Date; username: string; name: string | null; lastname: string | null; label: string | null }>(`
+      SELECT a.id,a.type,a.created_at,u.username,u.name,u.lastname,ms.label FROM reading_club_activities a
       INNER JOIN reading_club_members m ON m.id=a.member_id INNER JOIN users u ON u.id=m.user_id
       LEFT JOIN reading_club_milestones ms ON ms.id=a.milestone_id WHERE a.club_id=$1 ORDER BY a.created_at DESC LIMIT 50`, [club.id]),
   ]);
@@ -364,7 +366,7 @@ export async function getClubDashboard(club: ReadingClub, userId: string) {
   return {
     club,
     currentUserMembership: await getMembership(club.id, userId),
-    members: members.map((member) => ({ id: member.id as string, userId: member.user_id as string, username: member.username as string, name: member.name as string | null, role: member.role as string, status: member.status as ClubMemberStatus, progress: memberProgress.get(member.user_id as string) ?? null } satisfies ClubMember)),
+    members: members.map((member) => ({ id: member.id as string, userId: member.user_id as string, username: member.username as string, name: member.name as string | null, lastname: member.lastname as string | null, role: member.role as string, status: member.status as ClubMemberStatus, progress: memberProgress.get(member.user_id as string) ?? null } satisfies ClubMember)),
     cycles: cycles.map(mapCycle),
     activities,
   };

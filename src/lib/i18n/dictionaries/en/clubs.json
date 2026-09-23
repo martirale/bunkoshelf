@@ -71,6 +71,13 @@
     "invitePending": "Your request will be pending until the club owner approves it.",
     "requestJoin": "Request to join",
     "joinGuest": "Join as a guest",
+    "name": "First name",
+    "lastname": "Last name",
+    "guestNameRequired": "Enter your first and last name.",
+    "guestPasswordTooShort": "Use a password of at least 8 characters.",
+    "guestUsernameInvalid": "Use a first and last name with letters or numbers.",
+    "clubReadingRestricted": "This person cannot access the club's current reading.",
+    "clubWorkRestricted": "The selected work is restricted for a club participant.",
     "username": "Username",
     "password": "Password (8 characters minimum)",
     "createGuest": "Request"
