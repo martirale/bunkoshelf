@@ -84,7 +84,7 @@ export default function ClubList({ clubs, lang, canCreate, isAdmin, intl }: { cl
         const canAccess = club.membershipStatus === "APPROVED" || (isAdmin && !isPendingInvitation);
         const content = (
           <>
-            <div className="relative aspect-[2/3] w-20 shrink-0 overflow-hidden rounded-md bg-onix">
+            <div className="relative h-32 w-20 shrink-0 overflow-hidden rounded-md bg-onix">
               <Image src={club.workCover || "/placeholder.svg?=v1"} alt={`Cover for ${club.workTitle ?? club.name}`} fill sizes="80px" className="object-cover" />
             </div>
             <div className="min-w-0">
