@@ -379,25 +379,25 @@ export default function ClubDashboard({
               <Link
                 key={volume.slug}
                 href={`/${lang}/clubs/${club.slug}/read/${volume.kind}/${volume.slug}`}
-                className="font-bold px-5 py-2 rounded-lg leading-none uppercase text-sand bg-onix border border-onix hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
+                className="font-bold px-5 py-2 rounded-lg leading-none uppercase text-pearl bg-lilah border border-lilah hover:text-onix hover:bg-pearl hover:border-pearl transition-all duration-300"
               >
                 {labels.read} {volume.title}
               </Link>
             ))}
+            {isManager && (
+              <Button
+                variant="dark"
+                onClick={async () => {
+                  const result = await completeClubCycle(club.slug, active.id);
+                  if (!result.success) setMessage(errorMessage(result.error));
+                  else refresh();
+                }}
+                className="border-onix bg-onix px-5 py-2 text-sand hover:border-pearl hover:bg-pearl hover:text-onix"
+              >
+                {labels.finishCycle}
+              </Button>
+            )}
           </div>
-          {isManager && (
-            <Button
-              variant="accent"
-              onClick={async () => {
-                const result = await completeClubCycle(club.slug, active.id);
-                if (!result.success) setMessage(errorMessage(result.error));
-                else refresh();
-              }}
-              className="mt-5 px-4 py-2 text-xs"
-            >
-              {labels.finishCycle}
-            </Button>
-          )}
         </section>
       )}
       {voting && (

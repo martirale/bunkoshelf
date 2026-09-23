@@ -333,7 +333,7 @@ export async function getClubDashboard(club: ReadingClub, userId: string) {
   const [members, cycles, activities] = await Promise.all([
     query<Record<string, unknown>>(`SELECT m.id,m.user_id,u.username,u.name,u.lastname,u.role,m.status
       FROM reading_club_members m INNER JOIN users u ON u.id=m.user_id WHERE m.club_id=$1 AND m.status <> 'REVOKED' ORDER BY m.status, COALESCE(u.name,u.username)`, [club.id]),
-    query<Record<string, unknown>>(`SELECT c.id,c.title,c.status,c.vote_closes_at,c.selected_type,c.selected_id,c.started_at,
+    query<Record<string, unknown>>(`SELECT c.id,c.title,c.status,c.vote_closes_at,c.selected_type,c.selected_type AS source_type,c.selected_id,c.started_at,
       COALESCE(ls.title,bs.title) AS work_title,
       library_cover.slug AS library_cover_slug, library_cover.cover_image AS library_cover_image, library_cover.updated_at AS library_cover_updated_at,
       book_cover.slug AS book_cover_slug, book_cover.cover_path AS book_cover_path
