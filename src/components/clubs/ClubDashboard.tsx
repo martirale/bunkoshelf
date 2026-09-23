@@ -7,7 +7,7 @@ import Image from "next/image";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import {
   addClubCandidate,
-  addClubMember,
+  inviteClubMember,
   addClubMilestone,
   archiveClub,
   completeClubCycle,
@@ -147,7 +147,7 @@ export default function ClubDashboard({
   const submitMember = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const userId = String(new FormData(event.currentTarget).get("userId") ?? "");
-    const result = await addClubMember(club.slug, userId);
+    const result = await inviteClubMember(club.slug, userId, lang);
     if (!result.success) setMessage(errorMessage(result.error));
     else refresh();
   };
@@ -590,7 +590,7 @@ export default function ClubDashboard({
                   <option key={user.id} value={user.id}>{`${displayName(user.name, user.lastname, user.username)} (@${user.username})`} · {user.role}</option>
                 ))}
               </select>
-              <Button variant="lightAlt" className="px-8 py-4">{labels.addMember}</Button>
+              <Button variant="lightAlt" className="px-8 py-4">{labels.inviteUser}</Button>
             </form>
           )}
           <form

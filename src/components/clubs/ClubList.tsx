@@ -5,7 +5,7 @@ import Link from "next/link";
 import { UsersRoundIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { createClub, requestToJoinClub } from "@/actions/clubs";
+import { acceptClubInvitation, createClub, requestToJoinClub } from "@/actions/clubs";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import type { ReadingClub } from "@/lib/db/clubs";
@@ -20,6 +20,7 @@ export default function ClubList({ clubs, lang, canCreate, isAdmin, intl }: { cl
   const [message, setMessage] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const labels = intl.clubs as Record<string, string>;
+  const errorMessage = (value: string) => labels[value] ?? value;
   const bookLabels = intl.books as Record<string, string>;
   const libraryLabels = intl.libraries as Record<string, string>;
   const mangaLabels = intl.manga as Record<string, string>;
@@ -36,7 +37,7 @@ export default function ClubList({ clubs, lang, canCreate, isAdmin, intl }: { cl
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     const result = await createClub({ name, description });
-    if (!result.success) return setError(result.error);
+    if (!result.success) return setError(errorMessage(result.error));
     setIsCreateDialogOpen(false);
     router.push(`/${lang}/clubs/${result.slug}`);
     router.refresh();
@@ -44,8 +45,14 @@ export default function ClubList({ clubs, lang, canCreate, isAdmin, intl }: { cl
 
   const requestJoin = async (slug: string) => {
     const result = await requestToJoinClub(slug);
-    if (!result.success) return setMessage(result.error);
+    if (!result.success) return setMessage(errorMessage(result.error));
     setMessage(labels.invitePending);
+    router.refresh();
+  };
+
+  const acceptInvitation = async (slug: string) => {
+    const result = await acceptClubInvitation(slug);
+    if (!result.success) return setMessage(errorMessage(result.error));
     router.refresh();
   };
 
@@ -69,8 +76,9 @@ export default function ClubList({ clubs, lang, canCreate, isAdmin, intl }: { cl
     </Modal>
     <section className="grid gap-4 sm:grid-cols-2">
       {clubs.map((club) => {
-        const canAccess = isAdmin || club.membershipStatus === "APPROVED";
-        const isPending = club.membershipStatus === "PENDING";
+        const isPendingInvitation = club.membershipStatus === "PENDING" && club.isInvited;
+        const isPendingRequest = club.membershipStatus === "PENDING" && !club.isInvited;
+        const canAccess = club.membershipStatus === "APPROVED" || (isAdmin && !isPendingInvitation);
         const content = (
           <>
             <div className="relative aspect-[2/3] w-20 shrink-0 overflow-hidden rounded-md bg-onix">
@@ -90,7 +98,7 @@ export default function ClubList({ clubs, lang, canCreate, isAdmin, intl }: { cl
             </div>
           </>
         );
-        return <article key={club.id} className="rounded-lg bg-blackamber p-4">{canAccess ? <Link href={`/${lang}/clubs/${club.slug}`} className="flex gap-4 transition-all duration-300 hover:text-lilah">{content}</Link> : <div className="flex gap-4">{content}</div>}{!canAccess && club.status === "ACTIVE" && <div className="mt-4">{isPending ? <p className="text-sm text-sand">{labels.invitePending}</p> : <Button variant="lightAlt" onClick={() => void requestJoin(club.slug)} className="px-4 py-2 text-sm">{labels.requestJoin}</Button>}</div>}</article>;
+        return <article key={club.id} className="rounded-lg bg-blackamber p-4">{canAccess ? <Link href={`/${lang}/clubs/${club.slug}`} className="flex gap-4 transition-all duration-300 hover:text-lilah">{content}</Link> : <div className="flex gap-4">{content}</div>}{!canAccess && club.status === "ACTIVE" && <div className="mt-4">{isPendingInvitation ? <Button variant="lightAlt" onClick={() => void acceptInvitation(club.slug)} className="px-4 py-2 text-sm">{labels.acceptInvitation}</Button> : isPendingRequest ? <p className="text-sm text-sand">{labels.invitePending}</p> : <Button variant="lightAlt" onClick={() => void requestJoin(club.slug)} className="px-4 py-2 text-sm">{labels.requestJoin}</Button>}</div>}</article>;
       })}
       {!clubs.length && <p>{labels.empty}</p>}
     </section>

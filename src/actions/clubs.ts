@@ -9,9 +9,11 @@ import { verifySession } from "@/lib/auth/verifySession";
 import { createUserRecord, usernameExists } from "@/lib/db/users";
 import { execute, queryOne } from "@/lib/db/query";
 import { canClubMembersAccessWork, canUserAccessClubReading } from "@/lib/clubs/access";
+import { getDictionary } from "@/lib/i18n/Dictionary";
+import { sendPushToUser } from "@/lib/push";
+import type { Locale } from "@/lib/types";
 import {
   addCandidateRecord,
-  addApprovedMembership,
   addMilestoneRecord,
   archiveClubRecord,
   canAccessClub,
@@ -24,6 +26,7 @@ import {
   findClubBySlug,
   findFixedClubInvite,
   getMembership,
+  inviteMembership,
   removeCandidateRecord,
   replaceCycleCandidates,
   requestMembership,
@@ -141,17 +144,42 @@ export async function removeClubMember(slug: string, memberId: string): Promise<
   return { success: true };
 }
 
-export async function addClubMember(slug: string, userId: string): Promise<Result> {
+export async function inviteClubMember(slug: string, userId: string, lang: string): Promise<Result> {
   const context = await manager(slug);
   if (!context || context.club.status !== "ACTIVE" || !userId) return { success: false, error: "Unauthorized" };
-  const user = await queryOne<{ id: string }>("SELECT id FROM users WHERE id=$1 AND disabled_at IS NULL", [userId]);
-  if (!user) return { success: false, error: "User not found" };
+  const user = await queryOne<{ id: string; role: string }>("SELECT id,role FROM users WHERE id=$1 AND disabled_at IS NULL", [userId]);
+  if (!user || user.role === "GUEST") return { success: false, error: "User not found" };
   if (!(await canUserAccessClubReading(user.id, context.club.id))) {
     return { success: false, error: "clubReadingRestricted" };
   }
-  await addApprovedMembership(context.club.id, user.id);
+  await inviteMembership(context.club.id, user.id, context.user.id);
+  const locale: Locale = lang === "en" ? "en" : "es";
+  const labels = (await getDictionary(locale)).clubs as Record<string, string>;
+  try {
+    await sendPushToUser(user.id, {
+      title: labels.clubInvitationPushTitle,
+      body: labels.clubInvitationPushBody.replace("{club}", context.club.name),
+      url: `/${locale}/clubs`,
+    });
+  } catch (error) {
+    console.error("Error sending club invitation push:", error);
+  }
+  revalidatePath(`/${locale}/clubs`);
   revalidatePath(`/es/clubs/${slug}`);
   revalidatePath(`/en/clubs/${slug}`);
+  return { success: true };
+}
+
+export async function acceptClubInvitation(slug: string): Promise<Result> {
+  const user = await verifySession();
+  const club = await findClubBySlug(slug);
+  if (!user || user.role === "GUEST" || !club || club.status !== "ACTIVE") return { success: false, error: "Unauthorized" };
+  const membership = await getMembership(club.id, user.id);
+  if (!membership || membership.status !== "PENDING" || !membership.invited_by_user_id) return { success: false, error: "Unauthorized" };
+  if (!(await canUserAccessClubReading(user.id, club.id))) return { success: false, error: "clubReadingRestricted" };
+  await reviewMembership(membership.id, "APPROVED");
+  revalidatePath(`/es/clubs`);
+  revalidatePath(`/en/clubs`);
   return { success: true };
 }
 

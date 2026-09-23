@@ -18,6 +18,7 @@ export interface ReadingClub {
   createdAt: Date;
   participantCount: number;
   membershipStatus: ClubMemberStatus | null;
+  isInvited: boolean;
   workTitle: string | null;
   workCover: string | null;
   workSourceType: ClubSourceType | null;
@@ -95,6 +96,7 @@ function mapClub(row: Record<string, unknown>): ReadingClub {
     createdAt: row.created_at as Date,
     participantCount: Number(row.participant_count ?? 0),
     membershipStatus: (row.membership_status as ClubMemberStatus | null) ?? null,
+    isInvited: row.invited_by_user_id !== null && row.invited_by_user_id !== undefined,
     workTitle: (row.work_title as string | null) ?? null,
     workCover: getWorkCover(row),
     workSourceType: (row.source_type as ClubSourceType | null) ?? null,
@@ -125,7 +127,7 @@ export async function listClubsForUser(userId: string, options?: { includePublic
       WHERE member_count.club_id = c.id AND member_count.status = 'APPROVED'
     ) members ON TRUE
     LEFT JOIN LATERAL (
-      SELECT membership.status
+      SELECT membership.status, membership.invited_by_user_id
       FROM reading_club_members membership
       WHERE membership.club_id = c.id AND membership.user_id = $1
     ) viewer ON TRUE
@@ -175,9 +177,9 @@ export async function listClubsForUser(userId: string, options?: { includePublic
   return rows.map(mapClub);
 }
 
-export async function getMembership(clubId: string, userId: string): Promise<{ id: string; status: ClubMemberStatus } | null> {
-  return queryOne<{ id: string; status: ClubMemberStatus }>(
-    "SELECT id, status FROM reading_club_members WHERE club_id = $1 AND user_id = $2", [clubId, userId]);
+export async function getMembership(clubId: string, userId: string): Promise<{ id: string; status: ClubMemberStatus; invited_by_user_id: string | null } | null> {
+  return queryOne<{ id: string; status: ClubMemberStatus; invited_by_user_id: string | null }>(
+    "SELECT id, status, invited_by_user_id FROM reading_club_members WHERE club_id = $1 AND user_id = $2", [clubId, userId]);
 }
 
 export async function canManageClub(club: ReadingClub, userId: string, isAdmin: boolean): Promise<boolean> {
@@ -222,8 +224,19 @@ export async function findFixedClubInvite(token: string) {
 export async function requestMembership(clubId: string, userId: string): Promise<void> {
   await execute(`INSERT INTO reading_club_members (id, club_id, user_id, status)
     VALUES ($1,$2,$3,'PENDING') ON CONFLICT (club_id, user_id)
-    DO UPDATE SET status = CASE WHEN reading_club_members.status IN ('REJECTED','REVOKED') THEN 'PENDING' ELSE reading_club_members.status END`,
+    DO UPDATE SET
+      status = CASE WHEN reading_club_members.status IN ('REJECTED','REVOKED') THEN 'PENDING' ELSE reading_club_members.status END,
+      invited_by_user_id = CASE WHEN reading_club_members.status IN ('REJECTED','REVOKED') THEN NULL ELSE reading_club_members.invited_by_user_id END`,
   [createId(), clubId, userId]);
+}
+
+export async function inviteMembership(clubId: string, userId: string, invitedByUserId: string): Promise<void> {
+  await execute(`INSERT INTO reading_club_members (id, club_id, user_id, status, invited_by_user_id)
+    VALUES ($1,$2,$3,'PENDING',$4) ON CONFLICT (club_id, user_id)
+    DO UPDATE SET
+      status = CASE WHEN reading_club_members.status IN ('REJECTED','REVOKED') THEN 'PENDING' ELSE reading_club_members.status END,
+      invited_by_user_id = CASE WHEN reading_club_members.status IN ('REJECTED','REVOKED') THEN EXCLUDED.invited_by_user_id ELSE reading_club_members.invited_by_user_id END`,
+  [createId(), clubId, userId, invitedByUserId]);
 }
 
 export async function addApprovedMembership(clubId: string, userId: string): Promise<void> {
@@ -236,7 +249,7 @@ export async function addApprovedMembership(clubId: string, userId: string): Pro
 export async function listClubUsers(): Promise<ClubUser[]> {
   return query<ClubUser>(`SELECT id, username, name, lastname, role
     FROM users
-    WHERE disabled_at IS NULL
+    WHERE disabled_at IS NULL AND role <> 'GUEST'
     ORDER BY COALESCE(name, username) ASC, username ASC`);
 }
 
