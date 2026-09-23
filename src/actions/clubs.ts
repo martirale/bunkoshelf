@@ -28,6 +28,7 @@ import {
   getMembership,
   inviteMembership,
   removeCandidateRecord,
+  recordCycleMilestoneActivities,
   replaceCycleCandidates,
   requestMembership,
   reviewMembership,
@@ -42,11 +43,11 @@ function slugify(value: string) {
 }
 
 async function getGuestUsername(name: string, lastname: string): Promise<string | null> {
-  const base = slugify(`${name}-${lastname}`).slice(0, 32);
+  const base = slugify(`${name}${lastname}`).slice(0, 32);
   if (base.length < 3) return null;
 
   for (let suffixNumber = 1; suffixNumber <= 100; suffixNumber += 1) {
-    const suffix = suffixNumber === 1 ? "" : `-${suffixNumber}`;
+    const suffix = suffixNumber === 1 ? "" : String(suffixNumber);
     const username = `${base.slice(0, 32 - suffix.length)}${suffix}`;
     if (!(await usernameExists(username))) return username;
   }
@@ -111,6 +112,9 @@ export async function joinClubAsGuest(input: { token: string; name: string; last
   const token = jwt.sign({ id: user.id, username: user.username, isAdmin: false, role: user.role }, process.env.JWT_SECRET!, { expiresIn: "180d", algorithm: "HS256" });
   const cookieStore = await cookies();
   cookieStore.set("yomimono_key", token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 180 * 24 * 60 * 60 });
+  revalidatePath("/es/settings");
+  revalidatePath("/en/settings");
+  revalidatePath("/", "layout");
   return { success: true, slug: invite.club_slug };
 }
 
@@ -126,6 +130,10 @@ export async function reviewClubMember(slug: string, memberId: string, status: "
     return { success: false, error: "clubReadingRestricted" };
   }
   await reviewMembership(memberId, status);
+  if (status === "APPROVED") {
+    const activeCycle = await queryOne<{ id: string }>("SELECT id FROM reading_club_cycles WHERE club_id=$1 AND status='READING'", [context.club.id]);
+    if (activeCycle) await recordCycleMilestoneActivities(activeCycle.id);
+  }
   if (member.role === "GUEST") await deleteGuestWithoutActiveClubs(member.user_id);
   revalidatePath(`/es/clubs/${slug}`);
   revalidatePath(`/en/clubs/${slug}`);
@@ -264,10 +272,27 @@ export async function selectClubWork(slug: string, cycleId: string, sourceType: 
   return { success: true };
 }
 
-export async function addClubMilestone(slug: string, cycleId: string, input: { label: string; position: number; targetDate: string }): Promise<Result> {
+export async function addClubMilestone(slug: string, cycleId: string, input: { targetValue: number; targetDate: string }): Promise<Result> {
   const context = await manager(slug);
-  if (!context || context.club.status !== "ACTIVE" || !(await belongsToClub(cycleId, context.club.id)) || !input.label.trim() || input.position < 1 || input.position > 100) return { success: false, error: "Invalid milestone" };
-  await addMilestoneRecord(cycleId, input.position, input.label.trim(), input.targetDate);
+  if (!context || context.user.id !== context.club.ownerId || context.club.status !== "ACTIVE" || !(await belongsToClub(cycleId, context.club.id)) || !input.targetDate) return { success: false, error: "Invalid milestone" };
+  const cycle = await queryOne<{ status: string; selected_type: ClubSourceType | null; is_oneshot: boolean }>(`
+    SELECT c.status,c.selected_type,COALESCE(ls.is_oneshot,bs.is_oneshot,FALSE) AS is_oneshot
+    FROM reading_club_cycles c
+    LEFT JOIN library_series ls ON c.selected_type='LIBRARY_SERIES' AND ls.id=c.selected_id
+    LEFT JOIN book_series bs ON c.selected_type='BOOK_SERIES' AND bs.id=c.selected_id
+    WHERE c.id=$1`, [cycleId]);
+  if (!cycle || cycle.status !== "READING" || !cycle.selected_type || !Number.isFinite(input.targetValue) || input.targetValue < 1) return { success: false, error: "Invalid milestone" };
+  const targetKind = !cycle.is_oneshot
+    ? "VOLUME"
+    : cycle.selected_type === "BOOK_SERIES"
+      ? "PROGRESSION"
+      : "PAGE";
+  if ((targetKind === "VOLUME" || targetKind === "PAGE") && !Number.isInteger(input.targetValue)) return { success: false, error: "Invalid milestone" };
+  if (targetKind === "PROGRESSION" && input.targetValue > 100) return { success: false, error: "Invalid milestone" };
+  await addMilestoneRecord(cycleId, targetKind, input.targetValue, input.targetDate);
+  await recordCycleMilestoneActivities(cycleId);
+  revalidatePath(`/es/clubs/${slug}`);
+  revalidatePath(`/en/clubs/${slug}`);
   return { success: true };
 }
 

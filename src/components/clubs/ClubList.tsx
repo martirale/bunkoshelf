@@ -8,11 +8,13 @@ import { useEffect, useState } from "react";
 import { acceptClubInvitation, createClub, requestToJoinClub } from "@/actions/clubs";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
+import { useResourceMutation } from "@/lib/client/resourceState";
 import type { ReadingClub } from "@/lib/db/clubs";
 import type { Dictionary } from "@/lib/types";
 
 export default function ClubList({ clubs, lang, canCreate, isAdmin, intl }: { clubs: ReadingClub[]; lang: string; canCreate: boolean; isAdmin: boolean; intl: Dictionary }) {
   const router = useRouter();
+  const mutateResource = useResourceMutation();
   const pathname = usePathname();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -25,6 +27,10 @@ export default function ClubList({ clubs, lang, canCreate, isAdmin, intl }: { cl
   const libraryLabels = intl.libraries as Record<string, string>;
   const mangaLabels = intl.manga as Record<string, string>;
   const sidebarLabels = intl.sidebar as Record<string, string>;
+  const mutateClub = <T extends { success: boolean }>(
+    mutate: () => Promise<T>,
+    refresh = true,
+  ) => mutateResource({ resource: "club", id: "list", patch: {}, mutate, isSuccess: (result) => result.success, refresh });
 
   useEffect(() => {
     setName("");
@@ -36,24 +42,21 @@ export default function ClubList({ clubs, lang, canCreate, isAdmin, intl }: { cl
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const result = await createClub({ name, description });
+    const result = await mutateClub(() => createClub({ name, description }), false);
     if (!result.success) return setError(errorMessage(result.error));
     setIsCreateDialogOpen(false);
     router.push(`/${lang}/clubs/${result.slug}`);
-    router.refresh();
   };
 
   const requestJoin = async (slug: string) => {
-    const result = await requestToJoinClub(slug);
+    const result = await mutateClub(() => requestToJoinClub(slug));
     if (!result.success) return setMessage(errorMessage(result.error));
     setMessage(labels.invitePending);
-    router.refresh();
   };
 
   const acceptInvitation = async (slug: string) => {
-    const result = await acceptClubInvitation(slug);
+    const result = await mutateClub(() => acceptClubInvitation(slug));
     if (!result.success) return setMessage(errorMessage(result.error));
-    router.refresh();
   };
 
   const titleCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);

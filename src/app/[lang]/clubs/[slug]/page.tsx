@@ -12,6 +12,7 @@ export default async function ClubPage({ params }: { params: Promise<{ lang: str
   const club = await findClubBySlug(slug);
   if (!club) notFound();
   if (!(await canAccessClub(club, user.id, user.isAdmin))) redirect(`/${lang}/clubs`);
+  const isOwner = club.ownerId === user.id;
   const [dashboard, isManager, intl] = await Promise.all([getClubDashboard(club, user.id), canManageClub(club, user.id, user.isAdmin), getDictionary(lang as Locale)]);
   const active = dashboard.cycles.find((cycle) => cycle.status === "READING");
   const voting = dashboard.cycles.find((cycle) => cycle.status === "VOTING");
@@ -22,5 +23,5 @@ export default async function ClubPage({ params }: { params: Promise<{ lang: str
     listSelectedCycleVolumes(active ?? null),
     isManager ? listClubUsers() : Promise.resolve([]),
   ]);
-  return <ClubDashboard club={club} cycles={dashboard.cycles} members={dashboard.members} activities={dashboard.activities} activeCandidates={activeCandidates} milestones={milestones} works={works} readingVolumes={readingVolumes} users={users} isManager={isManager} inviteToken={isManager ? getFixedClubInviteToken(club) : null} lang={lang} intl={intl} />;
+  return <ClubDashboard club={club} cycles={dashboard.cycles} members={dashboard.members} activities={dashboard.activities} activeCandidates={activeCandidates} milestones={milestones} works={works} readingVolumes={readingVolumes} users={users} isManager={isManager} isOwner={isOwner} inviteToken={isManager ? getFixedClubInviteToken(club) : null} lang={lang} intl={intl} />;
 }

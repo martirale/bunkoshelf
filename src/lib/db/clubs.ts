@@ -7,6 +7,7 @@ import { execute, query, queryOne } from "./query";
 export type ClubMemberStatus = "PENDING" | "APPROVED" | "REJECTED" | "REVOKED";
 export type ClubCycleStatus = "DRAFT" | "VOTING" | "READING" | "COMPLETED";
 export type ClubSourceType = "LIBRARY_SERIES" | "BOOK_SERIES";
+export type ClubMilestoneTargetKind = "PAGE" | "PROGRESSION" | "VOLUME";
 
 export interface ReadingClub {
   id: string;
@@ -55,6 +56,7 @@ export interface ClubCycle {
   selectedId: string | null;
   workTitle: string | null;
   workCover: string | null;
+  workIsOneshot: boolean;
   startedAt: Date | null;
 }
 
@@ -302,6 +304,7 @@ function mapCycle(row: Record<string, unknown>): ClubCycle {
     selectedId: row.selected_id as string | null,
     workTitle: (row.work_title as string | null) ?? null,
     workCover: getWorkCover(row),
+    workIsOneshot: row.work_is_oneshot === true,
     startedAt: row.started_at as Date | null,
   };
 }
@@ -323,8 +326,8 @@ export async function selectCycleWork(cycleId: string, sourceType: ClubSourceTyp
   await execute(`UPDATE reading_club_cycles SET selected_type=$2, selected_id=$3, status='READING', started_at=COALESCE(started_at,NOW()), updated_at=NOW() WHERE id=$1`, [cycleId, sourceType, sourceId]);
 }
 
-export async function addMilestoneRecord(cycleId: string, position: number, label: string, targetDate: string): Promise<void> {
-  await execute("INSERT INTO reading_club_milestones (id,cycle_id,position,label,target_date) VALUES ($1,$2,$3,$4,$5)", [createId(), cycleId, position, label, targetDate]);
+export async function addMilestoneRecord(cycleId: string, targetKind: ClubMilestoneTargetKind, targetValue: number, targetDate: string): Promise<void> {
+  await execute("INSERT INTO reading_club_milestones (id,cycle_id,label,target_kind,target_value,target_date) VALUES ($1,$2,$3,$4,$5,$6)", [createId(), cycleId, `${targetKind}:${targetValue}`, targetKind, targetValue, targetDate]);
 }
 
 export async function castVoteRecord(cycleId: string, candidateId: string, memberId: string): Promise<void> {
@@ -348,6 +351,7 @@ export async function getClubDashboard(club: ReadingClub, userId: string) {
       FROM reading_club_members m INNER JOIN users u ON u.id=m.user_id WHERE m.club_id=$1 AND m.status <> 'REVOKED' ORDER BY m.status, COALESCE(u.name,u.username)`, [club.id]),
     query<Record<string, unknown>>(`SELECT c.id,c.title,c.status,c.vote_closes_at,c.selected_type,c.selected_type AS source_type,c.selected_id,c.started_at,
       COALESCE(ls.title,bs.title) AS work_title,
+      COALESCE(ls.is_oneshot,bs.is_oneshot,FALSE) AS work_is_oneshot,
       library_cover.slug AS library_cover_slug, library_cover.cover_image AS library_cover_image, library_cover.updated_at AS library_cover_updated_at,
       book_cover.slug AS book_cover_slug, book_cover.cover_path AS book_cover_path
       FROM reading_club_cycles c
@@ -369,8 +373,15 @@ export async function getClubDashboard(club: ReadingClub, userId: string) {
         LIMIT 1
       ) book_cover ON TRUE
       WHERE c.club_id=$1 ORDER BY c.created_at DESC`, [club.id]),
-    query<{ id: string; type: string; created_at: Date; username: string; name: string | null; lastname: string | null; label: string | null }>(`
-      SELECT a.id,a.type,a.created_at,u.username,u.name,u.lastname,ms.label FROM reading_club_activities a
+    query<{ id: string; type: string; created_at: Date; username: string; name: string | null; lastname: string | null; milestone_number: number | null }>(`
+      SELECT a.id,a.type,a.created_at,u.username,u.name,u.lastname,
+        CASE WHEN ms.id IS NULL THEN NULL ELSE (
+          SELECT COUNT(*)::int
+          FROM reading_club_milestones earlier
+          WHERE earlier.cycle_id=ms.cycle_id
+            AND (earlier.target_date,earlier.created_at,earlier.id) <= (ms.target_date,ms.created_at,ms.id)
+        ) END AS milestone_number
+      FROM reading_club_activities a
       INNER JOIN reading_club_members m ON m.id=a.member_id INNER JOIN users u ON u.id=m.user_id
       LEFT JOIN reading_club_milestones ms ON ms.id=a.milestone_id WHERE a.club_id=$1 ORDER BY a.created_at DESC LIMIT 50`, [club.id]),
   ]);
@@ -452,8 +463,25 @@ export async function listCycleCandidates(cycleId: string): Promise<ClubCandidat
 }
 
 export async function listCycleMilestones(cycleId: string) {
-  return query<{ id: string; position: number; label: string; target_date: string }>(
-    "SELECT id,position,label,target_date::text FROM reading_club_milestones WHERE cycle_id=$1 ORDER BY position", [cycleId]);
+  return query<{ id: string; target_kind: ClubMilestoneTargetKind; target_value: number; target_date: string; reached_count: number; participant_count: number }>(`
+    SELECT ms.id,ms.target_kind,ms.target_value::float8 AS target_value,ms.target_date::text,
+      COALESCE(reached.count,0)::int AS reached_count,
+      COALESCE(participants.count,0)::int AS participant_count
+    FROM reading_club_milestones ms
+    LEFT JOIN LATERAL (
+      SELECT COUNT(*)::int AS count
+      FROM reading_club_activities activity
+      INNER JOIN reading_club_members member ON member.id=activity.member_id AND member.status='APPROVED'
+      WHERE activity.milestone_id=ms.id AND activity.type='MILESTONE_REACHED'
+    ) reached ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COUNT(*)::int AS count
+      FROM reading_club_members member
+      WHERE member.club_id=(SELECT club_id FROM reading_club_cycles WHERE id=ms.cycle_id)
+        AND member.status='APPROVED'
+    ) participants ON TRUE
+    WHERE ms.cycle_id=$1
+    ORDER BY ms.target_date,ms.created_at`, [cycleId]);
 }
 
 export async function listSelectedCycleVolumes(cycle: ClubCycle | null) {
@@ -467,18 +495,41 @@ export async function listSelectedCycleVolumes(cycle: ClubCycle | null) {
 
 export async function recordClubProgressActivities(userId: string, sourceType: ClubSourceType, sourceId: string): Promise<void> {
   const progressRow = sourceType === "LIBRARY_SERIES"
-    ? await queryOne<{ progress: number }>(`SELECT AVG(CASE WHEN u.is_read THEN 1 WHEN u.total_pages > 0 THEN LEAST(1, GREATEST(0, (u.last_page + 1)::float / u.total_pages)) ELSE 0 END) AS progress
+    ? await queryOne<{ progress: number; pages: number; completed_volumes: number }>(`SELECT
+      AVG(CASE WHEN u.is_read THEN 1 WHEN u.total_pages > 0 THEN LEAST(1, GREATEST(0, (u.last_page + 1)::float / u.total_pages)) ELSE 0 END) AS progress,
+      MAX(CASE WHEN u.is_read THEN u.total_pages ELSE u.last_page + 1 END) AS pages,
+      COUNT(*) FILTER (WHERE u.is_read) AS completed_volumes
       FROM library_volumes v LEFT JOIN user_to_volumes u ON u.volume_id=v.id AND u.user_id=$1 WHERE v.series_id=$2`, [userId, sourceId])
-    : await queryOne<{ progress: number }>(`SELECT AVG(CASE WHEN u.is_read THEN 1 ELSE COALESCE(u.progression,0) END) AS progress
+    : await queryOne<{ progress: number; pages: number; completed_volumes: number }>(`SELECT
+      AVG(CASE WHEN u.is_read THEN 1 ELSE COALESCE(u.progression,0) END) AS progress,
+      0 AS pages,
+      COUNT(*) FILTER (WHERE u.is_read) AS completed_volumes
       FROM book_volumes v LEFT JOIN user_to_books u ON u.volume_id=v.id AND u.user_id=$1 WHERE v.series_id=$2`, [userId, sourceId]);
   const progress = Number(progressRow?.progress ?? 0);
-  const rows = await query<{ club_id: string; cycle_id: string; member_id: string; milestone_id: string | null; position: number }>(`
-    SELECT c.club_id,c.id AS cycle_id,m.id AS member_id,ms.id AS milestone_id,ms.position
+  const pages = Number(progressRow?.pages ?? 0);
+  const completedVolumes = Number(progressRow?.completed_volumes ?? 0);
+  const rows = await query<{ club_id: string; cycle_id: string; member_id: string; milestone_id: string | null; target_kind: ClubMilestoneTargetKind | null; target_value: number | null }>(`
+    SELECT c.club_id,c.id AS cycle_id,m.id AS member_id,ms.id AS milestone_id,ms.target_kind,ms.target_value::float8 AS target_value
     FROM reading_club_cycles c INNER JOIN reading_club_members m ON m.club_id=c.club_id AND m.user_id=$1 AND m.status='APPROVED'
     LEFT JOIN reading_club_milestones ms ON ms.cycle_id=c.id
     WHERE c.status='READING' AND c.selected_type=$2 AND c.selected_id=$3`, [userId, sourceType, sourceId]);
   for (const row of rows) {
     if (progress >= 1) await execute(`INSERT INTO reading_club_activities (id,club_id,cycle_id,member_id,type) VALUES ($1,$2,$3,$4,'COMPLETED') ON CONFLICT DO NOTHING`, [createId(), row.club_id, row.cycle_id, row.member_id]);
-    if (row.milestone_id && progress * 100 >= row.position) await execute(`INSERT INTO reading_club_activities (id,club_id,cycle_id,member_id,milestone_id,type) VALUES ($1,$2,$3,$4,$5,'MILESTONE_REACHED') ON CONFLICT DO NOTHING`, [createId(), row.club_id, row.cycle_id, row.member_id, row.milestone_id]);
+    const targetValue = Number(row.target_value ?? 0);
+    const reached = row.milestone_id && row.target_kind === "PAGE"
+      ? pages >= targetValue
+      : row.milestone_id && row.target_kind === "PROGRESSION"
+        ? progress * 100 >= targetValue
+        : row.milestone_id && row.target_kind === "VOLUME"
+          ? completedVolumes >= targetValue
+          : false;
+    if (reached && row.milestone_id) await execute(`INSERT INTO reading_club_activities (id,club_id,cycle_id,member_id,milestone_id,type) VALUES ($1,$2,$3,$4,$5,'MILESTONE_REACHED') ON CONFLICT DO NOTHING`, [createId(), row.club_id, row.cycle_id, row.member_id, row.milestone_id]);
   }
+}
+
+export async function recordCycleMilestoneActivities(cycleId: string): Promise<void> {
+  const cycle = await queryOne<{ selected_type: ClubSourceType | null; selected_id: string | null }>("SELECT selected_type,selected_id FROM reading_club_cycles WHERE id=$1 AND status='READING'", [cycleId]);
+  if (!cycle?.selected_type || !cycle.selected_id) return;
+  const members = await query<{ user_id: string }>("SELECT user_id FROM reading_club_members WHERE club_id=(SELECT club_id FROM reading_club_cycles WHERE id=$1) AND status='APPROVED'", [cycleId]);
+  await Promise.all(members.map((member) => recordClubProgressActivities(member.user_id, cycle.selected_type!, cycle.selected_id!)));
 }

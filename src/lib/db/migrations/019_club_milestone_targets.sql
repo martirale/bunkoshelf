@@ -1,0 +1,5 @@
+ALTER TABLE reading_club_milestones
+  ADD COLUMN IF NOT EXISTS target_kind TEXT NOT NULL DEFAULT 'PROGRESSION'
+    CHECK (target_kind IN ('PAGE', 'PROGRESSION', 'VOLUME')),
+  ADD COLUMN IF NOT EXISTS target_value NUMERIC NOT NULL DEFAULT 100
+    CHECK (target_value > 0);

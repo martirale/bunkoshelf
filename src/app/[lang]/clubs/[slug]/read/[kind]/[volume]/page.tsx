@@ -22,9 +22,9 @@ export default async function ClubReaderPage({ params }: { params: Promise<{ lan
   if (kind === "manga") {
     const item = await findVolumeBySlug({ slug: volumeSlug });
     if (!item) notFound();
-    return <ClubReader kind="manga" volume={{ id: item.id, slug: item.slug, title: item.title, mangaStyle: item.metadataObj?.mangaStyle }} intl={intl} />;
+    return <ClubReader kind="manga" volume={{ id: item.id, slug: item.slug, title: item.title, mangaStyle: item.metadataObj?.mangaStyle }} returnHref={`/${lang}/clubs/${slug}`} intl={intl} />;
   }
   const item = await findBookVolumeBySlug(volumeSlug);
   if (!item) notFound();
-  return <ClubReader kind="books" volume={{ id: item.id, slug: item.slug, title: item.title, layout: item.metadata.renditionLayout }} intl={intl} />;
+  return <ClubReader kind="books" volume={{ id: item.id, slug: item.slug, title: item.title, layout: item.metadata.renditionLayout }} returnHref={`/${lang}/clubs/${slug}`} intl={intl} />;
 }

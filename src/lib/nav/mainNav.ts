@@ -120,7 +120,7 @@ export function getMainNavLinks({
       href: `/${lang}/clubs`,
       icon: UsersRoundIcon,
       isActive: pathname.startsWith(`/${lang}/clubs`),
-      minRole: ROLES.MEMBER,
+      minRole: ROLES.GUEST,
     },
     // {
     //   label: intl.sidebar.profile as string,

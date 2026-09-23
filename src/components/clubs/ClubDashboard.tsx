@@ -22,9 +22,11 @@ import {
 } from "@/actions/clubs";
 import { useAlertDialog } from "@/components/AlertDialogProvider";
 import Button from "@/components/ui/Button";
+import { useResourceMutation } from "@/lib/client/resourceState";
 import type {
   ClubCandidate,
   ClubCycle,
+  ClubMilestoneTargetKind,
   ClubMember,
   ClubUser,
   ReadingClub,
@@ -41,9 +43,11 @@ type Work = {
 };
 type Milestone = {
   id: string;
-  position: number;
-  label: string;
+  target_kind: ClubMilestoneTargetKind;
+  target_value: number;
   target_date: string;
+  reached_count: number;
+  participant_count: number;
 };
 
 function displayName(name: string | null, lastname: string | null, username: string) {
@@ -61,6 +65,7 @@ export default function ClubDashboard({
   readingVolumes,
   users,
   isManager,
+  isOwner,
   inviteToken,
   lang,
   intl,
@@ -75,7 +80,7 @@ export default function ClubDashboard({
     username: string;
     name: string | null;
     lastname: string | null;
-    label: string | null;
+    milestone_number: number | null;
   }>;
   activeCandidates: ClubCandidate[];
   milestones: Milestone[];
@@ -88,11 +93,13 @@ export default function ClubDashboard({
   }>;
   users: ClubUser[];
   isManager: boolean;
+  isOwner: boolean;
   inviteToken: string | null;
   lang: string;
   intl: Dictionary;
 }) {
   const router = useRouter();
+  const mutateResource = useResourceMutation();
   const { confirm } = useAlertDialog()!;
   const [inviteCopied, setInviteCopied] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -113,7 +120,18 @@ export default function ClubDashboard({
   const invite = inviteToken
     ? `${origin}/${lang}/clubs/join/${inviteToken}`
     : "";
-  const refresh = () => router.refresh();
+  const mutateClub = <T extends { success: boolean }>(
+    mutate: () => Promise<T>,
+    refresh = true,
+  ) =>
+    mutateResource({
+      resource: "club",
+      id: club.id,
+      patch: {},
+      mutate,
+      isSuccess: (result) => result.success,
+      refresh,
+    });
   const availableUsers = users.filter(
     (user) => !members.some(
       (member) => member.userId === user.id && ["APPROVED", "PENDING"].includes(member.status),
@@ -134,47 +152,38 @@ export default function ClubDashboard({
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
-    const result = await createClubCycle(club.slug, {
+    const result = await mutateClub(() => createClubCycle(club.slug, {
       title: String(data.get("title")),
       voteClosesAt: String(data.get("voteClosesAt") || ""),
-    });
+    }));
     if (!result.success) setMessage(errorMessage(result.error));
-    else {
-      form.reset();
-      refresh();
-    }
+    else form.reset();
   };
   const submitMember = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const userId = String(new FormData(event.currentTarget).get("userId") ?? "");
-    const result = await inviteClubMember(club.slug, userId, lang);
+    const result = await mutateClub(() => inviteClubMember(club.slug, userId, lang));
     if (!result.success) setMessage(errorMessage(result.error));
-    else refresh();
   };
   const submitMilestone = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!active) return;
     const form = event.currentTarget;
     const data = new FormData(form);
-    const result = await addClubMilestone(club.slug, active.id, {
-      label: String(data.get("label")),
-      position: Number(data.get("position")),
+    const result = await mutateClub(() => addClubMilestone(club.slug, active.id, {
+      targetValue: Number(data.get("targetValue")),
       targetDate: String(data.get("targetDate")),
-    });
+    }));
     if (!result.success) setMessage(errorMessage(result.error));
-    else {
-      form.reset();
-      refresh();
-    }
+    else form.reset();
   };
   const selectWork = async (cycle: ClubCycle, value: string) => {
     const [sourceType, sourceId] = value.split(":") as [ClubSourceType, string];
-    const result =
+    const result = await mutateClub(() =>
       cycle.status === "VOTING"
-        ? await addClubCandidate(club.slug, cycle.id, sourceType, sourceId)
-        : await selectClubWork(club.slug, cycle.id, sourceType, sourceId);
+        ? addClubCandidate(club.slug, cycle.id, sourceType, sourceId)
+        : selectClubWork(club.slug, cycle.id, sourceType, sourceId));
     if (!result.success) setMessage(errorMessage(result.error));
-    else refresh();
   };
   const memberStatus = (status: ClubMember["status"]) =>
     labels[status.toLowerCase()];
@@ -208,6 +217,19 @@ export default function ClubDashboard({
     `${candidate.title ?? "—"} · ${titleCase(workSectionLabel(candidate.source_type, candidate.section))} · ${titleCase(workConditionLabel(candidate.source_type, candidate.section, candidate.is_oneshot))}`;
   const workValue = (work: Pick<Work, "type" | "id">) =>
     `${work.type}:${work.id}`;
+  const milestoneTargetKind: ClubMilestoneTargetKind | null = active
+    ? !active.workIsOneshot
+      ? "VOLUME"
+      : active.selectedType === "BOOK_SERIES"
+        ? "PROGRESSION"
+        : "PAGE"
+    : null;
+  const milestoneTargetLabel = (milestone: Milestone) =>
+    milestone.target_kind === "PAGE"
+      ? `${labels.page} ${milestone.target_value}`
+      : milestone.target_kind === "PROGRESSION"
+        ? `${milestone.target_value}%`
+        : `${labels.volume} ${milestone.target_value}`;
   const readingWorkValues = new Set(
     cycles
       .filter(
@@ -235,24 +257,22 @@ export default function ClubDashboard({
   );
   const voteForCandidate = async (candidate: ClubCandidate) => {
     if (!voting) return;
-    const result = await voteForClubCandidate(
+    const result = await mutateClub(() => voteForClubCandidate(
       club.slug,
       voting.id,
       candidate.id,
-    );
+    ));
     if (!result.success) setMessage(errorMessage(result.error));
-    else refresh();
   };
   const chooseCandidate = async (candidate: ClubCandidate) => {
     if (!voting) return;
-    const result = await selectClubWork(
+    const result = await mutateClub(() => selectClubWork(
       club.slug,
       voting.id,
       candidate.source_type,
       candidate.source_id,
-    );
+    ));
     if (!result.success) setMessage(errorMessage(result.error));
-    else refresh();
   };
   const confirmCandidateRemoval = async (candidateId: string) => {
     if (
@@ -265,9 +285,8 @@ export default function ClubDashboard({
       }))
     )
       return;
-    const result = await removeClubCandidate(club.slug, voting.id, candidateId);
+    const result = await mutateClub(() => removeClubCandidate(club.slug, voting.id, candidateId));
     if (!result.success) setMessage(errorMessage(result.error));
-    else refresh();
   };
   const confirmMemberRemoval = async (memberId: string) => {
     if (
@@ -279,9 +298,8 @@ export default function ClubDashboard({
       }))
     )
       return;
-    const result = await removeClubMember(club.slug, memberId);
+    const result = await mutateClub(() => removeClubMember(club.slug, memberId));
     if (!result.success) setMessage(errorMessage(result.error));
-    else refresh();
   };
   const confirmArchive = async () => {
     if (
@@ -293,9 +311,8 @@ export default function ClubDashboard({
       }))
     )
       return;
-    const result = await archiveClub(club.slug);
+    const result = await mutateClub(() => archiveClub(club.slug));
     if (!result.success) setMessage(errorMessage(result.error));
-    else refresh();
   };
   const confirmClubDeletion = async () => {
     if (
@@ -308,7 +325,7 @@ export default function ClubDashboard({
       }))
     )
       return;
-    const result = await deleteClub(club.slug);
+    const result = await mutateClub(() => deleteClub(club.slug), false);
     if (!result.success) return setMessage(errorMessage(result.error));
     router.push(`/${lang}/clubs`);
     router.refresh();
@@ -359,20 +376,26 @@ export default function ClubDashboard({
             </div>
           </div>
           <div className="mt-5 space-y-3">
-            {milestones.map((milestone) => (
-              <div key={milestone.id} className="flex items-center gap-3">
-                <div className="h-2 flex-1 rounded bg-onix">
-                  <div
-                    className="h-full rounded bg-lilah"
-                    style={{ width: `${milestone.position}%` }}
-                  />
+            {milestones.map((milestone, index) => {
+              const progress = milestone.participant_count
+                ? Math.round((milestone.reached_count / milestone.participant_count) * 100)
+                : 0;
+              const clubReached = milestone.reached_count > milestone.participant_count / 2;
+              return (
+                <div key={milestone.id} className="rounded-md bg-onix px-4 py-3">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p>{labels.milestone} {index + 1}: {milestoneTargetLabel(milestone)}</p>
+                    <span className="shrink-0 text-sm text-sand">{milestone.reached_count}/{milestone.participant_count}</span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded bg-blackamber">
+                    <div className="h-full rounded bg-lilah" style={{ width: `${progress}%` }} />
+                  </div>
+                  <p className="mt-2 text-sm text-sand">
+                    {labels.targetDate}: {milestone.target_date}{clubReached ? ` · ${labels.clubMilestoneReached}` : ""}
+                  </p>
                 </div>
-                <span className="w-14 text-right">{milestone.position}%</span>
-                <span>
-                  {milestone.label} · {milestone.target_date}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
             {readingVolumes.map((volume) => (
@@ -388,9 +411,8 @@ export default function ClubDashboard({
               <Button
                 variant="dark"
                 onClick={async () => {
-                  const result = await completeClubCycle(club.slug, active.id);
+                  const result = await mutateClub(() => completeClubCycle(club.slug, active.id));
                   if (!result.success) setMessage(errorMessage(result.error));
-                  else refresh();
                 }}
                 className="border-onix bg-onix px-5 py-2 text-sand hover:border-pearl hover:bg-pearl hover:text-onix"
               >
@@ -511,13 +533,12 @@ export default function ClubDashboard({
                   <div className="flex gap-2">
                     <button
                       onClick={async () => {
-                        const result = await reviewClubMember(
+                        const result = await mutateClub(() => reviewClubMember(
                           club.slug,
                           member.id,
                           "APPROVED",
-                        );
+                        ));
                         if (!result.success) setMessage(errorMessage(result.error));
-                        else refresh();
                       }}
                       className="text-xs uppercase hover:underline cursor-pointer"
                     >
@@ -525,13 +546,12 @@ export default function ClubDashboard({
                     </button>
                     <button
                       onClick={async () => {
-                        const result = await reviewClubMember(
+                        const result = await mutateClub(() => reviewClubMember(
                           club.slug,
                           member.id,
                           "REJECTED",
-                        );
+                        ));
                         if (!result.success) setMessage(errorMessage(result.error));
-                        else refresh();
                       }}
                       className="text-xs uppercase text-danger-alt hover:underline cursor-pointer"
                     >
@@ -553,7 +573,7 @@ export default function ClubDashboard({
                 </span>{" "}
                 {activity.type === "COMPLETED"
                   ? labels.completedReading
-                  : `${labels.reachedMilestone} ${activity.label ?? ""}`}
+                  : `${labels.reachedMilestone} ${activity.milestone_number ?? ""}`}
                 .
               </p>
             ))}
@@ -693,13 +713,12 @@ export default function ClubDashboard({
                       ];
                       return { sourceType, sourceId };
                     });
-                    const result = await confirmClubCandidates(
+                    const result = await mutateClub(() => confirmClubCandidates(
                       club.slug,
                       draft.id,
                       candidates,
-                    );
+                    ));
                     if (!result.success) setMessage(errorMessage(result.error));
-                    else refresh();
                   }}
                   className="px-4 py-2"
                 >
@@ -748,26 +767,22 @@ export default function ClubDashboard({
           </div>
         </section>
       )}
-      <section className="bg-blackamber p-4 rounded-lg">
-        <h2>{labels.milestones}</h2>
-        {active ? (
+      {isOwner && (
+        <section className="bg-blackamber p-4 rounded-lg">
+          <h2>{labels.milestones}</h2>
+          {active ? (
           <form onSubmit={submitMilestone} className="mt-4 grid gap-3">
             <input
-              name="label"
               required
-              placeholder={labels.milestoneLabel}
+              name="targetValue"
+              type="number"
+              min="1"
+              max={milestoneTargetKind === "PROGRESSION" ? 100 : undefined}
+              step={milestoneTargetKind === "PROGRESSION" ? "0.01" : "1"}
+              placeholder={milestoneTargetKind === "PAGE" ? labels.page : milestoneTargetKind === "PROGRESSION" ? labels.percentage : labels.volume}
               className="h-14 text-sand bg-onix border border-neutral-700 hover:border-pearl rounded-lg w-full px-5 transition-all duration-300"
             />
-            <div className="grid gap-3 md:grid-cols-[10rem_minmax(12rem,1fr)_auto] md:items-end">
-              <input
-                name="position"
-                type="number"
-                min="1"
-                max="100"
-                required
-                placeholder={labels.milestonePosition}
-                className="h-14 text-sand bg-onix border border-neutral-700 hover:border-pearl rounded-lg w-full px-5 transition-all duration-300"
-              />
+            <div className="grid gap-3 md:grid-cols-[minmax(12rem,1fr)_auto] md:items-end">
               <input
                 name="targetDate"
                 type="date"
@@ -779,10 +794,11 @@ export default function ClubDashboard({
               </Button>
             </div>
           </form>
-        ) : (
-          <p className="mt-4">{labels.selectWorkForMilestones}</p>
-        )}
-      </section>
+          ) : (
+            <p className="mt-4">{labels.selectWorkForMilestones}</p>
+          )}
+        </section>
+      )}
     </div>
   );
 }

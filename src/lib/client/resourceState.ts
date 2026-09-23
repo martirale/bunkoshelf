@@ -11,7 +11,8 @@ export type ResourceKind =
   | "manga-volume"
   | "manga-series"
   | "book-volume"
-  | "book-series";
+  | "book-series"
+  | "club";
 
 export interface ResourceState {
   isFavorite?: boolean;
