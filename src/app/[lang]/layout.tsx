@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black",
+    statusBarStyle: "default",
     title: "Bunko Shelf",
   },
 };
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#000000",
+  themeColor: "#f7f2ec",
   colorScheme: "dark",
 };
 
@@ -91,7 +91,6 @@ async function AppShell({
           libraryCounts={libraryCounts}
         />
         <main className="min-h-0 w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto overscroll-y-none">
-          <div aria-hidden="true" className="pointer-events-none sticky top-0 z-[100] -mb-[max(1px,env(safe-area-inset-top))] h-[max(1px,env(safe-area-inset-top))] shrink-0 bg-black" />
           <PwaProvider userId={user?.id} contentVisibility={getContentVisibilityPolicy(user, appSettings.parentalControlEnabled, appSettings.parentalControlMode)}>
             <ToastProvider>
               <AlertDialogProvider
@@ -131,14 +130,13 @@ export default async function RootLayout({ children, params }: RootLayoutProps) 
       className={`${robotoCondensed.variable} ${boldonse.variable} antialiased`}
     >
       <head>
-        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta name="theme-color" content="#000000" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="theme-color" content="#f7f2ec" />
         <meta name="robots" content="noindex,nofollow" />
         <meta name="googlebot" content="noindex,nofollow" />
       </head>
 
       <body className="relative h-dvh overflow-hidden bg-black text-lg">
-        <div aria-hidden="true" className="pointer-events-none fixed top-0 right-0 left-0 z-[100] h-[max(1px,env(safe-area-inset-top))] bg-black" />
         <div className="pointer-events-none fixed inset-0 z-0 bg-seigaiha-pattern-k opacity-50" />
 
         <Suspense

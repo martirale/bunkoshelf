@@ -254,11 +254,8 @@ export default function HeroKeepRead({
             </div>
           </section>
 
-          <div className="sticky top-0 z-10">
-            <div aria-hidden="true" className="h-[max(1px,env(safe-area-inset-top))] bg-black" />
-            <div className="bg-pearl p-4">
-              <MangaNav lang={lang} intl={intl} section={section} scope={scope} offlineUserId={offlineUserId} />
-            </div>
+          <div className="sticky top-0 z-10 bg-pearl p-4">
+            <MangaNav lang={lang} intl={intl} section={section} scope={scope} offlineUserId={offlineUserId} />
           </div>
         </>
       )}
