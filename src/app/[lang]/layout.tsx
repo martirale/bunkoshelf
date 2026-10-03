@@ -90,7 +90,8 @@ async function AppShell({
           versionData={versionData}
           libraryCounts={libraryCounts}
         />
-        <main className="min-h-0 w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto overscroll-y-contain">
+        <main className="min-h-0 w-full md:w-[65%] lg:w-[75%] xl:w-[79%] 2xl:w-[83%] flex flex-col overflow-y-auto overscroll-y-none">
+          <div aria-hidden="true" className="pointer-events-none sticky top-0 z-[100] -mb-[max(1px,env(safe-area-inset-top))] h-[max(1px,env(safe-area-inset-top))] shrink-0 bg-black" />
           <PwaProvider userId={user?.id} contentVisibility={getContentVisibilityPolicy(user, appSettings.parentalControlEnabled, appSettings.parentalControlMode)}>
             <ToastProvider>
               <AlertDialogProvider
