@@ -134,8 +134,11 @@ export default function BookHero({ lang, intl }: { lang: Locale; intl: Dictionar
           ))}
         </div>
       </section>
-      <div className="sticky top-0 z-10 bg-pearl p-4">
-        <BookNav lang={lang} intl={intl} />
+      <div className="sticky top-0 z-10">
+        <div aria-hidden="true" className="h-[max(1px,env(safe-area-inset-top))] bg-black" />
+        <div className="bg-pearl p-4">
+          <BookNav lang={lang} intl={intl} />
+        </div>
       </div>
     </>
   );
