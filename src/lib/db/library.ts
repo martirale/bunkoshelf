@@ -5,6 +5,7 @@ import {
   type LibrarySection,
 } from "@/lib/librarySection";
 import { MANGA_LIBRARY_TAG } from "@/lib/mangaLibraryCache";
+import { getComicTagAliases } from "@/lib/comicTags";
 import { query, queryOne } from "./query";
 import { getCurrentContentVisibilityPolicy } from "@/lib/parentalControlServer";
 import { canViewAgeRating, type ContentVisibilityPolicy } from "@/lib/parentalControl";
@@ -584,14 +585,15 @@ function buildVolumeFilterSql(
 
   if (options.tagNames && options.tagNames.length > 0) {
     for (const tagName of options.tagNames) {
-      params.push(tagName);
+      const aliases = options.scope === "comic" ? getComicTagAliases(tagName) : undefined;
+      params.push(aliases ?? tagName);
       conditions.push(`
         EXISTS (
           SELECT 1
           FROM volume_to_tags vtt
           INNER JOIN tags t ON t.id = vtt.tag_id
           WHERE vtt.volume_id = mv.id
-            AND t.name = $${params.length}
+            AND ${aliases ? `LOWER(t.name) = ANY($${params.length}::text[])` : `t.name = $${params.length}`}
         )
       `);
     }

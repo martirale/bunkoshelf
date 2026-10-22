@@ -23,7 +23,7 @@ async function SeriesIndexContent({
   params,
 }: ComicSeriesPageProps) {
   const resolvedSearchParams = await searchParams;
-  const { page: pageRaw = "1", author, genre, tag } = resolvedSearchParams;
+  const { page: pageRaw = "1", author, genre, tag, includeOneshots } = resolvedSearchParams;
   const page = parseInt(pageRaw ?? "1", 10);
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
@@ -36,6 +36,7 @@ async function SeriesIndexContent({
       authorFilter={author}
       genreFilter={genre}
       tagFilter={tag}
+      includeOneshots={includeOneshots === "true"}
       scope="comic"
       section="comic"
     />

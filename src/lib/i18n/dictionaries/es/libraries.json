@@ -5,6 +5,11 @@
     "volumes": "Tomos",
     "series": "Series",
     "comicIssues": "Números",
+    "comicTypes": {
+      "comic": "Cómic",
+      "graphicNovel": "Novela Gráfica",
+      "manhwa": "Manhwa"
+    },
     "otherCollections": "Colecciones",
     "otherWorks": "Obras",
     "otherCollection": "Colección:",

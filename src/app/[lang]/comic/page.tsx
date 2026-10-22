@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import NextVol from "@/components/library/manga/row/NextVol";
 import NewVols from "@/components/library/manga/row/NewVols";
 import RecentlyRead from "@/components/library/manga/row/RecentlyRead";
+import ComicTypes from "@/components/library/comic/ComicTypes";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import type { Locale } from "@/lib/types";
 
@@ -13,6 +14,10 @@ async function Content({ params }: { params: Promise<{ lang: string }> }) {
     <div className="library-overview p-4">
       <div className="library-overview-section">
         <NextVol lang={lang as Locale} intl={intl} scope="comic" section="comic" />
+      </div>
+
+      <div className="library-overview-section">
+        <ComicTypes intl={intl} lang={lang as Locale} />
       </div>
 
       <div className="library-overview-section">
