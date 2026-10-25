@@ -30,6 +30,19 @@
     "ageRatingColumn": "Age",
     "gtinColumn": "ISBN",
     "favoriteColumn": "Fav",
-    "actionsColumn": "Act"
+    "actionsColumn": "Act",
+    "createLogicalSeries": "Create logical series",
+    "logicalSeriesDescription": "Group two or more series from the same library under one title. Their files, volumes and progress will be preserved.",
+    "logicalSeriesSearch": "Search available series",
+    "logicalSeriesEmpty": "No matching series available.",
+    "logicalSeriesOrder": "Order",
+    "logicalSeriesOrderHelp": "Assign a unique position to each series. Volumes retain their order within each one.",
+    "logicalSeriesRemove": "Remove",
+    "logicalSeriesInvalid": "Enter a title and select at least two series with unique positive integer positions.",
+    "logicalSeriesUnavailable": "Could not create the logical series. Refresh the page and check that the series are still available.",
+    "logicalSeriesCreated": "Logical series created.",
+    "logicalSeriesSaving": "Saving…",
+    "logicalSeriesDelete": "Remove grouping",
+    "logicalSeriesDeleteSure": "Only the grouping will be removed. Physical series will appear separately again and keep their files and progress."
   }
 }

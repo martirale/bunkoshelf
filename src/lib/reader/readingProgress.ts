@@ -9,13 +9,13 @@ export async function getSeriesBulkProgress(
 
   const records = await query<{ series_id: string; read_count: string }>(
     `
-      SELECT mv.series_id, COUNT(*)::text AS read_count
+      SELECT sv.series_id, COUNT(*)::text AS read_count
       FROM user_to_volumes utv
-      INNER JOIN manga_volumes mv ON mv.id = utv.volume_id
+      INNER JOIN library_series_volumes sv ON sv.volume_id = utv.volume_id
       WHERE utv.user_id = $1
         AND utv.is_read = TRUE
-        AND mv.series_id = ANY($2::text[])
-      GROUP BY mv.series_id
+        AND sv.series_id = ANY($2::text[])
+      GROUP BY sv.series_id
     `,
     [userId, seriesIds]
   );

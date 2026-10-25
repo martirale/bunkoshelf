@@ -30,6 +30,19 @@
     "ageRatingColumn": "Clasf",
     "gtinColumn": "ISBN",
     "favoriteColumn": "Fav",
-    "actionsColumn": "Acc"
+    "actionsColumn": "Acc",
+    "createLogicalSeries": "Crear serie lógica",
+    "logicalSeriesDescription": "Agrupá dos o más series de la misma biblioteca bajo un solo título. Sus archivos, tomos y progreso se conservarán.",
+    "logicalSeriesSearch": "Buscar series disponibles",
+    "logicalSeriesEmpty": "No hay series disponibles que coincidan.",
+    "logicalSeriesOrder": "Orden",
+    "logicalSeriesOrderHelp": "Asigná un orden único a cada serie. Los tomos conservarán su orden dentro de cada una.",
+    "logicalSeriesRemove": "Quitar",
+    "logicalSeriesInvalid": "Ingresá un título y seleccioná al menos dos series con posiciones enteras positivas, sin repetir.",
+    "logicalSeriesUnavailable": "No se pudo crear la serie lógica. Actualizá la página y verificá que las series sigan disponibles.",
+    "logicalSeriesCreated": "Serie lógica creada.",
+    "logicalSeriesSaving": "Guardando…",
+    "logicalSeriesDelete": "Eliminar agrupación",
+    "logicalSeriesDeleteSure": "Se eliminará únicamente la agrupación. Las series físicas volverán a mostrarse por separado y conservarán sus archivos y progreso."
   }
 }

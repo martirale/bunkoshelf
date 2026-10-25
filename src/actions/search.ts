@@ -2,7 +2,7 @@
 
 import MiniSearch from "minisearch";
 import { verifySession } from "@/lib/auth/verifySession";
-import { listSeries, listVolumes } from "@/lib/db/library";
+import { listSeriesWithVolumes, listVolumes } from "@/lib/db/library";
 import { listBookSearchEntries } from "@/lib/db/books/library";
 import { getLibrarySection } from "@/lib/librarySection";
 import type { SearchResult } from "@/lib/types";
@@ -58,13 +58,12 @@ export async function searchManga({ query }: SearchParams) {
       includeGenres: true,
       includeTags: true,
     }),
-    listSeries(),
+    listSeriesWithVolumes(),
     listBookSearchEntries(),
   ]);
 
   const writerBySeriesId = new Map<string, string>();
   const seriesNameById = new Map<string, string>();
-  const sectionBySeriesId = new Map<string, "manga" | "comic" | "others">();
 
   for (const vol of volumes) {
     const writer = vol.metadataObj?.writer?.trim();
@@ -76,22 +75,16 @@ export async function searchManga({ query }: SearchParams) {
     if (seriesName && !seriesNameById.has(vol.seriesId)) {
       seriesNameById.set(vol.seriesId, seriesName);
     }
-    if (!sectionBySeriesId.has(vol.seriesId)) {
-      sectionBySeriesId.set(
-        vol.seriesId,
-        getLibrarySection(vol.series.librarySection)
-      );
-    }
   }
 
-  const mangaSeriesDocs: SeriesDoc[] = seriesList.filter((s) => sectionBySeriesId.has(s.id)).map((s) => ({
+  const mangaSeriesDocs: SeriesDoc[] = seriesList.map((s) => ({
     id: `series-${s.id}`,
     title: s.title,
     slug: s.slug,
     isOneshot: s.isOneshot,
-    section: sectionBySeriesId.get(s.id) ?? "manga",
-    writer: writerBySeriesId.get(s.id) || "",
-    series: seriesNameById.get(s.id) || s.title,
+    section: getLibrarySection(s.librarySection),
+    writer: writerBySeriesId.get(s.id) || s.volumes[0]?.metadataObj?.writer || "",
+    series: s.isLogical ? s.title : seriesNameById.get(s.id) || s.title,
   }));
 
   const bookSeries = new Map<string, { entry: typeof bookEntries[number]; writers: Set<string> }>();

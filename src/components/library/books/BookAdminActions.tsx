@@ -13,16 +13,17 @@ interface BookAdminActionsProps {
   lang: Locale;
   intl: Dictionary;
   canDownload: boolean;
+  isLogical?: boolean;
 }
 
-export default function BookAdminActions({ type, slug, lang, intl, canDownload }: BookAdminActionsProps) {
+export default function BookAdminActions({ type, slug, lang, intl, canDownload, isLogical = false }: BookAdminActionsProps) {
   const [isScanning, setIsScanning] = useState(false);
   const { addToast } = useToast()!;
   const { confirm } = useAlertDialog()!;
   const books = intl.books as Record<string, string>;
   const labels = intl.libraries.bookActions as Record<string, string>;
   const isVolume = type === "volume";
-  const itemLabel = isVolume ? labels.deleteBook : labels.deleteSeries;
+  const itemLabel = isLogical ? intl.catalog.logicalSeriesDelete as string : isVolume ? labels.deleteBook : labels.deleteSeries;
 
   const handleScan = async () => {
     setIsScanning(true);
@@ -52,7 +53,7 @@ export default function BookAdminActions({ type, slug, lang, intl, canDownload }
   const handleDelete = async () => {
     const confirmed = await confirm({
       title: itemLabel,
-      description: isVolume ? labels.deleteBookSure : labels.deleteSeriesSure,
+      description: isLogical ? intl.catalog.logicalSeriesDeleteSure as string : isVolume ? labels.deleteBookSure : labels.deleteSeriesSure,
       destructive: true,
       irreversible: true,
     });
@@ -71,10 +72,10 @@ export default function BookAdminActions({ type, slug, lang, intl, canDownload }
 
   return (
     <div className="flex flex-wrap items-center gap-4">
-      <button onClick={handleScan} disabled={isScanning} className="flex cursor-pointer items-center gap-1 text-xs uppercase hover:underline disabled:cursor-not-allowed disabled:opacity-50">
+      {!isLogical && <button onClick={handleScan} disabled={isScanning} className="flex cursor-pointer items-center gap-1 text-xs uppercase hover:underline disabled:cursor-not-allowed disabled:opacity-50">
         {isScanning ? <Loader2Icon size={12} className="animate-spin" /> : <ScanSearchIcon size={12} />}
         {isScanning ? books.scanning : isVolume ? labels.scanBook : labels.scanSeries}
-      </button>
+      </button>}
       {canDownload && <a href={downloadHref} className="flex cursor-pointer items-center gap-1 text-xs uppercase hover:underline"><DownloadIcon size={11} />{isVolume ? labels.downloadBook : labels.downloadSeries}</a>}
       <button onClick={handleDelete} className="flex cursor-pointer items-center gap-1 text-xs uppercase text-danger-alt hover:underline"><TrashIcon size={11} />{itemLabel}</button>
     </div>

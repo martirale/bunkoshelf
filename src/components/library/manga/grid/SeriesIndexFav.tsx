@@ -70,7 +70,7 @@ export default async function SeriesIndexFav({
   }
 
   const entries = favorites.items.map((series) => {
-    const sortedVolumes = sortByPaddedTitle(series.volumes);
+    const sortedVolumes = series.isLogical ? series.volumes : sortByPaddedTitle(series.volumes);
 
     return {
       ...series,
@@ -115,7 +115,7 @@ export default async function SeriesIndexFav({
           return (
             <MangaCard
               key={entry.title}
-              title={entry.volumes?.[0]?.meta?.series ?? entry.title}
+              title={entry.isLogical ? entry.title : entry.volumes?.[0]?.meta?.series ?? entry.title}
               href={href}
               isSeries={isSeries}
               isOneshot={!isSeries}

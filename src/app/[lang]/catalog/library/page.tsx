@@ -5,6 +5,8 @@ import { listPagedCatalogLibraryVolumes } from "@/lib/db/library";
 import { verifySession } from "@/lib/auth/verifySession";
 import CatalogLibraryTable from "@/components/catalog/CatalogLibraryTable";
 import CatalogLibraryUpload from "@/components/catalog/CatalogLibraryUpload";
+import CreateLogicalSeries from "@/components/catalog/CreateLogicalSeries";
+import { listLogicalSeriesOptions } from "@/lib/db/logicalSeries";
 import type { Locale } from "@/lib/types";
 
 interface CatalogLibraryPageProps {
@@ -36,6 +38,7 @@ async function CatalogLibraryPageContent({
     pageSize: 50,
     userId: user?.id ?? null,
   });
+  const seriesOptions = user?.isAdmin ? await listLogicalSeriesOptions() : [];
 
   return (
     <>
@@ -45,7 +48,10 @@ async function CatalogLibraryPageContent({
           {intl.catalog.library as string}
         </h2>
         {user?.isAdmin === true && (
-          <CatalogLibraryUpload intl={intl} lang={lang as Locale} />
+          <div className="flex flex-wrap justify-end gap-2">
+            <CreateLogicalSeries intl={intl} options={seriesOptions} />
+            <CatalogLibraryUpload intl={intl} lang={lang as Locale} />
+          </div>
         )}
       </div>
 

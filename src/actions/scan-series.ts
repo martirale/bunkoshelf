@@ -161,6 +161,8 @@ export async function scanSeries(seriesId: string): Promise<ScanResult | undefin
     let metaUpdated = 0;
     let errors = 0;
 
+    if (series.isLogical) return { error: "Rescan physical series individually" };
+
     for (let index = 0; index < series.volumes.length; index += SCAN_CONCURRENCY) {
       const volumes = series.volumes.slice(index, index + SCAN_CONCURRENCY);
       const results = await Promise.all(

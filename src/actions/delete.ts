@@ -18,7 +18,8 @@ import {
   findVolumeBySlugBasic,
   listVolumeMetadataIdsBySeriesId,
 } from "@/lib/db/ingestion";
-import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
+import { MANGA_LIBRARY_TAG, revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
+import { updateTag } from "next/cache";
 
 const LIB_PROVIDER: StorageProvider = (process.env.LIB_PROVIDER as StorageProvider) || "local";
 
@@ -51,6 +52,12 @@ export async function deleteSeries({ slug }: DeleteBySlugParams): Promise<Delete
     const series = await findSeriesBySlugBasic(slug);
     if (!series) {
       return { ok: false, error: "series not found", status: 404 };
+    }
+
+    if (series.isLogical) {
+      await deleteSeriesById(series.id);
+      updateTag(MANGA_LIBRARY_TAG);
+      return { ok: true };
     }
 
     const metadataIds = await listVolumeMetadataIdsBySeriesId(series.id);

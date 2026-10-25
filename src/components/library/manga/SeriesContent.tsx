@@ -94,7 +94,7 @@ export default function SeriesContent({
 
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">
-            {(meta.series as string) || (serieData.title as string)}
+            {serieData.isLogical ? serieData.title as string : (meta.series as string) || (serieData.title as string)}
           </h1>
 
           <ReadButtonsSeries
@@ -224,7 +224,7 @@ export default function SeriesContent({
           <>
             <Separator />
             <div className="flex flex-wrap items-center gap-4">
-              <ScanSeriesButton seriesId={serieData.id as string} intl={intl} />
+              {!serieData.isLogical && <ScanSeriesButton seriesId={serieData.id as string} intl={intl} />}
               {canDownloadOriginal && (
                 <a
                   href={`/api/library/download/series/${encodeURIComponent(serieData.slug as string)}`}
@@ -239,6 +239,7 @@ export default function SeriesContent({
                 type="series"
                 slug={serieData.slug as string}
                 section={section}
+                isLogical={serieData.isLogical === true}
               />
             </div>
           </>

@@ -31,6 +31,7 @@ export interface LibrarySeries {
   title: string;
   path: string;
   isOneshot: boolean;
+  isLogical?: boolean;
   mtime: Date;
   status: string;
   librarySection: "manga" | "comic" | "other";
@@ -128,6 +129,7 @@ interface SharedVolumeQueryOptions {
 interface VolumeQueryOptions extends SharedVolumeQueryOptions {
   userId?: string | null;
   onlyUnreadForUser?: boolean;
+  groupSeries?: boolean;
 }
 
 interface SharedSeriesQueryOptions {
@@ -272,7 +274,8 @@ export async function getFavoriteSectionCounts(userId: string): Promise<Favorite
 export async function getLibrarySectionCounts(): Promise<LibrarySectionCounts> {
   const [rows, bookCount] = await Promise.all([query<{ library_section: "manga" | "comic" | "other"; total: string }>(`
     SELECT library_section, COUNT(*)::text AS total
-    FROM library_series
+    FROM library_series s
+    WHERE NOT EXISTS (SELECT 1 FROM logical_series_members member WHERE member.series_id = s.id)
     GROUP BY library_section
   `), queryOne<{ total: string }>("SELECT COUNT(*)::text AS total FROM book_volumes")]);
   const counts = { manga: 0, comic: 0, others: 0, books: 0 };
@@ -303,6 +306,7 @@ interface VolumeRow {
   series_title: string;
   series_path: string;
   series_is_oneshot: boolean;
+  series_is_logical: boolean;
   series_mtime: Date;
   series_status: string;
   series_library_section: "manga" | "comic" | "other";
@@ -358,6 +362,7 @@ function mapSeries(row: VolumeRow): LibrarySeries {
     title: row.series_title,
     path: row.series_path,
     isOneshot: row.series_is_oneshot,
+    isLogical: row.series_is_logical,
     mtime: row.series_mtime,
     status: row.series_status,
     librarySection: row.series_library_section,
@@ -546,7 +551,7 @@ function buildVolumeFilterSql(
 
   if (options.seriesIds && options.seriesIds.length > 0) {
     params.push(options.seriesIds);
-    conditions.push(`mv.series_id = ANY($${params.length}::text[])`);
+    conditions.push(`ms.id = ANY($${params.length}::text[])`);
   }
 
   if (options.volumeIds && options.volumeIds.length > 0) {
@@ -1256,6 +1261,7 @@ async function listVolumesRaw(
   options?: VolumeQueryOptions
 ): Promise<LibraryVolume[]> {
   const params: unknown[] = [];
+  const useSeriesView = Boolean(options?.groupSeries || options?.seriesIds?.length);
   const progressJoin =
     options?.userId
       ? (() => {
@@ -1285,6 +1291,10 @@ async function listVolumesRaw(
     params
   );
 
+  if (options?.groupSeries && !options.seriesIds?.length) {
+    conditions.push("NOT EXISTS (SELECT 1 FROM logical_series_members member WHERE member.series_id = ms.id)");
+  }
+
   const rows = await query<VolumeRow>(
     `
       SELECT
@@ -1305,6 +1315,7 @@ async function listVolumesRaw(
         ms.title AS series_title,
         ms.path AS series_path,
         ms.is_oneshot AS series_is_oneshot,
+        ms.is_logical AS series_is_logical,
         ms.mtime AS series_mtime,
         ms.status AS series_status,
         ms.library_section AS series_library_section,
@@ -1352,11 +1363,13 @@ async function listVolumesRaw(
         utv.created_at AS progress_created_at,
         utv.updated_at AS progress_updated_at
       FROM manga_volumes mv
-      INNER JOIN manga_series ms ON ms.id = mv.series_id
+      ${useSeriesView
+        ? "INNER JOIN library_series_volumes sv ON sv.volume_id = mv.id INNER JOIN manga_series ms ON ms.id = sv.series_id"
+        : "INNER JOIN manga_series ms ON ms.id = mv.series_id"}
       LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
       ${progressJoin}
       ${conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""}
-      ORDER BY ms.sort_title ASC, mv.sort_title ASC, mv.id ASC
+      ORDER BY ms.sort_title ASC, ${useSeriesView ? "sv.position ASC," : ""} mv.sort_title ASC, mv.id ASC
     `,
     params
   );
@@ -1404,6 +1417,7 @@ async function listPagedVolumeIdsRaw(
   options?: VolumeQueryOptions & PagedQueryOptions
 ): Promise<PaginatedResult<string>> {
   const pagination = buildPagination(options);
+  const useSeriesView = Boolean(options?.seriesIds?.length);
   const countParams: unknown[] = [];
   const countConditions = buildVolumeFilterSql(
     {
@@ -1425,7 +1439,9 @@ async function listPagedVolumeIdsRaw(
       `
         SELECT COUNT(*)::text AS total
         FROM manga_volumes mv
-        INNER JOIN manga_series ms ON ms.id = mv.series_id
+        ${useSeriesView
+          ? "INNER JOIN library_series_volumes sv ON sv.volume_id = mv.id INNER JOIN manga_series ms ON ms.id = sv.series_id"
+          : "INNER JOIN manga_series ms ON ms.id = mv.series_id"}
         LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
         ${countConditions.length > 0 ? `WHERE ${countConditions.join(" AND ")}` : ""}
       `,
@@ -1435,10 +1451,12 @@ async function listPagedVolumeIdsRaw(
       `
         SELECT mv.id
         FROM manga_volumes mv
-        INNER JOIN manga_series ms ON ms.id = mv.series_id
+        ${useSeriesView
+          ? "INNER JOIN library_series_volumes sv ON sv.volume_id = mv.id INNER JOIN manga_series ms ON ms.id = sv.series_id"
+          : "INNER JOIN manga_series ms ON ms.id = mv.series_id"}
         LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
         ${countConditions.length > 0 ? `WHERE ${countConditions.join(" AND ")}` : ""}
-        ORDER BY mv.sort_title ASC, mv.id ASC
+        ORDER BY ${useSeriesView ? "sv.position ASC," : ""} mv.sort_title ASC, mv.id ASC
         LIMIT $${rowsParams.push(pagination.pageSize)}
         OFFSET $${rowsParams.push(pagination.offset)}
       `,
@@ -1594,6 +1612,7 @@ async function listSeriesWithVolumesRaw(
   options?: SharedSeriesQueryOptions
 ): Promise<LibrarySeriesWithVolumes[]> {
   const volumes = await listVolumesRaw({
+    groupSeries: true,
     userId: options?.userId,
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
@@ -1673,13 +1692,17 @@ async function listPagedSeriesIdsRaw(
     countConditions.push("ms.is_oneshot = FALSE");
   }
 
+  if (!options?.seriesIds?.length) {
+    countConditions.push("NOT EXISTS (SELECT 1 FROM logical_series_members member WHERE member.series_id = ms.id)");
+  }
   const rowsParams = [...countParams];
   const [countRow, rows] = await Promise.all([
     queryOne<{ total: string }>(
       `
         SELECT COUNT(DISTINCT ms.id)::text AS total
         FROM manga_series ms
-        INNER JOIN manga_volumes mv ON mv.series_id = ms.id
+        INNER JOIN library_series_volumes sv ON sv.series_id = ms.id
+        INNER JOIN manga_volumes mv ON mv.id = sv.volume_id
         LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
         ${countConditions.length > 0 ? `WHERE ${countConditions.join(" AND ")}` : ""}
       `,
@@ -1689,7 +1712,8 @@ async function listPagedSeriesIdsRaw(
       `
         SELECT ms.id
         FROM manga_series ms
-        INNER JOIN manga_volumes mv ON mv.series_id = ms.id
+        INNER JOIN library_series_volumes sv ON sv.series_id = ms.id
+        INNER JOIN manga_volumes mv ON mv.id = sv.volume_id
         LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
         ${countConditions.length > 0 ? `WHERE ${countConditions.join(" AND ")}` : ""}
         GROUP BY ms.id, ms.sort_title
@@ -1739,8 +1763,9 @@ export async function listPagedSeriesWithVolumes(
       includeTags: options?.includeTags,
       scope: options?.scope,
     });
+    const visible = options?.excludeOneshots ? all.filter((entry) => !entry.isOneshot) : all;
     const pagination = buildPagination(options);
-    return mapPaginatedResult(all.slice(pagination.offset, pagination.offset + pagination.pageSize), all.length, pagination);
+    return mapPaginatedResult(visible.slice(pagination.offset, pagination.offset + pagination.pageSize), visible.length, pagination);
   }
   const pagedIds = await listPagedSeriesIdsCached({
     authorNames: options?.authorNames,
@@ -1849,6 +1874,7 @@ export async function findSeriesBySlugBasic(
     title: string;
     path: string;
     is_oneshot: boolean;
+    is_logical: boolean;
     mtime: Date;
     status: string;
     library_section: "manga" | "comic" | "other";
@@ -1862,6 +1888,7 @@ export async function findSeriesBySlugBasic(
         title,
         path,
         is_oneshot,
+        is_logical,
         mtime,
         status,
         library_section,
@@ -1884,6 +1911,7 @@ export async function findSeriesBySlugBasic(
     title: row.title,
     path: row.path,
     isOneshot: row.is_oneshot,
+    isLogical: row.is_logical,
     mtime: row.mtime,
     status: row.status,
     librarySection: row.library_section,
@@ -1925,10 +1953,11 @@ export async function listSeriesVolumeAggregates(
         vm.publisher,
         vm.imprint,
         vm.format
-      FROM manga_volumes mv
+      FROM library_series_volumes sv
+      INNER JOIN manga_volumes mv ON mv.id = sv.volume_id
       LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
-      WHERE mv.series_id = $1
-      ORDER BY mv.sort_title ASC, mv.id ASC
+      WHERE sv.series_id = $1
+      ORDER BY sv.position, mv.sort_title ASC, mv.id ASC
     `,
     [seriesId]
   ).then(async (rows) => {

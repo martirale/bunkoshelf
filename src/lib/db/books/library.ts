@@ -13,6 +13,7 @@ export interface BookSeries {
   title: string;
   path: string;
   isOneshot: boolean;
+  isLogical?: boolean;
   status: string;
   collectionType: "series" | "set" | null;
   librarySection: BookLibrarySection;
@@ -67,6 +68,7 @@ interface BookRow {
   series_title: string;
   series_path: string;
   series_is_oneshot: boolean;
+  series_is_logical: boolean;
   series_status: string;
   series_collection_type: "series" | "set" | null;
   series_library_section: BookLibrarySection;
@@ -109,6 +111,7 @@ function mapBook(row: BookRow): BookVolume {
       title: row.series_title,
       path: row.series_path,
       isOneshot: row.series_is_oneshot,
+      isLogical: row.series_is_logical,
       status: row.series_status,
       collectionType: row.series_collection_type,
       librarySection: row.series_library_section,
@@ -147,7 +150,7 @@ const BOOK_SELECT = `
     bv.filename AS volume_filename, bv.full_path AS volume_full_path,
     bv.size::text AS volume_size, bv.cover_image AS volume_cover_image, bv.number AS volume_number, bv.created_at AS volume_created_at,
     bs.id AS series_id, bs.slug AS series_slug, bs.title AS series_title, bs.path AS series_path,
-    bs.is_oneshot AS series_is_oneshot, bs.status AS series_status, bs.collection_type AS series_collection_type,
+    bs.is_oneshot AS series_is_oneshot, bs.is_logical AS series_is_logical, bs.status AS series_status, bs.collection_type AS series_collection_type,
     bs.library_section AS series_library_section,
     bm.id AS metadata_id, bm.title AS metadata_title, bm.subtitle AS metadata_subtitle,
     bm.description AS metadata_description, bm.publisher AS metadata_publisher,
@@ -253,7 +256,7 @@ export async function upsertBook(input: {
       [createId(), metadata.id, item.name, item.scheme])),
   ]);
   await execute(`DELETE FROM book_series
-    WHERE id <> $1 AND NOT EXISTS (SELECT 1 FROM book_volumes WHERE book_volumes.series_id = book_series.id)`, [series.id]);
+    WHERE is_logical = FALSE AND id <> $1 AND NOT EXISTS (SELECT 1 FROM book_volumes WHERE book_volumes.series_id = book_series.id)`, [series.id]);
   const result = await findBookVolumeBySlugRaw(input.volumeSlug);
   if (!result) throw new Error("Failed to read indexed book");
   return result;
@@ -280,6 +283,7 @@ export async function findBookFileBySlug(slug: string): Promise<{ filename: stri
 
 export async function listBookVolumes(options?: {
   seriesSlug?: string;
+  groupSeries?: boolean;
   authorNames?: string[];
   genreNames?: string[];
   tagNames?: string[];
@@ -287,6 +291,7 @@ export async function listBookVolumes(options?: {
   librarySection?: BookLibrarySection;
 }): Promise<BookVolume[]> {
   const params: unknown[] = [];
+  const useSeriesView = Boolean(options?.seriesSlug || options?.groupSeries);
   const conditions: string[] = [];
 
   params.push(options?.librarySection ?? "books");
@@ -369,10 +374,16 @@ export async function listBookVolumes(options?: {
     }
   }
 
+  if (options?.groupSeries && !options.seriesSlug) {
+    conditions.push("NOT EXISTS (SELECT 1 FROM logical_book_series_members member WHERE member.series_id = bs.id)");
+  }
+  const select = useSeriesView
+    ? BOOK_SELECT.replace("INNER JOIN book_series bs ON bs.id = bv.series_id", "INNER JOIN book_series_volumes sv ON sv.volume_id = bv.id INNER JOIN book_series bs ON bs.id = sv.series_id")
+    : BOOK_SELECT;
   const where = conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
-  const limit = options?.limit ?? 100;
+  const limit = options?.limit ?? (useSeriesView ? null : 100);
   params.push(limit);
-  const rows = await query<BookRow>(`${BOOK_SELECT}${where} ORDER BY bs.sort_title, bv.number NULLS LAST, bv.sort_title LIMIT $${params.length}`, params);
+  const rows = await query<BookRow>(`${select}${where} ORDER BY bs.sort_title, ${useSeriesView ? "sv.position," : ""} bv.number NULLS LAST, bv.sort_title, bv.id LIMIT $${params.length}`, params);
   return filterVisibleBooks(await Promise.all(rows.map((row) => hydrateMetadata(mapBook(row)))));
 }
 
@@ -519,7 +530,7 @@ export async function listFavoriteBookSeries(userId: string, options: { page: nu
   const total = Number(count?.count ?? "0");
   const offset = Math.max(0, options.page - 1) * options.pageSize;
   const series = await query<BookSeries>(`
-    SELECT bs.id, bs.slug, bs.title, bs.path, bs.is_oneshot AS "isOneshot", bs.status,
+    SELECT bs.id, bs.slug, bs.title, bs.path, bs.is_oneshot AS "isOneshot", bs.is_logical AS "isLogical", bs.status,
       bs.collection_type AS "collectionType", bs.library_section AS "librarySection"
     FROM book_series bs
     INNER JOIN user_to_book_series ubs ON ubs.series_id = bs.id
@@ -528,7 +539,7 @@ export async function listFavoriteBookSeries(userId: string, options: { page: nu
     LIMIT $2 OFFSET $3`, [userId, options.pageSize, offset]);
   const items = await Promise.all(series.map(async (entry) => ({
     ...entry,
-    volumes: await listBookVolumes({ seriesSlug: entry.slug, limit: 100 }),
+    volumes: await listBookVolumes({ seriesSlug: entry.slug }),
   })));
 
   return { items, total, totalPages: Math.max(1, Math.ceil(total / options.pageSize)) };
@@ -585,7 +596,7 @@ export async function listBookProgressByIds(userId: string, volumeIds: string[])
 export async function getBookReaderStats(userId: string): Promise<{ totalVolumes: number; totalSeries: number; totalUnread: number }> {
   const [volumes, series, unread] = await Promise.all([
     queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_volumes bv INNER JOIN book_series bs ON bs.id = bv.series_id WHERE bs.library_section = 'books'"),
-    queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_series WHERE is_oneshot = FALSE AND library_section = 'books'"),
+    queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_series bs WHERE is_oneshot = FALSE AND library_section = 'books' AND NOT EXISTS (SELECT 1 FROM logical_book_series_members member WHERE member.series_id = bs.id)"),
     queryOne<{ count: string }>(`
       SELECT COUNT(*)::text AS count
       FROM book_volumes bv
@@ -611,7 +622,7 @@ export async function listRecentlyReadBooks(userId: string, limit = 12): Promise
 
 export async function listBookSeries(): Promise<Array<BookSeries & { volumeCount: number }>> {
   return query<BookSeries & { volumeCount: number }>(`
-    SELECT bs.id, bs.slug, bs.title, bs.path, bs.is_oneshot AS "isOneshot", bs.status,
+    SELECT bs.id, bs.slug, bs.title, bs.path, bs.is_oneshot AS "isOneshot", bs.is_logical AS "isLogical", bs.status,
       bs.collection_type AS "collectionType", bs.library_section AS "librarySection",
       COUNT(bv.id)::int AS "volumeCount"
     FROM book_series bs LEFT JOIN book_volumes bv ON bv.series_id = bs.id
@@ -637,7 +648,8 @@ export async function listBookSearchEntries(): Promise<BookSearchEntry[]> {
         ''
       ) AS subjects
     FROM book_volumes bv
-    INNER JOIN book_series bs ON bs.id = bv.series_id
+    LEFT JOIN logical_book_series_members member ON member.series_id = bv.series_id
+    INNER JOIN book_series bs ON bs.id = COALESCE(member.logical_series_id, bv.series_id)
     INNER JOIN book_metadata bm ON bm.volume_id = bv.id
     LEFT JOIN book_people bp ON bp.metadata_id = bm.id
     LEFT JOIN book_subjects bsub ON bsub.metadata_id = bm.id
@@ -650,14 +662,14 @@ export async function listBookSearchEntries(): Promise<BookSearchEntry[]> {
 
 export async function findBookSeriesBySlug(slug: string): Promise<BookSeries | null> {
   return queryOne<BookSeries>(`
-    SELECT id, slug, title, path, is_oneshot AS "isOneshot", status,
+    SELECT id, slug, title, path, is_oneshot AS "isOneshot", is_logical AS "isLogical", status,
       collection_type AS "collectionType", library_section AS "librarySection"
     FROM book_series WHERE slug = $1 LIMIT 1`, [slug]);
 }
 
 export async function findBookSeriesById(id: string): Promise<BookSeries | null> {
   return queryOne<BookSeries>(`
-    SELECT id, slug, title, path, is_oneshot AS "isOneshot", status,
+    SELECT id, slug, title, path, is_oneshot AS "isOneshot", is_logical AS "isLogical", status,
       collection_type AS "collectionType", library_section AS "librarySection"
     FROM book_series WHERE id = $1 LIMIT 1`, [id]);
 }
@@ -702,5 +714,5 @@ export async function removeMissingBooks(existingPaths: Set<string>): Promise<vo
     await execute("DELETE FROM book_volumes WHERE full_path=$1", [full_path]);
     await execute("DELETE FROM book_file_checksums WHERE file_path=$1", [full_path]);
   }
-  await execute("DELETE FROM book_series WHERE NOT EXISTS (SELECT 1 FROM book_volumes WHERE book_volumes.series_id=book_series.id)");
+  await execute("DELETE FROM book_series WHERE is_logical = FALSE AND NOT EXISTS (SELECT 1 FROM book_volumes WHERE book_volumes.series_id=book_series.id)");
 }

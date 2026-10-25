@@ -15,6 +15,7 @@ import {
   listBookVolumes,
 } from "@/lib/db/books/library";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
+import { revalidatePath } from "next/cache";
 
 const provider = process.env.LIB_PROVIDER || "local";
 const booksRoot = path.resolve(process.cwd(), "../library/books");
@@ -79,6 +80,7 @@ export async function rescanBookSeries(slug: string): Promise<BookAdminResult> {
   try {
     const series = await findBookSeriesBySlug(slug);
     if (!series) return { ok: false, error: "Series not found" };
+    if (series.isLogical) return { ok: false, error: "Rescan physical series individually" };
     const volumes = await listBookVolumes({ seriesSlug: slug });
     for (const volume of volumes) {
       const source = getBookSource(volume.fullPath);
@@ -128,6 +130,11 @@ export async function deleteBookSeries(slug: string): Promise<BookAdminResult> {
   try {
     const series = await findBookSeriesBySlug(slug);
     if (!series) return { ok: false, error: "Series not found" };
+    if (series.isLogical) {
+      await deleteBookSeriesRecord(series.id);
+      revalidatePath("/[lang]", "layout");
+      return { ok: true };
+    }
     const volumes = await listBookVolumes({ seriesSlug: slug });
     const files = volumes.flatMap((volume) => [volume.fullPath, checksumPath(volume.fullPath)]);
     if (provider === "cloud") {

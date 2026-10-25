@@ -26,7 +26,7 @@ export default async function SeriesIndex({
   const authorNames = authorFilter?.trim() ? authorFilter.split(",").map((author) => author.trim()).filter(Boolean) : undefined;
   const genreNames = genreFilter?.trim() ? genreFilter.split(",").map((genre) => genre.trim()).filter(Boolean) : undefined;
   const tagNames = tagFilter?.trim() ? tagFilter.split(",").map((tag) => tag.trim()).filter(Boolean) : undefined;
-  const books = await listBookVolumes({ authorNames, genreNames, tagNames });
+  const books = await listBookVolumes({ authorNames, genreNames, tagNames, groupSeries: true });
   const visibleBooks = includeOneshots
     ? books
     : books.filter((book) => !book.series.isOneshot);

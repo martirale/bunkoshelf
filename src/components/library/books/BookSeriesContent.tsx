@@ -113,7 +113,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
         {isAdmin && (
           <>
             <Separator />
-            <BookAdminActions type="series" slug={firstVolume.series.slug} lang={lang} intl={intl} canDownload={process.env.LIB_PROVIDER === "cloud"} />
+            <BookAdminActions type="series" slug={firstVolume.series.slug} lang={lang} intl={intl} canDownload={process.env.LIB_PROVIDER === "cloud"} isLogical={firstVolume.series.isLogical} />
           </>
         )}
       </section>

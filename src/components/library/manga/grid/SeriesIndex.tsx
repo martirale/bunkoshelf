@@ -62,7 +62,7 @@ export default async function SeriesIndex({
   ]);
 
   const entries = paginated.items.map((entry) => {
-    const sortedVolumes = sortByPaddedTitle(entry.volumes);
+    const sortedVolumes = entry.isLogical ? entry.volumes : sortByPaddedTitle(entry.volumes);
 
     return {
       ...entry,
@@ -108,9 +108,9 @@ export default async function SeriesIndex({
 
           return (
             <MangaCard
-              key={entry.title}
+              key={entry.id}
               title={
-                isOneshot
+                entry.isLogical ? entry.title : isOneshot
                   ? firstVolume?.meta?.title ?? firstVolume?.title ?? entry.title
                   : firstVolume?.meta?.series ?? firstVolume?.title ?? entry.title
               }

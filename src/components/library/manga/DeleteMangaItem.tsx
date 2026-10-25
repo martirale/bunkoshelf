@@ -12,6 +12,7 @@ interface DeleteMangaItemProps {
   type?: "volume" | "series";
   slug: string;
   section?: LibrarySection;
+  isLogical?: boolean;
 }
 
 export default function DeleteMangaItem({
@@ -19,6 +20,7 @@ export default function DeleteMangaItem({
   type = "volume",
   slug,
   section = "manga",
+  isLogical = false,
 }: DeleteMangaItemProps) {
   const t = intl;
   const { confirm } = useAlertDialog()!;
@@ -28,11 +30,11 @@ export default function DeleteMangaItem({
     try {
       const confirmed = await confirm({
         title:
-          type === "volume"
+          isLogical ? t.catalog.logicalSeriesDelete as string : type === "volume"
             ? (t.libraries.deleteItem as Record<string, string>).volume
             : (t.libraries.deleteItem as Record<string, string>).series,
         description:
-          type === "volume"
+          isLogical ? t.catalog.logicalSeriesDeleteSure as string : type === "volume"
             ? (t.libraries.deleteSure as Record<string, string>).volume
             : (t.libraries.deleteSure as Record<string, string>).series,
         destructive: true,
@@ -74,7 +76,7 @@ export default function DeleteMangaItem({
       onClick={handleDelete}
     >
       <TrashIcon size={11} className="mb-0.5" />
-      {type === "volume"
+      {isLogical ? t.catalog.logicalSeriesDelete as string : type === "volume"
         ? (t.libraries.deleteItem as Record<string, string>).volume
         : (t.libraries.deleteItem as Record<string, string>).series}
     </button>

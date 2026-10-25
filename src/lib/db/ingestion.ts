@@ -10,6 +10,7 @@ export interface IndexedSeries {
   title: string;
   path: string;
   isOneshot: boolean;
+  isLogical?: boolean;
   librarySection: LibraryContentSection;
 }
 
@@ -32,6 +33,7 @@ interface SeriesRow {
   title: string;
   path: string;
   is_oneshot: boolean;
+  is_logical: boolean;
   library_section: LibraryContentSection;
 }
 
@@ -55,6 +57,7 @@ function mapSeries(row: SeriesRow): IndexedSeries {
     title: row.title,
     path: row.path,
     isOneshot: row.is_oneshot,
+    isLogical: row.is_logical,
     librarySection: row.library_section,
   };
 }
@@ -512,7 +515,7 @@ export async function findSeriesWithVolumesById(
 ): Promise<(IndexedSeries & { volumes: IndexedVolume[] }) | null> {
   const seriesRow = await queryOne<SeriesRow>(
     `
-      SELECT id, slug, title, path, is_oneshot
+      SELECT id, slug, title, path, is_oneshot, is_logical
       FROM manga_series
       WHERE id = $1
       LIMIT 1
@@ -572,7 +575,7 @@ export async function findSeriesBySlugBasic(
 ): Promise<IndexedSeries | null> {
   const row = await queryOne<SeriesRow>(
     `
-      SELECT id, slug, title, path, is_oneshot
+      SELECT id, slug, title, path, is_oneshot, is_logical
       FROM manga_series
       WHERE slug = $1
       LIMIT 1
