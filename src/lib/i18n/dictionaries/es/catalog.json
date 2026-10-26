@@ -43,6 +43,10 @@
     "logicalSeriesCreated": "Serie lógica creada.",
     "logicalSeriesSaving": "Guardando…",
     "logicalSeriesDelete": "Eliminar agrupación",
-    "logicalSeriesDeleteSure": "Se eliminará únicamente la agrupación. Las series físicas volverán a mostrarse por separado y conservarán sus archivos y progreso."
+    "logicalSeriesDeleteSure": "Se eliminará únicamente la agrupación. Las series físicas volverán a mostrarse por separado y conservarán sus archivos y progreso.",
+    "editLogicalSeries": "Editar serie lógica",
+    "logicalSeriesSave": "Guardar cambios",
+    "logicalSeriesUpdated": "Serie lógica actualizada.",
+    "logicalSeriesUpdateUnavailable": "No se pudo actualizar la serie lógica. Actualizá la página y verificá que las series sigan disponibles."
   }
 }

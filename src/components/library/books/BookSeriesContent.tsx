@@ -14,6 +14,7 @@ import { getBookAgeMinimum, getBookPublicationYear, normalizeBookAgeRating, toPl
 import { getBookProgressRatio } from "@/lib/books/readingProgress";
 import { getDetailNavigationLabels } from "@/lib/detailNavigation";
 import { aggregateBookSeriesMetadata } from "@/lib/books/seriesMetadata";
+import EditLogicalSeries from "@/components/catalog/EditLogicalSeries";
 import type { BookVolume } from "@/lib/db/books/library";
 import type { Dictionary, Locale } from "@/lib/types";
 
@@ -117,7 +118,10 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
         {isAdmin && (
           <>
             <Separator />
-            <BookAdminActions type="series" slug={firstVolume.series.slug} lang={lang} intl={intl} canDownload={process.env.LIB_PROVIDER === "cloud"} isLogical={firstVolume.series.isLogical} />
+            <div className="flex flex-wrap items-center gap-4">
+              {firstVolume.series.isLogical && <EditLogicalSeries seriesId={firstVolume.series.id} section={firstVolume.series.librarySection} intl={intl} />}
+              <BookAdminActions type="series" slug={firstVolume.series.slug} lang={lang} intl={intl} canDownload={process.env.LIB_PROVIDER === "cloud"} isLogical={firstVolume.series.isLogical} />
+            </div>
           </>
         )}
       </section>

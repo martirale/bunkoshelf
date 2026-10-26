@@ -43,6 +43,10 @@
     "logicalSeriesCreated": "Logical series created.",
     "logicalSeriesSaving": "Saving…",
     "logicalSeriesDelete": "Remove grouping",
-    "logicalSeriesDeleteSure": "Only the grouping will be removed. Physical series will appear separately again and keep their files and progress."
+    "logicalSeriesDeleteSure": "Only the grouping will be removed. Physical series will appear separately again and keep their files and progress.",
+    "editLogicalSeries": "Edit logical series",
+    "logicalSeriesSave": "Save changes",
+    "logicalSeriesUpdated": "Logical series updated.",
+    "logicalSeriesUpdateUnavailable": "Could not update the logical series. Refresh the page and check that the series are still available."
   }
 }

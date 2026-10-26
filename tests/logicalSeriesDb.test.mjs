@@ -3,7 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 
-test("logical series migrations, ordering, progress and removal in PostgreSQL", async () => {
+test("logical series migrations, editing, ordering, progress and removal in PostgreSQL", async () => {
   const directory = new URL("../src/lib/db/migrations/", import.meta.url);
   const files = (await readdir(directory)).filter((file) => file.endsWith(".sql")).sort();
   const migrations = await Promise.all(files.map(async (file) => {
@@ -12,7 +12,9 @@ test("logical series migrations, ordering, progress and removal in PostgreSQL", 
     // Reproduce the legacy constraint name expected by migration 005.
     return `ALTER TABLE library_series RENAME CONSTRAINT library_series_library_section_check TO manga_series_library_section_check;\n${sql}`;
   }));
-  const assertions = await readFile(new URL("logicalSeries.sql", import.meta.url), "utf8");
+  const edits = await readFile(new URL("logicalSeriesEdit.sql", import.meta.url), "utf8");
+  const assertions = (await readFile(new URL("logicalSeries.sql", import.meta.url), "utf8"))
+    .replace("DELETE FROM library_series WHERE is_logical;", () => `${edits}\nDELETE FROM library_series WHERE is_logical;`);
   const result = spawnSync("docker", [
     "run", "--rm", "--network", "none", "--user", "postgres", "-i", "postgres:16",
     "bash", "-ec", `

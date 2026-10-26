@@ -11,6 +11,10 @@ export interface LogicalSeriesInput {
   members: LogicalSeriesMember[];
 }
 
+export interface LogicalSeriesDetails extends LogicalSeriesInput {
+  id: string;
+}
+
 export interface LogicalSeriesOption {
   id: string;
   title: string;

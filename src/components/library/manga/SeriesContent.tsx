@@ -11,6 +11,7 @@ import ScanSeriesButton from "./ScanSeriesButton";
 import Separator from "@/components/ui/Separator";
 import SeriesRating from "./SeriesRating";
 import Pagination from "@/components/ui/Pagination";
+import EditLogicalSeries from "@/components/catalog/EditLogicalSeries";
 import type { LibrarySection } from "@/lib/librarySection";
 import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import { getDetailNavigationLabels } from "@/lib/detailNavigation";
@@ -224,6 +225,7 @@ export default function SeriesContent({
           <>
             <Separator />
             <div className="flex flex-wrap items-center gap-4">
+              {serieData.isLogical === true && <EditLogicalSeries seriesId={serieData.id as string} section={section === "others" ? "other" : section} intl={intl} />}
               {!serieData.isLogical && <ScanSeriesButton seriesId={serieData.id as string} intl={intl} />}
               {canDownloadOriginal && (
                 <a
