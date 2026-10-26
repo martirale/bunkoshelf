@@ -12,7 +12,7 @@ import type { Dictionary } from "@/lib/types";
 export default function CreateLogicalSeries({ intl, options }: { intl: Dictionary; options: LogicalSeriesOption[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [section, setSection] = useState<LogicalSeriesSection>("comic");
+  const [section, setSection] = useState<LogicalSeriesSection>("manga");
   const [search, setSearch] = useState("");
   const [members, setMembers] = useState<LogicalSeriesMember[]>([]);
   const [pending, setPending] = useState(false);
