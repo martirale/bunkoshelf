@@ -596,7 +596,12 @@ export async function listBookProgressByIds(userId: string, volumeIds: string[])
 export async function getBookReaderStats(userId: string): Promise<{ totalVolumes: number; totalSeries: number; totalUnread: number }> {
   const [volumes, series, unread] = await Promise.all([
     queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_volumes bv INNER JOIN book_series bs ON bs.id = bv.series_id WHERE bs.library_section = 'books'"),
-    queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_series bs WHERE is_oneshot = FALSE AND library_section = 'books' AND NOT EXISTS (SELECT 1 FROM logical_book_series_members member WHERE member.series_id = bs.id)"),
+    queryOne<{ count: string }>(`
+      SELECT COUNT(DISTINCT bs.id)::text AS count FROM book_series bs
+      INNER JOIN book_series_volumes sv ON sv.series_id = bs.id
+      WHERE bs.is_oneshot = FALSE AND bs.library_section = 'books'
+        AND NOT EXISTS (SELECT 1 FROM logical_book_series_members member WHERE member.series_id = bs.id)
+    `),
     queryOne<{ count: string }>(`
       SELECT COUNT(*)::text AS count
       FROM book_volumes bv

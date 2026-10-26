@@ -6,9 +6,11 @@
     "series": "Series",
     "comicIssues": "Issues",
     "comicTypes": {
+      "type": "Type",
       "comic": "Comic",
       "graphicNovel": "Graphic Novel",
-      "manhwa": "Manhwa"
+      "manhwa": "Manhwa (만화)",
+      "manhua": "Manhua (漫画)"
     },
     "otherCollections": "Collections",
     "otherWorks": "Works",

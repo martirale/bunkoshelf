@@ -232,11 +232,14 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
     `
       SELECT COUNT(DISTINCT ms.id)::text AS count
       FROM manga_series ms
+      INNER JOIN library_series_volumes sv
+        ON sv.series_id = ms.id
       INNER JOIN manga_volumes mv
-        ON mv.series_id = ms.id
+        ON mv.id = sv.volume_id
       LEFT JOIN volume_metadata vm
         ON vm.id = mv.metadata_id
       WHERE ms.is_oneshot = FALSE
+        AND NOT EXISTS (SELECT 1 FROM logical_series_members member WHERE member.series_id = ms.id)
         AND ${scopeCondition}
     `
   );
@@ -302,7 +305,12 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
         WHERE user_id = $1
         ORDER BY read_at DESC`, [user.id]),
       queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_volumes"),
-      queryOne<{ count: string }>("SELECT COUNT(*)::text AS count FROM book_series WHERE is_oneshot = FALSE"),
+      queryOne<{ count: string }>(`
+        SELECT COUNT(DISTINCT bs.id)::text AS count FROM book_series bs
+        INNER JOIN book_series_volumes sv ON sv.series_id = bs.id
+        WHERE bs.is_oneshot = FALSE
+          AND NOT EXISTS (SELECT 1 FROM logical_book_series_members member WHERE member.series_id = bs.id)
+      `),
       query<{ is_read: boolean }>("SELECT is_read FROM user_to_books WHERE user_id = $1", [user.id]),
       query<{ first_read: string | null }>(`
         SELECT MIN(read_at)::text AS first_read

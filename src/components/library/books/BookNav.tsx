@@ -28,6 +28,8 @@ export default function BookNav({ lang, intl }: { lang: Locale; intl: Dictionary
     }
 
     fetchStats();
+    window.addEventListener("bunko:library-updated", fetchStats);
+    return () => window.removeEventListener("bunko:library-updated", fetchStats);
   }, [pathname]);
 
   const links = [

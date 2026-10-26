@@ -72,7 +72,9 @@ export default function MangaNav({
     }
 
     fetchStats();
-  }, [offlineUserId, online, scope, section]);
+    window.addEventListener("bunko:library-updated", fetchStats);
+    return () => window.removeEventListener("bunko:library-updated", fetchStats);
+  }, [offlineUserId, online, scope, section, pathname]);
   const links = getMangaNavLinks({ lang, intl, section, pathname, stats });
 
   return (

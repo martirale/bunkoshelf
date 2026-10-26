@@ -66,6 +66,7 @@ export default function LogicalSeriesDialog({ intl, options, initialSeries }: { 
         return;
       }
       addToast({ title: dialogTitle, description: initialSeries ? labels.logicalSeriesUpdated : labels.logicalSeriesCreated, variant: "success" });
+      window.dispatchEvent(new Event("bunko:library-updated"));
       setIsOpen(false);
       if (initialSeries) {
         const url = new URL(window.location.href);

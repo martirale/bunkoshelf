@@ -10,6 +10,9 @@ test("matches comic categories in both languages regardless of case", () => {
     assert.deepEqual(getComicTagAliases(tag), ["novela gráfica", "graphic novel"]);
   }
   assert.deepEqual(getComicTagAliases("Manhwa"), ["manhwa"]);
+  for (const tag of ["Manhua", " MANHUA ", "manhua"]) {
+    assert.deepEqual(getComicTagAliases(tag), ["manhua"]);
+  }
 });
 
 test("keeps unrelated tags out of comic category matching", () => {

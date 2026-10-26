@@ -2,6 +2,7 @@ const comicTagGroups = [
   ["cómic", "comic"],
   ["novela gráfica", "graphic novel"],
   ["manhwa"],
+  ["manhua"],
 ];
 
 export function getComicTagAliases(tag: string): string[] | undefined {
