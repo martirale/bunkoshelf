@@ -8,13 +8,13 @@ import {
   listReadingEntries,
 } from "@/lib/db/reading";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import { findVolumeBySlug, listVolumes } from "@/lib/db/library";
+import { findVolumeBySlug } from "@/lib/db/library";
 import {
   getLibrarySection,
   getLibraryVolumeHref,
 } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
-import { getAdjacentSlugs } from "@/lib/adjacentNavigation";
+import { getLibraryVolumeNavigation } from "@/lib/db/volumeNavigation";
 import type { Locale } from "@/lib/types";
 
 interface VolumeMangaPageProps {
@@ -48,12 +48,7 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
       redirect(getLibraryVolumeHref(lang, targetSection, volumeEntry.slug));
     }
 
-    const adjacent = volumeEntry.series.isOneshot
-      ? {}
-      : getAdjacentSlugs(
-          await listVolumes({ seriesIds: [volumeEntry.seriesId], scope: targetSection }),
-          volumeEntry.slug,
-        );
+    const adjacent = await getLibraryVolumeNavigation(volumeEntry);
 
     const meta = {
       ...(volumeEntry.metadataObj || null),
@@ -71,6 +66,7 @@ async function VolumeMangaPageContent({ params }: VolumeMangaPageProps) {
 
     const normalizedVolume = {
       ...volumeEntry,
+      series: adjacent.series,
       coverImage: getMangaCoverUrl(volumeEntry),
       meta,
     };

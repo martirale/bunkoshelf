@@ -8,8 +8,8 @@ import {
   listReadingEntries,
 } from "@/lib/db/reading";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import { findVolumeBySlug, listVolumes } from "@/lib/db/library";
-import { findBookVolumeBySlug, listBookVolumes } from "@/lib/db/books/library";
+import { findVolumeBySlug } from "@/lib/db/library";
+import { findBookVolumeBySlug } from "@/lib/db/books/library";
 import { findBookProgress, listBookReadingEntries } from "@/lib/db/books/reading";
 import BookVolumeContent from "@/components/library/books/BookVolumeContent";
 import {
@@ -17,7 +17,7 @@ import {
   getLibraryVolumeHref,
 } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
-import { getAdjacentSlugs } from "@/lib/adjacentNavigation";
+import { getLibraryVolumeNavigation, getBookVolumeNavigation } from "@/lib/db/volumeNavigation";
 import type { Locale } from "@/lib/types";
 import type { LibrarySection } from "@/lib/librarySection";
 
@@ -62,19 +62,11 @@ export async function OthersVolumePageContent({ params, section = "others" }: Ot
             findBookProgress(user.id, book.id),
           ])
         : [[], null];
-      const adjacent = book.series.isOneshot
-        ? {}
-        : getAdjacentSlugs(
-            await listBookVolumes({
-              seriesSlug: book.series.slug,
-              librarySection: book.series.librarySection,
-            }),
-            book.slug,
-          );
+      const adjacent = await getBookVolumeNavigation(book);
 
       return (
         <BookVolumeContent
-          volume={book}
+          volume={{ ...book, series: adjacent.series }}
           lang={lang as Locale}
           intl={intl}
           readingEntries={readingEntries}
@@ -98,12 +90,7 @@ export async function OthersVolumePageContent({ params, section = "others" }: Ot
       redirect(getLibraryVolumeHref(lang, targetSection, volumeEntry.slug));
     }
 
-    const adjacent = volumeEntry.series.isOneshot
-      ? {}
-      : getAdjacentSlugs(
-          await listVolumes({ seriesIds: [volumeEntry.seriesId], scope: targetSection }),
-          volumeEntry.slug,
-        );
+    const adjacent = await getLibraryVolumeNavigation(volumeEntry);
 
     const meta = {
       ...(volumeEntry.metadataObj || null),
@@ -121,6 +108,7 @@ export async function OthersVolumePageContent({ params, section = "others" }: Ot
 
     const normalizedVolume = {
       ...volumeEntry,
+      series: adjacent.series,
       coverImage: getMangaCoverUrl(volumeEntry),
       meta,
     };

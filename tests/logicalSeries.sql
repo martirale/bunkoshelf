@@ -17,9 +17,13 @@ INSERT INTO user_to_volumes (id, user_id, volume_id, is_read)
 SELECT id, 'reader', id, TRUE FROM library_volumes WHERE id LIKE '%-a-%';
 
 DO $$
-DECLARE section TEXT; actual TEXT[]; total INTEGER;
+DECLARE section TEXT; actual TEXT[]; total INTEGER; parent_id TEXT;
 BEGIN
   FOREACH section IN ARRAY ARRAY['manga', 'comic', 'other'] LOOP
+    SELECT s.id INTO parent_id FROM logical_series_members m
+    JOIN library_series s ON s.id = m.logical_series_id WHERE m.series_id = section || '-a';
+    ASSERT parent_id = section || '-logical', 'Volume navigation must resolve its logical parent';
+
     SELECT array_agg(id ORDER BY position, sort_title, id) INTO actual
     FROM library_series_volumes sv JOIN library_volumes v ON v.id = sv.volume_id
     WHERE sv.series_id = section || '-logical';
@@ -63,8 +67,17 @@ INSERT INTO logical_book_series_members VALUES ('book-logical', 'book-b', 2), ('
 DELETE FROM book_series WHERE is_logical = FALSE AND NOT EXISTS (SELECT 1 FROM book_volumes WHERE book_volumes.series_id = book_series.id);
 
 DO $$
-DECLARE actual TEXT[]; total INTEGER;
+DECLARE actual TEXT[]; total INTEGER; parent_id TEXT;
 BEGIN
+  SELECT s.id INTO parent_id FROM logical_book_series_members m
+  JOIN book_series s ON s.id = m.logical_series_id WHERE m.series_id = 'book-a';
+  ASSERT parent_id = 'book-logical', 'Books must navigate within their logical parent';
+  SELECT s.id INTO parent_id FROM library_volumes v
+  JOIN logical_series_members m ON m.series_id = v.series_id
+  JOIN library_series s ON s.id = m.logical_series_id
+  WHERE v.slug = 'other-a-1' AND s.library_section = 'other';
+  ASSERT parent_id = 'other-logical', 'Mirrored EPUB navigation must use the library grouping';
+
   ASSERT EXISTS (SELECT 1 FROM book_series WHERE id = 'book-logical'), 'Scanning must preserve logical series';
   SELECT array_agg(v.id ORDER BY sv.position, v.number, v.sort_title, v.id) INTO actual
   FROM book_series_volumes sv JOIN book_volumes v ON v.id = sv.volume_id WHERE sv.series_id = 'book-logical';

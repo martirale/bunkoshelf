@@ -30,7 +30,7 @@ export default function CreateLogicalSeries({ intl, options }: { intl: Dictionar
   const matches = available.filter((option) => !members.some((member) => member.id === option.id)
     && option.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
   const ordered = [...members].sort((a, b) => a.position - b.position);
-  const inputClass = "w-full rounded-lg border border-onix bg-pearl px-4 py-2";
+  const inputClass = "bg-pearl border border-onix rounded-lg w-full px-5 py-3";
 
   function close() {
     if (!pending) setIsOpen(false);
@@ -67,26 +67,33 @@ export default function CreateLogicalSeries({ intl, options }: { intl: Dictionar
   return <>
     <Button type="button" variant="light" size="small" onClick={() => setIsOpen(true)}>{labels.createLogicalSeries}</Button>
     <Modal isOpen={isOpen} onClose={close}>
-      <div role="dialog" aria-modal="true" aria-labelledby="logical-series-heading" className="max-h-[75dvh] overflow-y-auto pr-2">
-        <h2 id="logical-series-heading" className="mb-2">{labels.createLogicalSeries}</h2>
+      <div role="dialog" aria-modal="true" aria-labelledby="logical-series-heading" className="max-w-7xl mx-auto p-2 max-h-[75dvh] overflow-y-auto">
+        <h2 id="logical-series-heading" className="mb-4">{labels.createLogicalSeries}</h2>
         <p className="mb-4 text-sm">{labels.logicalSeriesDescription}</p>
         <form onSubmit={submit} className="space-y-4">
           <fieldset disabled={pending} className="space-y-4 disabled:opacity-60">
+            <div role="group" aria-label={labels.libraryColumn} className="flex flex-wrap gap-2">
+              {sections.map((item) => <button
+                key={item.value}
+                type="button"
+                aria-pressed={section === item.value}
+                onClick={() => { if (section === item.value) return; setSection(item.value); setMembers([]); setSearch(""); setError(null); }}
+                className={`font-bold px-6 py-2 rounded-lg leading-none uppercase transition-all duration-300 cursor-pointer ${
+                  section === item.value
+                    ? "text-sand bg-onix border border-onix"
+                    : "text-onix bg-sand border border-sand hover:text-sand hover:bg-onix hover:border-onix"
+                }`}
+              >{item.label}</button>)}
+            </div>
             <label className="block space-y-1">
               <span>{labels.titleColumn}</span>
               <input required maxLength={200} value={title} onChange={(event) => setTitle(event.target.value)} className={inputClass} />
             </label>
             <label className="block space-y-1">
-              <span>{labels.libraryColumn}</span>
-              <select value={section} onChange={(event) => { setSection(event.target.value as LogicalSeriesSection); setMembers([]); setSearch(""); setError(null); }} className={inputClass}>
-                {sections.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
-            </label>
-            <label className="block space-y-1">
               <span>{labels.logicalSeriesSearch}</span>
               <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} className={inputClass} />
             </label>
-            <div className="max-h-48 overflow-y-auto rounded-lg border border-onix p-2">
+            <div className="max-h-48 overflow-y-auto rounded-lg bg-sand p-2">
               {matches.length ? matches.map((option) => <label key={option.id} className="flex cursor-pointer items-center gap-3 px-2 py-2">
                 <input type="checkbox" checked={false} onChange={() => setMembers((current) => [...current, { id: option.id, position: Math.max(0, ...current.map((member) => member.position)) + 1 }])} />
                 <span>{option.title} <span className="text-sm">({option.volumeCount})</span></span>
@@ -94,8 +101,8 @@ export default function CreateLogicalSeries({ intl, options }: { intl: Dictionar
             </div>
             {members.length > 0 && <div className="space-y-2">
               <p className="text-sm">{labels.logicalSeriesOrderHelp}</p>
-              {ordered.map((member) => <div key={member.id} className="flex items-center gap-3 rounded-lg border border-onix p-3">
-                <label className="w-20 shrink-0 space-y-1 text-sm">
+              {ordered.map((member) => <div key={member.id} className="flex items-center gap-3 rounded-lg bg-sand p-3">
+                <label className="w-24 shrink-0 space-y-1">
                   <span>{labels.logicalSeriesOrder}</span>
                   <input type="number" min={1} max={2147483647} step={1} required value={member.position || ""} onChange={(event) => setMembers((current) => current.map((item) => item.id === member.id ? { ...item, position: Number(event.target.value) } : item))} className={inputClass} />
                 </label>
@@ -104,7 +111,9 @@ export default function CreateLogicalSeries({ intl, options }: { intl: Dictionar
               </div>)}
             </div>}
             {error && <p role="alert" className="text-danger-alt">{error}</p>}
-            <Button type="submit" variant="lightAlt" disabled={pending} className="px-6 py-3">{pending ? labels.logicalSeriesSaving : labels.createLogicalSeries}</Button>
+            <div className="text-right">
+              <Button type="submit" variant="lightAlt" disabled={pending} className="px-8 py-4 disabled:cursor-not-allowed disabled:opacity-50">{pending ? labels.logicalSeriesSaving : labels.createLogicalSeries}</Button>
+            </div>
           </fieldset>
         </form>
       </div>

@@ -133,7 +133,7 @@ export default function VolumesContent({
                 href={`/${lang}/${section}/${seriesSlug}`}
                 className="text-2xl not-italic hover:underline"
               >
-                {seriesLabel} {(meta.series as string) || seriesTitle}
+                {seriesLabel} {series?.isLogical ? seriesTitle : (meta.series as string) || seriesTitle}
               </Link>
             </div>
           )}
