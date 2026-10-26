@@ -1,0 +1,169 @@
+{
+  "dependencies": [
+    {
+      "name": "@aws-sdk/client-s3",
+      "version": "3.995.0",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "@aws-sdk/s3-request-presigner",
+      "version": "3.995.0",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "@clack/prompts",
+      "version": "0.11.0",
+      "license": "MIT"
+    },
+    {
+      "name": "@formatjs/intl-localematcher",
+      "version": "0.8.7",
+      "license": "MIT"
+    },
+    {
+      "name": "@paralleldrive/cuid2",
+      "version": "3.3.0",
+      "license": "MIT"
+    },
+    {
+      "name": "@smithy/node-http-handler",
+      "version": "4.7.1",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "adm-zip",
+      "version": "0.5.17",
+      "license": "MIT"
+    },
+    {
+      "name": "bcryptjs",
+      "version": "3.0.3",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "chalk",
+      "version": "5.6.2",
+      "license": "MIT"
+    },
+    {
+      "name": "clsx",
+      "version": "2.1.1",
+      "license": "MIT"
+    },
+    {
+      "name": "crc",
+      "version": "4.3.2",
+      "license": "MIT"
+    },
+    {
+      "name": "date-fns",
+      "version": "4.1.0",
+      "license": "MIT"
+    },
+    {
+      "name": "date-fns-tz",
+      "version": "3.2.0",
+      "license": "MIT"
+    },
+    {
+      "name": "dotenv",
+      "version": "17.4.2",
+      "license": "BSD-2-Clause"
+    },
+    {
+      "name": "epubjs",
+      "version": "0.3.93",
+      "license": "BSD-2-Clause"
+    },
+    {
+      "name": "execa",
+      "version": "9.6.1",
+      "license": "MIT"
+    },
+    {
+      "name": "fs-extra",
+      "version": "11.3.5",
+      "license": "MIT"
+    },
+    {
+      "name": "http-proxy",
+      "version": "1.18.1",
+      "license": "MIT"
+    },
+    {
+      "name": "jose",
+      "version": "6.2.3",
+      "license": "MIT"
+    },
+    {
+      "name": "jsonwebtoken",
+      "version": "9.0.3",
+      "license": "MIT"
+    },
+    {
+      "name": "libarchive.js",
+      "version": "2.0.2",
+      "license": "MIT"
+    },
+    {
+      "name": "lucide-react",
+      "version": "1.14.0",
+      "license": "ISC"
+    },
+    {
+      "name": "minisearch",
+      "version": "7.2.0",
+      "license": "MIT"
+    },
+    {
+      "name": "negotiator",
+      "version": "1.0.0",
+      "license": "MIT"
+    },
+    {
+      "name": "next",
+      "version": "16.2.6",
+      "license": "MIT"
+    },
+    {
+      "name": "node-unrar-js",
+      "version": "2.0.2",
+      "license": "MIT"
+    },
+    {
+      "name": "pg",
+      "version": "8.16.3",
+      "license": "MIT"
+    },
+    {
+      "name": "react",
+      "version": "19.2.6",
+      "license": "MIT"
+    },
+    {
+      "name": "react-dom",
+      "version": "19.2.6",
+      "license": "MIT"
+    },
+    {
+      "name": "react-dropzone",
+      "version": "15.0.0",
+      "license": "MIT"
+    },
+    {
+      "name": "recharts",
+      "version": "3.8.1",
+      "license": "MIT"
+    },
+    {
+      "name": "server-only",
+      "version": "0.0.1",
+      "license": "MIT"
+    },
+    {
+      "name": "xml2js",
+      "version": "0.6.2",
+      "license": "MIT"
+    }
+  ]
+}

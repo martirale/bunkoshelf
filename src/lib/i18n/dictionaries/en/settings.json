@@ -83,6 +83,24 @@
     "parentalControlStrict": "Strict",
     "parentalControlGlobalFlexibleHelp": "Protects minors according to their age and lets adults choose their own filter.",
     "parentalControlGlobalStrictHelp": "Applies a 15+ limit and hides unrated works for minor accounts.",
-    "parentalControlUpdateError": "Could not update parental control."
+    "parentalControlUpdateError": "Could not update parental control.",
+    "aboutButton": "About",
+    "aboutTitle": "About Bunko Shelf",
+    "aboutDescription": "A personal library for manga, comics, books and other works.",
+    "aboutVersion": "Version",
+    "aboutCopyright": "Copyright",
+    "aboutLicense": "License",
+    "aboutLicenseDescription": "Source available for noncommercial use under the terms of its license.",
+    "aboutReadLicense": "Read license",
+    "aboutLegalNotice": "Legal notice",
+    "aboutLegalDescription": "Bunko Shelf is provided as is, without warranties or conditions, to the extent permitted by law. The full terms are available in its license.",
+    "aboutThirdParty": "Third-party software",
+    "aboutDependenciesDescription": "Direct application dependencies. Each retains its own license.",
+    "aboutLicenseUnknown": "See package",
+    "aboutReadNotices": "View notices and licenses",
+    "aboutRepository": "Repository",
+    "aboutDocumentation": "Documentation",
+    "aboutReportIssue": "Report an issue",
+    "aboutDevelopedBy": "Developed by"
   }
 }

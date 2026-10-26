@@ -3,12 +3,11 @@ import { getDictionary } from "@/lib/i18n/Dictionary";
 import {
   BoltIcon,
   FileClockIcon,
-  GitCommitHorizontalIcon,
-  CalendarIcon,
   UsersRoundIcon,
 } from "lucide-react";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listUsers } from "@/lib/db/users";
+import ServerInfoCard from "@/components/settings/ServerInfoCard";
 import ClearLogsButton from "@/components/settings/ClearLogsButton";
 import UsersTable from "@/components/settings/UsersTable";
 import AddUserButton from "@/components/settings/AddUserButton";
@@ -53,39 +52,7 @@ async function SettingsPageContent({ params }: SettingsPageProps) {
 
       <div className="flex flex-col 2xl:flex-row gap-4">
         <div className="2xl:flex-1/2">
-          <div className="bg-blackamber p-4 rounded-lg h-64 2xl:h-96 flex flex-col justify-between">
-            <div>
-              <h3 className="text-base mb-2">{intl.settings.infoServerTt as string}</h3>
-              <p>{intl.settings.infoServerDesc as string}</p>
-            </div>
-
-            <div className="flex items-center mt-4 gap-8 md:gap-12">
-              <div>
-                <p className="font-bold">{intl.settings.semVer as string}</p>
-                <div className="flex items-center">
-                  <GitCommitHorizontalIcon size={20} className="mr-2" />
-                  <a
-                    href={versionData.versionUrl}
-                    target="_blank"
-                    className="hover:underline"
-                    rel="noopener noreferrer"
-                  >
-                    {versionData.currentVersion}
-                  </a>
-                </div>
-              </div>
-
-              {versionData.buildDate && (
-                <div>
-                  <p className="font-bold">{intl.settings.buildDate as string}</p>
-                  <div className="flex items-center">
-                    <CalendarIcon size={16} className="mr-2" />
-                    <span>{versionData.buildDate}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <ServerInfoCard intl={intl} versionData={versionData} />
         </div>
 
         <div className="bg-blackamber rounded-lg p-4 2xl:flex-1/2">

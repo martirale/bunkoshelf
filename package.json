@@ -41,8 +41,9 @@
   },
   "scripts": {
     "bunko": "node ./runtime/cli.mjs",
-    "dev": "node ./scripts/dev.mjs",
-    "build": "next build",
+    "dev": "node ./scripts/generate-build-info.mjs && node ./scripts/dev.mjs",
+    "build": "node ./scripts/generate-build-info.mjs && node ./scripts/generate-notices.mjs && next build",
+    "notices": "node ./scripts/generate-notices.mjs",
     "db:migrate": "node ./scripts/migrate.mjs",
     "start": "node ./scripts/start.mjs",
     "update": "node ./runtime/cli.mjs update",

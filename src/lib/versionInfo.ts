@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import pkg from "../../package.json";
+import buildInfo from "./buildInfo.json";
 
 const PACKAGE_NAME = "@itsmrtr/bunkoshelf";
 const REPOSITORY_URL = "https://github.com/martirale/bunkoshelf";
@@ -8,6 +9,7 @@ const REGISTRY_URL = `https://registry.npmjs.org/${encodeURIComponent(PACKAGE_NA
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 export interface VersionInfo {
+  gitSha: string | null;
   currentVersion: string;
   latestVersion: string | null;
   updateAvailable: boolean;
@@ -81,6 +83,7 @@ export async function getVersionInfo(): Promise<VersionInfo> {
   } catch {}
 
   const versionInfo: VersionInfo = {
+    gitSha: buildInfo.gitSha,
     currentVersion,
     latestVersion,
     updateAvailable: latestVersion
