@@ -18,6 +18,7 @@ import {
 } from "@/lib/librarySection";
 import { getMangaCoverUrl } from "@/lib/mangaCover";
 import { LIBRARY_PAGE_SIZE } from "@/lib/libraryPagination";
+import { aggregateSeriesRelations } from "@/lib/seriesMetadata";
 import type { Locale } from "@/lib/types";
 
 function aggregateMetadata(
@@ -94,7 +95,7 @@ async function SeriesMangaPageContent({
         pageSize: LIBRARY_PAGE_SIZE,
         seriesIds: [serie.id],
       }),
-      listSeriesVolumeAggregates(serie.id),
+      listSeriesVolumeAggregates(serie.id, { includeRelations: serie.isLogical }),
     ]);
 
     const firstVolume = firstVolumePage.items[0] ?? null;
@@ -135,6 +136,8 @@ async function SeriesMangaPageContent({
       };
     });
 
+    const logicalRelations = serie.isLogical ? aggregateSeriesRelations(aggregateVolumes) : null;
+
     const normalizedSerie = {
       ...serie,
       coverImage: getMangaCoverUrl({
@@ -144,10 +147,10 @@ async function SeriesMangaPageContent({
       }),
       meta: {
         ...(firstVolume.metadataObj || null),
-        genres: (firstVolume.genres ?? [])
+        genres: logicalRelations?.genres ?? (firstVolume.genres ?? [])
           .map((genre) => (genre.name ? { name: genre.name.trim() } : null))
           .filter(Boolean),
-        tags: (firstVolume.tags ?? [])
+        tags: logicalRelations?.tags ?? (firstVolume.tags ?? [])
           .map((tag) => (tag.name ? { name: tag.name.trim() } : null))
           .filter(Boolean),
       },

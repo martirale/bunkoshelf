@@ -13,6 +13,7 @@ import { getBookCoverUrl } from "@/lib/books/cover";
 import { getBookAgeMinimum, getBookPublicationYear, normalizeBookAgeRating, toPlainBookText, type BookAgeRating } from "@/lib/books/metadata";
 import { getBookProgressRatio } from "@/lib/books/readingProgress";
 import { getDetailNavigationLabels } from "@/lib/detailNavigation";
+import { aggregateBookSeriesMetadata } from "@/lib/books/seriesMetadata";
 import type { BookVolume } from "@/lib/db/books/library";
 import type { Dictionary, Locale } from "@/lib/types";
 
@@ -31,6 +32,9 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
   const firstVolume = volumes[0];
   const coverImage = getBookCoverUrl(firstVolume.slug, firstVolume.metadata.coverPath);
   const meta = firstVolume.metadata;
+  const seriesMetadata = firstVolume.series.isLogical
+    ? aggregateBookSeriesMetadata(volumes.map((volume) => volume.metadata))
+    : undefined;
   const description = toPlainBookText(meta.description);
   const ageRating = volumes.reduce<BookAgeRating | null>((highest, volume) => {
     const current = normalizeBookAgeRating(volume.metadata.ageRating);
@@ -83,7 +87,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
             </>
           )}
           <Separator />
-          <BookMetadataPanel volume={firstVolume} lang={lang} intl={intl} />
+          <BookMetadataPanel volume={firstVolume} lang={lang} intl={intl} seriesMetadata={seriesMetadata} />
         </div>
       </section>
       <section>

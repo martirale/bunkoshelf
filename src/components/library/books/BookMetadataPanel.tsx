@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getBookIdentifierScheme, getBookIdentifierValue } from "@/lib/books/metadata";
 import { classifyBookSubjects, type BookVolume } from "@/lib/db/books/library";
 import type { Dictionary, Locale } from "@/lib/types";
+import type { BookSeriesMetadata } from "@/lib/books/seriesMetadata";
 
 function MetadataField({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -17,13 +18,15 @@ export default async function BookMetadataPanel({
   volume,
   lang,
   intl,
+  seriesMetadata,
 }: {
   volume: BookVolume;
   lang: Locale;
   intl: Dictionary;
+  seriesMetadata?: BookSeriesMetadata;
 }) {
   const books = intl.books as Record<string, string>;
-  const { metadata } = volume;
+  const metadata = seriesMetadata ?? volume.metadata;
   const authors = metadata.people.filter((person) => person.kind === "creator" && (!person.role || person.role.toLowerCase() === "aut"));
   const contributors = metadata.people.filter((person) => !authors.includes(person));
   const isbnIdentifiers = metadata.identifiers.filter((identifier) => getBookIdentifierScheme(identifier.value, identifier.scheme) === "ISBN");
@@ -71,7 +74,7 @@ export default async function BookMetadataPanel({
         <MetadataField key={role} label={role}>{people.map((person) => person.name).join(", ")}</MetadataField>
       ))}
       {metadata.publisher && <MetadataField label={books.publisher}>{metadata.publisher}</MetadataField>}
-      <MetadataField label={books.format}>EPUB{metadata.epubVersion ? ` ${metadata.epubVersion}` : ""}{metadata.publicationType ? ` · ${metadata.publicationType}` : ""}</MetadataField>
+      <MetadataField label={books.format}>{seriesMetadata ? seriesMetadata.formats.join(", ") : <>EPUB{volume.metadata.epubVersion ? ` ${volume.metadata.epubVersion}` : ""}{volume.metadata.publicationType ? ` · ${volume.metadata.publicationType}` : ""}</>}</MetadataField>
       {isbnIdentifiers.length > 0 && <MetadataField label="ISBN"><div className="space-y-1">{isbnIdentifiers.map((identifier) => <p key={identifier.value}>{getBookIdentifierValue(identifier.value, identifier.scheme)}</p>)}</div></MetadataField>}
       {metadata.rights && <MetadataField label={books.rights}>{metadata.rights}</MetadataField>}
       {metadata.source && <MetadataField label={books.source}>{metadata.source}</MetadataField>}

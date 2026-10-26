@@ -152,6 +152,8 @@ interface FindSeriesOptions {
 }
 
 export interface SeriesVolumeAggregate {
+  genres: string[];
+  tags: string[];
   ageRating: string | null;
   communityRating: number | null;
   format: string | null;
@@ -1921,7 +1923,8 @@ export async function findSeriesBySlugBasic(
 }
 
 export async function listSeriesVolumeAggregates(
-  seriesId: string
+  seriesId: string,
+  options?: { includeRelations?: boolean }
 ): Promise<SeriesVolumeAggregate[]> {
   return query<{
     volume_id: string;
@@ -1937,6 +1940,8 @@ export async function listSeriesVolumeAggregates(
     publisher: string | null;
     imprint: string | null;
     format: string | null;
+    genres?: string[];
+    tags?: string[];
   }>(
     `
       SELECT
@@ -1953,6 +1958,18 @@ export async function listSeriesVolumeAggregates(
         vm.publisher,
         vm.imprint,
         vm.format
+        ${options?.includeRelations ? `,
+          ARRAY(
+            SELECT g.name FROM volume_to_genres vtg
+            JOIN genres g ON g.id = vtg.genre_id
+            WHERE vtg.volume_id = mv.id ORDER BY g.name
+          ) AS genres,
+          ARRAY(
+            SELECT t.name FROM volume_to_tags vtt
+            JOIN tags t ON t.id = vtt.tag_id
+            WHERE vtt.volume_id = mv.id ORDER BY t.name
+          ) AS tags
+        ` : ""}
       FROM library_series_volumes sv
       INNER JOIN manga_volumes mv ON mv.id = sv.volume_id
       LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
@@ -1964,6 +1981,8 @@ export async function listSeriesVolumeAggregates(
     const policy = await getCurrentContentVisibilityPolicy();
     return rows.filter((row) => canViewAgeRating(row.age_rating, "manga", policy)).map((row) => ({
       id: row.volume_id,
+      genres: row.genres ?? [],
+      tags: row.tags ?? [],
       ageRating: row.age_rating,
       communityRating: row.community_rating,
       writer: row.writer,
