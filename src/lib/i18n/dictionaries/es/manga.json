@@ -49,6 +49,7 @@
     "date": "Fecha",
     "save": "Guardar",
     "noEntries": "Sin lecturas registradas",
-    "migrateEntry": "Recuperar lectura"
+    "migrateEntry": "Recuperar lectura",
+    "originalTitle": "Título original"
   }
 }

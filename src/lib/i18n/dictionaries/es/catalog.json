@@ -47,6 +47,23 @@
     "editLogicalSeries": "Editar serie lógica",
     "logicalSeriesSave": "Guardar cambios",
     "logicalSeriesUpdated": "Serie lógica actualizada.",
-    "logicalSeriesUpdateUnavailable": "No se pudo actualizar la serie lógica. Actualizá la página y verificá que las series sigan disponibles."
+    "logicalSeriesUpdateUnavailable": "No se pudo actualizar la serie lógica. Actualizá la página y verificá que las series sigan disponibles.",
+    "editComicInfo": "Editar ComicInfo.xml",
+    "comicInfoDescription": "Editá el XML de este tomo. Al guardar se actualizarán el archivo de la biblioteca y sus metadatos en Bunko.",
+    "comicInfoTitlesHelp": "AltTitle y AltSeries se muestran como títulos principales cuando tienen contenido. Title y Series se conservan como títulos originales.",
+    "comicInfoLoading": "Cargando XML…",
+    "comicInfoSaving": "Guardando…",
+    "comicInfoSave": "Guardar cambios",
+    "comicInfoCancel": "Cancelar",
+    "comicInfoSaved": "Archivo y metadatos actualizados.",
+    "comicInfoLoadError": "No se pudo leer el XML del archivo.",
+    "comicInfoSaveError": "No se pudieron guardar los cambios.",
+    "comicInfoInvalidXml": "El XML no es válido. Revisá la estructura ComicInfo y los valores de sus campos.",
+    "comicInfoConflict": "El archivo cambió desde que lo abriste. Cerrá el editor y volvé a abrirlo para cargar la versión actual.",
+    "comicInfoDuplicateXml": "El archivo contiene varios ComicInfo.xml. Corregí los duplicados antes de editarlo.",
+    "comicInfoSyncError": "No se pudo actualizar la DB. El archivo se restauró a su versión anterior.",
+    "comicInfoRestoreError": "No se pudo sincronizar la DB ni restaurar el archivo. Reescaneá el tomo para sincronizar sus metadatos.",
+    "comicInfoUnauthorized": "No tenés permiso para editar los metadatos.",
+    "comicInfoUnsupportedArchive": "No se puede editar este archivo porque está protegido, firmado o dividido en varias partes. El archivo no se modificó."
   }
 }

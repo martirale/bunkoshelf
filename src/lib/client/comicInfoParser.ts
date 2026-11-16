@@ -12,6 +12,8 @@ function transformMeta(doc: Element): ComicMetadata {
   return {
     series: get("Series"),
     title: get("Title"),
+    altTitle: get("AltTitle")?.trim() || null,
+    altSeries: get("AltSeries")?.trim() || null,
     number: get("Number") ? parseFloat(get("Number")!) : null,
     count: get("Count") ? parseInt(get("Count")!, 10) : null,
     publisher: get("Publisher"),

@@ -49,6 +49,7 @@
     "date": "Date",
     "save": "Save",
     "noEntries": "No readings recorded",
-    "migrateEntry": "Recover reading"
+    "migrateEntry": "Recover reading",
+    "originalTitle": "Original title"
   }
 }

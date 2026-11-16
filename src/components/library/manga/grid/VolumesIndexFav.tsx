@@ -1,3 +1,4 @@
+import { getComicTitle } from "@/lib/comicTitles";
 import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import {
@@ -98,7 +99,7 @@ export default async function VolumesIndexFav({
           return (
             <MangaCard
               key={entry.title}
-              title={entry.meta?.title}
+              title={getComicTitle(entry.meta)}
               href={href}
               isSeries={false}
               isOneshot={entry.isOneshot}

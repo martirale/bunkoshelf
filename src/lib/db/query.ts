@@ -1,5 +1,7 @@
-import type { QueryResult, QueryResultRow } from "pg";
+import type { PoolClient, QueryResult, QueryResultRow } from "pg";
 import { getPool } from "./pool";
+
+export type QueryExecutor = Pick<PoolClient, "query">;
 
 function isRetryableConnectionError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
@@ -35,24 +37,27 @@ async function runQuery<T extends QueryResultRow>(
 
 export async function query<T extends QueryResultRow>(
   text: string,
-  params: unknown[] = []
+  params: unknown[] = [],
+  client?: QueryExecutor
 ): Promise<T[]> {
-  const result = await runQuery<T>(text, params);
+  const result = client ? await client.query<T>(text, params) : await runQuery<T>(text, params);
   return result.rows;
 }
 
 export async function queryOne<T extends QueryResultRow>(
   text: string,
-  params: unknown[] = []
+  params: unknown[] = [],
+  client?: QueryExecutor
 ): Promise<T | null> {
-  const rows = await query<T>(text, params);
+  const rows = await query<T>(text, params, client);
   return rows[0] ?? null;
 }
 
 export async function execute(
   text: string,
-  params: unknown[] = []
+  params: unknown[] = [],
+  client?: QueryExecutor
 ): Promise<number> {
-  const result = await runQuery(text, params);
+  const result = client ? await client.query(text, params) : await runQuery(text, params);
   return result.rowCount ?? 0;
 }

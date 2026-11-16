@@ -11,6 +11,7 @@ import { deleteVolume } from "@/actions/delete";
 import { deleteBookVolume, rescanBookVolume } from "@/actions/books-admin";
 import type { CatalogLibraryVolume } from "@/lib/db/library";
 import type { Dictionary } from "@/lib/types";
+import ComicInfoEditor from "./ComicInfoEditor";
 
 interface CatalogLibraryActionsProps {
   intl: Dictionary;
@@ -30,6 +31,7 @@ export default function CatalogLibraryActions({
   const { confirm } = useAlertDialog()!;
   const [isScanning, setIsScanning] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const isBook = section === "books";
   const bookActions = intl.libraries.bookActions as Record<string, string>;
 
@@ -157,10 +159,13 @@ export default function CatalogLibraryActions({
 
   return (
     <div className="flex items-center justify-center gap-2">
+      {(section === "manga" || section === "comic") && (
+        <ComicInfoEditor volumeId={volumeId} intl={intl} disabled={isScanning || isDeleting || isEditing} onOpenChange={setIsEditing} />
+      )}
       <button
         type="button"
         onClick={handleScan}
-        disabled={isScanning || isDeleting}
+        disabled={isScanning || isDeleting || isEditing}
         title={isBook ? bookActions.scanBook : (intl.manga.scanVolume as string)}
         className={clsx(
           "border border-neutral-800 hover:text-pearl rounded-lg p-2 cursor-pointer transition-all duration-300 hover:border-lilah",
@@ -177,7 +182,7 @@ export default function CatalogLibraryActions({
       <button
         type="button"
         onClick={handleDelete}
-        disabled={isScanning || isDeleting}
+        disabled={isScanning || isDeleting || isEditing}
         title={isBook
           ? bookActions.deleteBook
           : (intl.libraries.deleteItem as Record<string, string>).volume}

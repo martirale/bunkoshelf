@@ -1,5 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
-import { execute, query, queryOne } from "./query";
+import { execute, query, queryOne, type QueryExecutor } from "./query";
 import { buildNaturalSortKey } from "@/lib/naturalSort";
 import type { ComicMetadata } from "@/lib/types";
 import type { LibraryContentSection } from "@/lib/librarySection";
@@ -189,7 +189,8 @@ export async function upsertVolumeRecord(input: {
 
 export async function upsertVolumeMetadataRecord(
   filePath: string,
-  metadata: ComicMetadata
+  metadata: ComicMetadata,
+  client?: QueryExecutor
 ): Promise<{ id: string }> {
   const row = await queryOne<{ id: string }>(
     `
@@ -220,11 +221,13 @@ export async function upsertVolumeMetadataRecord(
         manga_style,
         age_rating,
         community_rating,
-        gtin
+        gtin,
+        alt_title,
+        alt_series
       )
       VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-        $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27
+        $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29
       )
       ON CONFLICT (file_path)
       DO UPDATE SET
@@ -253,6 +256,8 @@ export async function upsertVolumeMetadataRecord(
         age_rating = EXCLUDED.age_rating,
         community_rating = EXCLUDED.community_rating,
         gtin = EXCLUDED.gtin,
+        alt_title = EXCLUDED.alt_title,
+        alt_series = EXCLUDED.alt_series,
         updated_at = NOW()
       RETURNING id
     `,
@@ -284,7 +289,10 @@ export async function upsertVolumeMetadataRecord(
       metadata.ageRating ?? null,
       metadata.communityRating ?? null,
       metadata.gtin ?? null,
-    ]
+      metadata.altTitle?.trim() || null,
+      metadata.altSeries?.trim() || null,
+    ],
+    client
   );
 
   if (!row) {
@@ -296,7 +304,8 @@ export async function upsertVolumeMetadataRecord(
 
 export async function linkVolumeMetadata(
   volumeId: string,
-  metadataId: string
+  metadataId: string,
+  client?: QueryExecutor
 ): Promise<void> {
   await execute(
     `
@@ -305,11 +314,12 @@ export async function linkVolumeMetadata(
           updated_at = NOW()
       WHERE id = $1
     `,
-    [volumeId, metadataId]
+    [volumeId, metadataId],
+    client
   );
 }
 
-async function upsertGenreId(name: string): Promise<string> {
+async function upsertGenreId(name: string, client?: QueryExecutor): Promise<string> {
   const row = await queryOne<{ id: string }>(
     `
       INSERT INTO genres (id, name)
@@ -318,7 +328,8 @@ async function upsertGenreId(name: string): Promise<string> {
       DO UPDATE SET name = EXCLUDED.name
       RETURNING id
     `,
-    [createId(), name]
+    [createId(), name],
+    client
   );
 
   if (!row) {
@@ -328,7 +339,7 @@ async function upsertGenreId(name: string): Promise<string> {
   return row.id;
 }
 
-async function upsertTagId(name: string): Promise<string> {
+async function upsertTagId(name: string, client?: QueryExecutor): Promise<string> {
   const row = await queryOne<{ id: string }>(
     `
       INSERT INTO tags (id, name)
@@ -337,7 +348,8 @@ async function upsertTagId(name: string): Promise<string> {
       DO UPDATE SET name = EXCLUDED.name
       RETURNING id
     `,
-    [createId(), name]
+    [createId(), name],
+    client
   );
 
   if (!row) {
@@ -349,18 +361,20 @@ async function upsertTagId(name: string): Promise<string> {
 
 export async function replaceVolumeGenres(
   volumeId: string,
-  genreNames: string[]
+  genreNames: string[],
+  client?: QueryExecutor
 ): Promise<void> {
   await execute(
     `
       DELETE FROM volume_to_genres
       WHERE volume_id = $1
     `,
-    [volumeId]
+    [volumeId],
+    client
   );
 
   for (const genreName of genreNames) {
-    const genreId = await upsertGenreId(genreName);
+    const genreId = await upsertGenreId(genreName, client);
     await execute(
       `
         INSERT INTO volume_to_genres (id, volume_id, genre_id)
@@ -368,25 +382,28 @@ export async function replaceVolumeGenres(
         ON CONFLICT (volume_id, genre_id)
         DO NOTHING
       `,
-      [createId(), volumeId, genreId]
+      [createId(), volumeId, genreId],
+      client
     );
   }
 }
 
 export async function replaceVolumeTags(
   volumeId: string,
-  tagNames: string[]
+  tagNames: string[],
+  client?: QueryExecutor
 ): Promise<void> {
   await execute(
     `
       DELETE FROM volume_to_tags
       WHERE volume_id = $1
     `,
-    [volumeId]
+    [volumeId],
+    client
   );
 
   for (const tagName of tagNames) {
-    const tagId = await upsertTagId(tagName);
+    const tagId = await upsertTagId(tagName, client);
     await execute(
       `
         INSERT INTO volume_to_tags (id, volume_id, tag_id)
@@ -394,7 +411,8 @@ export async function replaceVolumeTags(
         ON CONFLICT (volume_id, tag_id)
         DO NOTHING
       `,
-      [createId(), volumeId, tagId]
+      [createId(), volumeId, tagId],
+      client
     );
   }
 }
@@ -405,11 +423,11 @@ export async function syncVolumeMetadataAndTaxonomy(input: {
   metadata: ComicMetadata;
   genres: string[];
   tags: string[];
-}): Promise<{ metadataId: string }> {
-  const meta = await upsertVolumeMetadataRecord(input.filePath, input.metadata);
-  await linkVolumeMetadata(input.volumeId, meta.id);
-  await replaceVolumeGenres(input.volumeId, input.genres);
-  await replaceVolumeTags(input.volumeId, input.tags);
+}, client?: QueryExecutor): Promise<{ metadataId: string }> {
+  const meta = await upsertVolumeMetadataRecord(input.filePath, input.metadata, client);
+  await linkVolumeMetadata(input.volumeId, meta.id, client);
+  await replaceVolumeGenres(input.volumeId, input.genres, client);
+  await replaceVolumeTags(input.volumeId, input.tags, client);
   return { metadataId: meta.id };
 }
 

@@ -1,3 +1,4 @@
+import { getComicTitle } from "@/lib/comicTitles";
 import { listPagedVolumes, listVolumeProgressByIds } from "@/lib/db/library";
 import { BookCopyIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
@@ -89,7 +90,7 @@ export default async function VolumesIndex({
           return (
             <MangaCard
               key={entry.title}
-              title={entry.meta?.title ?? entry.title}
+              title={getComicTitle(entry.meta) ?? entry.title}
               href={href}
               isSeries={false}
               isOneshot={entry.isOneshot}

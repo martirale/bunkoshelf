@@ -1,3 +1,4 @@
+import { getComicTitle, getComicSeriesTitle } from "@/lib/comicTitles";
 import { listPagedSeriesWithVolumes } from "@/lib/db/library";
 import { sortByPaddedTitle } from "@/lib/utils";
 import { LibraryBigIcon } from "lucide-react";
@@ -111,8 +112,8 @@ export default async function SeriesIndex({
               key={entry.id}
               title={
                 entry.isLogical ? entry.title : isOneshot
-                  ? firstVolume?.meta?.title ?? firstVolume?.title ?? entry.title
-                  : firstVolume?.meta?.series ?? firstVolume?.title ?? entry.title
+                  ? getComicTitle(firstVolume?.meta) ?? firstVolume?.title ?? entry.title
+                  : getComicSeriesTitle(firstVolume?.meta) ?? firstVolume?.title ?? entry.title
               }
               href={
                 isOneshot && firstVolume

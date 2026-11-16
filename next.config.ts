@@ -3,8 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   output: "standalone",
+  serverExternalPackages: ["@bitplane/rars"],
   outputFileTracingIncludes: {
-    "/*": ["./node_modules/node-unrar-js/esm/js/unrar.wasm"],
+    "/*": [
+      "./node_modules/node-unrar-js/esm/js/unrar.wasm",
+      "./node_modules/@bitplane/rars/node/**/*",
+      "./node_modules/@bitplane/rars/package.json",
+      "./node_modules/@bitplane/rars/COPYING",
+    ],
   },
   turbopack: {
     ignoreIssue: [

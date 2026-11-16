@@ -3,10 +3,11 @@ import AdmZip from "adm-zip";
 import xml2js from "xml2js";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
-import type { StorageProvider, ComicMetadata, ComicInfoResult } from "@/lib/types";
+import type { StorageProvider, ComicInfoResult } from "@/lib/types";
 import { normalizeComicInfoXml } from "@/lib/comicInfoXml";
+import { transformComicMetadata, extractGenresAndTags } from "@/lib/comicInfoMetadata";
 
-const parser = new xml2js.Parser();
+const parser = new xml2js.Parser({ tagNameProcessors: [xml2js.processors.stripPrefix] });
 
 function findComicInfoEntry(zip: AdmZip) {
   return zip.getEntries().find((entry) => {
@@ -100,69 +101,6 @@ async function extractMetaLocal(filePath: string): Promise<Record<string, string
   return null;
 }
 
-function transformMeta(meta: Record<string, string[]>): ComicMetadata {
-  const getFirst = (field: string): string | null =>
-    (meta[field] && meta[field][0]) || null;
-
-  return {
-    series: getFirst("Series"),
-    title: getFirst("Title"),
-    number: getFirst("Number") ? parseFloat(getFirst("Number")!) : null,
-    count: getFirst("Count") ? parseInt(getFirst("Count")!, 10) : null,
-    publisher: getFirst("Publisher"),
-    imprint: getFirst("Imprint"),
-    languageISO: getFirst("LanguageISO"),
-    format: getFirst("Format"),
-    ageRating: getFirst("AgeRating"),
-    communityRating: getFirst("CommunityRating")
-      ? parseFloat(getFirst("CommunityRating")!)
-      : null,
-    writer: getFirst("Writer"),
-    penciller: getFirst("Penciller"),
-    inker: getFirst("Inker"),
-    colorist: getFirst("Colorist"),
-    letterer: getFirst("Letterer"),
-    coverArtist: getFirst("CoverArtist"),
-    editor: getFirst("Editor"),
-    summary: getFirst("Summary"),
-    web: getFirst("Web"),
-    pageCount: getFirst("PageCount")
-      ? parseInt(getFirst("PageCount")!, 10)
-      : null,
-    year: getFirst("Year") ? parseInt(getFirst("Year")!, 10) : null,
-    month: getFirst("Month") ? parseInt(getFirst("Month")!, 10) : null,
-    day: getFirst("Day") ? parseInt(getFirst("Day")!, 10) : null,
-    gtin: getFirst("GTIN"),
-    mangaStyle: getFirst("Manga"),
-  };
-}
-
-function extractGenresAndTags(meta: Record<string, string[]>): {
-  genres: string[];
-  tags: string[];
-} {
-  const genres: string[] = [];
-  const tags: string[] = [];
-
-  if (meta.Genre && meta.Genre[0]) {
-    const genreList = meta.Genre[0]
-      .split(/[;,]/)
-      .map((g) => g.trim())
-      .filter(Boolean);
-    genres.push(...genreList);
-  }
-
-  if (meta.Tags && meta.Tags[0]) {
-    const tagList = meta.Tags[0]
-      .split(/[;,]/)
-      .map((t) => t.trim())
-      .filter(Boolean);
-    tags.push(...tagList);
-  }
-
-  return { genres, tags };
-}
-
 export async function extractMetadataCbz(
   fullPath: string,
   provider: StorageProvider
@@ -182,7 +120,7 @@ export async function extractMetadataCbz(
       return null;
     }
 
-    const transformed = transformMeta(meta);
+    const transformed = transformComicMetadata(meta);
     const { genres, tags } = extractGenresAndTags(meta);
 
     return {

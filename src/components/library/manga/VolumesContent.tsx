@@ -15,6 +15,7 @@ import VolumeRating from "./VolumeRating";
 import { getOneshotLabel, type LibrarySection } from "@/lib/librarySection";
 import { getDetailNavigationLabels } from "@/lib/detailNavigation";
 import type { Locale, Dictionary, DictionarySection, Session } from "@/lib/types";
+import { getComicTitle, getComicSeriesTitle, getComicOriginalTitle } from "@/lib/comicTitles";
 
 interface ReadingEntry {
   id: string;
@@ -125,7 +126,7 @@ export default function VolumesContent({
 
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">
-            {meta.title as string}
+            {getComicTitle(meta)}
           </h1>
           {!isOneshot && (
             <div className="py-2">
@@ -133,7 +134,7 @@ export default function VolumesContent({
                 href={`/${lang}/${section}/${seriesSlug}`}
                 className="text-2xl not-italic hover:underline"
               >
-                {seriesLabel} {series?.isLogical ? seriesTitle : (meta.series as string) || seriesTitle}
+                {seriesLabel} {series?.isLogical ? seriesTitle : getComicSeriesTitle(meta) || seriesTitle}
               </Link>
             </div>
           )}
@@ -142,7 +143,7 @@ export default function VolumesContent({
             lang={lang}
             intl={intl}
             volumeId={volume.id as string}
-            volumeTitle={meta.title as string}
+            volumeTitle={getComicTitle(meta) || ""}
             coverSrc={volume.coverImage as string}
             initFavorite={isFavorite}
             initRead={isRead}
@@ -210,6 +211,7 @@ export default function VolumesContent({
                     lang={lang}
                     intl={intl}
                     section={section}
+                    originalTitle={getComicOriginalTitle(meta)}
                   />
                 ),
               },

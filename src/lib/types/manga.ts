@@ -3,6 +3,8 @@ export type StorageProvider = "cloud" | "local";
 export interface ComicMetadata {
   series: string | null;
   title: string | null;
+  altTitle?: string | null;
+  altSeries?: string | null;
   number: number | null;
   count: number | null;
   publisher: string | null;

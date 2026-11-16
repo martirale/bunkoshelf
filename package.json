@@ -55,6 +55,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.995.0",
     "@aws-sdk/s3-request-presigner": "3.995.0",
+    "@bitplane/rars": "0.12.4",
     "@clack/prompts": "0.11.0",
     "@formatjs/intl-localematcher": "0.8.7",
     "@paralleldrive/cuid2": "3.3.0",

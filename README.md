@@ -55,6 +55,14 @@ On startup Bunko Shelf:
 - runs SQL migrations against PostgreSQL
 - boots the compiled Next.js standalone server
 
+## Comic metadata
+
+Administrators can edit a volume's embedded `ComicInfo.xml` from the Catalog. Saving updates the archive and synchronizes its metadata, genres, and tags with the database.
+
+`AltTitle` and `AltSeries` are optional Bunko extensions. When populated, they become the displayed volume and series titles. The corresponding `Title` or `Series` is shown as the original title in the details. Series metadata continues to come from the first volume; logical series keep their configured title.
+
+CBZ/ZIP and CBR/RAR editing use libraries bundled with Bunko, including the RAR WebAssembly writer and its worker. No external archive tools or manual server configuration are required. RAR archives are repacked and verified with Bunko's existing reader before being saved, preserving their members, directory entries, and archive comment. They remain RAR archives; no conversion to ZIP is performed. Protected, signed, locked, or split archives cannot be edited.
+
 ## License
 
 Bunko Shelf is source-available under the PolyForm Noncommercial 1.0.0 license. Commercial use is not permitted. See [LICENSE](./LICENSE) for details.

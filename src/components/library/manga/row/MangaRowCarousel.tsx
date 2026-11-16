@@ -1,5 +1,6 @@
 "use client";
 
+import { getComicTitle } from "@/lib/comicTitles";
 import { useRef, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
@@ -115,7 +116,7 @@ export default function MangaRowCarousel({
         {entries.map((entry) => (
           <div key={entry.slug} className="flex-shrink-0 w-1/2 md:w-1/5 2xl:w-1/7">
             <MangaCard
-              title={(entry.meta as Record<string, string>)?.title ?? entry.title}
+              title={getComicTitle(entry.meta as Record<string, unknown>) ?? entry.title}
               href={getLibraryVolumeHref(
                 lang,
                 entry.section ?? section,

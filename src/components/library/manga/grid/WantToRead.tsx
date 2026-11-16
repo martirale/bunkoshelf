@@ -1,3 +1,4 @@
+import { getComicTitle } from "@/lib/comicTitles";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listPagedVolumes, listVolumeProgressByIds } from "@/lib/db/library";
 import { BookmarkIcon } from "lucide-react";
@@ -88,7 +89,7 @@ export default async function WantToRead({
           return (
             <MangaCard
               key={entry.title}
-              title={entry.meta?.title}
+              title={getComicTitle(entry.meta)}
               href={href}
               isSeries={false}
               isOneshot={entry.isOneshot}

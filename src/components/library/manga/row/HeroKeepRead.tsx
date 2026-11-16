@@ -1,5 +1,6 @@
 "use client";
 
+import { getComicTitle } from "@/lib/comicTitles";
 import { useRef, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import MangaCard from "@/components/ui/MangaCard";
@@ -232,7 +233,7 @@ export default function HeroKeepRead({
                   >
                     <MangaCard
                       title={
-                        (entry.meta as Record<string, string>)?.title ??
+                        getComicTitle(entry.meta as Record<string, unknown>) ??
                         entry.title
                       }
                       href={href}

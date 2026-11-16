@@ -70,6 +70,7 @@ interface MetadataPanelProps {
   intl: Dictionary;
   linkBase?: string;
   section?: LibrarySection;
+  originalTitle?: string | null;
 }
 
 export default function MetadataPanel({
@@ -78,6 +79,7 @@ export default function MetadataPanel({
   intl,
   linkBase = "volumes",
   section = "manga",
+  originalTitle,
 }: MetadataPanelProps) {
   const genres = (meta.genres || []) as { name: string }[];
   const tags = (meta.tags || []) as { name: string }[];
@@ -86,6 +88,12 @@ export default function MetadataPanel({
 
   return (
     <>
+      {originalTitle && (
+        <div className="flex flex-row items-baseline max-w-3xl">
+          <p className="text-sm uppercase w-1/3 md:w-1/5">{intl.manga.originalTitle as string}</p>
+          <p className="w-2/3 md:w-4/5">{originalTitle}</p>
+        </div>
+      )}
       <AuthorField field={meta.writer} label={intl.manga.author} href={authorHref} />
       <MetaField field={meta.penciller} label={intl.manga.penciller} />
       <MetaField field={meta.inker} label={intl.manga.inker} />

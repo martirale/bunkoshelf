@@ -43,6 +43,8 @@ export interface LibraryVolumeMetadata {
   id: string;
   filePath: string;
   title: string | null;
+  altTitle?: string | null;
+  altSeries?: string | null;
   series: string | null;
   number: number | null;
   count: number | null;
@@ -317,6 +319,8 @@ interface VolumeRow {
   metadata_id: string | null;
   metadata_file_path: string | null;
   metadata_title: string | null;
+  metadata_alt_title: string | null;
+  metadata_alt_series: string | null;
   metadata_series: string | null;
   metadata_number: number | null;
   metadata_count: number | null;
@@ -382,6 +386,8 @@ function mapMetadata(row: VolumeRow): LibraryVolumeMetadata | null {
     id: row.metadata_id,
     filePath: row.metadata_file_path,
     title: row.metadata_title,
+    altTitle: row.metadata_alt_title,
+    altSeries: row.metadata_alt_series,
     series: row.metadata_series,
     number: row.metadata_number,
     count: row.metadata_count,
@@ -725,8 +731,8 @@ export async function listPagedCatalogLibraryVolumes(
           SELECT
             mv.id,
             mv.slug,
-            vm.title,
-            ms.title AS series,
+            COALESCE(NULLIF(BTRIM(vm.alt_title), ''), vm.title) AS title,
+            COALESCE(NULLIF(BTRIM(vm.alt_series), ''), ms.title) AS series,
             vm.number,
             vm.year,
             vm.writer,
@@ -1326,6 +1332,8 @@ async function listVolumesRaw(
         vm.id AS metadata_id,
         vm.file_path AS metadata_file_path,
         vm.title AS metadata_title,
+        vm.alt_title AS metadata_alt_title,
+        vm.alt_series AS metadata_alt_series,
         vm.series AS metadata_series,
         vm.number AS metadata_number,
         vm.count AS metadata_count,

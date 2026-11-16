@@ -16,6 +16,7 @@ import type { LibrarySection } from "@/lib/librarySection";
 import { getVolumeProgressRatio } from "@/lib/reader/readingProgress";
 import { getDetailNavigationLabels } from "@/lib/detailNavigation";
 import type { Locale, Dictionary, Session } from "@/lib/types";
+import { getComicTitle, getComicSeriesTitle, getComicOriginalTitle } from "@/lib/comicTitles";
 
 interface SeriesContentProps {
   serieData: Record<string, unknown>;
@@ -95,7 +96,7 @@ export default function SeriesContent({
 
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">
-            {serieData.isLogical ? serieData.title as string : (meta.series as string) || (serieData.title as string)}
+            {serieData.isLogical ? serieData.title as string : getComicSeriesTitle(meta) || (serieData.title as string)}
           </h1>
 
           <ReadButtonsSeries
@@ -152,6 +153,7 @@ export default function SeriesContent({
 
           <MetadataPanel
             meta={aggregatedMeta}
+            originalTitle={serieData.isLogical ? null : getComicOriginalTitle(meta, true)}
             lang={lang}
             intl={intl}
             linkBase="series"
@@ -184,7 +186,7 @@ export default function SeriesContent({
                 <MangaCard
                   key={idx}
                   title={
-                    (volume.meta as Record<string, string>)?.title ||
+                    getComicTitle(volume.meta as Record<string, unknown>) ||
                     (volume.filename as string)
                   }
                   href={`/${lang}/${section}/volume/${volume.slug as string}`}

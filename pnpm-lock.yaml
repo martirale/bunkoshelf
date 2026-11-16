@@ -14,6 +14,9 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: 3.995.0
         version: 3.995.0
+      '@bitplane/rars':
+        specifier: 0.12.4
+        version: 0.12.4
       '@clack/prompts':
         specifier: 0.11.0
         version: 0.11.0
@@ -401,6 +404,10 @@ packages:
   '@babel/types@7.29.0':
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
+
+  '@bitplane/rars@0.12.4':
+    resolution: {integrity: sha512-t7RwgyR12+7tCe2ngnCXkyz1LHNAZNbAQcZucTXNvc/tnEvXWb2fgt5s5FoqtF65Z8yoveSTrz/JtdrcnfA2oQ==}
+    engines: {node: '>=18'}
 
   '@clack/core@0.5.0':
     resolution: {integrity: sha512-p3y0FIOwaYRUPRcMO7+dlmLh8PSRcrjuTndsiA0WAFbWES0mLZlrjVoBRZ9DzkPFJZG6KGkJmoEAY0ZcVWTkow==}
@@ -3612,6 +3619,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
+
+  '@bitplane/rars@0.12.4': {}
 
   '@clack/core@0.5.0':
     dependencies:
