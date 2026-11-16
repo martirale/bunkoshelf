@@ -1,3 +1,4 @@
+import type { LibrarySearchParams } from "@/lib/libraryFilters";
 import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import SeriesIndex from "@/components/library/manga/grid/SeriesIndex";
@@ -5,7 +6,7 @@ import { getLibraryScope } from "@/lib/librarySection";
 import type { Locale } from "@/lib/types";
 
 interface MangaSeriesPageProps {
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<LibrarySearchParams>;
   params: Promise<{ lang: string }>;
 }
 
@@ -30,6 +31,7 @@ async function SeriesIndexContent({
   const {
     page: pageRaw = "1",
     author,
+    publisher,
     genre,
     tag,
     includeOneshots,
@@ -45,6 +47,7 @@ async function SeriesIndexContent({
       intl={intl}
       page={page}
       authorFilter={author}
+      publisherFilter={publisher}
       genreFilter={genre}
       tagFilter={tag}
       scope={scope}

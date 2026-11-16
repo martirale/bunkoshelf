@@ -1,10 +1,11 @@
+import type { LibrarySearchParams } from "@/lib/libraryFilters";
 import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import SeriesIndex from "@/components/library/manga/grid/SeriesIndex";
 import type { Locale } from "@/lib/types";
 
 interface ComicSeriesPageProps {
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<LibrarySearchParams>;
   params: Promise<{ lang: string }>;
 }
 
@@ -23,7 +24,7 @@ async function SeriesIndexContent({
   params,
 }: ComicSeriesPageProps) {
   const resolvedSearchParams = await searchParams;
-  const { page: pageRaw = "1", author, genre, tag, includeOneshots } = resolvedSearchParams;
+  const { page: pageRaw = "1", author, publisher, genre, tag, includeOneshots } = resolvedSearchParams;
   const page = parseInt(pageRaw ?? "1", 10);
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
@@ -34,6 +35,7 @@ async function SeriesIndexContent({
       intl={intl}
       page={page}
       authorFilter={author}
+      publisherFilter={publisher}
       genreFilter={genre}
       tagFilter={tag}
       includeOneshots={includeOneshots === "true"}

@@ -1,3 +1,4 @@
+import { buildCatalogFilterSql, type CatalogFilters, type CatalogFilterOptions } from "@/lib/catalogFilters";
 import { cacheLife, cacheTag } from "next/cache";
 import {
   getLibrarySection,
@@ -121,6 +122,7 @@ interface SharedVolumeQueryOptions {
   includeGenres?: boolean;
   includeTags?: boolean;
   authorNames?: string[];
+  publisherNames?: string[];
   genreNames?: string[];
   tagNames?: string[];
   seriesIds?: string[];
@@ -137,6 +139,7 @@ interface VolumeQueryOptions extends SharedVolumeQueryOptions {
 interface SharedSeriesQueryOptions {
   userId?: string | null;
   authorNames?: string[];
+  publisherNames?: string[];
   genreNames?: string[];
   tagNames?: string[];
   seriesIds?: string[];
@@ -534,6 +537,7 @@ async function attachVolumeRelations(
 function buildVolumeFilterSql(
   options: {
     authorNames?: string[];
+    publisherNames?: string[];
     genreNames?: string[];
     tagNames?: string[];
     seriesIds?: string[];
@@ -580,6 +584,11 @@ function buildVolumeFilterSql(
         WHERE BTRIM(split_author.value) = ANY($${params.length}::text[])
       )
     `);
+  }
+
+  if (options.publisherNames?.length) {
+    params.push(options.publisherNames);
+    conditions.push(`BTRIM(vm.publisher) = ANY($${params.length}::text[])`);
   }
 
   if (options.genreNames && options.genreNames.length > 0) {
@@ -692,24 +701,95 @@ function parseCount(value: string | number): number {
   return typeof value === "number" ? value : Number(value);
 }
 
+const CATALOG_VOLUMES_SQL = `
+  WITH catalog_volumes AS (
+    SELECT
+      mv.id,
+      mv.slug,
+      COALESCE(NULLIF(BTRIM(vm.alt_title), ''), vm.title) AS title,
+      COALESCE(NULLIF(BTRIM(vm.alt_series), ''), ms.title) AS series,
+      ms.slug AS series_slug,
+      vm.number,
+      vm.year,
+      vm.writer,
+      vm.publisher,
+      vm.language_iso,
+      vm.age_rating,
+      vm.gtin,
+      ms.library_section,
+      utv.is_read,
+      utv.is_favorite,
+      ms.sort_title AS series_sort_title,
+      mv.sort_title AS volume_sort_title
+    FROM manga_volumes mv
+    INNER JOIN manga_series ms ON ms.id = mv.series_id
+    LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
+    LEFT JOIN user_to_volumes utv
+      ON utv.volume_id = mv.id
+     AND utv.user_id = $1
+
+    UNION ALL
+
+    SELECT
+      bv.id,
+      bv.slug,
+      bm.title,
+      bs.title AS series,
+      bs.slug AS series_slug,
+      bv.number,
+      SUBSTRING(bm.published_at FROM '([0-9]{4})')::integer AS year,
+      (
+        SELECT STRING_AGG(bp.name, ', ' ORDER BY bp.position, bp.id)
+        FROM book_people bp
+        WHERE bp.metadata_id = bm.id
+          AND bp.kind = 'creator'
+          AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
+      ) AS writer,
+      bm.publisher,
+      bm.language AS language_iso,
+      bm.age_rating,
+      (
+        SELECT REGEXP_REPLACE(bi.value, '^(?:urn:)?isbn:', '', 'i')
+        FROM book_identifiers bi
+        WHERE bi.metadata_id = bm.id
+          AND LOWER(bi.scheme) = 'isbn'
+        ORDER BY bi.is_primary DESC, bi.id
+        LIMIT 1
+      ) AS gtin,
+      'books' AS library_section,
+      utb.is_read,
+      utb.is_favorite,
+      bs.sort_title AS series_sort_title,
+      bv.sort_title AS volume_sort_title
+    FROM book_volumes bv
+    INNER JOIN book_series bs ON bs.id = bv.series_id
+    INNER JOIN book_metadata bm ON bm.volume_id = bv.id
+    LEFT JOIN user_to_books utb
+      ON utb.volume_id = bv.id
+     AND utb.user_id = $1
+  )
+`;
+
 export async function listPagedCatalogLibraryVolumes(
-  options?: PagedQueryOptions & { userId?: string | null }
+  options?: PagedQueryOptions & { userId?: string | null; filters?: CatalogFilters }
 ): Promise<PaginatedResult<CatalogLibraryVolume>> {
   const pagination = buildPagination(options);
   const policy = await getCurrentContentVisibilityPolicy();
   const catalogLimit = policy.enabled ? 50_000 : pagination.pageSize;
   const catalogOffset = policy.enabled ? 0 : pagination.offset;
 
+  const filterParams: unknown[] = [options?.userId ?? null];
+  const filterSql = buildCatalogFilterSql(options?.filters ?? {}, filterParams);
+  const rowParams = [...filterParams];
+
   const [countRow, rows] = await Promise.all([
     queryOne<{ total: string | number }>(
       `
-        SELECT
-          (
-            (SELECT COUNT(*) FROM manga_volumes)
-            +
-            (SELECT COUNT(*) FROM book_volumes)
-          ) AS total
-      `
+        ${CATALOG_VOLUMES_SQL}
+        SELECT COUNT(*) AS total FROM catalog_volumes
+        ${filterSql}
+      `,
+      filterParams
     ),
     query<{
       id: string;
@@ -729,72 +809,7 @@ export async function listPagedCatalogLibraryVolumes(
       is_favorite: boolean | null;
     }>(
       `
-        WITH catalog_volumes AS (
-          SELECT
-            mv.id,
-            mv.slug,
-            COALESCE(NULLIF(BTRIM(vm.alt_title), ''), vm.title) AS title,
-            COALESCE(NULLIF(BTRIM(vm.alt_series), ''), ms.title) AS series,
-            ms.slug AS series_slug,
-            vm.number,
-            vm.year,
-            vm.writer,
-            vm.publisher,
-            vm.language_iso,
-            vm.age_rating,
-            vm.gtin,
-            ms.library_section,
-            utv.is_read,
-            utv.is_favorite,
-            ms.sort_title AS series_sort_title,
-            mv.sort_title AS volume_sort_title
-          FROM manga_volumes mv
-          INNER JOIN manga_series ms ON ms.id = mv.series_id
-          LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
-          LEFT JOIN user_to_volumes utv
-            ON utv.volume_id = mv.id
-           AND utv.user_id = $1
-
-          UNION ALL
-
-          SELECT
-            bv.id,
-            bv.slug,
-            bm.title,
-            bs.title AS series,
-            bs.slug AS series_slug,
-            bv.number,
-            SUBSTRING(bm.published_at FROM '([0-9]{4})')::integer AS year,
-            (
-              SELECT STRING_AGG(bp.name, ', ' ORDER BY bp.position, bp.id)
-              FROM book_people bp
-              WHERE bp.metadata_id = bm.id
-                AND bp.kind = 'creator'
-                AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
-            ) AS writer,
-            bm.publisher,
-            bm.language AS language_iso,
-            bm.age_rating,
-            (
-              SELECT REGEXP_REPLACE(bi.value, '^(?:urn:)?isbn:', '', 'i')
-              FROM book_identifiers bi
-              WHERE bi.metadata_id = bm.id
-                AND LOWER(bi.scheme) = 'isbn'
-              ORDER BY bi.is_primary DESC, bi.id
-              LIMIT 1
-            ) AS gtin,
-            'books' AS library_section,
-            utb.is_read,
-            utb.is_favorite,
-            bs.sort_title AS series_sort_title,
-            bv.sort_title AS volume_sort_title
-          FROM book_volumes bv
-          INNER JOIN book_series bs ON bs.id = bv.series_id
-          INNER JOIN book_metadata bm ON bm.volume_id = bv.id
-          LEFT JOIN user_to_books utb
-            ON utb.volume_id = bv.id
-           AND utb.user_id = $1
-        )
+        ${CATALOG_VOLUMES_SQL}
         SELECT
           id,
           slug,
@@ -812,11 +827,12 @@ export async function listPagedCatalogLibraryVolumes(
           is_read,
           is_favorite
         FROM catalog_volumes
+        ${filterSql}
         ORDER BY series_sort_title ASC, volume_sort_title ASC, id ASC
-        LIMIT $2
-        OFFSET $3
+        LIMIT $${rowParams.push(catalogLimit)}
+        OFFSET $${rowParams.push(catalogOffset)}
       `,
-      [options?.userId ?? null, catalogLimit, catalogOffset]
+      rowParams
     ),
   ]);
 
@@ -853,6 +869,44 @@ export async function listPagedCatalogLibraryVolumes(
     policy.enabled ? items.length : total,
     pagination
   );
+}
+
+export async function listCatalogLibraryFilterOptions(): Promise<CatalogFilterOptions> {
+  const policy = await getCurrentContentVisibilityPolicy();
+  const rows = await query<{
+    series_slug: string;
+    series: string | null;
+    writer: string | null;
+    year: number | null;
+    publisher: string | null;
+    age_rating: string | null;
+    language_iso: string | null;
+    library_section: "manga" | "comic" | "books" | "other";
+  }>(`${CATALOG_VOLUMES_SQL}
+    SELECT DISTINCT series_slug, series, writer, year, publisher, age_rating, language_iso, library_section
+    FROM catalog_volumes`, [null]);
+  const values: Record<keyof CatalogFilterOptions, Map<string, string>> = {
+    series: new Map(), author: new Map(), year: new Map(), publisher: new Map(), age: new Map(), language: new Map(), type: new Map(),
+  };
+  function add(key: keyof CatalogFilterOptions, value: string | number | null, label?: string) {
+    const name = String(value ?? "").trim();
+    if (name) values[key].set(name, label || name);
+  }
+  for (const row of rows) {
+    if (!canViewAgeRating(row.age_rating, row.library_section === "books" ? "book" : "manga", policy)) continue;
+    add("series", `${row.library_section}:${row.series_slug}`, row.series?.trim() || row.series_slug);
+    const authors = row.writer?.split(",").map((name) => name.trim()).filter(Boolean) ?? [];
+    for (const author of authors.length ? authors : ["__unknown__"]) add("author", author);
+    add("year", row.year);
+    add("publisher", row.publisher);
+    add("age", row.age_rating);
+    add("language", row.language_iso);
+    add("type", row.library_section);
+  }
+  return Object.fromEntries(Object.entries(values).map(([key, items]) => [
+    key,
+    [...items].map(([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true })),
+  ])) as CatalogFilterOptions;
 }
 
 export async function listPagedCatalogAuthors(
@@ -1193,15 +1247,19 @@ async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
   authors: AuthorFilter[];
   genres: GenreFilter[];
   tags: TagFilter[];
+  publishers: Array<{ id: string; name: string }>;
 }> {
   const authorParams: unknown[] = [];
   const genreParams: unknown[] = [];
   const tagParams: unknown[] = [];
+  const publisherParams: unknown[] = [];
   const authorScopeWhere = buildLibraryFilterScopeConditions(authorParams, scope);
   const genreScopeWhere = buildLibraryFilterScopeConditions(genreParams, scope);
   const tagScopeWhere = buildLibraryFilterScopeConditions(tagParams, scope);
 
-  const [authors, genres, tags] = await Promise.all([
+  const publisherScopeWhere = buildLibraryFilterScopeConditions(publisherParams, scope);
+
+  const [authors, genres, tags, publishers] = await Promise.all([
     query<AuthorFilter>(
       `
         SELECT DISTINCT
@@ -1249,9 +1307,19 @@ async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
       `,
       tagParams
     ),
+    query<{ id: string; name: string }>(
+      `SELECT DISTINCT BTRIM(vm.publisher) AS id, BTRIM(vm.publisher) AS name
+       FROM manga_volumes mv
+       INNER JOIN manga_series ms ON ms.id = mv.series_id
+       INNER JOIN volume_metadata vm ON vm.id = mv.metadata_id
+       ${publisherScopeWhere || "WHERE TRUE"}
+         AND NULLIF(BTRIM(vm.publisher), '') IS NOT NULL
+       ORDER BY name ASC`,
+      publisherParams
+    ),
   ]);
 
-  return { authors, genres, tags };
+  return { authors, genres, tags, publishers };
 }
 
 async function listLibraryFiltersCached(scope?: LibraryScope) {
@@ -1267,6 +1335,7 @@ export async function listLibraryFilters(scope?: LibraryScope): Promise<{
   authors: AuthorFilter[];
   genres: GenreFilter[];
   tags: TagFilter[];
+  publishers: Array<{ id: string; name: string }>;
 }> {
   return listLibraryFiltersCached(scope);
 }
@@ -1294,6 +1363,7 @@ async function listVolumesRaw(
   const conditions = buildVolumeFilterSql(
     {
       authorNames: options?.authorNames,
+      publisherNames: options?.publisherNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1416,6 +1486,7 @@ export async function listVolumes(
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
     authorNames: options?.authorNames,
+    publisherNames: options?.publisherNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1438,6 +1509,7 @@ async function listPagedVolumeIdsRaw(
   const countConditions = buildVolumeFilterSql(
     {
       authorNames: options?.authorNames,
+      publisherNames: options?.publisherNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1511,6 +1583,7 @@ export async function listPagedVolumes(
       includeGenres: options?.includeGenres,
       includeTags: options?.includeTags,
       authorNames: options?.authorNames,
+      publisherNames: options?.publisherNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1528,6 +1601,7 @@ export async function listPagedVolumes(
         includeGenres: options?.includeGenres,
         includeTags: options?.includeTags,
         authorNames: options?.authorNames,
+        publisherNames: options?.publisherNames,
         genreNames: options?.genreNames,
         tagNames: options?.tagNames,
         seriesIds: options?.seriesIds,
@@ -1549,6 +1623,7 @@ export async function listPagedVolumes(
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
     authorNames: options?.authorNames,
+    publisherNames: options?.publisherNames,
     scope: options?.scope,
   });
 
@@ -1633,6 +1708,7 @@ async function listSeriesWithVolumesRaw(
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
     authorNames: options?.authorNames,
+    publisherNames: options?.publisherNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1675,6 +1751,7 @@ export async function listSeriesWithVolumes(
   const policy = await getCurrentContentVisibilityPolicy();
   const series = await listSeriesWithVolumesCached({
     authorNames: options?.authorNames,
+    publisherNames: options?.publisherNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1696,6 +1773,7 @@ async function listPagedSeriesIdsRaw(
   const countConditions = buildVolumeFilterSql(
     {
       authorNames: options?.authorNames,
+      publisherNames: options?.publisherNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1772,6 +1850,7 @@ export async function listPagedSeriesWithVolumes(
   if (policy.enabled) {
     const all = await listSeriesWithVolumes({
       authorNames: options?.authorNames,
+      publisherNames: options?.publisherNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1785,6 +1864,7 @@ export async function listPagedSeriesWithVolumes(
   }
   const pagedIds = await listPagedSeriesIdsCached({
     authorNames: options?.authorNames,
+    publisherNames: options?.publisherNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1808,6 +1888,7 @@ export async function listPagedSeriesWithVolumes(
     includeGenres: options?.includeGenres,
     includeTags: options?.includeTags,
     authorNames: options?.authorNames,
+    publisherNames: options?.publisherNames,
     scope: options?.scope,
   });
 

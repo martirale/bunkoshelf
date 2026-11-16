@@ -285,6 +285,7 @@ export async function listBookVolumes(options?: {
   seriesSlug?: string;
   groupSeries?: boolean;
   authorNames?: string[];
+  publisherNames?: string[];
   genreNames?: string[];
   tagNames?: string[];
   limit?: number;
@@ -328,6 +329,11 @@ export async function listBookVolumes(options?: {
         )
       )
     `);
+  }
+
+  if (options?.publisherNames?.length) {
+    params.push(options.publisherNames);
+    conditions.push(`BTRIM(bm.publisher) = ANY($${params.length}::text[])`);
   }
 
   if (options?.genreNames && options.genreNames.length > 0) {
@@ -391,8 +397,9 @@ export async function listBookLibraryFilters(): Promise<{
   authors: Array<{ id: string; name: string }>;
   genres: Array<{ id: string; name: string }>;
   tags: Array<{ id: string; name: string }>;
+  publishers: Array<{ id: string; name: string }>;
 }> {
-  const [authors, genres, tags] = await Promise.all([
+  const [authors, genres, tags, publishers] = await Promise.all([
     query<{ id: string; name: string }>(`
       SELECT DISTINCT author.name AS id, author.name
       FROM book_volumes bv
@@ -473,9 +480,18 @@ export async function listBookLibraryFilters(): Promise<{
       LEFT JOIN active_tags at ON at.normalized_name = bswg.normalized_name
       ORDER BY name ASC
     `),
+    query<{ id: string; name: string }>(`
+      SELECT DISTINCT BTRIM(bm.publisher) AS id, BTRIM(bm.publisher) AS name
+      FROM book_volumes bv
+      INNER JOIN book_series bs ON bs.id = bv.series_id
+      INNER JOIN book_metadata bm ON bm.volume_id = bv.id
+      WHERE bs.library_section = 'books'
+        AND NULLIF(BTRIM(bm.publisher), '') IS NOT NULL
+      ORDER BY name ASC
+    `),
   ]);
 
-  return { authors, genres, tags };
+  return { authors, genres, tags, publishers };
 }
 
 export async function classifyBookSubjects(subjectNames: string[]): Promise<BookSubjectFilter[]> {

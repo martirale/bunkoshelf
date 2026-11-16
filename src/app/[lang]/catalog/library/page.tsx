@@ -1,7 +1,9 @@
+import { parseCatalogFilters } from "@/lib/catalogFilters";
+import CatalogLibraryFilters from "@/components/catalog/CatalogLibraryFilters";
 import { Suspense } from "react";
 import { LibraryBigIcon } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
-import { listPagedCatalogLibraryVolumes } from "@/lib/db/library";
+import { listPagedCatalogLibraryVolumes, listCatalogLibraryFilterOptions } from "@/lib/db/library";
 import { verifySession } from "@/lib/auth/verifySession";
 import CatalogLibraryTable from "@/components/catalog/CatalogLibraryTable";
 import CatalogLibraryUpload from "@/components/catalog/CatalogLibraryUpload";
@@ -11,7 +13,7 @@ import type { Locale } from "@/lib/types";
 
 interface CatalogLibraryPageProps {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 function CatalogLibrarySkeleton() {
@@ -30,14 +32,18 @@ async function CatalogLibraryPageContent({
   const { lang = "es" } = await params;
   const resolvedSearchParams = await searchParams;
   const pageRaw = resolvedSearchParams.page ?? "1";
-  const page = Number.parseInt(pageRaw, 10) || 1;
+  const page = Number.parseInt(Array.isArray(pageRaw) ? pageRaw[0] : pageRaw, 10) || 1;
   const intl = await getDictionary(lang as Locale);
   const user = await verifySession();
-  const volumes = await listPagedCatalogLibraryVolumes({
-    page,
-    pageSize: 50,
-    userId: user?.id ?? null,
-  });
+  const [volumes, filterOptions] = await Promise.all([
+    listPagedCatalogLibraryVolumes({
+      page,
+      pageSize: 50,
+      userId: user?.id ?? null,
+      filters: parseCatalogFilters(resolvedSearchParams),
+    }),
+    listCatalogLibraryFilterOptions(),
+  ]);
   const seriesOptions = user?.isAdmin ? await listLogicalSeriesOptions() : [];
 
   return (
@@ -47,12 +53,15 @@ async function CatalogLibraryPageContent({
           <LibraryBigIcon size={28} className="mr-2" />
           {intl.catalog.library as string}
         </h2>
-        {user?.isAdmin === true && (
-          <div className="flex flex-wrap justify-end gap-2">
-            <CreateLogicalSeries intl={intl} options={seriesOptions} />
-            <CatalogLibraryUpload intl={intl} lang={lang as Locale} />
-          </div>
-        )}
+        <div className="flex flex-wrap justify-end gap-2">
+          <CatalogLibraryFilters intl={intl} options={filterOptions} />
+          {user?.isAdmin === true && (
+            <>
+              <CreateLogicalSeries intl={intl} options={seriesOptions} />
+              <CatalogLibraryUpload intl={intl} lang={lang as Locale} />
+            </>
+          )}
+        </div>
       </div>
 
       <CatalogLibraryTable

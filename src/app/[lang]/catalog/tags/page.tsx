@@ -41,6 +41,8 @@ async function CatalogTagsPageContent({
       </h2>
 
       <CatalogRelationsTable
+        lang={lang as Locale}
+        filter="tag"
         data={tags}
         intl={intl}
         nameLabel={intl.catalog.tagColumn as string}

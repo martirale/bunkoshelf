@@ -1,3 +1,4 @@
+import type { LibrarySearchParams } from "@/lib/libraryFilters";
 import { Suspense } from "react";
 import VolumesIndex from "@/components/library/books/grid/VolumesIndex";
 import { getDictionary } from "@/lib/i18n/Dictionary";
@@ -12,17 +13,17 @@ async function BookVolumesPageContent({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<LibrarySearchParams>;
 }) {
   const { lang } = await params;
-  const { author, genre, tag } = await searchParams;
+  const { author, publisher, genre, tag } = await searchParams;
   const intl = await getDictionary(lang as Locale);
-  return <VolumesIndex lang={lang as Locale} intl={intl} authorFilter={author} genreFilter={genre} tagFilter={tag} />;
+  return <VolumesIndex lang={lang as Locale} intl={intl} authorFilter={author} publisherFilter={publisher} genreFilter={genre} tagFilter={tag} />;
 }
 
 export default function BookVolumesPage(props: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<LibrarySearchParams>;
 }) {
   return <section className="p-4"><Suspense fallback={<GridSkeleton />}><BookVolumesPageContent {...props} /></Suspense></section>;
 }

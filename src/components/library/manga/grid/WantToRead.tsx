@@ -1,3 +1,4 @@
+import { filterValues } from "@/lib/libraryFilters";
 import { getComicTitle } from "@/lib/comicTitles";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listPagedVolumes, listVolumeProgressByIds } from "@/lib/db/library";
@@ -20,6 +21,7 @@ interface WantToReadProps {
   intl: Dictionary;
   page?: number;
   authorFilter?: string | string[];
+  publisherFilter?: string | string[];
   genreFilter?: string | string[];
   tagFilter?: string | string[];
   scope?: LibraryScope;
@@ -31,6 +33,7 @@ export default async function WantToRead({
   intl,
   page = 1,
   authorFilter = [],
+  publisherFilter,
   genreFilter = [],
   tagFilter = [],
   scope = "all",
@@ -53,6 +56,7 @@ export default async function WantToRead({
     includeGenres: true,
     includeTags: true,
     authorNames: authorList,
+    publisherNames: filterValues(publisherFilter),
     genreNames: genreList,
     tagNames: tagList,
     onlyUnreadForUser: true,

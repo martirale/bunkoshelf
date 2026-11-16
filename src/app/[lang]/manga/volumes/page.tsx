@@ -1,3 +1,4 @@
+import type { LibrarySearchParams } from "@/lib/libraryFilters";
 import { Suspense } from "react";
 import { getDictionary } from "@/lib/i18n/Dictionary";
 import VolumesIndex from "@/components/library/manga/grid/VolumesIndex";
@@ -5,7 +6,7 @@ import { getLibraryScope } from "@/lib/librarySection";
 import type { Locale } from "@/lib/types";
 
 interface MangaVolumesPageProps {
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<LibrarySearchParams>;
   params: Promise<{ lang: string }>;
 }
 
@@ -27,7 +28,7 @@ async function VolumesIndexContent({
   params,
 }: MangaVolumesPageProps) {
   const resolvedSearchParams = await searchParams;
-  const { page: pageRaw = "1", author, genre, tag } = resolvedSearchParams;
+  const { page: pageRaw = "1", author, publisher, genre, tag } = resolvedSearchParams;
   const page = parseInt(pageRaw ?? "1", 10);
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
@@ -39,6 +40,7 @@ async function VolumesIndexContent({
       intl={intl}
       page={page}
       authorFilter={author}
+      publisherFilter={publisher}
       genreFilter={genre}
       tagFilter={tag}
       scope={scope}

@@ -7,6 +7,14 @@
     "genres": "Géneros",
     "tags": "Etiquetas",
     "apply": "Aplicar",
-    "clean": "Limpiar"
+    "clean": "Limpiar",
+    "publishers": "Editoriales",
+    "series": "Series",
+    "years": "Años",
+    "ages": "Clasificación por edad",
+    "languages": "Idiomas",
+    "types": "Tipos",
+    "open": "Abrir filtros",
+    "close": "Cerrar filtros"
   }
 }

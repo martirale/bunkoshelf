@@ -7,6 +7,14 @@
     "genres": "Genres",
     "tags": "Tags",
     "apply": "Apply",
-    "clean": "Clear"
+    "clean": "Clear",
+    "publishers": "Publishers",
+    "series": "Series",
+    "years": "Years",
+    "ages": "Age rating",
+    "languages": "Languages",
+    "types": "Types",
+    "open": "Open filters",
+    "close": "Close filters"
   }
 }

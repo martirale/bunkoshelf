@@ -1,3 +1,4 @@
+import { filterValues } from "@/lib/libraryFilters";
 import { BookCopyIcon } from "lucide-react";
 import { listBookVolumes } from "@/lib/db/books/library";
 import { listBookProgressByIds } from "@/lib/db/books/library";
@@ -10,12 +11,14 @@ export default async function VolumesIndex({
   lang,
   intl,
   authorFilter,
+  publisherFilter,
   genreFilter,
   tagFilter,
 }: {
   lang: Locale;
   intl: Dictionary;
   authorFilter?: string;
+  publisherFilter?: string | string[];
   genreFilter?: string;
   tagFilter?: string;
 }) {
@@ -23,7 +26,7 @@ export default async function VolumesIndex({
   const authorNames = authorFilter?.trim() ? authorFilter.split(",").map((author) => author.trim()).filter(Boolean) : undefined;
   const genreNames = genreFilter?.trim() ? genreFilter.split(",").map((genre) => genre.trim()).filter(Boolean) : undefined;
   const tagNames = tagFilter?.trim() ? tagFilter.split(",").map((tag) => tag.trim()).filter(Boolean) : undefined;
-  const books = await listBookVolumes({ authorNames, genreNames, tagNames });
+  const books = await listBookVolumes({ publisherNames: filterValues(publisherFilter), authorNames, genreNames, tagNames });
   const progressById = user ? await listBookProgressByIds(user.id, books.map((book) => book.id)) : {};
   return <><div className="mb-4 flex items-center"><h2 className="mr-4 flex items-center text-base md:text-lg"><BookCopyIcon size={28} className="mr-2" />{intl.libraries.books as string}</h2><FiltersDrawer intl={intl} library="books" /></div><BookGrid books={books} lang={lang} intl={intl} progressById={progressById} /></>;
 }

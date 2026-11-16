@@ -1,3 +1,4 @@
+import { filterValues } from "@/lib/libraryFilters";
 import { getComicTitle } from "@/lib/comicTitles";
 import { listPagedVolumes, listVolumeProgressByIds } from "@/lib/db/library";
 import { BookCopyIcon } from "lucide-react";
@@ -20,6 +21,7 @@ interface VolumesIndexProps {
   intl: Dictionary;
   page?: number;
   authorFilter?: string | string[];
+  publisherFilter?: string | string[];
   genreFilter?: string | string[];
   tagFilter?: string | string[];
   scope?: LibraryScope;
@@ -31,6 +33,7 @@ export default async function VolumesIndex({
   intl,
   page = 1,
   authorFilter = [],
+  publisherFilter,
   genreFilter = [],
   tagFilter = [],
   scope = "all",
@@ -50,6 +53,7 @@ export default async function VolumesIndex({
     includeGenres: true,
     includeTags: true,
     authorNames: authorList,
+    publisherNames: filterValues(publisherFilter),
     genreNames: genreList,
     tagNames: tagList,
     scope,

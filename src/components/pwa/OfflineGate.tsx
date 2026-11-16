@@ -1,5 +1,6 @@
 "use client";
 
+import { filterValues } from "@/lib/libraryFilters";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BookAIcon, BookCheckIcon, BookCopyIcon, BookMarkedIcon, BookPlusIcon, CloudOffIcon, ConstructionIcon, GhostIcon, HeartIcon, LibraryBigIcon, Settings2Icon, UserRoundIcon } from "lucide-react";
@@ -285,17 +286,19 @@ function OfflineLibrary({ path, lang, intl, userId, user }: { path: string; lang
     return <><HeroKeepRead lang={lang} intl={intl} section={section} scope={getLibraryScope(section)} offlineUserId={userId} /><div className="mb-24 md:mb-4"><OfflineLibraryHome volumes={scoped} lang={lang} intl={intl} userId={userId} section={section} /></div></>;
   }
 
+  const pathname = path.split("?")[0];
   const query = new URLSearchParams(path.split("?")[1]);
+  const selectedPublishers = filterValues(query.getAll("publisher"));
   const selectedAuthors = query.get("author")?.split(",").filter(Boolean) ?? [];
   const selectedGenres = query.get("genre")?.split(",").filter(Boolean) ?? [];
   const selectedTags = query.get("tag")?.split(",").filter(Boolean) ?? [];
-  const entries = (path.endsWith("/toread") ? scoped.filter((volume) => !volume.isRead) : scoped).filter((volume) => {
+  const entries = (pathname.endsWith("/toread") ? scoped.filter((volume) => !volume.isRead) : scoped).filter((volume) => {
     const writer = typeof volume.metadata.writer === "string" ? volume.metadata.writer.split(",").map((item) => item.trim()) : [];
     const genres = Array.isArray(volume.metadata.genres) ? volume.metadata.genres.map(String) : [];
     const tags = Array.isArray(volume.metadata.tags) ? volume.metadata.tags.map(String) : [];
-    return (!selectedAuthors.length || selectedAuthors.some((author) => writer.includes(author))) && (!selectedGenres.length || selectedGenres.some((genre) => genres.includes(genre))) && (!selectedTags.length || selectedTags.some((tag) => tags.includes(tag)));
+    return (!selectedPublishers.length || selectedPublishers.includes(String(volume.metadata.publisher ?? "").trim())) && (!selectedAuthors.length || selectedAuthors.some((author) => writer.includes(author))) && (!selectedGenres.length || selectedGenres.some((genre) => genres.includes(genre))) && (!selectedTags.length || selectedTags.some((tag) => tags.includes(tag)));
   });
-  const isSeries = path.endsWith("/series") || (favorites && !path.endsWith("/volumes"));
+  const isSeries = pathname.endsWith("/series") || (favorites && !pathname.endsWith("/volumes"));
   const content = isSeries ? <OfflineSeriesIndex volumes={entries} filterVolumes={scoped} lang={lang} intl={intl} userId={userId} favorites={favorites} /> : <OfflineVolumesIndex volumes={entries} filterVolumes={scoped} lang={lang} intl={intl} userId={userId} favorites={favorites} />;
 
   if (favorites) return <div className="flex flex-col md:flex-row md:h-screen overflow-hidden"><SidebarMisc><h2 className="flex items-center text-onix"><HeartIcon size={28} className="mr-2" />{intl.favorites.title as string}</h2><FavoritesNav intl={intl} /></SidebarMisc><div className="w-full md:w-[60%] lg:w-[68%] xl:w-[73%] 2xl:w-[80%] p-4 overflow-y-auto"><div className="mb-24 md:mb-4">{content}</div></div></div>;

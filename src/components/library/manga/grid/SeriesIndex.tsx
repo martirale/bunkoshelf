@@ -1,3 +1,4 @@
+import { filterValues } from "@/lib/libraryFilters";
 import { getComicTitle, getComicSeriesTitle } from "@/lib/comicTitles";
 import { listPagedSeriesWithVolumes } from "@/lib/db/library";
 import { sortByPaddedTitle } from "@/lib/utils";
@@ -22,6 +23,7 @@ interface SeriesIndexProps {
   intl: Dictionary;
   page?: number;
   authorFilter?: string | string[];
+  publisherFilter?: string | string[];
   genreFilter?: string | string[];
   tagFilter?: string | string[];
   scope?: LibraryScope;
@@ -34,6 +36,7 @@ export default async function SeriesIndex({
   intl,
   page = 1,
   authorFilter = [],
+  publisherFilter,
   genreFilter = [],
   tagFilter = [],
   scope = "all",
@@ -53,6 +56,7 @@ export default async function SeriesIndex({
       page,
       pageSize: LIBRARY_PAGE_SIZE,
       authorNames: authorList,
+      publisherNames: filterValues(publisherFilter),
       genreNames: genreList,
       tagNames: tagList,
       includeGenres: true,

@@ -1,3 +1,4 @@
+import { filterValues } from "@/lib/libraryFilters";
 import MangaCard from "@/components/ui/MangaCard";
 import { verifySession } from "@/lib/auth/verifySession";
 import { getBookCoverUrl } from "@/lib/books/cover";
@@ -10,6 +11,7 @@ export default async function SeriesIndex({
   lang,
   intl,
   authorFilter,
+  publisherFilter,
   genreFilter,
   tagFilter,
   includeOneshots = false,
@@ -17,6 +19,7 @@ export default async function SeriesIndex({
   lang: Locale;
   intl: Dictionary;
   authorFilter?: string;
+  publisherFilter?: string | string[];
   genreFilter?: string;
   tagFilter?: string;
   includeOneshots?: boolean;
@@ -26,7 +29,7 @@ export default async function SeriesIndex({
   const authorNames = authorFilter?.trim() ? authorFilter.split(",").map((author) => author.trim()).filter(Boolean) : undefined;
   const genreNames = genreFilter?.trim() ? genreFilter.split(",").map((genre) => genre.trim()).filter(Boolean) : undefined;
   const tagNames = tagFilter?.trim() ? tagFilter.split(",").map((tag) => tag.trim()).filter(Boolean) : undefined;
-  const books = await listBookVolumes({ authorNames, genreNames, tagNames, groupSeries: true });
+  const books = await listBookVolumes({ publisherNames: filterValues(publisherFilter), authorNames, genreNames, tagNames, groupSeries: true });
   const visibleBooks = includeOneshots
     ? books
     : books.filter((book) => !book.series.isOneshot);

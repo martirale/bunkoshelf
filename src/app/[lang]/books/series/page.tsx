@@ -1,3 +1,4 @@
+import type { LibrarySearchParams } from "@/lib/libraryFilters";
 import { Suspense } from "react";
 import SeriesIndex from "@/components/library/books/grid/SeriesIndex";
 import { getDictionary } from "@/lib/i18n/Dictionary";
@@ -12,17 +13,17 @@ async function BookSeriesIndexContent({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<LibrarySearchParams>;
 }) {
   const { lang } = await params;
-  const { author, genre, tag, includeOneshots } = await searchParams;
+  const { author, publisher, genre, tag, includeOneshots } = await searchParams;
   const intl = await getDictionary(lang as Locale);
-  return <SeriesIndex lang={lang as Locale} intl={intl} authorFilter={author} genreFilter={genre} tagFilter={tag} includeOneshots={includeOneshots === "true"} />;
+  return <SeriesIndex lang={lang as Locale} intl={intl} authorFilter={author} publisherFilter={publisher} genreFilter={genre} tagFilter={tag} includeOneshots={includeOneshots === "true"} />;
 }
 
 export default function BookSeriesIndex(props: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<LibrarySearchParams>;
 }) {
   return <main className="p-4"><Suspense fallback={<GridSkeleton />}><BookSeriesIndexContent {...props} /></Suspense></main>;
 }

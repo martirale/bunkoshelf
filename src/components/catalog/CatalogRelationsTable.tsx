@@ -1,18 +1,23 @@
+import Link from "next/link";
 import { CheckIcon } from "lucide-react";
 import Pagination from "@/components/ui/Pagination";
 import type { CatalogRelationStats, PaginatedResult } from "@/lib/db/library";
-import type { Dictionary } from "@/lib/types";
+import type { Dictionary, Locale } from "@/lib/types";
 
 interface CatalogRelationsTableProps {
   data: PaginatedResult<CatalogRelationStats>;
   intl: Dictionary;
   nameLabel: string;
+  lang: Locale;
+  filter: "genre" | "tag";
 }
 
 export default function CatalogRelationsTable({
   data,
   intl,
   nameLabel,
+  lang,
+  filter,
 }: CatalogRelationsTableProps) {
   return (
     <>
@@ -39,22 +44,38 @@ export default function CatalogRelationsTable({
                   </td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center">
-                      {item.hasManga ? <CheckIcon size={18} /> : null}
+                      {item.hasManga ? <Link
+                        href={{ pathname: `/${lang}/manga/series`, query: { [filter]: item.name, includeOneshots: "true" } }}
+                        aria-label={`${nameLabel}: ${item.name} — ${intl.catalog.mangaColumn}`}
+                        className="inline-flex items-center justify-center p-1 hover:text-lilah transition-colors"
+                      ><CheckIcon size={18} /></Link> : null}
                     </div>
                   </td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center">
-                      {item.hasComic ? <CheckIcon size={18} /> : null}
+                      {item.hasComic ? <Link
+                        href={{ pathname: `/${lang}/comic/series`, query: { [filter]: item.name, includeOneshots: "true" } }}
+                        aria-label={`${nameLabel}: ${item.name} — ${intl.catalog.comicColumn}`}
+                        className="inline-flex items-center justify-center p-1 hover:text-lilah transition-colors"
+                      ><CheckIcon size={18} /></Link> : null}
                     </div>
                   </td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center">
-                      {item.hasBooks ? <CheckIcon size={18} /> : null}
+                      {item.hasBooks ? <Link
+                        href={{ pathname: `/${lang}/books/series`, query: { [filter]: item.name, includeOneshots: "true" } }}
+                        aria-label={`${nameLabel}: ${item.name} — ${intl.catalog.booksColumn}`}
+                        className="inline-flex items-center justify-center p-1 hover:text-lilah transition-colors"
+                      ><CheckIcon size={18} /></Link> : null}
                     </div>
                   </td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center">
-                      {item.hasOthers ? <CheckIcon size={18} /> : null}
+                      {item.hasOthers ? <Link
+                        href={{ pathname: `/${lang}/others/series`, query: { [filter]: item.name, includeOneshots: "true" } }}
+                        aria-label={`${nameLabel}: ${item.name} — ${intl.catalog.othersColumn}`}
+                        className="inline-flex items-center justify-center p-1 hover:text-lilah transition-colors"
+                      ><CheckIcon size={18} /></Link> : null}
                     </div>
                   </td>
                   <td className="p-4 text-center whitespace-nowrap">{item.total}</td>

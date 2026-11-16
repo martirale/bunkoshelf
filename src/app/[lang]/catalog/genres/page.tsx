@@ -41,6 +41,8 @@ async function CatalogGenresPageContent({
       </h2>
 
       <CatalogRelationsTable
+        lang={lang as Locale}
+        filter="genre"
         data={genres}
         intl={intl}
         nameLabel={intl.catalog.genreColumn as string}
