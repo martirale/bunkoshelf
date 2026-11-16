@@ -6,6 +6,7 @@ import Link from "next/link";
 import { searchManga } from "@/actions/search";
 import { getReadyVolumes } from "@/lib/client/offlineLibrary";
 import { getOneshotLabel } from "@/lib/librarySection";
+import { searchOfflineVolumes } from "@/lib/client/offlineSearch";
 import { usePwa } from "@/components/pwa/PwaProvider";
 import type { Locale, Dictionary, SearchResult } from "@/lib/types";
 import {
@@ -71,26 +72,8 @@ export default function SearchComp({ lang, intl }: SearchCompProps) {
     const performSearch = async () => {
       try {
         if (!online && userId) {
-          const term = query.trim().toLocaleLowerCase();
           const volumes = await getReadyVolumes(userId);
-          const localResults = volumes
-            .filter((volume) => [volume.title, volume.seriesTitle, volume.metadata.writer]
-              .filter((value): value is string => typeof value === "string")
-              .some((value) => value.toLocaleLowerCase().includes(term)))
-            .map((volume) => ({
-              id: volume.id,
-              section: volume.section,
-              type: "volume" as const,
-              title: volume.title,
-              slug: volume.slug,
-              isOneshot: volume.isOneshot,
-              writer: typeof volume.metadata.writer === "string" ? volume.metadata.writer : "",
-              series: volume.seriesSlug,
-              score: 1,
-              genres: Array.isArray(volume.metadata.genres) ? volume.metadata.genres.join(", ") : "",
-              tags: Array.isArray(volume.metadata.tags) ? volume.metadata.tags.join(", ") : "",
-            }));
-          setResults(localResults);
+          setResults(searchOfflineVolumes(volumes, query));
           setLoading(false);
           return;
         }

@@ -5,6 +5,7 @@ import { verifySession } from "@/lib/auth/verifySession";
 import { listSeriesWithVolumes, listVolumes } from "@/lib/db/library";
 import { listBookSearchEntries } from "@/lib/db/books/library";
 import { getLibrarySection } from "@/lib/librarySection";
+import { getComicTitle, getComicSeriesTitle } from "@/lib/comicTitles";
 import type { SearchResult } from "@/lib/types";
 
 interface SearchParams {
@@ -19,6 +20,7 @@ interface SeriesDoc {
   section: "manga" | "comic" | "others" | "books";
   writer: string;
   series: string;
+  aliases?: string;
 }
 
 interface VolumeDoc {
@@ -31,6 +33,8 @@ interface VolumeDoc {
   section: "manga" | "comic" | "others" | "books";
   genres: string;
   tags: string;
+  altTitle?: string;
+  altSeries?: string;
 }
 
 interface SeriesResult extends SearchResult {
@@ -84,7 +88,10 @@ export async function searchManga({ query }: SearchParams) {
     isOneshot: s.isOneshot,
     section: getLibrarySection(s.librarySection),
     writer: writerBySeriesId.get(s.id) || s.volumes[0]?.metadataObj?.writer || "",
-    series: s.isLogical ? s.title : seriesNameById.get(s.id) || s.title,
+    series: s.isLogical ? s.title : s.volumes[0]?.metadataObj?.altSeries?.trim() || seriesNameById.get(s.id) || s.title,
+    aliases: Array.from(new Set(s.volumes.flatMap((volume) => [volume.metadataObj?.series, volume.metadataObj?.altSeries])
+      .map((title) => title?.trim())
+      .filter((title): title is string => Boolean(title)))).join(" "),
   }));
 
   const bookSeries = new Map<string, { entry: typeof bookEntries[number]; writers: Set<string> }>();
@@ -116,7 +123,7 @@ export async function searchManga({ query }: SearchParams) {
   const seriesMap = new Map<string, SeriesDoc>(seriesDocs.map((s) => [s.id, s]));
 
   const seriesSearch = new MiniSearch({
-    fields: ["title"],
+    fields: ["title", "aliases"],
     storeFields: ["id", "title", "slug", "isOneshot", "writer", "series"],
   });
 
@@ -154,6 +161,8 @@ export async function searchManga({ query }: SearchParams) {
     return {
       id: `volume-${vol.id}`,
       title: vol.metadataObj?.title || "",
+      altTitle: vol.metadataObj?.altTitle?.trim() || "",
+      altSeries: vol.metadataObj?.altSeries?.trim() || "",
       writer: vol.metadataObj?.writer || "",
       series: vol.metadataObj?.series || "",
       slug: vol.slug,
@@ -181,7 +190,7 @@ export async function searchManga({ query }: SearchParams) {
   const volumesMap = new Map<string, VolumeDoc>(volumeDocs.map((doc) => [doc.id, doc]));
 
   const volumeSearch = new MiniSearch({
-    fields: ["title", "writer", "series", "slug", "genres", "tags"],
+    fields: ["title", "altTitle", "series", "altSeries", "writer", "slug", "genres", "tags"],
     storeFields: ["id", "isOneshot"],
   });
 
@@ -198,9 +207,9 @@ export async function searchManga({ query }: SearchParams) {
       id: doc.id,
       section: doc.section,
       type: "volume",
-      title: doc.title,
+      title: getComicTitle(doc) || "",
       writer: doc.writer,
-      series: doc.series,
+      series: getComicSeriesTitle(doc) || "",
       slug: doc.slug,
       isOneshot: doc.isOneshot,
       score: res.score,
