@@ -12,10 +12,10 @@ import { loadUnrarWasmBinary } from "../src/lib/unrar.ts";
 import AdmZip from "adm-zip";
 import { parseComicInfoDocument } from "../src/lib/comicInfoDocument.ts";
 import { readComicInfoArchive, writeComicInfoArchive } from "../src/lib/comicInfoArchive.ts";
-import { readStoredComicArchive, writeStoredComicArchive } from "../src/lib/comicInfoStorage.ts";
+import { readStoredComicArchive, writeStoredComicArchive, verifyStoredComicArchive } from "../src/lib/comicInfoStorage.ts";
 import { getComicTitle, getComicSeriesTitle, getComicOriginalTitle } from "../src/lib/comicTitles.ts";
 import r2Client from "../src/lib/r2.ts";
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const xml = `<?xml version="1.0" encoding="utf-8"?>
 <ComicInfo>
@@ -93,6 +93,30 @@ test("updates only ComicInfo.xml and preserves other ZIP contents, its path and 
   assert.equal((await readComicInfoArchive(before)).xml, xml);
 });
 
+for (const [layout, fixture] of Object.entries({
+  signed: "UEsDBBQACAAIADe8b10AAAAAAAAAAAAAAAANAAAAQ29taWNJbmZvLnhtbLNxzs/NTPbMS8u3swnJLMlJtfMvykzPzEvMsdGH8G30EUoAUEsHCJqzgxwjAAAALgAAAFBLAwQUAAgACAA3vG9dAAAAAAAAAAAAAAAAEwAAAGNoYXB0ZXIvY29udGVudC50eHQLzUvOSMxLT01RSM7PK0nNKwEAUEsHCHqJJUUTAAAAEQAAAFBLAQIUAxQACAAIADe8b12as4McIwAAAC4AAAANAAAAAAAAAAAAAACAAQAAAABDb21pY0luZm8ueG1sUEsBAhQDFAAIAAgAN7xvXXqJJUUTAAAAEQAAABMAAAAAAAAAAAAAAIABXgAAAGNoYXB0ZXIvY29udGVudC50eHRQSwUGAAAAAAIAAgB8AAAAsgAAAAAA",
+  unsigned: "UEsDBBQACAAIANa7b10AAAAAAAAAAAAAAAANAAAAQ29taWNJbmZvLnhtbLNxzs/NTPbMS8u3swnJLMlJtfMvykzPzEvMsdGH8G30EUoAmrODHCMAAAAuAAAAUEsDBBQACAAIANa7b10AAAAAAAAAAAAAAAATAAAAY2hhcHRlci9jb250ZW50LnR4dAvNS85IzEtPTVFIzs8rSc0rAQB6iSVFEwAAABEAAABQSwECFAMUAAgACADWu29dmrODHCMAAAAuAAAADQAAAAAAAAAAAAAAgAEAAAAAQ29taWNJbmZvLnhtbFBLAQIUAxQACAAIANa7b116iSVFEwAAABEAAAATAAAAAAAAAAAAAACAAVoAAABjaGFwdGVyL2NvbnRlbnQudHh0UEsFBgAAAAACAAIAfAAAAKoAAAAAAA==",
+})) {
+  test(`edits streamed ZIP entries with ${layout} data descriptors without damaging other members`, async () => {
+    const data = Buffer.from(fixture, "base64");
+    const original = Buffer.from(data);
+    const before = new AdmZip(data);
+    assert.equal(before.getEntries()[0].header.flags & 8, 8);
+    assert.equal((await readComicInfoArchive(data)).xml, "<ComicInfo><Title>Original</Title></ComicInfo>");
+    const compressed = before.getEntry("chapter/content.txt")!.getCompressedData();
+    const updated = await writeComicInfoArchive(data, xml);
+    const after = new AdmZip(updated);
+    assert.equal((await readComicInfoArchive(updated)).xml, xml);
+    assert.equal(after.readAsText("chapter/content.txt"), "Unchanged content");
+    assert.deepEqual(after.getEntry("chapter/content.txt")!.getCompressedData(), compressed);
+    assert.deepEqual(after.getEntries().map((entry) => entry.entryName), before.getEntries().map((entry) => entry.entryName));
+    assert.ok(after.getEntries().every((entry) => (entry.header.flags & 8) === 0));
+    assert.deepEqual(data, original);
+    const repeated = await writeComicInfoArchive(updated, "<ComicInfo><Title>Another title</Title></ComicInfo>");
+    assert.equal(new AdmZip(repeated).readAsText("chapter/content.txt"), "Unchanged content");
+  });
+}
+
 test("creates ComicInfo.xml when absent and clears alternatives when removed", async () => {
   const archive = new AdmZip();
   archive.addFile("content.txt", Buffer.from("Unchanged"));
@@ -124,10 +148,12 @@ test("writes a local archive atomically and refuses stale edits", async () => {
     const saved = await writeStoredComicArchive(filePath, "local", original, data);
     assert.notEqual(saved.revision, original.revision);
     assert.deepEqual(await readFile(filePath), data);
+    await verifyStoredComicArchive(filePath, "local", saved);
     await assert.rejects(writeStoredComicArchive(filePath, "local", original, original.data), /conflict/);
     assert.deepEqual(await readFile(filePath), data);
     await writeStoredComicArchive(filePath, "local", saved, original.data);
     assert.deepEqual(await readFile(filePath), original.data);
+    await assert.rejects(verifyStoredComicArchive(filePath, "local", saved), /conflict/);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -137,18 +163,27 @@ test("updates cloud archives conditionally and preserves their object metadata",
   let data = Buffer.from("Original archive");
   let etag = '"original-etag"';
   const calls: PutObjectCommand[] = [];
-  context.mock.method(r2Client, "send", async (command: GetObjectCommand | PutObjectCommand) => {
+  const requests: unknown[] = [];
+  context.mock.method(r2Client, "send", async (command: GetObjectCommand | PutObjectCommand | HeadObjectCommand) => {
+    requests.push(command);
     if (command instanceof GetObjectCommand) {
       return { Body: { transformToByteArray: async () => data }, ETag: etag, ContentType: "application/zip", CacheControl: "private", ContentDisposition: "attachment", Metadata: { source: "library" } };
     }
     if (command.input.IfMatch !== etag) throw Object.assign(new Error("The object has changed"), { name: "PreconditionFailed" });
+    if (command instanceof HeadObjectCommand) return { ETag: etag, ContentLength: data.length };
     calls.push(command);
     data = Buffer.from(command.input.Body as Buffer);
     etag = '"updated-etag"';
     return { ETag: etag };
   });
   const original = await readStoredComicArchive("/library/manga/volume.cbz", "cloud");
+  assert.equal(original.data.buffer, data.buffer);
+  assert.equal(original.data.byteOffset, data.byteOffset);
   const saved = await writeStoredComicArchive("/library/manga/volume.cbz", "cloud", original, Buffer.from("Updated archive"));
+  await verifyStoredComicArchive("/library/manga/volume.cbz", "cloud", saved);
+  assert.equal(requests.filter((command) => command instanceof GetObjectCommand).length, 1);
+  assert.equal(requests.filter((command) => command instanceof HeadObjectCommand).length, 1);
+  await assert.rejects(verifyStoredComicArchive("/library/manga/volume.cbz", "cloud", original), { name: "PreconditionFailed" });
   assert.equal(saved.etag, '"updated-etag"');
   assert.equal(calls[0].input.Key, "library/manga/volume.cbz");
   assert.equal(calls[0].input.ContentType, "application/zip");

@@ -18,6 +18,12 @@ async function openRar(data: Buffer) {
   return createExtractorFromData({ data: Uint8Array.from(data).buffer, wasmBinary: Uint8Array.from(wasm).buffer });
 }
 
+function findZipComicInfo(zip: AdmZip) {
+  const entries = zip.getEntries().filter((entry) => !entry.isDirectory && isComicInfo(entry.entryName));
+  if (entries.length > 1) throw new Error("duplicateXml");
+  return entries[0];
+}
+
 export async function readComicInfoArchive(data: Buffer): Promise<{ xml: string; entryName: string }> {
   if (isRar(data)) {
     const extractor = await openRar(data);
@@ -29,22 +35,26 @@ export async function readComicInfoArchive(data: Buffer): Promise<{ xml: string;
     return { xml: Buffer.from(files[0].extraction).toString("utf8"), entryName: entries[0].name };
   }
   const zip = new AdmZip(data);
-  const entries = zip.getEntries().filter((entry) => !entry.isDirectory && isComicInfo(entry.entryName));
-  if (entries.length > 1) throw new Error("duplicateXml");
-  return entries[0]
-    ? { xml: entries[0].getData().toString("utf8"), entryName: entries[0].entryName }
+  const entry = findZipComicInfo(zip);
+  return entry
+    ? { xml: entry.getData().toString("utf8"), entryName: entry.entryName }
     : { xml: emptyXml, entryName: "ComicInfo.xml" };
 }
 
 export async function writeComicInfoArchive(data: Buffer, xml: string): Promise<Buffer> {
-  const { entryName } = await readComicInfoArchive(data);
   if (!isRar(data)) {
-    const zip = new AdmZip(data);
+    const zip = new AdmZip(data, { noSort: true });
+    const entryName = findZipComicInfo(zip)?.entryName ?? "ComicInfo.xml";
+    const entries = zip.getEntries();
+    if (entries.some((entry) => entry.header.flags & 1)) throw new Error("unsupportedArchive");
     if (zip.getEntry(entryName)) zip.updateFile(entryName, Buffer.from(xml, "utf8"));
     else zip.addFile(entryName, Buffer.from(xml, "utf8"));
+    // ADM-ZIP writes known sizes and CRCs into local headers without emitting data descriptors.
+    for (const entry of zip.getEntries()) entry.header.flags &= ~8;
     return zip.toBuffer();
   }
 
+  const { entryName } = await readComicInfoArchive(data);
   return writeRarComicInfo(data, xml, entryName);
 }
 

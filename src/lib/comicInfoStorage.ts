@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
+import { createReadStream } from "node:fs";
 import { readFile, writeFile, rename, rm, stat } from "node:fs/promises";
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import r2Client, { R2_BUCKET } from "./r2.ts";
 import type { StorageProvider } from "./types/manga.ts";
 
@@ -20,6 +21,26 @@ function revision(data: Buffer) {
   return createHash("sha256").update(data).digest("hex");
 }
 
+async function localRevision(filePath: string) {
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(filePath)) hash.update(chunk);
+  return hash.digest("hex");
+}
+
+export async function verifyStoredComicArchive(filePath: string, provider: StorageProvider, expected: ComicArchiveSnapshot): Promise<void> {
+  if (provider === "local") {
+    if (await localRevision(filePath) !== expected.revision) throw new Error("conflict");
+    return;
+  }
+  if (!expected.etag) throw new Error("conflict");
+  const response = await r2Client.send(new HeadObjectCommand({
+    Bucket: R2_BUCKET,
+    Key: filePath.replace(/^\//, ""),
+    IfMatch: expected.etag,
+  }));
+  if (response.ETag !== expected.etag || response.ContentLength !== expected.data.length) throw new Error("conflict");
+}
+
 export async function readStoredComicArchive(filePath: string, provider: StorageProvider): Promise<ComicArchiveSnapshot> {
   if (provider === "local") {
     const data = await readFile(filePath);
@@ -27,7 +48,8 @@ export async function readStoredComicArchive(filePath: string, provider: Storage
   }
   const response = await r2Client.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: filePath.replace(/^\//, "") }));
   if (!response.Body || !response.ETag) throw new Error("loadError");
-  const data = Buffer.from(await response.Body.transformToByteArray());
+  const bytes = await response.Body.transformToByteArray();
+  const data = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   return {
     data, revision: revision(data), etag: response.ETag,
     contentType: response.ContentType, cacheControl: response.CacheControl,
@@ -58,8 +80,7 @@ export async function writeStoredComicArchive(filePath: string, provider: Storag
   try {
     const attributes = await stat(filePath);
     await writeFile(temporary, data, { flag: "wx", mode: attributes.mode });
-    const current = await readStoredComicArchive(filePath, provider);
-    if (current.revision !== previous.revision) throw new Error("conflict");
+    if (await localRevision(filePath) !== previous.revision) throw new Error("conflict");
     await rename(temporary, filePath);
     return { data, revision: revision(data) };
   } finally {
