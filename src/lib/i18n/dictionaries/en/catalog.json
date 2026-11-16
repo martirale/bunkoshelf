@@ -50,7 +50,6 @@
     "logicalSeriesUpdateUnavailable": "Could not update the logical series. Refresh the page and check that the series are still available.",
     "editComicInfo": "Edit ComicInfo.xml",
     "comicInfoDescription": "Edit this volume’s XML. Saving updates the library file and its metadata in Bunko.",
-    "comicInfoTitlesHelp": "AltTitle and AltSeries become the main titles when populated. Title and Series remain the original titles.",
     "comicInfoLoading": "Loading XML…",
     "comicInfoSaving": "Saving…",
     "comicInfoSave": "Save changes",
@@ -64,6 +63,6 @@
     "comicInfoSyncError": "Could not update the database. The archive was restored to its previous version.",
     "comicInfoRestoreError": "Could not synchronize the database or restore the archive. Rescan the volume to synchronize its metadata.",
     "comicInfoUnauthorized": "You do not have permission to edit metadata.",
-    "comicInfoUnsupportedArchive": "This archive cannot be edited because it is protected, signed, or split into multiple volumes. The archive was not changed."
+    "comicInfoUnsupportedArchive": "This archive cannot be edited because it is protected, signed, locked, or split into multiple volumes. The archive was not changed."
   }
 }

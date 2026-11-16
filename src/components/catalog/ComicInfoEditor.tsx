@@ -91,24 +91,28 @@ export default function ComicInfoEditor({ volumeId, intl, disabled, onOpenChange
       <FilePenLineIcon size={16} />
     </button>
     {isOpen && createPortal(<Modal isOpen={isOpen} onClose={close}>
-      <form onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby={`${id}-title`} className="space-y-4 text-left">
-        <h2 id={`${id}-title`}>{labels.editComicInfo}</h2>
-        <p className="text-sm">{labels.comicInfoDescription}</p>
-        {loading ? <div className="flex items-center gap-2 py-12"><Loader2Icon size={20} className="animate-spin" />{labels.comicInfoLoading}</div> : revision && <>
-          <label htmlFor={`${id}-xml`} className="block text-sm">ComicInfo.xml</label>
-          <textarea id={`${id}-xml`} value={xml} onChange={(event) => setXml(event.target.value)} disabled={saving}
-            spellCheck={false} autoCapitalize="off" autoCorrect="off" aria-describedby={error ? `${id}-error` : undefined}
-            className="block w-full h-[45vh] resize-y rounded-lg border border-onix bg-pearl p-4 font-mono text-sm disabled:opacity-60" />
-          <p className="text-sm">{labels.comicInfoTitlesHelp}</p>
-        </>}
-        {error && <p id={`${id}-error`} role="alert" className="text-danger-alt">{error}</p>}
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="lightAlt" size="small" onClick={close} disabled={saving || loading}>{labels.comicInfoCancel}</Button>
-          <Button type="submit" variant="dark" size="small" disabled={loading || saving || !revision || xml === original}>
-            {saving ? <><Loader2Icon size={16} className="mr-2 animate-spin" />{labels.comicInfoSaving}</> : labels.comicInfoSave}
-          </Button>
-        </div>
-      </form>
+      <div role="dialog" aria-modal="true" aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`} className="max-w-7xl mx-auto p-2 max-h-[75dvh] overflow-y-auto text-left">
+        <h2 id={`${id}-title`} className="flex items-center mb-4">
+          <FilePenLineIcon size={24} className="mr-2" aria-hidden="true" />
+          {labels.editComicInfo}
+        </h2>
+        <p id={`${id}-description`} className="mb-4 text-sm">{labels.comicInfoDescription}</p>
+        <form onSubmit={submit} className="space-y-4">
+          {loading ? <div className="flex items-center gap-2 py-12"><Loader2Icon size={20} className="animate-spin" />{labels.comicInfoLoading}</div> : revision && <div>
+            <label htmlFor={`${id}-xml`} className="block text-sm uppercase mb-1">ComicInfo.xml</label>
+            <textarea id={`${id}-xml`} value={xml} onChange={(event) => setXml(event.target.value)} disabled={saving}
+              spellCheck={false} autoCapitalize="off" autoCorrect="off" aria-describedby={error ? `${id}-error` : undefined}
+              className="block w-full h-[45vh] resize-y rounded-lg border border-neutral-700 bg-onix text-pearl px-5 py-3 font-mono text-sm disabled:opacity-60" />
+          </div>}
+          {error && <p id={`${id}-error`} role="alert" className="text-danger-alt">{error}</p>}
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="dark" onClick={close} disabled={saving || loading} className="px-8 py-4 disabled:cursor-not-allowed disabled:opacity-50">{labels.comicInfoCancel}</Button>
+            <Button type="submit" variant="lightAlt" disabled={loading || saving || !revision || xml === original} className="px-8 py-4 disabled:cursor-not-allowed disabled:opacity-50">
+              {saving ? <><Loader2Icon size={16} className="mr-2 animate-spin" />{labels.comicInfoSaving}</> : labels.comicInfoSave}
+            </Button>
+          </div>
+        </form>
+      </div>
     </Modal>, document.body)}
   </>;
 }
