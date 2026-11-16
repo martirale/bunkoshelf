@@ -195,6 +195,7 @@ export interface CatalogLibraryVolume {
   section: LibrarySection | "books";
   title: string | null;
   series: string | null;
+  seriesSlug: string;
   number: number | null;
   year: number | null;
   writer: string | null;
@@ -715,6 +716,7 @@ export async function listPagedCatalogLibraryVolumes(
       slug: string;
       title: string | null;
       series: string | null;
+      series_slug: string;
       number: number | null;
       year: number | null;
       writer: string | null;
@@ -733,6 +735,7 @@ export async function listPagedCatalogLibraryVolumes(
             mv.slug,
             COALESCE(NULLIF(BTRIM(vm.alt_title), ''), vm.title) AS title,
             COALESCE(NULLIF(BTRIM(vm.alt_series), ''), ms.title) AS series,
+            ms.slug AS series_slug,
             vm.number,
             vm.year,
             vm.writer,
@@ -759,6 +762,7 @@ export async function listPagedCatalogLibraryVolumes(
             bv.slug,
             bm.title,
             bs.title AS series,
+            bs.slug AS series_slug,
             bv.number,
             SUBSTRING(bm.published_at FROM '([0-9]{4})')::integer AS year,
             (
@@ -796,6 +800,7 @@ export async function listPagedCatalogLibraryVolumes(
           slug,
           title,
           series,
+          series_slug,
           number,
           year,
           writer,
@@ -829,6 +834,7 @@ export async function listPagedCatalogLibraryVolumes(
         : getLibrarySection(row.library_section)) as CatalogLibraryVolume["section"],
       title: row.title,
       series: row.series,
+      seriesSlug: row.series_slug,
       number: row.number,
       year: row.year,
       writer: row.writer,

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CheckIcon, HeartIcon } from "lucide-react";
 import Pagination from "@/components/ui/Pagination";
 import CatalogLibraryActions from "@/components/catalog/CatalogLibraryActions";
-import { getLibraryVolumeHref } from "@/lib/librarySection";
+import { getLibrarySeriesHref, getLibraryVolumeHref } from "@/lib/librarySection";
 import { ageRatingMap, normalizeCommaSeparatedText } from "@/lib/utils";
 import type { CatalogLibraryVolume, PaginatedResult } from "@/lib/db/library";
 import type { Dictionary, Locale } from "@/lib/types";
@@ -59,6 +59,18 @@ function getCatalogVolumeHref(
   return getLibraryVolumeHref(lang, section, slug);
 }
 
+function getCatalogSeriesHref(
+  lang: Locale,
+  section: CatalogLibraryVolume["section"],
+  slug: string
+) {
+  if (section === "books") {
+    return `/${lang}/books/${slug}`;
+  }
+
+  return getLibrarySeriesHref(lang, section, slug);
+}
+
 export default function CatalogLibraryTable({
   data,
   intl,
@@ -101,16 +113,25 @@ export default function CatalogLibraryTable({
                     </div>
                   </td>
                   <td className="p-4">
-                    <Link
-                      href={getCatalogVolumeHref(lang, volume.section, volume.slug)}
-                      className="block max-w-[20rem] whitespace-normal break-words leading-snug hover:underline"
-                    >
-                      {renderValue(volume.title)}
-                    </Link>
+                    <div className="max-w-[20rem] whitespace-normal break-words leading-snug">
+                      <Link
+                        href={getCatalogVolumeHref(lang, volume.section, volume.slug)}
+                        className="hover:underline"
+                      >
+                        {renderValue(volume.title)}
+                      </Link>
+                    </div>
                   </td>
                   <td className="p-4">
                     <div className="max-w-[18rem] whitespace-normal break-words leading-snug">
-                      {renderValue(volume.series)}
+                      {volume.series ? (
+                        <Link
+                          href={getCatalogSeriesHref(lang, volume.section, volume.seriesSlug)}
+                          className="hover:underline"
+                        >
+                          {volume.series}
+                        </Link>
+                      ) : renderValue(volume.series)}
                     </div>
                   </td>
                   <td className="p-4 text-center whitespace-nowrap">{renderValue(volume.number)}</td>
