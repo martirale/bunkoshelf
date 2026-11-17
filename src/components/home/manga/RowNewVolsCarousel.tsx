@@ -1,5 +1,7 @@
 "use client";
 
+import { getComicTitle } from "@/lib/comicTitles";
+
 import { useRef, useState } from "react";
 import MangaCard from "@/components/ui/MangaCard";
 import { BookPlusIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
@@ -15,7 +17,7 @@ export interface VolumeEntry {
   isOneshot: boolean;
   coverImage: string | null;
   section: LibrarySection;
-  meta: { title?: string | null } | null;
+  meta: { title?: string | null; altTitle?: string | null } | null;
   progressRatio?: number | null;
   href?: string;
 }
@@ -108,7 +110,7 @@ export default function RowNewVolsCarousel({ entries, lang, intl }: RowNewVolsCa
         {entries.map((entry) => (
           <div key={entry.slug} className="shrink-0 w-1/2 md:w-2/5 2xl:w-1/4">
             <MangaCard
-              title={entry.meta?.title ?? entry.title}
+              title={getComicTitle(entry.meta) ?? entry.title}
               href={entry.href ?? getLibraryVolumeHref(lang, entry.section, entry.slug)}
               isSeries={false}
               isOneshot={entry.isOneshot}

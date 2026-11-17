@@ -123,7 +123,7 @@ async function HomeContent({
         isOneshot: vol.series?.isOneshot === true,
         coverImage: getMangaCoverUrl(vol),
         section: getLibrarySection(vol.series.librarySection),
-        meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
+        meta: vol.metadataObj ? { title: vol.metadataObj.title, altTitle: vol.metadataObj.altTitle } : null,
         lastPage: progress?.lastPage ?? 0,
         totalPages: progress?.totalPages ?? 0,
         lastReadAt: progress?.lastReadAt ? new Date(progress.lastReadAt) : null,
@@ -171,7 +171,7 @@ async function HomeContent({
         isOneshot: vol.series?.isOneshot === true,
         coverImage: getMangaCoverUrl(vol),
         section: getLibrarySection(vol.series.librarySection),
-        meta: vol.metadataObj ? { title: vol.metadataObj.title } : null,
+        meta: vol.metadataObj ? { title: vol.metadataObj.title, altTitle: vol.metadataObj.altTitle } : null,
       } satisfies VolumeEntry,
     }));
 

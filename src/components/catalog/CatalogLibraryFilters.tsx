@@ -17,10 +17,13 @@ export default function CatalogLibraryFilters({ intl, options }: {
     other: catalog.othersColumn,
   };
   const names = { series: labels.series, author: labels.authors, year: labels.years, publisher: labels.publishers, age: labels.ages, language: labels.languages, type: labels.types };
+  const typeOrder = ["manga", "comic", "books", "other"];
   const groups = catalogFilterKeys.map((key) => ({
     key,
     label: names[key],
-    options: options[key].map((option) => ({
+    options: (key === "type"
+      ? [...options[key]].sort((a, b) => typeOrder.indexOf(a.value) - typeOrder.indexOf(b.value))
+      : options[key]).map((option) => ({
       ...option,
       label: key === "type" ? types[option.value] : key === "author" && option.value === "__unknown__" ? catalog.unknownAuthor : option.label,
     })),

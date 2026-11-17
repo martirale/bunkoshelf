@@ -1,5 +1,7 @@
 "use client";
 
+import { getComicTitle } from "@/lib/comicTitles";
+
 import Link from "next/link";
 import Image from "next/image";
 import { LibraryBigIcon, ChevronRightIcon } from "lucide-react";
@@ -19,7 +21,7 @@ export interface HomeKeepReadingEntry {
   isOneshot: boolean;
   coverImage: string | null;
   section: LibrarySection;
-  meta: { title?: string | null } | null;
+  meta: { title?: string | null; altTitle?: string | null } | null;
   lastPage: number;
   totalPages: number;
   progressRatio?: number;
@@ -65,7 +67,7 @@ export default function HeroKeepRead({
       <div className="w-full px-12 md:px-0">
         {entry ? (
           <MangaCard
-            title={entry.meta?.title ?? entry.title}
+            title={getComicTitle(entry.meta) ?? entry.title}
             href={entry.href ?? `/${lang}/${entry.section}/volume/${entry.slug}`}
             isSeries={false}
             isOneshot={entry.isOneshot}

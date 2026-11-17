@@ -1,4 +1,4 @@
-import { buildCatalogFilterSql, type CatalogFilters, type CatalogFilterOptions } from "@/lib/catalogFilters";
+import { normalizeCatalogAgeRating, buildCatalogFilterSql, type CatalogFilters, type CatalogFilterOptions } from "@/lib/catalogFilters";
 import { cacheLife, cacheTag } from "next/cache";
 import {
   getLibrarySection,
@@ -899,7 +899,7 @@ export async function listCatalogLibraryFilterOptions(): Promise<CatalogFilterOp
     for (const author of authors.length ? authors : ["__unknown__"]) add("author", author);
     add("year", row.year);
     add("publisher", row.publisher);
-    add("age", row.age_rating);
+    add("age", normalizeCatalogAgeRating(row.age_rating));
     add("language", row.language_iso);
     add("type", row.library_section);
   }

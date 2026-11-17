@@ -6,6 +6,7 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as jsxRuntime from "react/jsx-runtime";
+import { ageRatingMap, comicAgeRatingMinimum } from "../src/lib/mangaMetadata.ts";
 import { canViewAgeRating } from "../src/lib/parentalControl.ts";
 
 function load(path, dependencies = {}) {
@@ -19,7 +20,7 @@ function load(path, dependencies = {}) {
 
 const { default: ts } = await import("typescript");
 const libraryFilters = load("../src/lib/libraryFilters.ts", { typescript: ts });
-const catalogFilters = load("../src/lib/catalogFilters.ts", { typescript: ts, "./libraryFilters": libraryFilters });
+const catalogFilters = load("../src/lib/catalogFilters.ts", { typescript: ts, "./libraryFilters": libraryFilters, "./mangaMetadata": { ageRatingMap, comicAgeRatingMinimum } });
 const unrestricted = { enabled: false, maxAge: null, allowUnrated: true };
 
 function databaseModules({ rows = [], policy = unrestricted } = {}) {
@@ -70,13 +71,15 @@ test("filter URLs preserve publisher punctuation, legacy selections and unrelate
 
 test("catalog filters combine seven categories with parameterized values", async () => {
   const filters = catalogFilters.parseCatalogFilters({
-    series: "manga:series", author: ["First", "Second"], year: "2024", publisher: ["Publisher, Inc.", "O'Reilly"], age: "Teen", language: "es", type: ["manga", "books"],
+    series: "manga:series", author: ["First", "Second"], year: "2024", publisher: ["Publisher, Inc.", "O'Reilly"], age: "13+", language: "es", type: ["manga", "books"],
   });
   const { library, calls } = databaseModules();
   await library.listPagedCatalogLibraryVolumes({ page: 3, pageSize: 1, filters });
   const count = calls.find((call) => call.kind === "count");
   const rows = calls.find((call) => call.kind === "rows");
-  assert.equal(JSON.stringify(count.params.slice(1)), JSON.stringify(Object.values(filters)));
+  const expectedValues = Object.values(filters);
+  expectedValues[4] = ["13+", "Teen"];
+  assert.equal(JSON.stringify(count.params.slice(1)), JSON.stringify(expectedValues));
   assert.deepEqual([...rows.params.slice(-2)], [1, 2]);
   assert.equal(rows.params.length, count.params.length + 2);
   assert.ok(rows.sql.indexOf("WHERE library_section ||") < rows.sql.lastIndexOf("LIMIT"));
@@ -120,7 +123,26 @@ test("catalog options cover every visible work and omit empty values", async () 
   assert.deepEqual([...options.series.map((option) => option.value)].sort(), ["books:same", "manga:same"]);
   assert.deepEqual([...options.author.map((option) => option.value)].sort(), ["First", "Second", "__unknown__"].sort());
   assert.deepEqual([...options.publisher.map((option) => option.value)].sort(), ["Other publisher", "Publisher, Inc."]);
+  assert.deepEqual([...options.age.map((option) => option.value)], ["0+"]);
   assert.ok(!/FROM catalog_volumes\s+LIMIT/.test(calls[0].sql));
+});
+
+test("age filters show unique numeric ages and match equivalent metadata ratings", async () => {
+  const ratings = ["0+", "Everyone", "G", "Teen", "13+", "PG", "10+", "M", "16+", "Rating Pending", null];
+  const rows = ratings.map((age_rating) => ({ series_slug: "series", series: "Series", writer: "Writer", publisher: null, year: null, language_iso: "es", age_rating, library_section: "manga" }));
+  const { library } = databaseModules({ rows });
+  const options = await library.listCatalogLibraryFilterOptions();
+  assert.deepEqual([...options.age.map((option) => option.value)], ["0+", "10+", "13+", "16+"]);
+  for (const [age, expected] of [
+    ["0+", ["0+", "Early Childhood", "Everyone", "G"]],
+    ["10+", ["10+", "Everyone 10+", "PG"]],
+    ["13+", ["13+", "Teen"]],
+    ["16+", ["16+", "M"]],
+  ]) {
+    const params = [];
+    catalogFilters.buildCatalogFilterSql({ age: [age] }, params);
+    assert.deepEqual([...params[0]].sort(), expected.sort());
+  }
 });
 
 test("genre and tag links open the matching library with oneshots included", () => {
@@ -171,6 +193,12 @@ test("catalog and library publisher filters execute correctly in PostgreSQL", as
     [{ series: ["manga:manga"], author: ["Second"], year: ["2024"], publisher: ["Publisher, Inc."], age: ["Teen"], language: ["es"], type: ["manga"] }, ["manga-1"]],
     [{ author: ["__unknown__"], type: ["books"] }, ["book-2"]],
     [{ year: ["1900"] }, []],
+    [{ age: ["13+"] }, ["manga-1", "book-1"]],
+    [{ age: ["10+"] }, ["comic-1"]],
+    [{ age: ["16+"] }, ["other-1"]],
+    [{ age: ["0+"] }, ["manga-2", "other-2", "book-2"]],
+    [{ age: ["6+"] }, ["comic-2"]],
+    [{ age: ["10+", "16+"] }, ["comic-1", "other-1"]],
   ]) {
     calls.length = 0;
     await library.listPagedCatalogLibraryVolumes({ filters, pageSize: 50 });

@@ -17,6 +17,15 @@ VALUES ('book', 'book', 'Book series', 'book', '/book');
 INSERT INTO book_volumes (id, series_id, slug, title, sort_title, filename, full_path)
 SELECT 'book-' || n, 'book', 'book-' || n, 'Book ' || n, 'book ' || n, n || '.epub', '/book/' || n || '.epub' FROM generate_series(1, 2) n;
 INSERT INTO book_metadata (id, volume_id, title, publisher, published_at, language, age_rating, package_path)
-SELECT id, id, title, CASE WHEN id = 'book-1' THEN 'Publisher, Inc.' ELSE 'Other' END, '2024-01-01', 'es', 'Teen', 'content.opf' FROM book_volumes;
+SELECT id, id, title, CASE WHEN id = 'book-1' THEN 'Publisher, Inc.' ELSE 'Other' END, '2024-01-01', 'es', CASE WHEN id = 'book-1' THEN '13+' ELSE '0+' END, 'content.opf' FROM book_volumes;
 INSERT INTO book_people (id, metadata_id, name, kind, role, position)
 VALUES ('book-author', 'book-1', 'Second', 'creator', 'aut', 0);
+
+UPDATE volume_metadata SET age_rating = CASE id
+  WHEN 'comic-1' THEN 'PG'
+  WHEN 'other-1' THEN 'M'
+  WHEN 'manga-2' THEN '0+'
+  WHEN 'other-2' THEN 'Everyone'
+  WHEN 'comic-2' THEN 'Kids to Adults'
+  ELSE age_rating
+END;

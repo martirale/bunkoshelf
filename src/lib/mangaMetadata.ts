@@ -1,25 +1,25 @@
+export const comicAgeRatingMinimum: Record<string, number | null> = {
+  Unknown: null,
+  "Adults Only 18+": 18,
+  "Early Childhood": 0,
+  Everyone: 0,
+  "Everyone 10+": 10,
+  G: 0,
+  "Kids to Adults": 6,
+  M: 16,
+  "MA15+": 15,
+  "Mature 17+": 17,
+  PG: 10,
+  "R18+": 18,
+  "Rating Pending": null,
+  Teen: 13,
+  "X18+": 18,
+};
+
 export function ageRatingMap(ageRating: string | null | undefined): number | null {
   if (!ageRating || typeof ageRating !== "string") return null;
 
-  const mapping: Record<string, number | null> = {
-    Unknown: null,
-    "Adults Only 18+": 18,
-    "Early Childhood": 0,
-    Everyone: 0,
-    "Everyone 10+": 10,
-    G: 0,
-    "Kids to Adults": 6,
-    M: 16,
-    "MA15+": 15,
-    "Mature 17+": 17,
-    PG: 10,
-    "R18+": 18,
-    "Rating Pending": null,
-    Teen: 13,
-    "X18+": 18,
-  };
-
-  return mapping[ageRating] ?? null;
+  return comicAgeRatingMinimum[ageRating] ?? null;
 }
 
 export function normalizeCommaSeparatedText(
