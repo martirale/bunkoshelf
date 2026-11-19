@@ -14,7 +14,7 @@ const DOWNLOADS = "downloads";
 const OPERATIONS = "operations";
 
 export type OfflineDownloadStatus = "queued" | "downloading" | "ready" | "error";
-export type OfflineOperationKind = "favorite" | "read" | "progress" | "series-favorite" | "book-progress";
+export type OfflineOperationKind = "favorite" | "read" | "progress" | "series-favorite" | "book-progress" | "volume-rating" | "book-rating";
 
 export interface OfflineVolume {
   id: string;
@@ -33,8 +33,11 @@ export interface OfflineVolume {
   book?: OfflineBookDetails;
   coverUrl: string | null;
   downloadedAt?: string;
+  pendingProgressId?: string;
   isRead: boolean;
   isFavorite: boolean;
+  personalRating?: number | null;
+  lastReadAt?: string | null;
   lastPage: number;
   totalPages: number;
 }
@@ -102,6 +105,8 @@ interface OfflineVolumeManifest {
   coverUrl: string | null;
   isRead: boolean;
   isFavorite: boolean;
+  personalRating?: number | null;
+  lastReadAt?: string | null;
   lastPage: number;
   totalPages: number;
 }
@@ -260,6 +265,8 @@ async function saveManifest(userId: string, manifest: OfflineVolumeManifest) {
     coverUrl: manifest.coverUrl,
     isRead: manifest.isRead,
     isFavorite: manifest.isFavorite,
+    personalRating: manifest.personalRating,
+    lastReadAt: manifest.lastReadAt,
     lastPage: manifest.lastPage,
     totalPages: manifest.totalPages,
   });
@@ -476,7 +483,6 @@ export async function downloadOfflineVolume(
   manifest: OfflineVolumeManifest,
   onProgress?: (download: OfflineDownload) => void,
 ) {
-  if (!manifest.book) return saveOfflineDownload(userId, manifest, onProgress);
   const key = downloadKey(userId, manifest.id);
   const existing = activeDownloads.get(key);
   if (existing) return existing;
@@ -495,17 +501,49 @@ export async function downloadVolumeBySlug(userId: string, section: OfflineLibra
   return downloadOfflineVolume(userId, data.volume, onProgress);
 }
 
-export async function downloadSeriesBySlug(userId: string, section: OfflineLibrarySection, slug: string, onProgress?: (completed: number, total: number) => void) {
-  const data = await fetchManifest(section, "series", slug);
-  const volumes = data.volumes ?? [];
-  if (!volumes.length) throw new Error("La serie no tiene tomos descargables");
-  let completed = 0;
-  for (const volume of volumes) {
-    if (section !== "books" || (await getDownload(userId, volume.id))?.status !== "ready") {
-      await downloadOfflineVolume(userId, volume);
+interface SeriesDownloadProgress {
+  completed: number;
+  total: number;
+  current: number;
+}
+
+const seriesDownloads = new Map<string, SeriesDownloadProgress>();
+
+function seriesDownloadKey(userId: string, section: OfflineLibrarySection, slug: string) {
+  return JSON.stringify([userId, section, slug]);
+}
+
+export function getSeriesDownload(userId: string, section: OfflineLibrarySection, slug: string) {
+  return seriesDownloads.get(seriesDownloadKey(userId, section, slug));
+}
+
+export async function downloadSeriesBySlug(userId: string, section: OfflineLibrarySection, slug: string) {
+  const key = seriesDownloadKey(userId, section, slug);
+  if (seriesDownloads.has(key)) return;
+
+  function publish(completed: number, total: number, current = 0) {
+    seriesDownloads.set(key, { completed, total, current });
+    window.dispatchEvent(new Event("bunko:series-download"));
+  }
+
+  publish(0, 1);
+  try {
+    const data = await fetchManifest(section, "series", slug);
+    const volumes = data.volumes ?? [];
+    if (!volumes.length) throw new Error("La serie no tiene tomos descargables");
+    publish(0, volumes.length);
+    for (const [index, volume] of volumes.entries()) {
+      if ((await getDownload(userId, volume.id))?.status !== "ready") {
+        await downloadOfflineVolume(userId, volume, (download) => {
+          const fraction = download.totalPages ? download.completedPages / download.totalPages : 0;
+          publish(index, volumes.length, fraction);
+        });
+      }
+      publish(index + 1, volumes.length);
     }
-    completed++;
-    onProgress?.(completed, volumes.length);
+  } finally {
+    seriesDownloads.delete(key);
+    window.dispatchEvent(new Event("bunko:series-download"));
   }
 }
 
@@ -531,7 +569,7 @@ export async function removeOfflineSeries(userId: string, seriesId: string) {
   await Promise.all(volumes.filter((volume) => volume.seriesId === seriesId).map((volume) => removeOfflineVolume(userId, volume.id)));
 }
 
-export async function updateOfflineVolume(userId: string, volumeId: string, update: Partial<Pick<OfflineVolume, "isRead" | "isFavorite" | "lastPage" | "totalPages">>) {
+export async function updateOfflineVolume(userId: string, volumeId: string, update: Partial<Pick<OfflineVolume, "isRead" | "isFavorite" | "lastPage" | "totalPages" | "lastReadAt">>) {
   const db = await openOfflineLibrary();
   const tx = db.transaction(VOLUMES, "readwrite");
   const stored = await request<(OfflineVolume & { key: string }) | undefined>(tx.objectStore(VOLUMES).get(volumeKey(userId, volumeId)));
@@ -539,6 +577,71 @@ export async function updateOfflineVolume(userId: string, volumeId: string, upda
   await transactionDone(tx);
   db.close();
   emitChange();
+}
+
+export async function saveOfflineMangaProgress(userId: string, volumeId: string, position: {
+  lastPage: number;
+  totalPages: number;
+  lastReadAt: string;
+  date: string;
+}, queue: boolean) {
+  const db = await openOfflineLibrary();
+  try {
+    const tx = db.transaction([VOLUMES, OPERATIONS], "readwrite");
+    const volumes = tx.objectStore(VOLUMES);
+    const operations = tx.objectStore(OPERATIONS);
+    const key = volumeKey(userId, volumeId);
+    const volume = await request<(OfflineVolume & { key: string }) | undefined>(volumes.get(key));
+    if (volume && (!volume.lastReadAt || volume.lastReadAt <= position.lastReadAt)) {
+      let pendingProgressId = volume.pendingProgressId;
+      const isRead = position.lastPage >= position.totalPages - 1;
+      if (queue) {
+        const pending = pendingProgressId
+          ? await request<OfflineOperation | undefined>(operations.get(pendingProgressId))
+          : undefined;
+        if (pending && pending.payload.date === position.date
+          && (isRead || Number(pending.payload.lastPage) < Number(pending.payload.totalPages) - 1)) {
+          operations.delete(pending.id);
+        }
+        pendingProgressId = crypto.randomUUID();
+        operations.put({
+          id: pendingProgressId, userId, kind: "progress",
+          payload: { ...position, volumeSlug: volume.slug },
+          createdAt: position.lastReadAt,
+        } satisfies OfflineOperation);
+      }
+      const { lastPage, totalPages, lastReadAt } = position;
+      volumes.put({ ...volume, lastPage, totalPages, lastReadAt, isRead, pendingProgressId });
+    }
+    await transactionDone(tx);
+    if (queue) emitChange();
+  } finally {
+    db.close();
+  }
+}
+
+export async function saveOfflineRating(userId: string, volumeId: string, rating: number | null, queue: boolean) {
+  const db = await openOfflineLibrary();
+  try {
+    const tx = db.transaction([VOLUMES, OPERATIONS], "readwrite");
+    const store = tx.objectStore(VOLUMES);
+    const volume = await request<(OfflineVolume & { key: string }) | undefined>(store.get(volumeKey(userId, volumeId)));
+    if (volume) {
+      store.put({ ...volume, personalRating: rating });
+      if (queue) {
+        tx.objectStore(OPERATIONS).put({
+          id: crypto.randomUUID(), userId, kind: volume.book ? "book-rating" : "volume-rating",
+          payload: { volumeId, volumeSlug: volume.slug, rating },
+          createdAt: new Date().toISOString(),
+        } satisfies OfflineOperation);
+      }
+    }
+    await transactionDone(tx);
+    if (volume) emitChange();
+    return !!volume;
+  } finally {
+    db.close();
+  }
 }
 
 export async function enqueueOfflineOperation(userId: string, kind: OfflineOperationKind, payload: Record<string, unknown>) {
@@ -603,7 +706,7 @@ export async function resumeOfflineDownloads(userId: string) {
       id: volume.id, slug: volume.slug, section: volume.section, title: volume.title,
       series: { id: volume.seriesId, slug: volume.seriesSlug, title: volume.seriesTitle, isOneshot: volume.isOneshot, status: volume.seriesStatus, isLogical: volume.seriesIsLogical },
       mangaStyle: volume.mangaStyle, metadata: volume.metadata, book: volume.book, coverUrl: volume.coverUrl,
-      isRead: volume.isRead, isFavorite: volume.isFavorite, lastPage: volume.lastPage, totalPages: volume.totalPages,
+      isRead: volume.isRead, isFavorite: volume.isFavorite, personalRating: volume.personalRating, lastReadAt: volume.lastReadAt, lastPage: volume.lastPage, totalPages: volume.totalPages,
     });
   }
   db.close();

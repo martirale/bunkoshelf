@@ -1963,7 +1963,8 @@ export async function listSeries(
 }
 
 export async function findSeriesBySlugBasic(
-  slug: string
+  slug: string,
+  section?: LibrarySeries["librarySection"],
 ): Promise<LibrarySeries | null> {
   const row = await queryOne<{
     id: string;
@@ -1992,10 +1993,10 @@ export async function findSeriesBySlugBasic(
         created_at,
         updated_at
       FROM manga_series
-      WHERE slug = $1
+      WHERE slug = $1 AND ($2::text IS NULL OR library_section = $2)
       LIMIT 1
     `,
-    [slug]
+    [slug, section ?? null]
   );
 
   if (!row) {

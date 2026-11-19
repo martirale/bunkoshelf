@@ -37,6 +37,7 @@ export async function getOfflineBookManifest(user: Session, volume: BookVolume, 
     coverUrl: getBookCoverUrl(volume.slug, volume.metadata.coverPath),
     isRead: progress?.isRead ?? false,
     isFavorite: progress?.isFavorite ?? false,
+    personalRating: progress?.personalRating ?? null,
     lastPage: 0,
     totalPages: 1,
   };

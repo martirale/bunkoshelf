@@ -119,6 +119,9 @@ test("sync applies EPUB locations for the session and keeps a newer server posit
     },
     "@/lib/db/query": { queryOne: async () => null, execute: async () => {} },
     "@/actions/favorites": {},
+    "@/actions/rating": {},
+    "@/actions/books-rating": {},
+    "@/lib/db/library": {},
     "@/actions/read": {},
     "@/actions/progress": {},
   });
@@ -182,4 +185,103 @@ test("the service worker caches the EPUB reader chunk and reopens the local libr
   online = false;
   assert.equal(await request(chunk, "cors"), "epub-reader");
   assert.equal(await request("/en/books/series", "navigate"), "app-shell");
+});
+
+test("comic progress and ratings persist across reopening and sync independently", async () => {
+  const { indexedDB, stores } = memoryDatabase();
+  const library = load("../src/lib/client/offlineLibrary.ts", {
+    "@/lib/parentalControl": { canViewAgeRating },
+  }, { indexedDB, window: new EventTarget(), Event, crypto });
+  stores.get("volumes").set("alice:comic", {
+    key: "alice:comic", userId: "alice", id: "comic", section: "comic", slug: "first",
+    lastPage: 0, totalPages: 20, isRead: false,
+  });
+  const save = (lastPage, seconds) => library.saveOfflineMangaProgress("alice", "comic", {
+    lastPage, totalPages: 20, lastReadAt: `2026-01-03T00:00:${seconds}.000Z`, date: "2026-01-02",
+  }, true);
+
+  await save(4, "01");
+  await save(10, "02");
+  assert.equal((await library.getOfflineVolume("alice", "comic")).lastPage, 10);
+  assert.equal(stores.get("operations").size, 1);
+  await save(4, "01");
+  assert.equal((await library.getOfflineVolume("alice", "comic")).lastPage, 10);
+  await save(19, "03");
+  await save(18, "04");
+  await library.saveOfflineRating("alice", "comic", 8.5, true);
+  await library.saveOfflineRating("alice", "comic", null, true);
+  const volume = await library.getOfflineVolume("alice", "comic");
+  assert.equal(volume.lastPage, 18);
+  assert.equal(volume.personalRating, null);
+  const operations = [...stores.get("operations").values()];
+  assert.deepEqual(operations.map((operation) => operation.kind), ["progress", "progress", "volume-rating", "volume-rating"]);
+  assert.deepEqual(operations.slice(0, 2).map((operation) => operation.payload.lastPage), [19, 18]);
+  assert.deepEqual(operations.slice(2).map((operation) => operation.payload.rating), [8.5, null]);
+});
+
+test("a series reports progress throughout its downloads and ignores duplicate starts", async () => {
+  const { indexedDB } = memoryDatabase();
+  const events = new EventTarget();
+  const urls = [];
+  let release;
+  const manifestResponse = new Promise((resolve) => { release = resolve; });
+  const library = load("../src/lib/client/offlineLibrary.ts", {
+    "@/lib/parentalControl": { canViewAgeRating }, epubjs: {},
+  }, {
+    indexedDB, window: events, Event, navigator: { onLine: true },
+    fetch: async (url) => {
+      urls.push(url);
+      if (url.includes("/series/")) return manifestResponse;
+      return new Response(new Blob(["EPUB"]));
+    },
+  });
+
+  const snapshot = () => library.getSeriesDownload("alice", "books", "sample");
+  const seen = [];
+  events.addEventListener("bunko:series-download", () => seen.push(snapshot()));
+  const first = library.downloadSeriesBySlug("alice", "books", "sample");
+  await library.downloadSeriesBySlug("alice", "books", "sample");
+  assert.equal(snapshot().completed, 0);
+  assert.deepEqual(urls, ["/api/offline/library/books/series/sample"]);
+  release(Response.json({ volumes: ["first", "second"].map((id) => ({
+    id, slug: id, section: "books", series: { id: "series" }, book: {},
+  })) }));
+  await first;
+  assert.ok(seen.some((progress) => progress?.total === 2 && progress.completed === 1));
+  assert.ok(seen.some((progress) => progress?.total === 2 && progress.completed === 2));
+  assert.equal(snapshot(), undefined);
+  assert.equal(urls.length, 3);
+});
+
+test("the offline sync endpoint applies and clears ratings for the correct volume and library", async () => {
+  const ratings = [];
+  const { POST } = load("../src/app/api/offline/sync/route.ts", {
+    "next/server": { NextResponse: { json: Response.json.bind(Response) } },
+    "@paralleldrive/cuid2": { createId: () => "id" },
+    "@/lib/auth/verifySession": { verifySession: async () => ({ id: "alice" }) },
+    "@/lib/clubs/access": {
+      canAccessBookVolume: async () => true,
+      canAccessLibraryVolume: async (_user, id) => id !== "hidden",
+    },
+    "@/lib/db/clubs": {},
+    "@/lib/db/library": { findVolumeBySlug: async ({ slug }) => ({ id: slug }) },
+    "@/lib/db/books/library": { findBookVolumeBySlug: async (slug) => ({ id: slug }) },
+    "@/lib/db/books/reading": {},
+    "@/lib/db/query": { queryOne: async () => null, execute: async () => {} },
+    "@/actions/rating": { updatePersonalRating: async (rating) => { ratings.push(["comic", rating]); return { success: true }; } },
+    "@/actions/books-rating": { updateBookRating: async (rating) => { ratings.push(["book", rating]); return { success: true }; } },
+    "@/actions/favorites": {}, "@/actions/read": {}, "@/actions/progress": {},
+  });
+  const operation = (id, kind, volumeId, rating) => ({ id, kind, payload: { volumeSlug: volumeId, volumeId, rating } });
+  const response = await POST({ json: async () => ({ operations: [
+    operation("1", "volume-rating", "comic", 8.5),
+    operation("2", "book-rating", "book", null),
+    operation("3", "volume-rating", "hidden", 9),
+    operation("4", "book-rating", "book", "9"),
+  ] }) });
+  assert.deepEqual(await response.json(), { completed: ["1", "2"] });
+  assert.deepEqual(JSON.parse(JSON.stringify(ratings)), [
+    ["comic", { volumeId: "comic", rating: 8.5 }],
+    ["book", { volumeId: "book", rating: null }],
+  ]);
 });

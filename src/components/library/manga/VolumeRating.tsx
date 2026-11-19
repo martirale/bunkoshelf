@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StarIcon, MinusIcon, PlusIcon } from "lucide-react";
 import { updatePersonalRating } from "@/actions/rating";
-import { useResourceMutation, useResourceState } from "@/lib/client/resourceState";
+import { useOfflineRating } from "@/lib/client/useOfflineRating";
+import { useResourceState } from "@/lib/client/resourceState";
 
 const MIN = 0.5;
 const MAX = 10;
@@ -28,7 +29,7 @@ export default function VolumeRating({
     volumeId,
     { personalRating: initialPersonalRating },
   );
-  const mutateResource = useResourceMutation();
+  const saveRating = useOfflineRating("manga-volume", volumeId);
 
   const hasPersonal = personalRating !== null && personalRating !== undefined;
   const displayRating = hasPersonal ? personalRating : communityRating;
@@ -38,17 +39,11 @@ export default function VolumeRating({
     setIsOpen(false);
     setIsLoading(true);
     try {
-      await mutateResource({
-        resource: "manga-volume",
-        id: volumeId,
-        patch: { personalRating: value },
-        mutate: () => updatePersonalRating({ volumeId, rating: value }),
-        isSuccess: (result) => Boolean(result?.success),
-      });
+      await saveRating(value, () => updatePersonalRating({ volumeId, rating: value }));
     } finally {
       setIsLoading(false);
     }
-  }, [mutateResource, volumeId]);
+  }, [saveRating, volumeId]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -70,13 +65,7 @@ export default function VolumeRating({
   const handleRemove = async () => {
     setIsLoading(true);
     try {
-      await mutateResource({
-        resource: "manga-volume",
-        id: volumeId,
-        patch: { personalRating: null },
-        mutate: () => updatePersonalRating({ volumeId, rating: null }),
-        isSuccess: (result) => Boolean(result?.success),
-      });
+      await saveRating(null, () => updatePersonalRating({ volumeId, rating: null }));
     } finally {
       setIsLoading(false);
       setIsOpen(false);

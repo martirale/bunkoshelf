@@ -1,4 +1,7 @@
-import { canAccessBookVolume } from "@/lib/clubs/access";
+import { updatePersonalRating } from "@/actions/rating";
+import { updateBookRating } from "@/actions/books-rating";
+import { findVolumeBySlug } from "@/lib/db/library";
+import { canAccessBookVolume, canAccessLibraryVolume } from "@/lib/clubs/access";
 import { recordClubProgressActivities } from "@/lib/db/clubs";
 import { findBookVolumeBySlug } from "@/lib/db/books/library";
 import { findBookProgress, upsertBookProgress } from "@/lib/db/books/reading";
@@ -13,7 +16,7 @@ import { queryOne, execute } from "@/lib/db/query";
 
 interface Operation {
   id: string;
-  kind: "favorite" | "read" | "progress" | "series-favorite" | "book-progress";
+  kind: "favorite" | "read" | "progress" | "series-favorite" | "book-progress" | "volume-rating" | "book-rating";
   payload: Record<string, unknown>;
 }
 
@@ -45,7 +48,24 @@ async function applyBookProgress(user: Session, payload: Record<string, unknown>
   return { success: true };
 }
 
+async function applyRating(user: Session, operation: Operation) {
+  const { volumeId, volumeSlug, rating } = operation.payload;
+  if (typeof volumeId !== "string" || typeof volumeSlug !== "string"
+    || (rating !== null && (typeof rating !== "number" || !Number.isFinite(rating) || rating < 0 || rating > 10))) {
+    return { error: "Invalid rating" };
+  }
+  if (operation.kind === "book-rating") {
+    const volume = await findBookVolumeBySlug(volumeSlug);
+    if (volume?.id !== volumeId || !(await canAccessBookVolume(user, volumeId))) return { error: "Book unavailable" };
+    return updateBookRating({ volumeId, rating });
+  }
+  const volume = await findVolumeBySlug({ slug: volumeSlug });
+  if (volume?.id !== volumeId || !(await canAccessLibraryVolume(user, volumeId))) return { error: "Volume unavailable" };
+  return updatePersonalRating({ volumeId, rating });
+}
+
 async function apply(operation: Operation, user: Session) {
+  if (operation.kind === "volume-rating" || operation.kind === "book-rating") return applyRating(user, operation);
   if (operation.kind === "book-progress") return applyBookProgress(user, operation.payload);
   if (operation.kind === "favorite") {
     return toggleVolumeFavorite({ volumeId: String(operation.payload.volumeId || ""), favorite: Boolean(operation.payload.favorite) });

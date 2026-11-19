@@ -1,13 +1,7 @@
 "use server";
 
 import { verifySession } from "@/lib/auth/verifySession";
-import { syncFirstRead } from "@/actions/readingHistory";
-import {
-  createReadingEntryRecord,
-  ensureDailyReadingLog,
-  incrementChallengeCompleted,
-  upsertVolumeProgress,
-} from "@/lib/db/reading";
+import { saveVolumeReadingPosition } from "@/lib/db/reading";
 import { findVolumeBySlug } from "@/lib/db/library";
 import { canAccessLibraryVolume } from "@/lib/clubs/access";
 import { recordClubProgressActivities } from "@/lib/db/clubs";
@@ -34,8 +28,11 @@ export async function syncReadingProgress({
       return { error: "Unauthorized", status: 401 };
     }
 
-    if (!volumeSlug || lastPage == null || totalPages == null || !lastReadAt) {
-      return { error: "Missing fields", status: 400 };
+    const readAt = new Date(lastReadAt);
+    if (!volumeSlug || !Number.isSafeInteger(lastPage) || !Number.isSafeInteger(totalPages)
+      || lastPage < 0 || lastPage >= totalPages || !Number.isFinite(readAt.getTime())
+      || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return { error: "Invalid progress", status: 400 };
     }
 
     const volume = await findVolumeBySlug({
@@ -47,31 +44,11 @@ export async function syncReadingProgress({
     }
     if (!(await canAccessLibraryVolume(user, volume.id))) return { error: "Forbidden", status: 403 };
 
-    const userId = user.id;
-    const volumeId = volume.id;
-
-    const isNowRead = lastPage >= totalPages - 1;
-
-    await upsertVolumeProgress(userId, volumeId, {
-      lastPage,
-      totalPages,
-      lastReadAt: new Date(lastReadAt),
-      isRead: isNowRead,
+    const result = await saveVolumeReadingPosition(user.id, volume.id, {
+      lastPage, totalPages, lastReadAt: readAt, date,
     });
-    await recordClubProgressActivities(userId, "LIBRARY_SERIES", volume.seriesId);
-
-    if (isNowRead) {
-      await createReadingEntryRecord(userId, volumeId, date);
-
-      await syncFirstRead(userId, volumeId);
-
-      const currentYear = new Date().getFullYear();
-      await incrementChallengeCompleted(user.id, currentYear);
-    }
-
-    await ensureDailyReadingLog(userId, date);
-
-    return { success: true };
+    await recordClubProgressActivities(user.id, "LIBRARY_SERIES", volume.seriesId);
+    return { success: true, ...result };
   } catch (err) {
     error = err as Error;
   } finally {

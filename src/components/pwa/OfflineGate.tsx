@@ -147,12 +147,12 @@ function VolumeDetail({ volume, lang, intl, userId, user }: { volume: OfflineCom
             slug={volume.slug}
             mangaStyle={volume.mangaStyle ?? ""}
             communityRating={typeof meta.communityRating === "number" ? meta.communityRating : null}
-            initialPersonalRating={null}
+            initialPersonalRating={volume.personalRating ?? null}
             section={volume.section}
             userId={user?.id}
           />
           <div className="mt-8">
-            <VolumeRating volumeId={volume.id} communityRating={typeof meta.communityRating === "number" ? meta.communityRating : null} initialPersonalRating={null} />
+            <VolumeRating volumeId={volume.id} communityRating={typeof meta.communityRating === "number" ? meta.communityRating : null} initialPersonalRating={volume.personalRating ?? null} />
           </div>
           <MetadataBadges intl={intl} meta={meta} />
           <p className="mt-4 flex items-center gap-2">
@@ -185,7 +185,7 @@ function SeriesDetail({ volumes, lang, intl, userId, user }: { volumes: OfflineC
         </div>
         <div className="w-full md:w-7/12 2xl:w-2/3 2xl:pl-4">
           <h1 className="text-2xl leading-11 md:text-3xl md:leading-14">{title}</h1>
-          <ReadButtonsSeries lang={lang} intl={intl} seriesId={first.seriesId} initFavorite={sortedVolumes.some((volume) => volume.isFavorite)} seriesSlug={first.seriesSlug} section={first.section} userId={user?.id} />
+          <ReadButtonsSeries lang={lang} intl={intl} seriesId={first.seriesId} seriesVolumeCount={sortedVolumes.length} initFavorite={sortedVolumes.some((volume) => volume.isFavorite)} seriesSlug={first.seriesSlug} section={first.section} userId={user?.id} />
           <div className="mt-8"><SeriesRating rating={averageRating} /></div>
           <MetadataBadges intl={intl} meta={meta} />
           <p className="mt-4">{meta.year ? meta.year as number : null} &bull; {sortedVolumes.length} {(isCollection ? intl.libraries.otherWorks : intl.manga.volumes) as string}</p>
@@ -382,6 +382,6 @@ export default function OfflineGate({ children, lang, intl, user }: { children: 
   const [, , library, favoritesLibrary] = path.split("?")[0].split("/");
   if (library === "books" || (library === "favorites" && favoritesLibrary === "books")) return <OfflineBooks path={path} lang={lang} intl={intl} userId={user.id} />;
   if (path.includes(`/${lang}/search`)) return <div className="p-4"><SearchComp lang={lang} intl={intl} /></div>;
-  if (path.includes(`/${lang}/manga`) || path.includes(`/${lang}/others`) || path.includes(`/${lang}/favorites`)) return <OfflineLibrary path={path} lang={lang} intl={intl} userId={user.id} user={user} />;
+  if (path.includes(`/${lang}/manga`) || path.includes(`/${lang}/comic`) || path.includes(`/${lang}/others`) || path.includes(`/${lang}/favorites`)) return <OfflineLibrary path={path} lang={lang} intl={intl} userId={user.id} user={user} />;
   return <OfflineUnavailable intl={intl} />;
 }

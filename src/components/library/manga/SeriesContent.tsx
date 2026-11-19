@@ -103,6 +103,7 @@ export default function SeriesContent({
             lang={lang}
             intl={intl}
             seriesId={serieData.id as string}
+            seriesVolumeCount={volumeCount}
             initFavorite={isFavorite}
             seriesSlug={serieData.slug as string}
             section={section}

@@ -8,14 +8,15 @@ import {
   HeartIcon,
   HeartOffIcon,
 } from "lucide-react";
-import MangaReader from "@/components/reader/MangaReader";
+import MangaReader, { type MangaReaderPosition } from "@/components/reader/MangaReader";
 import { toggleVolumeFavorite } from "@/actions/favorites";
 import { updateReadState } from "@/actions/read";
+import { getReadingProgress } from "@/actions/reader";
 import { syncReadingProgress } from "@/actions/progress";
 import { sendPush } from "@/actions/web-push";
 import OfflineDownloadButton from "@/components/pwa/OfflineDownloadButton";
 import Button from "@/components/ui/Button";
-import { enqueueOfflineOperation, getOfflineImages, updateOfflineVolume } from "@/lib/client/offlineLibrary";
+import { enqueueOfflineOperation, flushOfflineOperations, getOfflineImages, getOfflineVolume, saveOfflineMangaProgress, updateOfflineVolume } from "@/lib/client/offlineLibrary";
 import {
   publishResourceState,
   useResourceMutation,
@@ -62,7 +63,8 @@ export default function ReadButtonsVolume({
   const [isLoading, setIsLoading] = useState(false);
   const [isReaderOpen, setIsReaderOpen] = useState(false);
   const [isYoureiMode, setIsYoureiMode] = useState(false);
-  const [offlineImages, setOfflineImages] = useState<string[] | undefined>();
+  const [offlineReader, setOfflineReader] = useState<{ images: string[]; lastPage: number }>();
+  const offlineImages = offlineReader?.images;
   const { isFavorite = initFavorite, isRead = initRead } = useResourceState(
     "manga-volume",
     volumeId,
@@ -75,9 +77,27 @@ export default function ReadButtonsVolume({
     mangaStyle === "YesLTR" || mangaStyle === "No" ? "ltr" : "rtl";
 
   const openNormalReader = async () => {
-    if (userId) {
-      const localImages = await getOfflineImages(userId, volumeId);
-      if (localImages.length) setOfflineImages(localImages);
+    setIsLoading(true);
+    try {
+      setOfflineReader(undefined);
+      if (userId) {
+        const [images, volume] = await Promise.all([getOfflineImages(userId, volumeId), getOfflineVolume(userId, volumeId)]);
+        if (images.length) {
+          let lastPage = volume?.lastPage ?? 0;
+          if (navigator.onLine) {
+            await flushOfflineOperations(userId).catch(() => undefined);
+            const remote = await getReadingProgress({ slug }).catch(() => null);
+            if (remote?.lastReadAt && (!volume?.lastReadAt || new Date(remote.lastReadAt) >= new Date(volume.lastReadAt))) {
+              lastPage = remote.lastPage ?? 0;
+            }
+          }
+          setOfflineReader({ images, lastPage });
+        }
+      }
+    } catch (error) {
+      console.error("Error opening downloaded volume:", error);
+    } finally {
+      setIsLoading(false);
     }
     setIsYoureiMode(false);
     setIsReaderOpen(true);
@@ -110,11 +130,10 @@ export default function ReadButtonsVolume({
         const localImages = offlineImages?.length ? offlineImages : await getOfflineImages(userId, volumeId);
         const totalPages = localImages.length;
         if (!totalPages) return;
-        setOfflineImages(localImages);
         const nextRead = !isRead;
         const now = new Date();
         const localDate = getLocalDateString();
-        await updateOfflineVolume(userId, volumeId, { isRead: nextRead, lastPage: nextRead ? totalPages - 1 : 0, totalPages });
+        await updateOfflineVolume(userId, volumeId, { isRead: nextRead, lastPage: nextRead ? totalPages - 1 : 0, totalPages, lastReadAt: now.toISOString() });
         await enqueueOfflineOperation(userId, "read", { volumeId, read: nextRead, totalPages, lastReadAt: now.toISOString(), firstRead: localDate });
         publishResourceState("manga-volume", volumeId, { isRead: nextRead });
         return;
@@ -152,6 +171,12 @@ export default function ReadButtonsVolume({
       if (!result) return;
 
       if (result.success) {
+        if (userId) await updateOfflineVolume(userId, volumeId, {
+          isRead: !isRead,
+          lastPage: !isRead ? totalPages - 1 : 0,
+          totalPages,
+          lastReadAt: now.toISOString(),
+        }).catch(() => undefined);
         window.dispatchEvent(new Event("bunko:challenge-updated"));
       } else if ("error" in result) {
         console.error("Failed to toggle read state:", result.error);
@@ -201,48 +226,39 @@ export default function ReadButtonsVolume({
     }
   };
 
-  const handleClose = async () => {
+  const storePosition = (position: MangaReaderPosition) => {
+    if (!userId || !offlineImages?.length) return;
+    void saveOfflineMangaProgress(userId, volumeId, position, !navigator.onLine)
+      .catch((error) => console.error("Error saving offline position:", error));
+  };
+
+  const handleClose = async (position: MangaReaderPosition | null) => {
     let error: unknown = null;
 
     try {
-      const storageKey = `reader-progress:${slug}`;
-      const saved = localStorage.getItem(storageKey);
-
-      if (saved && !isYoureiMode) {
-        const { lastPage, totalPages, lastReadAt } = JSON.parse(saved);
-
-        const isFinished = lastPage >= totalPages - 1;
-        const today = getLocalDateString();
-
-        const body = {
-          volumeSlug: slug,
-          lastPage,
-          totalPages,
-          lastReadAt,
-          date: today,
-        };
+      if (position && !isYoureiMode) {
+        const isFinished = position.lastPage >= position.totalPages - 1;
+        const body = { volumeSlug: slug, ...position };
 
         if (!navigator.onLine && userId) {
-          await updateOfflineVolume(userId, volumeId, { lastPage, totalPages, isRead: isFinished });
-          await enqueueOfflineOperation(userId, "progress", body);
-          if (isFinished) publishResourceState("manga-volume", volumeId, { isRead: true });
+          await saveOfflineMangaProgress(userId, volumeId, position, true);
+          publishResourceState("manga-volume", volumeId, { isRead: isFinished });
           return;
         }
 
         const data = await syncReadingProgress(body);
 
-        if (!data || !data.success) {
-          console.error("Sync failed:", data && "error" in data ? data.error : "Unknown error");
+        if (!data || !("success" in data) || !data.success) {
+          console.error("Sync failed:", data?.error ?? "Unknown error");
+          return;
         }
 
-        if (isFinished && data?.success) {
-          publishResourceState("manga-volume", volumeId, { isRead: true });
-          window.dispatchEvent(new Event("bunko:challenge-updated"));
-        }
+        if (data.applied) publishResourceState("manga-volume", volumeId, { isRead: data.isRead });
+        if (data.completed) window.dispatchEvent(new Event("bunko:challenge-updated"));
 
-        if (data?.success) refreshResources();
+        refreshResources();
 
-        if (isFinished && data?.success) {
+        if (data.completed) {
           try {
             await sendPush({
               title: intl.push.ttFirstRead as string,
@@ -256,6 +272,9 @@ export default function ReadButtonsVolume({
       }
     } catch (err) {
       error = err;
+      if (position && userId && offlineImages?.length) {
+        await saveOfflineMangaProgress(userId, volumeId, position, true).catch(() => undefined);
+      }
     } finally {
       if (error) {
         console.error("Error syncing progress:", error);
@@ -269,6 +288,7 @@ export default function ReadButtonsVolume({
       <div className="flex flex-row mt-4 gap-2">
         <Button
           onClick={openNormalReader}
+          disabled={isLoading}
           variant="accent"
         size="action"
         className="gap-2"
@@ -324,6 +344,8 @@ export default function ReadButtonsVolume({
         communityRating={communityRating}
         initialPersonalRating={initialPersonalRating}
         offlineImages={offlineImages}
+        offlineLastPage={offlineReader?.lastPage}
+        onProgress={storePosition}
       />
     </>
   );

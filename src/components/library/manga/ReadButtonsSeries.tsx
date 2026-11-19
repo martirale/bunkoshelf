@@ -19,6 +19,7 @@ interface ReadButtonsSeriesProps {
   lang: Locale;
   intl: Dictionary;
   seriesId: string;
+  seriesVolumeCount?: number;
   initFavorite: boolean;
   seriesSlug: string;
   section?: LibrarySection;
@@ -29,6 +30,7 @@ export default function ReadButtonsSeries({
   lang,
   intl,
   seriesId,
+  seriesVolumeCount,
   initFavorite,
   seriesSlug,
   section = "manga",
@@ -84,7 +86,7 @@ export default function ReadButtonsSeries({
       >
         {isFavorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
       </Button>
-      <OfflineDownloadButton userId={userId} section={section} slug={seriesSlug} seriesId={seriesId} intl={intl} />
+      <OfflineDownloadButton userId={userId} section={section} slug={seriesSlug} seriesId={seriesId} seriesVolumeCount={seriesVolumeCount} intl={intl} />
     </div>
   );
 }

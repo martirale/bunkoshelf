@@ -8,6 +8,7 @@ import BookHero from "@/components/library/books/BookHero";
 import BookMetadataBadges from "@/components/library/books/BookMetadataBadges";
 import BookMetadataFields from "@/components/library/books/BookMetadataFields";
 import BookReaderButton from "@/components/library/books/BookReaderButton";
+import BookVolumeRating from "@/components/library/books/BookVolumeRating";
 import BookSummary from "@/components/library/books/BookSummary";
 import BookSeriesDownload from "@/components/library/books/BookSeriesDownload";
 import BookRowCarousel from "@/components/library/books/row/BookRowCarousel";
@@ -140,6 +141,7 @@ function OfflineBookDetail({ entries, selected, lang, intl }: {
         {isSeries
           ? <div className="mt-4"><BookSeriesDownload seriesId={book.seriesId} slug={book.seriesSlug} volumeIds={ordered.map((item) => item.id)} intl={intl} /></div>
           : <BookReaderButton key={book.id} volumeId={book.id} slug={book.slug} title={book.title} layout={book.metadata.renditionLayout} intl={intl} offlineBook={book} />}
+        {!isSeries && <div className="mt-8"><BookVolumeRating volumeId={book.id} initialPersonalRating={book.personalRating ?? null} intl={intl} /></div>}
         <BookMetadataBadges metadata={book.metadata} intl={intl} />
         <p className="mt-4">
           {getBookPublicationYear(book.metadata.publishedAt ?? book.metadata.modifiedAt)}

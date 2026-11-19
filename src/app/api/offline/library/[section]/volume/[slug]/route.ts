@@ -22,7 +22,7 @@ export async function GET(
   { params }: { params: Promise<{ section: string; slug: string }> },
 ) {
   const { section, slug } = await params;
-  if (section !== "manga" && section !== "others" && section !== "books") {
+  if (section !== "manga" && section !== "comic" && section !== "others" && section !== "books") {
     return NextResponse.json({ error: "Invalid section" }, { status: 400 });
   }
   const user = await verifySession();
@@ -70,6 +70,8 @@ export async function GET(
       coverUrl: getMangaCoverUrl(volume),
       isRead: progress?.is_read ?? false,
       isFavorite: progress?.is_favorite ?? false,
+      personalRating: progress?.personal_rating ?? null,
+      lastReadAt: progress?.last_read_at?.toISOString() ?? null,
       lastPage: progress?.last_page ?? 0,
       totalPages: progress?.total_pages ?? volume.metadataObj?.pageCount ?? 0,
     },

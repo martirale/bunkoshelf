@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MinusIcon, PlusIcon, StarIcon } from "lucide-react";
 import { updateBookRating } from "@/actions/books-rating";
-import { useResourceMutation, useResourceState } from "@/lib/client/resourceState";
+import { useOfflineRating } from "@/lib/client/useOfflineRating";
+import { useResourceState } from "@/lib/client/resourceState";
 import type { Dictionary } from "@/lib/types";
 
 const MIN_RATING = 0.5;
@@ -26,25 +27,18 @@ export default function BookVolumeRating({ volumeId, initialPersonalRating, intl
     volumeId,
     { personalRating: initialPersonalRating },
   );
-  const mutateResource = useResourceMutation();
+  const saveRating = useOfflineRating("book-volume", volumeId);
   const hasRating = personalRating !== null;
 
   const save = useCallback(async (rating: number) => {
     setIsOpen(false);
     setIsLoading(true);
     try {
-      const result = await mutateResource({
-        resource: "book-volume",
-        id: volumeId,
-        patch: { personalRating: rating },
-        mutate: () => updateBookRating({ volumeId, rating }),
-        isSuccess: (value) => "success" in value && value.success === true,
-      });
-      if (!result.success) return;
+      await saveRating(rating, () => updateBookRating({ volumeId, rating: rating }));
     } finally {
       setIsLoading(false);
     }
-  }, [mutateResource, volumeId]);
+  }, [saveRating, volumeId]);
 
   useEffect(() => {
     const close = (event: MouseEvent) => {
@@ -62,14 +56,7 @@ export default function BookVolumeRating({ volumeId, initialPersonalRating, intl
   const remove = async () => {
     setIsLoading(true);
     try {
-      const result = await mutateResource({
-        resource: "book-volume",
-        id: volumeId,
-        patch: { personalRating: null },
-        mutate: () => updateBookRating({ volumeId, rating: null }),
-        isSuccess: (value) => "success" in value && value.success === true,
-      });
-      if (!result.success) return;
+      await saveRating(null, () => updateBookRating({ volumeId, rating: null }));
     } finally {
       setIsLoading(false);
       setIsOpen(false);

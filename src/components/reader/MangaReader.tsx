@@ -13,9 +13,17 @@ import VolumeRating from "@/components/library/manga/VolumeRating";
 import Button from "@/components/ui/Button";
 import type { DictionarySection } from "@/lib/types";
 
+export interface MangaReaderPosition {
+  lastPage: number;
+  totalPages: number;
+  lastReadAt: string;
+  date: string;
+}
+
 interface MangaReaderProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (position: MangaReaderPosition | null) => void;
+  onProgress?: (position: MangaReaderPosition) => void;
   slug: string;
   intl: DictionarySection;
   isYoureiMode: boolean;
@@ -28,11 +36,13 @@ interface MangaReaderProps {
   communityRating: number | null;
   initialPersonalRating: number | null;
   offlineImages?: string[];
+  offlineLastPage?: number;
 }
 
 export default function MangaReader({
   isOpen,
   onClose,
+  onProgress,
   slug,
   intl,
   isYoureiMode,
@@ -45,6 +55,7 @@ export default function MangaReader({
   communityRating,
   initialPersonalRating,
   offlineImages,
+  offlineLastPage = 0,
 }: MangaReaderProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
@@ -55,7 +66,8 @@ export default function MangaReader({
   const [isEditingPage, setIsEditingPage] = useState(false);
   const [pageInput, setPageInput] = useState("");
 
-  const storageKey = `reader-progress:${slug}`;
+  const positionRef = useRef<MangaReaderPosition | null>(null);
+  const indexRef = useRef(0);
   const isRTL = readingDirection === "rtl";
 
   const reader = intl.reader as DictionarySection;
@@ -75,15 +87,26 @@ export default function MangaReader({
   useEffect(() => {
     if (!isOpen || !slug) return;
 
+    let cancelled = false;
+    positionRef.current = null;
+    setImages([]);
+
+    function loadImages(pages: string[], lastPage: unknown) {
+      const index = typeof lastPage === "number" && Number.isInteger(lastPage)
+        ? Math.max(0, Math.min(lastPage, pages.length - 1)) : 0;
+      indexRef.current = index;
+      setImages(pages);
+      setCurrentIndex(index);
+    }
+
     async function fetchPages() {
       let error: unknown = null;
 
       setLoading(true);
       setShowFinishScreen(false);
       try {
-        if (offlineImages?.length) {
-          setImages(offlineImages);
-          setCurrentIndex(0);
+        if (!isYoureiMode && offlineImages?.length) {
+          loadImages(offlineImages, offlineLastPage);
           return;
         }
         const response = await fetch("/api/reader/manga", {
@@ -93,28 +116,9 @@ export default function MangaReader({
         });
         const data = await response.json();
 
+        if (cancelled) return;
         if (response.ok && data.images?.length) {
-          setImages(data.images);
-
-          if (!isYoureiMode) {
-            const progress = data.progress;
-
-            let startIndex = 0;
-
-            if (
-              progress &&
-              "lastPage" in progress &&
-              typeof progress.lastPage === "number" &&
-              progress.lastPage >= 0 &&
-              progress.lastPage < data.images.length
-            ) {
-              startIndex = progress.lastPage;
-            }
-
-            setCurrentIndex(startIndex);
-          } else {
-            setCurrentIndex(0);
-          }
+          loadImages(data.images, isYoureiMode ? 0 : data.progress?.lastPage);
         } else {
           console.error(data && "error" in data ? data.error : "No se encontraron imágenes");
         }
@@ -124,46 +128,51 @@ export default function MangaReader({
         if (error) {
           console.error("Reader error:", error);
         }
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
-    fetchPages();
-  }, [isOpen, slug, isYoureiMode, isRTL, offlineImages]);
+    void fetchPages();
+    return () => { cancelled = true; };
+  }, [isOpen, slug, isYoureiMode, offlineImages, offlineLastPage]);
 
-  useEffect(() => {
-    if (!isYoureiMode && images.length > 0) {
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify({
-          lastPage: currentIndex,
-          totalPages: images.length,
-          lastReadAt: new Date().toISOString(),
-        }),
-      );
-    }
-  }, [currentIndex, images.length, isYoureiMode, storageKey]);
+  const close = useCallback(() => onClose(positionRef.current), [onClose]);
+
+  const changePage = useCallback((index: number, recordCurrent = false) => {
+    if (loading || !images.length || index < 0 || index >= images.length) return;
+    if (index === indexRef.current && !recordCurrent) return;
+    indexRef.current = index;
+    setCurrentIndex(index);
+    if (isYoureiMode) return;
+    const now = new Date();
+    const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const position = { lastPage: index, totalPages: images.length, lastReadAt: now.toISOString(), date };
+    positionRef.current = position;
+    onProgress?.(position);
+  }, [images.length, isYoureiMode, loading, onProgress]);
 
   const goPrev = useCallback(() => {
     if (showFinishScreen) {
       setShowFinishScreen(false);
       return;
     }
-    if (currentIndex > 0) setCurrentIndex((i) => i - 1);
-  }, [showFinishScreen, currentIndex]);
+    changePage(indexRef.current - 1);
+  }, [changePage, showFinishScreen]);
 
   const goNext = useCallback(() => {
-    if (currentIndex < images.length - 1) {
-      setCurrentIndex((i) => i + 1);
+    if (loading || !images.length) return;
+    if (indexRef.current < images.length - 1) {
+      changePage(indexRef.current + 1);
     } else {
+      if (!positionRef.current) changePage(indexRef.current, true);
       setShowFinishScreen(true);
     }
-  }, [currentIndex, images.length]);
+  }, [changePage, images.length, loading]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        close();
       } else if (e.key === "ArrowLeft") {
         if (isRTL) {
           goNext();
@@ -188,7 +197,7 @@ export default function MangaReader({
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKey);
     };
-  }, [isOpen, onClose, goNext, goPrev, isRTL]);
+  }, [isOpen, close, goNext, goPrev, isRTL]);
 
   useEffect(() => {
     if (isOpen && modalRef.current) {
@@ -242,7 +251,7 @@ export default function MangaReader({
       className="fixed inset-x-0 bottom-0 top-[env(safe-area-inset-top)] z-[60] bg-black flex flex-col items-center justify-center pointer-events-auto transition-opacity duration-200 ease-in-out opacity-100"
     >
       <button
-        onClick={onClose}
+        onClick={close}
         className="absolute top-4 right-4 z-50"
         title={reader.ttExit as string}
       >
@@ -290,7 +299,7 @@ export default function MangaReader({
               </Button>
             )}
             <Button
-              onClick={onClose}
+              onClick={close}
               title={reader.ttExit as string}
               variant="dark"
               className="w-full gap-2 px-5 py-2 md:w-auto"
@@ -355,7 +364,7 @@ export default function MangaReader({
                     if (e.key === "Enter") {
                       const n = parseInt(pageInput, 10);
                       if (!isNaN(n) && n >= 1 && n <= images.length) {
-                        setCurrentIndex(n - 1);
+                        changePage(n - 1);
                       }
                       setIsEditingPage(false);
                     } else if (e.key === "Escape") {
@@ -366,7 +375,7 @@ export default function MangaReader({
                   onBlur={() => {
                     const n = parseInt(pageInput, 10);
                     if (!isNaN(n) && n >= 1 && n <= images.length) {
-                      setCurrentIndex(n - 1);
+                      changePage(n - 1);
                     }
                     setIsEditingPage(false);
                   }}

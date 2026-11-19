@@ -13,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ section: string; slug: string }> },
 ) {
   const { section, slug } = await params;
-  if (section !== "manga" && section !== "others" && section !== "books") {
+  if (section !== "manga" && section !== "comic" && section !== "others" && section !== "books") {
     return NextResponse.json({ error: "Invalid section" }, { status: 400 });
   }
   const user = await verifySession();
@@ -29,14 +29,16 @@ export async function GET(
     }
     return NextResponse.json({ volumes: manifests });
   }
-  const series = await findSeriesBySlugBasic(slug);
+  const series = await findSeriesBySlugBasic(slug, section === "others" ? "other" : section);
   if (!series) return NextResponse.json({ error: "Series not found" }, { status: 404 });
 
   const volumes = await listVolumes({ seriesIds: [series.id], includeGenres: true, includeTags: true, scope: getLibraryScope(section as LibrarySection) });
   if (!volumes.length || getLibrarySection(volumes[0].series.librarySection) !== section) {
     return NextResponse.json({ error: "Series not found" }, { status: 404 });
   }
-  if (!(await canAccessLibraryVolume(user, volumes[0].id))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (user.role === "GUEST" && !(await Promise.all(volumes.map((volume) => canAccessLibraryVolume(user, volume.id)))).every(Boolean)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const progressById = await listVolumeProgressByIds(user.id, volumes.map((volume) => volume.id));
 
   return NextResponse.json({
@@ -55,6 +57,8 @@ export async function GET(
         coverUrl: getMangaCoverUrl(volume),
         isRead: progress?.isRead ?? false,
         isFavorite: progress?.isFavorite ?? false,
+        personalRating: progress?.personalRating ?? null,
+        lastReadAt: progress?.lastReadAt?.toISOString() ?? null,
         lastPage: progress?.lastPage ?? 0,
         totalPages: progress?.totalPages ?? source?.pageCount ?? 0,
       };

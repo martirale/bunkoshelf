@@ -1,5 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
-import { execute, query, queryOne } from "./query";
+import { getPool } from "./pool";
+import { execute, query, queryOne, type QueryExecutor } from "./query";
 
 export interface VolumeProgressRow {
   id: string;
@@ -180,6 +181,52 @@ export async function upsertVolumeProgress(
   );
 }
 
+export async function saveVolumeReadingPosition(
+  userId: string,
+  volumeId: string,
+  position: { lastPage: number; totalPages: number; lastReadAt: Date; date: string },
+) {
+  const { lastPage, totalPages, lastReadAt, date } = position;
+  const isRead = lastPage === totalPages - 1;
+  const client = await getPool().connect();
+  try {
+    await client.query("BEGIN");
+    const applied = await execute(
+      `INSERT INTO user_to_volumes (id, user_id, volume_id, last_page, total_pages, last_read_at, is_read, first_read)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, CASE WHEN $7 THEN $8::text END)
+       ON CONFLICT (user_id, volume_id) DO UPDATE SET
+         last_page = EXCLUDED.last_page, total_pages = EXCLUDED.total_pages,
+         last_read_at = EXCLUDED.last_read_at, is_read = EXCLUDED.is_read,
+         first_read = LEAST(user_to_volumes.first_read, EXCLUDED.first_read), updated_at = NOW()
+       WHERE user_to_volumes.last_read_at IS NULL OR user_to_volumes.last_read_at < EXCLUDED.last_read_at`,
+      [createId(), userId, volumeId, lastPage, totalPages, lastReadAt, isRead, date],
+      client,
+    );
+
+    let completed = false;
+    if (applied && isRead) {
+      completed = !!await execute(
+        `INSERT INTO reading_entries (id, user_id, volume_id, read_at)
+         SELECT $1, $2, $3, $4
+         WHERE NOT EXISTS (
+           SELECT 1 FROM reading_entries WHERE user_id = $2 AND volume_id = $3 AND read_at = $4
+         )`,
+        [createId(), userId, volumeId, date],
+        client,
+      );
+      if (completed) await incrementChallengeCompleted(userId, Number(date.slice(0, 4)), client);
+    }
+    await ensureDailyReadingLog(userId, date, client);
+    await client.query("COMMIT");
+    return { applied: !!applied, completed, isRead };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function createReadingEntryRecord(
   userId: string,
   volumeId: string,
@@ -285,7 +332,8 @@ export async function findOldestReadingEntryDate(
 
 export async function incrementChallengeCompleted(
   userId: string,
-  year: number
+  year: number,
+  client?: QueryExecutor,
 ): Promise<void> {
   await execute(
     `
@@ -303,13 +351,15 @@ export async function incrementChallengeCompleted(
         completed = reading_challenges.completed + 1,
         updated_at = NOW()
     `,
-    [createId(), userId, year]
+    [createId(), userId, year],
+    client,
   );
 }
 
 export async function ensureDailyReadingLog(
   userId: string,
-  date: string
+  date: string,
+  client?: QueryExecutor,
 ): Promise<void> {
   await execute(
     `
@@ -322,6 +372,7 @@ export async function ensureDailyReadingLog(
       ON CONFLICT (user_id, date)
       DO NOTHING
     `,
-    [createId(), userId, date]
+    [createId(), userId, date],
+    client,
   );
 }
