@@ -1,3 +1,4 @@
+import BookSeriesDownload from "@/components/library/books/BookSeriesDownload";
 import Image from "next/image";
 import MangaCard from "@/components/ui/MangaCard";
 import DetailNavigation from "@/components/library/DetailNavigation";
@@ -75,6 +76,7 @@ export default function BookSeriesContent({ volumes, lang, intl, progressById, i
           <div className="mt-4 flex flex-row gap-2">
             <BookSeriesStatusSelect seriesId={firstVolume.series.id} intl={intl} />
             <BookSeriesFavoriteButton seriesId={firstVolume.series.id} initialFavorite={isFavorite} intl={intl} />
+            {libraryRoot === "books" && <BookSeriesDownload seriesId={firstVolume.series.id} slug={firstVolume.series.slug} volumeIds={volumes.map((volume) => volume.id)} intl={intl} />}
           </div>
           <div className="mt-8">
             <BookSeriesRating rating={averageRating} />

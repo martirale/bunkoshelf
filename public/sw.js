@@ -1,4 +1,4 @@
-const VERSION = "v4";
+const VERSION = "v5";
 const ASSET_CACHE = `bunko-assets-${VERSION}`;
 const PAGE_CACHE = `bunko-pages-${VERSION}`;
 const CRITICAL_ASSETS = [
@@ -30,6 +30,7 @@ async function offlinePage(url) {
   const userId = decodeURIComponent(match[1]);
   const volumeId = decodeURIComponent(match[2]);
   const index = Number(match[3]);
+  if (index < -1) return new Response("Offline page unavailable", { status: 404 });
   const db = await openDb();
   const tx = db.transaction("pages", "readonly");
   const page = await request(tx.objectStore("pages").get(`${userId}:${volumeId}:${index}`));
@@ -38,23 +39,33 @@ async function offlinePage(url) {
   return new Response(page.blob, { headers: { "Content-Type": page.blob.type || "application/octet-stream" } });
 }
 
-async function cacheFirst(request) {
+async function cacheFirst(event) {
+  const { request } = event;
   const cache = await caches.open(ASSET_CACHE);
   const cached = await cache.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response.ok) cache.put(request, response.clone());
+  if (response.ok) event.waitUntil(cache.put(request, response.clone()).catch(() => {}));
   return response;
 }
 
-async function navigation(request) {
+async function navigation(event) {
+  const { request } = event;
   const cache = await caches.open(PAGE_CACHE);
   try {
     const response = await fetch(request);
-    if (response.ok) cache.put(request, response.clone());
+    if (response.ok) event.waitUntil(cache.put(request, response.clone()).catch(() => {}));
     return response;
   } catch {
-    return (await cache.match(request)) || (await cache.match("/es")) || new Response("<!doctype html><title>Sin conexión</title><main>Sin conexión</main>", { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    const locale = new URL(request.url).pathname.split("/")[1];
+    const home = locale === "en" ? "/en" : "/es";
+    const cached = (await cache.match(request)) || (await cache.match(home));
+    if (cached) return cached;
+    const bookPage = (await cache.keys()).find((entry) => {
+      const path = new URL(entry.url).pathname;
+      return path === `${home}/books` || path.startsWith(`${home}/books/`);
+    });
+    return (bookPage && await cache.match(bookPage)) || (await cache.match("/es")) || (await cache.match("/en")) || new Response("<!doctype html><title>Sin conexión</title><main>Sin conexión</main>", { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 }
 
@@ -77,11 +88,11 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(offlinePage(url));
     return;
   }
-  if (event.request.destination === "font" || CRITICAL_ASSETS.includes(url.pathname)) {
-    event.respondWith(cacheFirst(event.request));
+  if (url.pathname.startsWith("/_next/static/") || event.request.destination === "font" || CRITICAL_ASSETS.includes(url.pathname)) {
+    event.respondWith(cacheFirst(event));
     return;
   }
-  if (event.request.mode === "navigate") event.respondWith(navigation(event.request));
+  if (event.request.mode === "navigate") event.respondWith(navigation(event));
 });
 
 self.addEventListener("push", (event) => {

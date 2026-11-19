@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { BookCheckIcon, CheckIcon, HeartIcon, HeartOffIcon } from "lucide-react";
+import { usePwa } from "@/components/pwa/PwaProvider";
+import OfflineDownloadButton from "@/components/pwa/OfflineDownloadButton";
+import { saveOfflineBookState, type OfflineBookVolume } from "@/lib/client/offlineLibrary";
 import EpubReader from "@/components/reader/EpubReader";
 import Button from "@/components/ui/Button";
 import { updateBookReadState } from "@/actions/books-reading";
@@ -19,17 +22,22 @@ interface BookReaderButtonProps {
   title: string;
   layout: "reflowable" | "pre-paginated";
   intl: Dictionary;
+  allowOffline?: boolean;
+  offlineBook?: OfflineBookVolume;
 }
 
-export default function BookReaderButton({ volumeId, slug, title, layout, intl }: BookReaderButtonProps) {
+export default function BookReaderButton({ volumeId, slug, title, layout, intl, allowOffline = false, offlineBook }: BookReaderButtonProps) {
+  const { online, userId } = usePwa();
   const books = intl.books as Record<string, string>;
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { isFavorite: favorite = false, isRead = false } = useResourceState(
+  const { isFavorite = false, isRead: onlineRead = false } = useResourceState(
     "book-volume",
     volumeId,
     {},
   );
+  const favorite = offlineBook?.isFavorite ?? isFavorite;
+  const isRead = offlineBook?.isRead ?? onlineRead;
   const mutateResource = useResourceMutation();
   const refreshResources = useResourceRefresh();
 
@@ -39,9 +47,11 @@ export default function BookReaderButton({ volumeId, slug, title, layout, intl }
   };
 
   useEffect(() => {
+    if (!online) return;
     fetch(`/api/reader/books/${encodeURIComponent(slug)}/progress`)
       .then((response) => response.ok ? response.json() : null)
       .then((progress) => {
+        if (allowOffline && userId && progress) void saveOfflineBookState(userId, volumeId, progress).catch(() => undefined);
         publishResourceState("book-volume", volumeId, {
           isFavorite: progress?.isFavorite === true,
           isRead: progress?.isRead === true,
@@ -49,11 +59,15 @@ export default function BookReaderButton({ volumeId, slug, title, layout, intl }
         });
       })
       .catch(() => undefined);
-  }, [slug, volumeId]);
+  }, [allowOffline, online, slug, userId, volumeId]);
 
   const updateProgress = async (body: { isRead?: boolean; isFavorite?: boolean; progression?: number }) => {
     setIsLoading(true);
     try {
+      if (!online && userId) {
+        await saveOfflineBookState(userId, volumeId, body, body);
+        return;
+      }
       const response = await mutateResource({
         resource: "book-volume",
         id: volumeId,
@@ -66,6 +80,7 @@ export default function BookReaderButton({ volumeId, slug, title, layout, intl }
         isSuccess: (value) => value.ok,
       });
       if (!response.ok) return;
+      if (allowOffline && userId) await saveOfflineBookState(userId, volumeId, body).catch(() => undefined);
       if (body.isRead !== undefined) {
         if (body.isRead) window.dispatchEvent(new Event("bunko:challenge-updated"));
       }
@@ -78,6 +93,14 @@ export default function BookReaderButton({ volumeId, slug, title, layout, intl }
     setIsLoading(true);
     try {
       const nextIsRead = !isRead;
+      if (!online && userId) {
+        const update = { isRead: nextIsRead, progression: nextIsRead ? 1 : 0 };
+        const lastReadAt = nextIsRead ? new Date().toISOString() : undefined;
+        await saveOfflineBookState(userId, volumeId, { ...update, lastReadAt }, {
+          ...update, lastReadAt, readingDate: nextIsRead ? getLocalDateString() : undefined,
+        });
+        return;
+      }
       const result = await mutateResource({
         resource: "book-volume",
         id: volumeId,
@@ -90,6 +113,9 @@ export default function BookReaderButton({ volumeId, slug, title, layout, intl }
         isSuccess: (value) => value.success,
       });
       if (!result.success) return;
+      if (allowOffline && userId) {
+        await saveOfflineBookState(userId, volumeId, { isRead: nextIsRead, progression: nextIsRead ? 1 : 0 }).catch(() => undefined);
+      }
       if (nextIsRead) window.dispatchEvent(new Event("bunko:challenge-updated"));
     } finally {
       setIsLoading(false);
@@ -128,6 +154,7 @@ export default function BookReaderButton({ volumeId, slug, title, layout, intl }
       >
         {favorite ? <HeartOffIcon size={20} /> : <HeartIcon size={20} />}
       </Button>
+      {(allowOffline || offlineBook) && <OfflineDownloadButton userId={userId} section="books" slug={slug} volumeId={volumeId} intl={intl} />}
     </div>
     <EpubReader
       isOpen={open}
@@ -137,6 +164,7 @@ export default function BookReaderButton({ volumeId, slug, title, layout, intl }
       }}
       slug={slug}
       progressResourceId={volumeId}
+      offlineUserId={allowOffline || offlineBook ? userId : undefined}
       title={title}
       layout={layout}
       intl={intl}

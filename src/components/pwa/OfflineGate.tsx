@@ -1,10 +1,12 @@
 "use client";
 
+import OfflineBooks from "@/components/pwa/OfflineBooks";
+import { getBookProgressRatio } from "@/lib/books/readingProgress";
 import { getComicOriginalTitle, getComicSeriesTitle, getComicTitle } from "@/lib/comicTitles";
 import { filterValues } from "@/lib/libraryFilters";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { BookAIcon, BookCheckIcon, BookCopyIcon, BookMarkedIcon, BookmarkIcon, BookPlusIcon, CloudOffIcon, ConstructionIcon, GhostIcon, HeartIcon, LibraryBigIcon, Settings2Icon, UserRoundIcon } from "lucide-react";
+import { BookAIcon, BookCheckIcon, BookCopyIcon, BookMarkedIcon, BookmarkIcon, BookPlusIcon, CloudOffIcon, GhostIcon, HeartIcon, LibraryBigIcon, Settings2Icon, UserRoundIcon } from "lucide-react";
 import MangaCard from "@/components/ui/MangaCard";
 import HeroKeepRead from "@/components/library/manga/row/HeroKeepRead";
 import SidebarMisc from "@/components/ui/SidebarMisc";
@@ -112,7 +114,9 @@ function MetadataBadges({ intl, meta }: { intl: Dictionary; meta: Record<string,
   );
 }
 
-function VolumeDetail({ volume, lang, intl, userId, user }: { volume: OfflineVolume; lang: Locale; intl: Dictionary; userId: string; user: Session | null }) {
+type OfflineComicVolume = OfflineVolume & { section: LibrarySection };
+
+function VolumeDetail({ volume, lang, intl, userId, user }: { volume: OfflineComicVolume; lang: Locale; intl: Dictionary; userId: string; user: Session | null }) {
   const meta = volumeMetadata(volume);
   const title = offlineVolumeTitle(volume);
   const seriesLabel = volume.section === "others" ? intl.libraries.otherCollection : intl.manga.series;
@@ -164,7 +168,7 @@ function VolumeDetail({ volume, lang, intl, userId, user }: { volume: OfflineVol
   );
 }
 
-function SeriesDetail({ volumes, lang, intl, userId, user }: { volumes: OfflineVolume[]; lang: Locale; intl: Dictionary; userId: string; user: Session | null }) {
+function SeriesDetail({ volumes, lang, intl, userId, user }: { volumes: OfflineComicVolume[]; lang: Locale; intl: Dictionary; userId: string; user: Session | null }) {
   const sortedVolumes = useMemo(() => volumes.slice().sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true })), [volumes]);
   const first = sortedVolumes[0];
   if (!first) return <OfflineUnavailable intl={intl} />;
@@ -201,7 +205,7 @@ function SeriesDetail({ volumes, lang, intl, userId, user }: { volumes: OfflineV
   );
 }
 
-function OfflineVolumesIndex({ volumes, filterVolumes, lang, intl, userId, favorites, section, toRead }: { volumes: OfflineVolume[]; filterVolumes: OfflineVolume[]; lang: Locale; intl: Dictionary; userId: string; favorites: boolean; section: LibrarySection; toRead: boolean }) {
+function OfflineVolumesIndex({ volumes, filterVolumes, lang, intl, userId, favorites, section, toRead }: { volumes: OfflineComicVolume[]; filterVolumes: OfflineVolume[]; lang: Locale; intl: Dictionary; userId: string; favorites: boolean; section: LibrarySection; toRead: boolean }) {
   const page = Math.max(1, Number(new URLSearchParams(window.location.search).get("page") || "1"));
   const totalPages = Math.max(1, Math.ceil(volumes.length / LIBRARY_PAGE_SIZE));
   const pageVolumes = volumes.slice((page - 1) * LIBRARY_PAGE_SIZE, page * LIBRARY_PAGE_SIZE);
@@ -218,7 +222,7 @@ function OfflineVolumesIndex({ volumes, filterVolumes, lang, intl, userId, favor
   return <><div className={favorites ? "" : "flex items-center mb-4"}><h2 className={favorites ? "flex items-center mb-4" : "flex items-center text-base md:text-lg mr-4"}><Icon size={28} className="mr-2" />{title as string}</h2>{!favorites && <FiltersDrawer intl={intl} scope={getLibraryScope(section)} offlineVolumes={filterVolumes} />}</div><section className={favorites ? "grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4"}>{pageVolumes.map((volume) => <MangaCard key={volume.id} title={offlineVolumeTitle(volume)} href={`/${lang}/${volume.section}/volume/${volume.slug}`} isSeries={false} isOneshot={volume.isOneshot} onGoing={false} onPause={false} volumeCount={null} cover={offlineCover(userId, volume)} progressRatio={progressRatio(volume)} isDragging={false} seriesSlug={null} offlineVolumeId={volume.id} intl={intl} className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg" />)}</section>{totalPages > 1 && <div className="mt-8"><Pagination currentPage={page} totalPages={totalPages} intl={intl} /></div>}</>;
 }
 
-function OfflineSeriesIndex({ volumes, filterVolumes, lang, intl, userId, favorites, section }: { volumes: OfflineVolume[]; filterVolumes: OfflineVolume[]; lang: Locale; intl: Dictionary; userId: string; favorites: boolean; section: LibrarySection }) {
+function OfflineSeriesIndex({ volumes, filterVolumes, lang, intl, userId, favorites, section }: { volumes: OfflineComicVolume[]; filterVolumes: OfflineVolume[]; lang: Locale; intl: Dictionary; userId: string; favorites: boolean; section: LibrarySection }) {
   const series = Array.from(new Map(volumes.filter((volume) => !volume.isOneshot).map((volume) => [volume.seriesId, volume])).values());
   const page = Math.max(1, Number(new URLSearchParams(window.location.search).get("page") || "1"));
   const totalPages = Math.max(1, Math.ceil(series.length / LIBRARY_PAGE_SIZE));
@@ -232,7 +236,7 @@ function OfflineSeriesIndex({ volumes, filterVolumes, lang, intl, userId, favori
   return <><div className={favorites ? "" : "flex items-center mb-4"}><h2 className={favorites ? "flex items-center mb-4" : "flex items-center text-base md:text-lg mr-4"}><LibraryBigIcon size={28} className="mr-2" />{title as string}</h2>{!favorites && <FiltersDrawer intl={intl} scope={getLibraryScope(section)} offlineVolumes={filterVolumes} />}</div><section className={favorites ? "grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7"}>{pageSeries.map((seriesVolume) => { const seriesVolumes = volumes.filter((volume) => volume.seriesId === seriesVolume.seriesId); const progress = seriesVolumes.length > 0 ? seriesVolumes.filter((volume) => volume.isRead).length / seriesVolumes.length : 0; return <MangaCard key={seriesVolume.seriesId} title={offlineSeriesTitle(seriesVolume)} href={`/${lang}/${seriesVolume.section}/${seriesVolume.seriesSlug}`} isSeries isOneshot={false} onGoing={seriesVolume.seriesStatus === "ONGOING"} onPause={seriesVolume.seriesStatus === "HIATUS"} volumeCount={seriesVolumes.length} countLabel={section === "others" ? intl.libraries.otherWorks as string : undefined} cover={offlineCover(userId, seriesVolume)} progressRatio={progress} isDragging={false} seriesSlug={seriesVolume.seriesSlug} offlineSeriesId={seriesVolume.seriesId} intl={intl} className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg" />; })}</section>{totalPages > 1 && <div className="mt-8"><Pagination currentPage={page} totalPages={totalPages} intl={intl} /></div>}</>;
 }
 
-function OfflineLibraryHome({ volumes, lang, intl, userId, section }: { volumes: OfflineVolume[]; lang: Locale; intl: Dictionary; userId: string; section: LibrarySection }) {
+function OfflineLibraryHome({ volumes, lang, intl, userId, section }: { volumes: OfflineComicVolume[]; lang: Locale; intl: Dictionary; userId: string; section: LibrarySection }) {
   const entries = (items: OfflineVolume[]): VolEntry[] => items.map((volume) => ({
     id: volume.id,
     slug: volume.slug,
@@ -278,7 +282,10 @@ function OfflineHome({ lang, intl, userId }: { lang: Locale; intl: Dictionary; u
   if (!volumes) return null;
   if (!volumes.length) return <OfflineUnavailable intl={intl} />;
 
-  const active = volumes.find((volume) => volume.lastPage > 0 && volume.lastPage < volume.totalPages - 1) ?? null;
+  const active = volumes.find((volume) => volume.book
+    ? !volume.isRead && !!volume.book.state.progress?.cfi
+    : volume.lastPage > 0 && volume.lastPage < volume.totalPages - 1);
+  const activeBook = active?.section === "books";
   const entries: VolumeEntry[] = volumes
     .slice()
     .sort((a, b) => (b.downloadedAt ?? "").localeCompare(a.downloadedAt ?? ""))
@@ -288,19 +295,20 @@ function OfflineHome({ lang, intl, userId }: { lang: Locale; intl: Dictionary; u
       slug: volume.slug,
       title: volume.title,
       isOneshot: volume.isOneshot,
-      coverImage: offlineCover(userId, volume),
-      section: volume.section,
+      coverImage: volume.section === "books" && !volume.coverUrl ? null : offlineCover(userId, volume),
+      section: volume.section === "books" ? "manga" : volume.section,
+      href: volume.section === "books" ? `/${lang}/books/volume/${volume.slug}` : undefined,
       meta: {
         title: volume.title,
         altTitle: typeof volume.metadata.altTitle === "string" ? volume.metadata.altTitle : null,
       },
-      progressRatio: progressRatio(volume),
+      progressRatio: volume.book ? getBookProgressRatio({ isRead: volume.isRead, progression: volume.book.state.progress?.progression }) : progressRatio(volume),
     }));
   const stats = intl.stats as Record<string, string>;
   const monthDays = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   const readCount = volumes.filter((volume) => volume.isRead).length;
 
-  return <div className="relative"><div className="fixed inset-0 -z-10 bg-seigaiha-pattern-w" /><div className="fixed inset-0 -z-20 bg-pearl" /><div className="bg-pearl flex flex-col p-4 mb-24 gap-4 md:flex-row md:mb-0"><div className="w-full md:w-1/2"><HomeKeepRead lang={lang} intl={intl} entry={active ? { id: active.id, title: active.title, slug: active.slug, isOneshot: active.isOneshot, coverImage: offlineCover(userId, active), section: active.section, meta: { title: active.title, altTitle: typeof active.metadata.altTitle === "string" ? active.metadata.altTitle : null }, lastPage: active.lastPage, totalPages: active.totalPages } : null} /></div><div className="w-full md:w-1/2 flex flex-col justify-between"><div className="group"><section className="grid grid-cols-2 md:grid-cols-3 mt-4 w-full gap-4"><TileStreak title={stats.streak} dailyReadingDates={[]} daysLabel={stats.days} bgColor="bg-sand" textColor="text-onix" /><TileLastRead title={stats.lastRead} lastRead="—" bgColor="bg-sand" textColor="text-onix" /><TileDaysRead title={stats.daysRead} daysReadCount={0} daysInMonth={monthDays} bgColor="bg-sand" textColor="text-onix" /><TileMonthRead title={stats.monthRead} count={0} goal={null} bgColor="bg-sand" textColor="text-onix" /><TileAllRead title={stats.mangaRead} readCount={readCount} totalVolumes={volumes.length} bgColor="bg-sand" textColor="text-onix" /><TileMonthTrend title={stats.prevMonth} percentageChange={0} trend="flat" bgColor="bg-sand" textColor="text-onix" /></section></div><RowNewVols entries={entries} lang={lang} intl={intl} /></div></div></div>;
+  return <div className="relative"><div className="fixed inset-0 -z-10 bg-seigaiha-pattern-w" /><div className="fixed inset-0 -z-20 bg-pearl" /><div className="bg-pearl flex flex-col p-4 mb-24 gap-4 md:flex-row md:mb-0"><div className="w-full md:w-1/2"><HomeKeepRead lang={lang} intl={intl} entry={active ? { id: active.id, title: active.title, slug: active.slug, isOneshot: active.isOneshot, coverImage: activeBook && !active.coverUrl ? null : offlineCover(userId, active), section: active.section === "books" ? "manga" : active.section, href: activeBook ? `/${lang}/books/volume/${active.slug}` : undefined, libraryHref: activeBook ? `/${lang}/books` : undefined, progressRatio: active.book ? getBookProgressRatio(active.book.state.progress) : undefined, meta: { title: active.title, altTitle: typeof active.metadata.altTitle === "string" ? active.metadata.altTitle : null }, lastPage: active.lastPage, totalPages: active.totalPages } : null} /></div><div className="w-full md:w-1/2 flex flex-col justify-between"><div className="group"><section className="grid grid-cols-2 md:grid-cols-3 mt-4 w-full gap-4"><TileStreak title={stats.streak} dailyReadingDates={[]} daysLabel={stats.days} bgColor="bg-sand" textColor="text-onix" /><TileLastRead title={stats.lastRead} lastRead="—" bgColor="bg-sand" textColor="text-onix" /><TileDaysRead title={stats.daysRead} daysReadCount={0} daysInMonth={monthDays} bgColor="bg-sand" textColor="text-onix" /><TileMonthRead title={stats.monthRead} count={0} goal={null} bgColor="bg-sand" textColor="text-onix" /><TileAllRead title={stats.mangaRead} readCount={readCount} totalVolumes={volumes.length} bgColor="bg-sand" textColor="text-onix" /><TileMonthTrend title={stats.prevMonth} percentageChange={0} trend="flat" bgColor="bg-sand" textColor="text-onix" /></section></div><RowNewVols entries={entries} lang={lang} intl={intl} /></div></div></div>;
 }
 
 function OfflineLibrary({ path, lang, intl, userId, user }: { path: string; lang: Locale; intl: Dictionary; userId: string; user: Session | null }) {
@@ -314,7 +322,7 @@ function OfflineLibrary({ path, lang, intl, userId, user }: { path: string; lang
       ? "others"
       : "manga";
   const favorites = path.includes(`/${lang}/favorites`);
-  const scoped = volumes.filter((volume) => volume.section === section && (!favorites || volume.isFavorite));
+  const scoped = volumes.filter((volume): volume is OfflineComicVolume => volume.section === section && (!favorites || volume.isFavorite));
   const volumeSlug = path.match(/\/volume\/([^/?]+)/)?.[1];
   const seriesSlug = !volumeSlug ? path.match(new RegExp(`/${section}/([^/?]+)`))?.[1] : null;
   const selectedVolume = volumeSlug ? scoped.find((volume) => volume.slug === volumeSlug) : null;
@@ -371,7 +379,8 @@ export default function OfflineGate({ children, lang, intl, user }: { children: 
   if (path.includes(`/${lang}/catalog`)) return <OfflineCatalog intl={intl} />;
   if (path.includes(`/${lang}/profile`)) return <OfflineMiscFrame kind="profile" intl={intl} user={user} />;
   if (path.includes(`/${lang}/settings`)) return <OfflineMiscFrame kind="settings" intl={intl} user={user} />;
-  if (path.includes(`/${lang}/books`)) return <div className="flex flex-col items-center justify-center h-screen gap-4 p-4"><ConstructionIcon size={64} /><h2 className="font-roboto text-center">{intl.misc.coming as string}</h2></div>;
+  const [, , library, favoritesLibrary] = path.split("?")[0].split("/");
+  if (library === "books" || (library === "favorites" && favoritesLibrary === "books")) return <OfflineBooks path={path} lang={lang} intl={intl} userId={user.id} />;
   if (path.includes(`/${lang}/search`)) return <div className="p-4"><SearchComp lang={lang} intl={intl} /></div>;
   if (path.includes(`/${lang}/manga`) || path.includes(`/${lang}/others`) || path.includes(`/${lang}/favorites`)) return <OfflineLibrary path={path} lang={lang} intl={intl} userId={user.id} user={user} />;
   return <OfflineUnavailable intl={intl} />;

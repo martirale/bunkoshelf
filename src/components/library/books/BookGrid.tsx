@@ -18,7 +18,7 @@ export default function BookGrid({ books, lang, intl, progressById = {} }: BookG
       const cover = getBookCoverUrl(book.slug, book.metadata.coverPath);
       return <MangaCard key={book.id} title={book.metadata.title} href={`/${lang}/books/volume/${book.slug}`}
         isSeries={false} isOneshot={book.series.isOneshot} onGoing={false} onPause={false} volumeCount={null}
-        cover={cover} intl={intl} isDragging={false} seriesSlug={null} progressRatio={getBookProgressRatio(progressById[book.id])}
+        cover={cover} offlineVolumeId={book.id} intl={intl} isDragging={false} seriesSlug={null} progressRatio={getBookProgressRatio(progressById[book.id])}
         className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg" />;
     })}
   </div>;

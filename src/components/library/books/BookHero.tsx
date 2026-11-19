@@ -18,10 +18,10 @@ interface ReadingEntry {
   progression: number;
 }
 
-export default function BookHero({ lang, intl }: { lang: Locale; intl: Dictionary }) {
+export default function BookHero({ lang, intl, offline }: { lang: Locale; intl: Dictionary; offline?: { entries: ReadingEntry[]; stats: Parameters<typeof BookNav>[0]["offlineStats"] } }) {
   const books = intl.books as Record<string, string>;
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [entries, setEntries] = useState<ReadingEntry[]>([]);
+  const [onlineEntries, setEntries] = useState<ReadingEntry[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
   const scrollStart = useRef(0);
@@ -29,14 +29,15 @@ export default function BookHero({ lang, intl }: { lang: Locale; intl: Dictionar
   const pathname = usePathname();
 
   useEffect(() => {
+    if (offline) return;
     async function fetchReadingProgress() {
       const result = await getBooksInProgress();
       if (!result.success) return;
       setEntries(result.data);
     }
 
-    fetchReadingProgress();
-  }, [pathname]);
+    void fetchReadingProgress().catch(() => undefined);
+  }, [offline, pathname]);
 
   const handleMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -72,6 +73,7 @@ export default function BookHero({ lang, intl }: { lang: Locale; intl: Dictionar
     container.scrollBy({ left: cardWidth * 2 * (direction === "left" ? -1 : 1), behavior: "smooth" });
   };
 
+  const entries = offline?.entries ?? onlineEntries;
   const parts = pathname.split("/").filter(Boolean);
   const shouldHideHero = parts[1] !== "books"
     || (parts.length === 3 && !["series", "volumes", "toread"].includes(parts[2]))
@@ -135,7 +137,7 @@ export default function BookHero({ lang, intl }: { lang: Locale; intl: Dictionar
         </div>
       </section>
       <div className="sticky top-0 z-10 bg-pearl p-4">
-        <BookNav lang={lang} intl={intl} />
+        <BookNav lang={lang} intl={intl} offlineStats={offline?.stats} />
       </div>
     </>
   );

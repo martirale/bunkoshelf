@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { usePwa } from "@/components/pwa/PwaProvider";
+import { flushOfflineOperations, getOfflineBookFile, getOfflineVolume, offlinePageUrl, saveOfflineBookState } from "@/lib/client/offlineLibrary";
+import type { BookReaderState as ReaderState } from "@/lib/books/offline";
 import {
   BookmarkIcon,
   ChevronLeftIcon,
@@ -21,11 +24,6 @@ type ReaderTheme = "light" | "sepia" | "dark";
 type ReaderFlow = "paginated" | "scrolled-continuous";
 type ReaderHandedness = "right" | "left";
 type TocEntry = { label: string; href: string; subitems?: TocEntry[] };
-type ReaderState = {
-  progress: { cfi?: string | null; progression?: number | null } | null;
-  bookmarks: Array<{ id: string; cfi: string; label: string | null; chapterLabel: string | null }>;
-  annotations: Array<{ id: string; cfiRange: string; excerpt: string | null; note: string | null; color: string }>;
-};
 type SelectionMenu = { cfiRange: string; excerpt: string; x: number; y: number };
 type AnnotationMenu = { annotation: ReaderState["annotations"][number]; x: number; y: number };
 
@@ -39,6 +37,7 @@ interface EpubReaderProps {
   isOpen: boolean;
   onClose: () => void;
   progressResourceId: string;
+  offlineUserId?: string;
   slug: string;
   title: string;
   layout: "reflowable" | "pre-paginated";
@@ -100,7 +99,8 @@ function isCoverSection(document: Document, sectionHref: string, coverPath?: str
   });
 }
 
-export default function EpubReader({ isOpen, onClose, progressResourceId, slug, title, layout, intl }: EpubReaderProps) {
+export default function EpubReader({ isOpen, onClose, progressResourceId, offlineUserId, slug, title, layout, intl }: EpubReaderProps) {
+  const { online } = usePwa();
   const reader = intl.epubReader as Record<string, string>;
   const viewerRef = useRef<HTMLDivElement>(null);
   const tocPanelRef = useRef<HTMLElement>(null);
@@ -237,31 +237,39 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
         ? calculatedProgress
         : undefined;
     if (nextProgress !== undefined) setProgress(nextProgress);
-    void fetch(`/api/reader/books/${encodeURIComponent(slug)}/progress`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cfi: nextCfi,
-        progression: nextProgress,
-        chapterHref: location.start.href,
-        isRead: isComplete,
-        readingDate: getLocalDateString(),
-      }),
-    }).then(async (response) => {
+    const lastReadAt = new Date().toISOString();
+    const position = { cfi: nextCfi, progression: nextProgress, isRead: isComplete, lastReadAt };
+    const update = {
+      ...position,
+      chapterHref: location.start.href,
+      readingDate: getLocalDateString(),
+    };
+    const saveLocally = async () => {
+      if (offlineUserId) await saveOfflineBookState(offlineUserId, progressResourceId, position, update);
+    };
+    if (!navigator.onLine && offlineUserId) {
+      await saveLocally().catch(() => setBookmarkMessage(reader.offlineSaveFailed));
+      return;
+    }
+    try {
+      const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/progress`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(update),
+      });
       if (!response.ok) return;
-      const savedProgress = await response.json() as {
-        isRead: boolean;
-        isFavorite: boolean;
-        progression: number | null;
-      };
+      const savedProgress = await response.json();
       publishResourceState("book-volume", progressResourceId, {
         isRead: savedProgress.isRead,
         isFavorite: savedProgress.isFavorite,
         progression: savedProgress.progression,
       });
       if (isComplete) window.dispatchEvent(new Event("bunko:challenge-updated"));
-    });
-  }, [progressResourceId, slug]);
+      if (offlineUserId) await saveOfflineBookState(offlineUserId, progressResourceId, savedProgress).catch(() => undefined);
+    } catch {
+      await saveLocally().catch(() => setBookmarkMessage(reader.offlineSaveFailed));
+    }
+  }, [offlineUserId, progressResourceId, reader.offlineSaveFailed, slug]);
 
   const applyStyles = useCallback(() => {
     const rendition = renditionRef.current;
@@ -313,7 +321,7 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   }, []);
 
   useEffect(() => {
-    if (!isOpen || layout === "pre-paginated") return;
+    if (!isOpen || layout === "pre-paginated" || !navigator.onLine) return;
     setPreferencesLoaded(false);
     fetch("/api/reader/books/preferences")
       .then((response) => response.ok ? response.json() : null)
@@ -332,12 +340,12 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   }, [isOpen, layout]);
 
   useEffect(() => {
-    if (!isOpen || layout === "pre-paginated" || !preferencesLoaded) return;
+    if (!isOpen || layout === "pre-paginated" || !preferencesLoaded || !navigator.onLine) return;
     void fetch("/api/reader/books/preferences", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ theme, flow, fontFamily, fontSize, lineHeight, margin, columnWidth }),
-    });
+    }).catch(() => undefined);
   }, [columnWidth, flow, fontFamily, fontSize, isOpen, layout, lineHeight, margin, preferencesLoaded, theme]);
 
   useEffect(() => {
@@ -349,21 +357,35 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
       setError(null);
       setBookmarkMessage(null);
       try {
-        const [module, buffer, stateResponse] = await Promise.all([
+        const emptyState: ReaderState = { progress: null, bookmarks: [], annotations: [] };
+        const offline = !navigator.onLine && offlineUserId;
+        if (!offline && offlineUserId) await flushOfflineOperations(offlineUserId).catch(() => undefined);
+        if (cancelled) return;
+        const [module, buffer, loaded] = await Promise.all([
           import("epubjs"),
-          getBookBuffer(slug),
-          fetch(`/api/reader/books/${encodeURIComponent(slug)}/state`),
+          offline
+            ? getOfflineBookFile(offline, progressResourceId).then((file) => {
+                if (!file) throw new Error("Offline book file unavailable");
+                return file.arrayBuffer();
+              })
+            : getBookBuffer(slug),
+          offline
+            ? getOfflineVolume(offline, progressResourceId).then((volume) => ({ state: volume?.book?.state ?? emptyState, hasCover: !!volume?.coverUrl }))
+            : fetch(`/api/reader/books/${encodeURIComponent(slug)}/state`)
+                .then(async (response) => ({ state: response.ok ? await response.json() as ReaderState : emptyState, hasCover: true })),
         ]);
-        const state: ReaderState = stateResponse.ok
-          ? await stateResponse.json()
-          : { progress: null, bookmarks: [], annotations: [] };
+        if (cancelled) return;
+        const { state } = loaded;
+        if (!offline && offlineUserId) {
+          void saveOfflineBookState(offlineUserId, progressResourceId, state).catch(() => undefined);
+        }
         const ePub = module.default;
         const book = ePub(buffer);
         bookRef.current = book;
         await book.ready;
         if (cancelled || !viewerRef.current) return;
 
-        hasCoverRef.current = Boolean(book.packaging?.coverPath);
+        hasCoverRef.current = loaded.hasCover && Boolean(book.packaging?.coverPath);
         const firstSection = book.spine?.get(0);
         if (firstSection) {
           const firstDocument = await firstSection.load(book.load.bind(book));
@@ -522,7 +544,7 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
       bookRef.current?.destroy();
       bookRef.current = null;
     };
-  }, [closePanels, findAnnotationAtPoint, isOpen, layout, openAnnotationMenu, persistProgress, reader.openFailed, renderAnnotation, slug]);
+  }, [closePanels, findAnnotationAtPoint, isOpen, layout, offlineUserId, openAnnotationMenu, persistProgress, progressResourceId, reader.openFailed, renderAnnotation, slug]);
 
   useEffect(() => {
     if (!isOpen || !("wakeLock" in navigator)) return;
@@ -603,6 +625,10 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   };
 
   const removeBookmark = async (bookmark: ReaderState["bookmarks"][number]) => {
+    if (!navigator.onLine) {
+      setBookmarkMessage(reader.offlineNotesReadOnly);
+      return;
+    }
     const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/bookmarks?id=${encodeURIComponent(bookmark.id)}`, {
       method: "DELETE",
     });
@@ -616,6 +642,10 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   };
 
   const toggleBookmark = async () => {
+    if (!navigator.onLine) {
+      setBookmarkMessage(reader.offlineNotesReadOnly);
+      return;
+    }
     const currentCfi = cfi ?? renditionRef.current?.currentLocation?.()?.start?.cfi;
     if (!currentCfi) {
       setBookmarkMessage(reader.noLocation);
@@ -642,6 +672,10 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   };
 
   const removeAnnotation = async (annotation: ReaderState["annotations"][number]) => {
+    if (!navigator.onLine) {
+      setBookmarkMessage(reader.offlineNotesReadOnly);
+      return;
+    }
     const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/annotations?id=${encodeURIComponent(annotation.id)}`, {
       method: "DELETE",
     });
@@ -657,6 +691,10 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   };
 
   const saveSelectionAnnotation = async (note: string | null) => {
+    if (!navigator.onLine) {
+      setBookmarkMessage(reader.offlineNotesReadOnly);
+      return;
+    }
     if (!selectionMenu) return;
     const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/annotations`, {
       method: "POST",
@@ -681,6 +719,10 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   };
 
   const clearAnnotationNote = async (annotation: ReaderState["annotations"][number]) => {
+    if (!navigator.onLine) {
+      setBookmarkMessage(reader.offlineNotesReadOnly);
+      return;
+    }
     const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/annotations`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -697,6 +739,10 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
   };
 
   const saveAnnotationNote = async (annotation: ReaderState["annotations"][number]) => {
+    if (!navigator.onLine) {
+      setBookmarkMessage(reader.offlineNotesReadOnly);
+      return;
+    }
     const note = noteDraft.trim();
     if (!note) return;
     const response = await fetch(`/api/reader/books/${encodeURIComponent(slug)}/annotations`, {
@@ -803,7 +849,7 @@ export default function EpubReader({ isOpen, onClose, progressResourceId, slug, 
         {loading && <div className="absolute inset-0 z-20 grid place-items-center" style={themeStyles[theme]}>{reader.opening}</div>}
         {error && <div className="absolute inset-0 z-20 grid place-items-center p-6 text-center" style={themeStyles[theme]}>{error}</div>}
         {coverVisible && <div className="absolute inset-0 z-10" style={themeStyles[theme]}>
-          <Image src={`/api/library/books/cover/${encodeURIComponent(slug)}`} alt={title} fill priority unoptimized sizes="100vw" className="object-contain" />
+          <Image src={!online && offlineUserId ? offlinePageUrl(offlineUserId, progressResourceId, -1) : `/api/library/books/cover/${encodeURIComponent(slug)}`} alt={title} fill priority unoptimized sizes="100vw" className="object-contain" />
         </div>}
         <div
           ref={viewerRef}

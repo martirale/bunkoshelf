@@ -1,5 +1,7 @@
 {
   "epubReader": {
+    "offlineSaveFailed": "Could not save your position on this device.",
+    "offlineNotesReadOnly": "Connect to edit bookmarks, highlights, and notes.",
     "openFailed": "The book could not be opened.",
     "contents": "Contents",
     "addBookmark": "Add bookmark",

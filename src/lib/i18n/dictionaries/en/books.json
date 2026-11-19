@@ -1,5 +1,6 @@
 {
   "books": {
+    "noOfflineBooks": "No books are downloaded on this device.",
     "read": "Read",
     "series": "Series:",
     "book": "book",

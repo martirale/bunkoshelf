@@ -13,16 +13,17 @@ import {
   removeOfflineSeries,
   removeOfflineVolume,
   type OfflineDownload,
+  type OfflineLibrarySection,
 } from "@/lib/client/offlineLibrary";
-import type { LibrarySection } from "@/lib/librarySection";
 import type { Dictionary } from "@/lib/types";
 
 interface OfflineDownloadButtonProps {
   userId?: string;
-  section: LibrarySection;
+  section: OfflineLibrarySection;
   slug: string;
   volumeId?: string;
   seriesId?: string;
+  seriesVolumeIds?: string[];
   intl: Dictionary;
 }
 
@@ -37,8 +38,9 @@ function ProgressRing({ value }: { value: number }) {
   );
 }
 
-export default function OfflineDownloadButton({ userId, section, slug, volumeId, seriesId, intl }: OfflineDownloadButtonProps) {
+export default function OfflineDownloadButton({ userId, section, slug, volumeId, seriesId, seriesVolumeIds, intl }: OfflineDownloadButtonProps) {
   const [download, setDownload] = useState<OfflineDownload | null>(null);
+  const [seriesReady, setSeriesReady] = useState(false);
   const [seriesProgress, setSeriesProgress] = useState<{ completed: number; total: number } | null>(null);
   const [isOnline, setIsOnline] = useState(false);
   const offline = intl.offline as Record<string, string> | undefined;
@@ -67,24 +69,29 @@ export default function OfflineDownloadButton({ userId, section, slug, volumeId,
 
   const isSeries = !!seriesId;
   const isReady = isSeries
-    ? Boolean(seriesProgress && seriesProgress.completed === seriesProgress.total && seriesProgress.total)
+    ? seriesVolumeIds ? seriesReady : Boolean(seriesProgress && seriesProgress.completed === seriesProgress.total && seriesProgress.total)
     : download?.status === "ready";
   const progress = isSeries
     ? seriesProgress ? seriesProgress.completed / seriesProgress.total : 0
     : download?.totalPages ? download.completedPages / download.totalPages : 0;
-  const isDownloading = isSeries ? !!seriesProgress && !isReady : download?.status === "downloading" || download?.status === "queued";
+  const isDownloading = isSeries ? !!seriesProgress && seriesProgress.completed < seriesProgress.total && !isReady : download?.status === "downloading" || download?.status === "queued";
 
   useEffect(() => {
     if (!userId || !seriesId) return;
     const load = async () => {
       const volumes = await getReadyVolumes(userId, section);
       const ready = volumes.filter((volume) => volume.seriesId === seriesId).length;
+      if (seriesVolumeIds) {
+        const ids = new Set(volumes.map((volume) => volume.id));
+        setSeriesReady(seriesVolumeIds.length > 0 && seriesVolumeIds.every((id) => ids.has(id)));
+        return;
+      }
       if (ready) setSeriesProgress((current) => current?.total && current.completed < current.total ? { completed: ready, total: current.total } : { completed: ready, total: ready });
     };
     void load();
     window.addEventListener("bunko:offline-change", load);
     return () => window.removeEventListener("bunko:offline-change", load);
-  }, [section, seriesId, userId]);
+  }, [section, seriesId, seriesVolumeIds, userId]);
 
   const handleClick = async () => {
     if (!userId) return;
@@ -97,6 +104,7 @@ export default function OfflineDownloadButton({ userId, section, slug, volumeId,
       if (isSeries && seriesId) await removeOfflineSeries(userId, seriesId);
       if (!isSeries && volumeId) await removeOfflineVolume(userId, volumeId);
       setSeriesProgress(null);
+      setSeriesReady(false);
       setDownload(null);
       return;
     }
@@ -124,6 +132,9 @@ export default function OfflineDownloadButton({ userId, section, slug, volumeId,
       }
     } catch (error) {
       console.error("Offline download error:", error);
+      if (section === "books" && volumeId) {
+        setDownload(await getDownload(userId, volumeId).catch(() => null));
+      }
       await alert({
         title: offline?.downloadErrorTitle,
         description: offline?.downloadError || "No se pudo completar la descarga",

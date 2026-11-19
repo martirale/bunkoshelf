@@ -1,3 +1,6 @@
+import { findBookVolumeBySlug } from "@/lib/db/books/library";
+import { getBookVolumeNavigation } from "@/lib/db/volumeNavigation";
+import { getOfflineBookManifest } from "@/lib/books/offlineManifest";
 import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import { findVolumeProgress } from "@/lib/db/reading";
@@ -19,11 +22,21 @@ export async function GET(
   { params }: { params: Promise<{ section: string; slug: string }> },
 ) {
   const { section, slug } = await params;
-  if (section !== "manga" && section !== "others") {
+  if (section !== "manga" && section !== "others" && section !== "books") {
     return NextResponse.json({ error: "Invalid section" }, { status: 400 });
   }
   const user = await verifySession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (section === "books") {
+    const volume = await findBookVolumeBySlug(slug);
+    if (!volume || volume.series.librarySection !== "books") {
+      return NextResponse.json({ error: "Book not found" }, { status: 404 });
+    }
+    const { series, seriesPosition } = await getBookVolumeNavigation(volume);
+    const manifest = await getOfflineBookManifest(user, { ...volume, series }, seriesPosition);
+    if (!manifest) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ volume: manifest });
+  }
 
   const volume = await findVolumeBySlug({ slug, includeGenres: true, includeTags: true });
   if (!volume || getLibrarySection(volume.series.librarySection) !== section) {

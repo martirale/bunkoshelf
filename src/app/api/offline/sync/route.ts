@@ -1,3 +1,8 @@
+import { canAccessBookVolume } from "@/lib/clubs/access";
+import { recordClubProgressActivities } from "@/lib/db/clubs";
+import { findBookVolumeBySlug } from "@/lib/db/books/library";
+import { findBookProgress, upsertBookProgress } from "@/lib/db/books/reading";
+import type { Session } from "@/lib/types";
 import { NextResponse } from "next/server";
 import { createId } from "@paralleldrive/cuid2";
 import { verifySession } from "@/lib/auth/verifySession";
@@ -8,11 +13,40 @@ import { queryOne, execute } from "@/lib/db/query";
 
 interface Operation {
   id: string;
-  kind: "favorite" | "read" | "progress" | "series-favorite";
+  kind: "favorite" | "read" | "progress" | "series-favorite" | "book-progress";
   payload: Record<string, unknown>;
 }
 
-async function apply(operation: Operation) {
+async function applyBookProgress(user: Session, payload: Record<string, unknown>) {
+  if (typeof payload.slug !== "string") return { error: "Invalid book" };
+  const book = await findBookVolumeBySlug(payload.slug);
+  if (!book || !(await canAccessBookVolume(user, book.id))) return { error: "Book unavailable" };
+
+  const date = typeof payload.lastReadAt === "string" ? new Date(payload.lastReadAt) : undefined;
+  const lastReadAt = date && Number.isFinite(date.getTime()) ? date : undefined;
+  const current = await findBookProgress(user.id, book.id);
+  const stale = lastReadAt && current?.lastReadAt && lastReadAt < current.lastReadAt;
+  const isFavorite = typeof payload.isFavorite === "boolean" ? payload.isFavorite : undefined;
+  if (stale && isFavorite === undefined) return { success: true };
+
+  const readingDate = typeof payload.readingDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(payload.readingDate)
+    ? payload.readingDate
+    : undefined;
+  await upsertBookProgress(user.id, book.id, stale ? { isFavorite } : {
+    cfi: typeof payload.cfi === "string" ? payload.cfi : undefined,
+    chapterHref: typeof payload.chapterHref === "string" ? payload.chapterHref : undefined,
+    progression: typeof payload.progression === "number" ? Math.max(0, Math.min(1, payload.progression)) : undefined,
+    isRead: typeof payload.isRead === "boolean" ? payload.isRead : undefined,
+    isFavorite,
+    lastReadAt,
+    readingDate,
+  });
+  await recordClubProgressActivities(user.id, "BOOK_SERIES", book.series.id);
+  return { success: true };
+}
+
+async function apply(operation: Operation, user: Session) {
+  if (operation.kind === "book-progress") return applyBookProgress(user, operation.payload);
   if (operation.kind === "favorite") {
     return toggleVolumeFavorite({ volumeId: String(operation.payload.volumeId || ""), favorite: Boolean(operation.payload.favorite) });
   }
@@ -53,7 +87,7 @@ export async function POST(request: Request) {
       completed.push(operation.id);
       continue;
     }
-    const result = await apply(operation);
+    const result = await apply(operation, user);
     if (!result || "error" in result) continue;
     await execute(
       "INSERT INTO offline_sync_operations (id, user_id, client_operation_id) VALUES ($1, $2, $3) ON CONFLICT (user_id, client_operation_id) DO NOTHING",

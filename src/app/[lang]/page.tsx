@@ -181,6 +181,7 @@ async function HomeContent({
       createdAt: book.createdAt,
       entry: {
         title: book.metadata.title,
+        offlineVolumeId: book.id,
         slug: book.slug,
         isOneshot: book.series.isOneshot,
         coverImage: getBookCoverUrl(book.slug, book.metadata.coverPath),

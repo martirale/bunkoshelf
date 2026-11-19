@@ -1,5 +1,7 @@
 {
   "epubReader": {
+    "offlineSaveFailed": "No se pudo guardar la posición en este dispositivo.",
+    "offlineNotesReadOnly": "Conéctate para editar marcadores, subrayados y notas.",
     "openFailed": "No fue posible abrir el libro.",
     "contents": "Contenido",
     "addBookmark": "Agregar marcador",

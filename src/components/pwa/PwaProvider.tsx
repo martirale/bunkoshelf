@@ -66,9 +66,9 @@ export default function PwaProvider({ userId, contentVisibility, children }: { u
     wasOnline.current = online;
     if (!userId || !online) return;
     void (async () => {
-      await resumeOfflineDownloads(userId);
-      await flushOfflineOperations(userId);
+      await flushOfflineOperations(userId).catch(() => undefined);
       if (reconnected) router.refresh();
+      await resumeOfflineDownloads(userId).catch(() => undefined);
     })();
   }, [online, router, userId]);
 
@@ -81,7 +81,7 @@ export default function PwaProvider({ userId, contentVisibility, children }: { u
     }
     const load = () => {
       void getReadyVolumes(userId).then((volumes) => {
-        setOfflineSlugs(new Set(volumes.map((volume) => volume.slug)));
+        setOfflineSlugs(new Set(volumes.filter((volume) => volume.section !== "books").map((volume) => volume.slug)));
         setOfflineVolumeIds(new Set(volumes.map((volume) => volume.id)));
         setOfflineSeriesIds(new Set(volumes.map((volume) => volume.seriesId)));
       });

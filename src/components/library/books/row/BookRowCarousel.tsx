@@ -10,7 +10,8 @@ import { getBookProgressRatio } from "@/lib/books/readingProgress";
 import type { MouseEvent as ReactMouseEvent, DragEvent, ReactNode } from "react";
 
 interface BookRowCarouselProps {
-  books: BookVolume[];
+  books: Array<Pick<BookVolume, "id" | "slug"> & { metadata: Pick<BookVolume["metadata"], "title" | "coverPath">; series: Pick<BookVolume["series"], "isOneshot"> }>;
+  coverById?: Record<string, string | null>;
   lang: string;
   intl: Dictionary;
   header: ReactNode;
@@ -25,6 +26,7 @@ export default function BookRowCarousel({
   header,
   className = "mt-8",
   progressById = {},
+  coverById,
 }: BookRowCarouselProps) {
   const booksDictionary = intl.books as Record<string, string>;
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -108,7 +110,7 @@ export default function BookRowCarousel({
               onGoing={false}
               onPause={false}
               volumeCount={null}
-              cover={getBookCoverUrl(book.slug, book.metadata.coverPath)}
+              cover={coverById ? coverById[book.id] : getBookCoverUrl(book.slug, book.metadata.coverPath)}
               intl={intl}
               isDragging={isDragging}
               seriesSlug={null}

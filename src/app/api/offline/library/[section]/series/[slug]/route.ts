@@ -1,3 +1,5 @@
+import { listBookVolumes } from "@/lib/db/books/library";
+import { getOfflineBookManifest } from "@/lib/books/offlineManifest";
 import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 import { listVolumeProgressByIds } from "@/lib/db/library";
@@ -11,11 +13,22 @@ export async function GET(
   { params }: { params: Promise<{ section: string; slug: string }> },
 ) {
   const { section, slug } = await params;
-  if (section !== "manga" && section !== "others") {
+  if (section !== "manga" && section !== "others" && section !== "books") {
     return NextResponse.json({ error: "Invalid section" }, { status: 400 });
   }
   const user = await verifySession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (section === "books") {
+    const books = await listBookVolumes({ seriesSlug: slug });
+    if (!books.length) return NextResponse.json({ error: "Series not found" }, { status: 404 });
+    const manifests = [];
+    for (const [position, book] of books.entries()) {
+      const manifest = await getOfflineBookManifest(user, book, position);
+      if (!manifest) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      manifests.push(manifest);
+    }
+    return NextResponse.json({ volumes: manifests });
+  }
   const series = await findSeriesBySlugBasic(slug);
   if (!series) return NextResponse.json({ error: "Series not found" }, { status: 404 });
 

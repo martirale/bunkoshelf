@@ -15,28 +15,30 @@ interface Stats {
   totalUnread: number | null;
 }
 
-export default function BookNav({ lang, intl }: { lang: Locale; intl: Dictionary }) {
+export default function BookNav({ lang, intl, offlineStats }: { lang: Locale; intl: Dictionary; offlineStats?: Stats }) {
   const pathname = usePathname();
   const [stats, setStats] = useState<Stats>({ totalVolumes: null, totalSeries: null, totalUnread: null });
   const rootHref = `/${lang}/books`;
 
   useEffect(() => {
+    if (offlineStats) return;
     async function fetchStats() {
       const data = await getBooksReaderStats();
       if ("error" in data) return;
       setStats(data);
     }
 
-    fetchStats();
+    void fetchStats().catch(() => undefined);
     window.addEventListener("bunko:library-updated", fetchStats);
     return () => window.removeEventListener("bunko:library-updated", fetchStats);
-  }, [pathname]);
+  }, [offlineStats, pathname]);
 
+  const counts = offlineStats ?? stats;
   const links = [
     { label: intl.libraries.overview as string, href: rootHref, icon: LayoutPanelTopIcon, isActive: pathname === rootHref },
-    { label: intl.libraries.series as string, href: `${rootHref}/series`, icon: LibraryBigIcon, isActive: pathname === `${rootHref}/series`, count: stats.totalSeries },
-    { label: intl.libraries.books as string, href: `${rootHref}/volumes`, icon: BookCopyIcon, isActive: pathname === `${rootHref}/volumes`, count: stats.totalVolumes },
-    { label: intl.libraries.toRead as string, href: `${rootHref}/toread`, icon: BookmarkIcon, isActive: pathname === `${rootHref}/toread`, count: stats.totalUnread },
+    { label: intl.libraries.series as string, href: `${rootHref}/series`, icon: LibraryBigIcon, isActive: pathname === `${rootHref}/series`, count: counts.totalSeries },
+    { label: intl.libraries.books as string, href: `${rootHref}/volumes`, icon: BookCopyIcon, isActive: pathname === `${rootHref}/volumes`, count: counts.totalVolumes },
+    { label: intl.libraries.toRead as string, href: `${rootHref}/toread`, icon: BookmarkIcon, isActive: pathname === `${rootHref}/toread`, count: counts.totalUnread },
   ];
 
   return (

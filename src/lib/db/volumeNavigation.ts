@@ -46,5 +46,6 @@ export async function getBookVolumeNavigation(volume: BookVolume) {
   const volumes: Array<{ slug: string }> = series.isOneshot ? [] : series.isLogical && series.librarySection === "other"
     ? await listVolumes({ seriesIds: [series.id], scope: "others" })
     : await listBookVolumes({ seriesSlug: series.slug, librarySection: series.librarySection });
-  return { series, ...getAdjacentSlugs(volumes, volume.slug) };
+  const seriesPosition = volumes.findIndex((item) => item.slug === volume.slug);
+  return { series, ...getAdjacentSlugs(volumes, volume.slug), seriesPosition: seriesPosition < 0 ? undefined : seriesPosition };
 }
