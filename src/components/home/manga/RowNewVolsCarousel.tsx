@@ -19,6 +19,7 @@ export interface VolumeEntry {
   section: LibrarySection;
   meta: { title?: string | null; altTitle?: string | null } | null;
   progressRatio?: number | null;
+  offlineVolumeId?: string;
   href?: string;
 }
 
@@ -119,6 +120,7 @@ export default function RowNewVolsCarousel({ entries, lang, intl }: RowNewVolsCa
               progressRatio={entry.progressRatio ?? null}
               intl={intl}
               isDragging={isDragging}
+              offlineVolumeId={entry.offlineVolumeId}
               coverAspectRatio="uniform"
               className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
             />

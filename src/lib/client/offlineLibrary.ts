@@ -23,6 +23,7 @@ export interface OfflineVolume {
   seriesSlug: string;
   seriesTitle: string;
   seriesStatus?: string;
+  seriesIsLogical?: boolean;
   isOneshot: boolean;
   mangaStyle: string | null;
   metadata: Record<string, unknown>;
@@ -79,6 +80,7 @@ interface OfflineVolumeManifest {
     title: string;
     isOneshot: boolean;
     status?: string;
+    isLogical?: boolean;
   };
   mangaStyle: string | null;
   metadata: Record<string, unknown>;
@@ -237,6 +239,7 @@ async function saveManifest(userId: string, manifest: OfflineVolumeManifest) {
     seriesSlug: manifest.series.slug,
     seriesTitle: manifest.series.title,
     seriesStatus: manifest.series.status,
+    seriesIsLogical: manifest.series.isLogical,
     isOneshot: manifest.series.isOneshot,
     mangaStyle: manifest.mangaStyle,
     metadata: manifest.metadata,
@@ -440,7 +443,7 @@ export async function resumeOfflineDownloads(userId: string) {
     if (!volume) continue;
     manifests.push({
       id: volume.id, slug: volume.slug, section: volume.section, title: volume.title,
-      series: { id: volume.seriesId, slug: volume.seriesSlug, title: volume.seriesTitle, isOneshot: volume.isOneshot },
+      series: { id: volume.seriesId, slug: volume.seriesSlug, title: volume.seriesTitle, isOneshot: volume.isOneshot, status: volume.seriesStatus, isLogical: volume.seriesIsLogical },
       mangaStyle: volume.mangaStyle, metadata: volume.metadata, coverUrl: volume.coverUrl,
       isRead: volume.isRead, isFavorite: volume.isFavorite, lastPage: volume.lastPage, totalPages: volume.totalPages,
     });

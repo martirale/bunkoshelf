@@ -72,7 +72,7 @@ export default function HeroKeepRead({
             title: volume.title,
             isOneshot: volume.isOneshot,
             coverImage: offlinePageUrl(offlineUserId, volume.id, -1),
-            meta: { title: volume.title },
+            meta: { title: getComicTitle(volume.metadata) ?? volume.title },
             lastPage: volume.lastPage,
             totalPages: volume.totalPages,
             lastReadAt: volume.downloadedAt ? new Date(volume.downloadedAt) : null,
