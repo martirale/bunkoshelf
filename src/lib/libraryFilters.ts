@@ -21,6 +21,7 @@ export interface LibrarySearchParams {
   genre?: string;
   tag?: string;
   publisher?: string | string[];
+  imprint?: string | string[];
   includeOneshots?: string;
 }
 

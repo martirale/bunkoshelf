@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { filterValues } from "@/lib/libraryFilters";
 import type { LibrarySection } from "@/lib/librarySection";
 import { normalizeCommaSeparatedText } from "@/lib/mangaMetadata";
 import type { Locale, Dictionary } from "@/lib/types";
@@ -30,32 +31,33 @@ function MetaField({ field, label }: MetaFieldProps) {
   );
 }
 
-interface AuthorFieldProps extends MetaFieldProps {
+interface LinkedMetaFieldProps extends MetaFieldProps {
   href: string;
+  filter: "author" | "publisher" | "imprint";
 }
 
-function AuthorField({ field, label, href }: AuthorFieldProps) {
-  const value = normalize(field);
-  if (!value) return null;
-
-  const authors = value.split(",").map((author) => author.trim());
+function LinkedMetaField({ field, label, href, filter }: LinkedMetaFieldProps) {
+  const values = filter === "author"
+    ? normalize(field)?.split(",").map((author) => author.trim()) ?? []
+    : filterValues(Array.isArray(field) ? field.filter((value) => typeof value === "string") : typeof field === "string" ? field : undefined);
+  if (!values.length) return null;
 
   return (
     <div className="flex flex-row items-baseline max-w-3xl">
       <p className="text-sm uppercase w-1/3 md:w-1/5">{label as string}</p>
       <p className="w-2/3 md:w-4/5">
-        {authors.map((author, idx) => (
-          <span key={`${author}-${idx}`}>
+        {values.map((value, idx) => (
+          <span key={`${value}-${idx}`}>
             {idx > 0 && ", "}
             <Link
               href={{
                 pathname: href,
-                query: { author, includeOneshots: "true" },
+                query: { [filter]: value, includeOneshots: "true" },
               }}
               scroll={false}
               className="hover:text-lilah transition-all duration-300"
             >
-              {author}
+              {value}
             </Link>
           </span>
         ))}
@@ -84,7 +86,7 @@ export default function MetadataPanel({
   const genres = (meta.genres || []) as { name: string }[];
   const tags = (meta.tags || []) as { name: string }[];
   const href = `/${lang}/${section}/${linkBase}`;
-  const authorHref = `/${lang}/${section}/series`;
+  const seriesHref = `/${lang}/${section}/series`;
 
   return (
     <>
@@ -94,15 +96,15 @@ export default function MetadataPanel({
           <p className="w-2/3 md:w-4/5">{originalTitle}</p>
         </div>
       )}
-      <AuthorField field={meta.writer} label={intl.manga.author} href={authorHref} />
+      <LinkedMetaField field={meta.writer} label={intl.manga.author} href={seriesHref} filter="author" />
       <MetaField field={meta.penciller} label={intl.manga.penciller} />
       <MetaField field={meta.inker} label={intl.manga.inker} />
       <MetaField field={meta.colorist} label={intl.manga.colorist} />
       <MetaField field={meta.letterer} label={intl.manga.letterer} />
       <MetaField field={meta.coverArtist} label={intl.manga.coverArtist} />
       <MetaField field={meta.editor} label={intl.manga.editor} />
-      <MetaField field={meta.publisher} label={intl.manga.publisher} />
-      <MetaField field={meta.imprint} label={intl.manga.imprint} />
+      <LinkedMetaField field={meta.publisher} label={intl.manga.publisher} href={seriesHref} filter="publisher" />
+      <LinkedMetaField field={meta.imprint} label={intl.manga.imprint} href={seriesHref} filter="imprint" />
       <MetaField field={meta.format} label={intl.manga.format} />
       <MetaField field={meta.gtin} label={intl.manga.gtin} />
 

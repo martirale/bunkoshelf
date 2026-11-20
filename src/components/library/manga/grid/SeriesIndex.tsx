@@ -24,6 +24,7 @@ interface SeriesIndexProps {
   page?: number;
   authorFilter?: string | string[];
   publisherFilter?: string | string[];
+  imprintFilter?: string | string[];
   genreFilter?: string | string[];
   tagFilter?: string | string[];
   scope?: LibraryScope;
@@ -37,6 +38,7 @@ export default async function SeriesIndex({
   page = 1,
   authorFilter = [],
   publisherFilter,
+  imprintFilter,
   genreFilter = [],
   tagFilter = [],
   scope = "all",
@@ -57,6 +59,7 @@ export default async function SeriesIndex({
       pageSize: LIBRARY_PAGE_SIZE,
       authorNames: authorList,
       publisherNames: filterValues(publisherFilter),
+      imprintNames: filterValues(imprintFilter),
       genreNames: genreList,
       tagNames: tagList,
       includeGenres: true,

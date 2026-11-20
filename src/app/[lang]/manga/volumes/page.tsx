@@ -28,7 +28,7 @@ async function VolumesIndexContent({
   params,
 }: MangaVolumesPageProps) {
   const resolvedSearchParams = await searchParams;
-  const { page: pageRaw = "1", author, publisher, genre, tag } = resolvedSearchParams;
+  const { page: pageRaw = "1", author, publisher, imprint, genre, tag } = resolvedSearchParams;
   const page = parseInt(pageRaw ?? "1", 10);
   const { lang = "es" } = await params;
   const intl = await getDictionary(lang as Locale);
@@ -41,6 +41,7 @@ async function VolumesIndexContent({
       page={page}
       authorFilter={author}
       publisherFilter={publisher}
+      imprintFilter={imprint}
       genreFilter={genre}
       tagFilter={tag}
       scope={scope}

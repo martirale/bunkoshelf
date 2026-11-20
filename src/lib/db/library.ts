@@ -123,6 +123,7 @@ interface SharedVolumeQueryOptions {
   includeTags?: boolean;
   authorNames?: string[];
   publisherNames?: string[];
+  imprintNames?: string[];
   genreNames?: string[];
   tagNames?: string[];
   seriesIds?: string[];
@@ -140,6 +141,7 @@ interface SharedSeriesQueryOptions {
   userId?: string | null;
   authorNames?: string[];
   publisherNames?: string[];
+  imprintNames?: string[];
   genreNames?: string[];
   tagNames?: string[];
   seriesIds?: string[];
@@ -540,6 +542,7 @@ function buildVolumeFilterSql(
   options: {
     authorNames?: string[];
     publisherNames?: string[];
+    imprintNames?: string[];
     genreNames?: string[];
     tagNames?: string[];
     seriesIds?: string[];
@@ -591,6 +594,11 @@ function buildVolumeFilterSql(
   if (options.publisherNames?.length) {
     params.push(options.publisherNames);
     conditions.push(`BTRIM(vm.publisher) = ANY($${params.length}::text[])`);
+  }
+
+  if (options.imprintNames?.length) {
+    params.push(options.imprintNames);
+    conditions.push(`BTRIM(vm.imprint) = ANY($${params.length}::text[])`);
   }
 
   if (options.genreNames && options.genreNames.length > 0) {
@@ -1280,18 +1288,21 @@ async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
   genres: GenreFilter[];
   tags: TagFilter[];
   publishers: Array<{ id: string; name: string }>;
+  imprints: Array<{ id: string; name: string }>;
 }> {
   const authorParams: unknown[] = [];
   const genreParams: unknown[] = [];
   const tagParams: unknown[] = [];
   const publisherParams: unknown[] = [];
+  const imprintParams: unknown[] = [];
   const authorScopeWhere = buildLibraryFilterScopeConditions(authorParams, scope);
   const genreScopeWhere = buildLibraryFilterScopeConditions(genreParams, scope);
   const tagScopeWhere = buildLibraryFilterScopeConditions(tagParams, scope);
 
   const publisherScopeWhere = buildLibraryFilterScopeConditions(publisherParams, scope);
+  const imprintScopeWhere = buildLibraryFilterScopeConditions(imprintParams, scope);
 
-  const [authors, genres, tags, publishers] = await Promise.all([
+  const [authors, genres, tags, publishers, imprints] = await Promise.all([
     query<AuthorFilter>(
       `
         SELECT DISTINCT
@@ -1349,9 +1360,19 @@ async function listLibraryFiltersRaw(scope?: LibraryScope): Promise<{
        ORDER BY name ASC`,
       publisherParams
     ),
+    query<{ id: string; name: string }>(
+      `SELECT DISTINCT BTRIM(vm.imprint) AS id, BTRIM(vm.imprint) AS name
+       FROM manga_volumes mv
+       INNER JOIN manga_series ms ON ms.id = mv.series_id
+       INNER JOIN volume_metadata vm ON vm.id = mv.metadata_id
+       ${imprintScopeWhere || "WHERE TRUE"}
+         AND NULLIF(BTRIM(vm.imprint), '') IS NOT NULL
+       ORDER BY name ASC`,
+      imprintParams
+    ),
   ]);
 
-  return { authors, genres, tags, publishers };
+  return { authors, genres, tags, publishers, imprints };
 }
 
 async function listLibraryFiltersCached(scope?: LibraryScope) {
@@ -1368,6 +1389,7 @@ export async function listLibraryFilters(scope?: LibraryScope): Promise<{
   genres: GenreFilter[];
   tags: TagFilter[];
   publishers: Array<{ id: string; name: string }>;
+  imprints: Array<{ id: string; name: string }>;
 }> {
   return listLibraryFiltersCached(scope);
 }
@@ -1396,6 +1418,7 @@ async function listVolumesRaw(
     {
       authorNames: options?.authorNames,
       publisherNames: options?.publisherNames,
+      imprintNames: options?.imprintNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1519,6 +1542,7 @@ export async function listVolumes(
     includeTags: options?.includeTags,
     authorNames: options?.authorNames,
     publisherNames: options?.publisherNames,
+    imprintNames: options?.imprintNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1542,6 +1566,7 @@ async function listPagedVolumeIdsRaw(
     {
       authorNames: options?.authorNames,
       publisherNames: options?.publisherNames,
+      imprintNames: options?.imprintNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1616,6 +1641,7 @@ export async function listPagedVolumes(
       includeTags: options?.includeTags,
       authorNames: options?.authorNames,
       publisherNames: options?.publisherNames,
+      imprintNames: options?.imprintNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1634,6 +1660,7 @@ export async function listPagedVolumes(
         includeTags: options?.includeTags,
         authorNames: options?.authorNames,
         publisherNames: options?.publisherNames,
+        imprintNames: options?.imprintNames,
         genreNames: options?.genreNames,
         tagNames: options?.tagNames,
         seriesIds: options?.seriesIds,
@@ -1656,6 +1683,7 @@ export async function listPagedVolumes(
     includeTags: options?.includeTags,
     authorNames: options?.authorNames,
     publisherNames: options?.publisherNames,
+    imprintNames: options?.imprintNames,
     scope: options?.scope,
   });
 
@@ -1741,6 +1769,7 @@ async function listSeriesWithVolumesRaw(
     includeTags: options?.includeTags,
     authorNames: options?.authorNames,
     publisherNames: options?.publisherNames,
+    imprintNames: options?.imprintNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1784,6 +1813,7 @@ export async function listSeriesWithVolumes(
   const series = await listSeriesWithVolumesCached({
     authorNames: options?.authorNames,
     publisherNames: options?.publisherNames,
+    imprintNames: options?.imprintNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1806,6 +1836,7 @@ async function listPagedSeriesIdsRaw(
     {
       authorNames: options?.authorNames,
       publisherNames: options?.publisherNames,
+      imprintNames: options?.imprintNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1883,6 +1914,7 @@ export async function listPagedSeriesWithVolumes(
     const all = await listSeriesWithVolumes({
       authorNames: options?.authorNames,
       publisherNames: options?.publisherNames,
+      imprintNames: options?.imprintNames,
       genreNames: options?.genreNames,
       tagNames: options?.tagNames,
       seriesIds: options?.seriesIds,
@@ -1897,6 +1929,7 @@ export async function listPagedSeriesWithVolumes(
   const pagedIds = await listPagedSeriesIdsCached({
     authorNames: options?.authorNames,
     publisherNames: options?.publisherNames,
+    imprintNames: options?.imprintNames,
     genreNames: options?.genreNames,
     tagNames: options?.tagNames,
     seriesIds: options?.seriesIds,
@@ -1921,6 +1954,7 @@ export async function listPagedSeriesWithVolumes(
     includeTags: options?.includeTags,
     authorNames: options?.authorNames,
     publisherNames: options?.publisherNames,
+    imprintNames: options?.imprintNames,
     scope: options?.scope,
   });
 

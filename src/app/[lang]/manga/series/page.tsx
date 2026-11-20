@@ -32,6 +32,7 @@ async function SeriesIndexContent({
     page: pageRaw = "1",
     author,
     publisher,
+    imprint,
     genre,
     tag,
     includeOneshots,
@@ -48,6 +49,7 @@ async function SeriesIndexContent({
       page={page}
       authorFilter={author}
       publisherFilter={publisher}
+      imprintFilter={imprint}
       genreFilter={genre}
       tagFilter={tag}
       scope={scope}

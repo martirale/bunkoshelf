@@ -38,6 +38,7 @@ export default function FiltersDrawer({
   const [genres, setGenres] = useState<FilterItem[]>([]);
   const [tags, setTags] = useState<FilterItem[]>([]);
   const [publishers, setPublishers] = useState<FilterItem[]>([]);
+  const [imprints, setImprints] = useState<FilterItem[]>([]);
   const { online } = usePwa();
 
   const filters = intl.filters as DictionarySection;
@@ -52,10 +53,13 @@ export default function FiltersDrawer({
         const genres = new Set<string>();
         const tags = new Set<string>();
         const publishers = new Set<string>();
+        const imprints = new Set<string>();
 
         offlineVolumes.forEach((volume) => {
           const publisher = volume.metadata.publisher;
           if (typeof publisher === "string" && publisher.trim()) publishers.add(publisher.trim());
+          const imprint = volume.metadata.imprint;
+          if (typeof imprint === "string" && imprint.trim()) imprints.add(imprint.trim());
           const writer = volume.metadata.writer;
           if (typeof writer === "string") {
             writer.split(",").map((item) => item.trim()).filter(Boolean).forEach((item) => authors.add(item));
@@ -70,18 +74,20 @@ export default function FiltersDrawer({
         setGenres(Array.from(genres).sort().map((name) => ({ id: name, name })));
         setTags(Array.from(tags).sort().map((name) => ({ id: name, name })));
         setPublishers(Array.from(publishers).sort().map((name) => ({ id: name, name })));
+        setImprints(Array.from(imprints).sort().map((name) => ({ id: name, name })));
         return;
       }
 
       try {
         const data = library === "books"
-          ? await getBookLibraryFilters()
+          ? { ...await getBookLibraryFilters(), imprints: [] }
           : await getLibraryFilters({ scope });
         if (!data || "error" in data) throw new Error("Error fetching filters");
         setAuthors(data.authors);
         setGenres(data.genres);
         setTags(data.tags);
         setPublishers(data.publishers);
+        setImprints(data.imprints);
       } catch (e) {
         console.error(e);
       }
@@ -95,6 +101,9 @@ export default function FiltersDrawer({
     { key: "tag", label: filters.tags as string, commaSeparated: true, options: tags.map((item) => ({ value: item.name, label: item.name })) },
     { key: "publisher", label: filters.publishers as string, options: publishers.map((item) => ({ value: item.name, label: item.name })) },
   ];
+  if (library !== "books") {
+    groups.push({ key: "imprint", label: filters.imprints as string, options: imprints.map((item) => ({ value: item.name, label: item.name })) });
+  }
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">

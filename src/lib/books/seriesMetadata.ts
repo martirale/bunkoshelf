@@ -2,7 +2,10 @@ import type { EpubMetadata } from "./types";
 
 type BookMetadata = Pick<EpubMetadata, "people" | "subjects" | "identifiers" | "publisher" | "rights" | "source" | "epubVersion" | "publicationType">;
 
-export type BookSeriesMetadata = Pick<BookMetadata, "people" | "subjects" | "identifiers" | "publisher" | "rights" | "source"> & { formats: string[] };
+export type BookSeriesMetadata = Pick<BookMetadata, "people" | "subjects" | "identifiers" | "rights" | "source"> & {
+  publishers: string[];
+  formats: string[];
+};
 
 function unique<T>(items: T[], getValue: (item: T) => string): T[] {
   const values = new Map<string, T>();
@@ -16,7 +19,7 @@ function unique<T>(items: T[], getValue: (item: T) => string): T[] {
 export function aggregateBookSeriesMetadata(volumes: BookMetadata[]): BookSeriesMetadata {
   function collect(field: "publisher" | "rights" | "source") {
     const values = volumes.map((volume) => volume[field]?.trim() ?? "").filter(Boolean);
-    return unique(values, (value) => value).join(", ") || null;
+    return unique(values, (value) => value);
   }
 
   const people = volumes.flatMap((volume) => volume.people)
@@ -32,9 +35,9 @@ export function aggregateBookSeriesMetadata(volumes: BookMetadata[]): BookSeries
     people: unique(people, (person) => JSON.stringify([person.name.toLowerCase(), person.kind, person.role ?? (person.kind === "creator" ? "aut" : "")])),
     subjects: unique(subjects, (subject) => subject.name),
     identifiers: unique(identifiers, (identifier) => JSON.stringify([identifier.value, identifier.scheme?.trim().toLowerCase() ?? ""])),
-    publisher: collect("publisher"),
-    rights: collect("rights"),
-    source: collect("source"),
+    publishers: collect("publisher"),
+    rights: collect("rights").join(", ") || null,
+    source: collect("source").join(", ") || null,
     formats: unique(formats, (format) => format),
   };
 }

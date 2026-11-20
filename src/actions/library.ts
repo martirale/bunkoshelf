@@ -21,9 +21,7 @@ export async function getLibraryFilters(options?: LibraryActionOptions) {
       return { error: "Unauthorized", status: 401 };
     }
 
-    const { authors, genres, tags, publishers } = await listLibraryFilters(options?.scope);
-
-    return { authors, genres, tags, publishers };
+    return await listLibraryFilters(options?.scope);
   } catch (e) {
     error = e as Error;
   } finally {

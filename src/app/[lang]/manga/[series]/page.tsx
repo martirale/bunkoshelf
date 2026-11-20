@@ -38,9 +38,8 @@ function aggregateMetadata(
     for (const key of fields) {
       const raw = vol[key];
       if (typeof raw === "string" && raw.trim() !== "") {
-        raw.split(",").forEach((entry) => {
-          aggregated[key].add(entry.trim());
-        });
+        const values = key === "publisher" || key === "imprint" ? [raw] : raw.split(",");
+        values.forEach((entry) => aggregated[key].add(entry.trim()));
       }
     }
   }

@@ -22,6 +22,7 @@ interface VolumesIndexProps {
   page?: number;
   authorFilter?: string | string[];
   publisherFilter?: string | string[];
+  imprintFilter?: string | string[];
   genreFilter?: string | string[];
   tagFilter?: string | string[];
   scope?: LibraryScope;
@@ -34,6 +35,7 @@ export default async function VolumesIndex({
   page = 1,
   authorFilter = [],
   publisherFilter,
+  imprintFilter,
   genreFilter = [],
   tagFilter = [],
   scope = "all",
@@ -54,6 +56,7 @@ export default async function VolumesIndex({
     includeTags: true,
     authorNames: authorList,
     publisherNames: filterValues(publisherFilter),
+    imprintNames: filterValues(imprintFilter),
     genreNames: genreList,
     tagNames: tagList,
     scope,

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { getBookIdentifierScheme, getBookIdentifierValue } from "@/lib/books/metadata";
+import { filterValues } from "@/lib/libraryFilters";
 import type { BookSubjectFilter } from "@/lib/db/books/library";
 import type { EpubMetadata } from "@/lib/books/types";
 import type { Dictionary, Locale } from "@/lib/types";
@@ -24,6 +25,8 @@ export default function BookMetadataFields({ metadata: volumeMetadata, lang, int
 }) {
   const books = intl.books as Record<string, string>;
   const metadata = seriesMetadata ?? volumeMetadata;
+  const publishers = seriesMetadata?.publishers ?? filterValues(volumeMetadata.publisher);
+  const seriesHref = `/${lang}/books/series`;
   const authors = metadata.people.filter((person) => person.kind === "creator" && (!person.role || person.role.toLowerCase() === "aut"));
   const contributors = metadata.people.filter((person) => !authors.includes(person));
   const isbnIdentifiers = metadata.identifiers.filter((identifier) => getBookIdentifierScheme(identifier.value, identifier.scheme) === "ISBN");
@@ -57,7 +60,7 @@ export default function BookMetadataFields({ metadata: volumeMetadata, lang, int
             <span key={`${person.name}-${person.position}`}>
               {index > 0 && ", "}
               <Link
-                href={{ pathname: `/${lang}/books/series`, query: { author: person.name, includeOneshots: "true" } }}
+                href={{ pathname: seriesHref, query: { author: person.name, includeOneshots: "true" } }}
                 className="transition-all duration-300 hover:text-lilah"
               >
                 {person.name}
@@ -69,7 +72,21 @@ export default function BookMetadataFields({ metadata: volumeMetadata, lang, int
       {[...contributorsByRole].map(([role, people]) => (
         <MetadataField key={role} label={role}>{people.map((person) => person.name).join(", ")}</MetadataField>
       ))}
-      {metadata.publisher && <MetadataField label={books.publisher}>{metadata.publisher}</MetadataField>}
+      {publishers.length > 0 && (
+        <MetadataField label={books.publisher}>
+          {publishers.map((publisher, index) => (
+            <span key={publisher}>
+              {index > 0 && ", "}
+              <Link
+                href={{ pathname: seriesHref, query: { publisher, includeOneshots: "true" } }}
+                className="transition-all duration-300 hover:text-lilah"
+              >
+                {publisher}
+              </Link>
+            </span>
+          ))}
+        </MetadataField>
+      )}
       <MetadataField label={books.format}>{seriesMetadata ? seriesMetadata.formats.join(", ") : <>EPUB{volumeMetadata.epubVersion ? ` ${volumeMetadata.epubVersion}` : ""}{volumeMetadata.publicationType ? ` · ${volumeMetadata.publicationType}` : ""}</>}</MetadataField>
       {isbnIdentifiers.length > 0 && <MetadataField label="ISBN"><div className="space-y-1">{isbnIdentifiers.map((identifier) => <p key={identifier.value}>{getBookIdentifierValue(identifier.value, identifier.scheme)}</p>)}</div></MetadataField>}
       {metadata.rights && <MetadataField label={books.rights}>{metadata.rights}</MetadataField>}

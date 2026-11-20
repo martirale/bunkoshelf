@@ -28,7 +28,7 @@ test("logical book details combine authors, contributors, publishers and subject
   const result = aggregateBookSeriesMetadata([
     bookMetadata({
       people: [{ name: "First Author", kind: "creator", role: null, sortName: null, position: 0 }],
-      publisher: "First Publisher", subjects: [{ name: "Fantasy", scheme: null }],
+      publisher: "First Publisher, Inc.", subjects: [{ name: "Fantasy", scheme: null }],
     }),
     bookMetadata({
       people: [
@@ -39,7 +39,7 @@ test("logical book details combine authors, contributors, publishers and subject
     }),
   ]);
   assert.deepEqual(result.people.map((person) => person.name), ["First Author", "Second Author", "Illustrator"]);
-  assert.equal(result.publisher, "First Publisher, Second Publisher");
+  assert.deepEqual(result.publishers, ["First Publisher, Inc.", "Second Publisher"]);
   assert.deepEqual(result.subjects.map((subject) => subject.name), ["Fantasy", "Drama"]);
 });
 
@@ -53,7 +53,7 @@ test("deduplicates book details while preserving different contributor roles", (
   ]);
   assert.equal(result.people.length, 2);
   assert.equal(result.people[1].role, "ill");
-  assert.equal(result.publisher, "Publisher");
+  assert.deepEqual(result.publishers, ["Publisher"]);
   assert.deepEqual(result.subjects, [{ name: "Fantasy", scheme: null }]);
 });
 
@@ -78,5 +78,5 @@ test("aggregation preserves original volume metadata", () => {
 
 test("empty series metadata remains empty", () => {
   assert.deepEqual(aggregateSeriesRelations([]), { genres: [], tags: [] });
-  assert.deepEqual(aggregateBookSeriesMetadata([]), { people: [], subjects: [], identifiers: [], publisher: null, rights: null, source: null, formats: [] });
+  assert.deepEqual(aggregateBookSeriesMetadata([]), { people: [], subjects: [], identifiers: [], publishers: [], rights: null, source: null, formats: [] });
 });

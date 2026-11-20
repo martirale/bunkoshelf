@@ -52,6 +52,7 @@ const groups = [
   { key: "genre", commaSeparated: true },
   { key: "tag", commaSeparated: true },
   { key: "publisher" },
+  { key: "imprint" },
 ];
 
 test("library headings use the applied filters and localized shortcut labels", () => {
@@ -70,6 +71,35 @@ test("library headings use the applied filters and localized shortcut labels", (
   assert.equal(title("author=__unknown__", "books"), "Desconocido");
   assert.equal(title("author=Milk+Morinaga&tag=shojo"), "Milk Morinaga y Shōjo");
   assert.equal(title("genre=romance&publisher=Publisher%2C+Inc.", "books", "en"), "Romance and Publisher, Inc.");
+  assert.equal(title("imprint=Sello%2C+Inc."), "Sello, Inc.");
+});
+
+test("publication details link to the same inclusive series lists as authors", () => {
+  const stubs = {
+    typescript: ts,
+    "react/jsx-runtime": jsxRuntime,
+    "next/link": { __esModule: true, default: ({ href, children }) => createElement("a", { href: `${href.pathname}?${new URLSearchParams(href.query)}` }, children) },
+    "@/lib/libraryFilters": libraryFilters,
+    "@/lib/mangaMetadata": { normalizeCommaSeparatedText: (value) => value },
+  };
+  const { default: MetadataPanel } = load("../src/components/library/manga/MetadataPanel.tsx", stubs);
+  const { default: BookMetadataFields } = load("../src/components/library/books/BookMetadataFields.tsx", stubs);
+  const intl = { manga: {}, books: {} };
+  const publisher = "Publisher, Inc.";
+  for (const section of ["manga", "comic", "others", "books"]) {
+    const html = section === "books"
+      ? renderToStaticMarkup(createElement(BookMetadataFields, {
+        metadata: { people: [], identifiers: [], subjects: [], publisher }, lang: "es", intl,
+      }))
+      : renderToStaticMarkup(createElement(MetadataPanel, {
+        meta: { publisher: [publisher, "Other publisher"], imprint: "Imprint, Inc." }, lang: "es", intl, section,
+      }));
+    const urls = [...html.matchAll(/href="([^"]+)"/g)].map((match) => new URL(match[1].replaceAll("&amp;", "&"), "https://bunko.test"));
+    assert.deepEqual(urls.map((url) => url.pathname), Array(urls.length).fill(`/es/${section}/series`));
+    assert.ok(urls.every((url) => url.searchParams.get("includeOneshots") === "true"));
+    assert.deepEqual(urls.flatMap((url) => url.searchParams.getAll("publisher")), section === "books" ? [publisher] : [publisher, "Other publisher"]);
+    assert.deepEqual(urls.flatMap((url) => url.searchParams.getAll("imprint")), section === "books" ? [] : ["Imprint, Inc."]);
+  }
 });
 
 test("filter URLs preserve publisher punctuation, legacy selections and unrelated flags", () => {
@@ -201,7 +231,7 @@ function queryAssertion(call, expected, field = "id") {
   return `DO $$ DECLARE actual text[]; BEGIN SELECT array_agg(${field}::text ORDER BY ${field}::text) INTO actual FROM (${sql}) result; ASSERT COALESCE(actual, ARRAY[]::text[]) = ${literal(expected)}, format('Expected %s, got %s', ${literal(expected)}, actual); END $$;`;
 }
 
-test("catalog and library publisher filters execute correctly in PostgreSQL", async () => {
+test("catalog and library publication filters execute correctly in PostgreSQL", async () => {
   const { library, books, calls } = databaseModules();
   const assertions = [];
   for (const [filters, ids] of [
@@ -232,11 +262,15 @@ test("catalog and library publisher filters execute correctly in PostgreSQL", as
     await library.listPagedVolumes({ scope, publisherNames: ["Publisher, Inc."] });
     assertions.push(queryAssertion(calls.find((call) => call.kind === "rows"), [`${scope === "others" ? "other" : scope}-1`]));
     calls.length = 0;
-    await library.listPagedSeriesWithVolumes({ scope, publisherNames: ["Publisher, Inc."] });
+    await library.listPagedSeriesWithVolumes({ scope, publisherNames: ["Publisher, Inc."], imprintNames: ["Imprint, Inc."] });
     assertions.push(queryAssertion(calls.find((call) => call.kind === "rows"), [scope === "others" ? "other" : scope]));
+    calls.length = 0;
+    await library.listPagedVolumes({ scope, imprintNames: ["Imprint, Inc."] });
+    assertions.push(queryAssertion(calls.find((call) => call.kind === "rows"), [`${scope === "others" ? "other" : scope}-1`]));
     calls.length = 0;
     await library.listLibraryFilters(scope);
     assertions.push(queryAssertion(calls.find((call) => call.sql.includes("BTRIM(vm.publisher) AS id")), ["Other", "Publisher, Inc."]));
+    assertions.push(queryAssertion(calls.find((call) => call.sql.includes("BTRIM(vm.imprint) AS id")), ["Imprint, Inc."]));
   }
   calls.length = 0;
   await books.listBookVolumes({ publisherNames: ["Publisher, Inc."] });

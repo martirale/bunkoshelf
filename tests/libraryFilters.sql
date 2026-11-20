@@ -2,10 +2,11 @@ INSERT INTO library_series (id, slug, title, sort_title, path, library_section)
 SELECT section, section, section, section, '/' || section, section
 FROM (VALUES ('manga'), ('comic'), ('other')) sections(section);
 
-INSERT INTO volume_metadata (id, file_path, title, alt_title, alt_series, writer, publisher, year, age_rating, language_iso)
+INSERT INTO volume_metadata (id, file_path, title, alt_title, alt_series, writer, publisher, imprint, year, age_rating, language_iso)
 SELECT section || '-' || n, section || '-' || n, 'Original', 'Alternate', 'Alternate series',
   CASE WHEN n = 1 THEN 'First, Second' ELSE NULL END,
   CASE WHEN n = 1 THEN ' Publisher, Inc. ' ELSE 'Other' END,
+  CASE WHEN n = 1 THEN ' Imprint, Inc. ' ELSE NULL END,
   2024, 'Teen', 'es'
 FROM (VALUES ('manga'), ('comic'), ('other')) sections(section) CROSS JOIN generate_series(1, 2) n;
 

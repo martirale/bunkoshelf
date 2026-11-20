@@ -226,8 +226,10 @@ function OfflineVolumesIndex({ volumes, filterVolumes, lang, intl, userId, favor
   )}<section className={favorites ? "grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4"}>{pageVolumes.map((volume) => <MangaCard key={volume.id} title={offlineVolumeTitle(volume)} href={`/${lang}/${volume.section}/volume/${volume.slug}`} isSeries={false} isOneshot={volume.isOneshot} onGoing={false} onPause={false} volumeCount={null} cover={offlineCover(userId, volume)} progressRatio={progressRatio(volume)} isDragging={false} seriesSlug={null} offlineVolumeId={volume.id} intl={intl} className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg" />)}</section>{totalPages > 1 && <div className="mt-8"><Pagination currentPage={page} totalPages={totalPages} intl={intl} /></div>}</>;
 }
 
-function OfflineSeriesIndex({ volumes, filterVolumes, lang, intl, userId, favorites, section }: { volumes: OfflineComicVolume[]; filterVolumes: OfflineVolume[]; lang: Locale; intl: Dictionary; userId: string; favorites: boolean; section: LibrarySection }) {
-  const series = Array.from(new Map(volumes.filter((volume) => !volume.isOneshot).map((volume) => [volume.seriesId, volume])).values());
+function OfflineSeriesIndex({ volumes, filterVolumes, lang, intl, userId, favorites, section, includeOneshots }: { volumes: OfflineComicVolume[]; filterVolumes: OfflineVolume[]; lang: Locale; intl: Dictionary; userId: string; favorites: boolean; section: LibrarySection; includeOneshots: boolean }) {
+  const series = Array.from(new Map(volumes
+    .filter((volume) => includeOneshots || !volume.isOneshot)
+    .map((volume) => [volume.isOneshot ? volume.id : volume.seriesId, volume])).values());
   const page = Math.max(1, Number(new URLSearchParams(window.location.search).get("page") || "1"));
   const totalPages = Math.max(1, Math.ceil(series.length / LIBRARY_PAGE_SIZE));
   const pageSeries = series.slice((page - 1) * LIBRARY_PAGE_SIZE, page * LIBRARY_PAGE_SIZE);
@@ -241,7 +243,30 @@ function OfflineSeriesIndex({ volumes, filterVolumes, lang, intl, userId, favori
     <h2 className="flex items-center mb-4"><LibraryBigIcon size={28} className="mr-2" />{title as string}</h2>
   ) : (
     <FiltersDrawer intl={intl} lang={lang} scope={getLibraryScope(section)} offlineVolumes={filterVolumes} icon={<LibraryBigIcon size={28} />} title={title as string} />
-  )}<section className={favorites ? "grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7"}>{pageSeries.map((seriesVolume) => { const seriesVolumes = volumes.filter((volume) => volume.seriesId === seriesVolume.seriesId); const progress = seriesVolumes.length > 0 ? seriesVolumes.filter((volume) => volume.isRead).length / seriesVolumes.length : 0; return <MangaCard key={seriesVolume.seriesId} title={offlineSeriesTitle(seriesVolume)} href={`/${lang}/${seriesVolume.section}/${seriesVolume.seriesSlug}`} isSeries isOneshot={false} onGoing={seriesVolume.seriesStatus === "ONGOING"} onPause={seriesVolume.seriesStatus === "HIATUS"} volumeCount={seriesVolumes.length} countLabel={section === "others" ? intl.libraries.otherWorks as string : undefined} cover={offlineCover(userId, seriesVolume)} progressRatio={progress} isDragging={false} seriesSlug={seriesVolume.seriesSlug} offlineSeriesId={seriesVolume.seriesId} intl={intl} className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg" />; })}</section>{totalPages > 1 && <div className="mt-8"><Pagination currentPage={page} totalPages={totalPages} intl={intl} /></div>}</>;
+  )}<section className={favorites ? "grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7"}>{pageSeries.map((volume) => {
+    const { isOneshot } = volume;
+    const seriesVolumes = volumes.filter((entry) => entry.seriesId === volume.seriesId);
+    const progress = isOneshot ? progressRatio(volume) : seriesVolumes.filter((entry) => entry.isRead).length / seriesVolumes.length;
+    return <MangaCard
+      key={isOneshot ? volume.id : volume.seriesId}
+      title={isOneshot ? offlineVolumeTitle(volume) : offlineSeriesTitle(volume)}
+      href={isOneshot ? `/${lang}/${section}/volume/${volume.slug}` : `/${lang}/${section}/${volume.seriesSlug}`}
+      isSeries={!isOneshot}
+      isOneshot={isOneshot}
+      onGoing={!isOneshot && volume.seriesStatus === "ONGOING"}
+      onPause={!isOneshot && volume.seriesStatus === "HIATUS"}
+      volumeCount={isOneshot ? null : seriesVolumes.length}
+      countLabel={section === "others" ? intl.libraries.otherWorks as string : undefined}
+      cover={offlineCover(userId, volume)}
+      progressRatio={progress}
+      isDragging={false}
+      seriesSlug={isOneshot ? null : volume.seriesSlug}
+      offlineVolumeId={isOneshot ? volume.id : null}
+      offlineSeriesId={isOneshot ? null : volume.seriesId}
+      intl={intl}
+      className="font-roboto font-bold leading-5 2xl:leading-5.5 text-base 2xl:text-lg"
+    />;
+  })}</section>{totalPages > 1 && <div className="mt-8"><Pagination currentPage={page} totalPages={totalPages} intl={intl} /></div>}</>;
 }
 
 function OfflineLibraryHome({ volumes, lang, intl, userId, section }: { volumes: OfflineComicVolume[]; lang: Locale; intl: Dictionary; userId: string; section: LibrarySection }) {
@@ -347,6 +372,7 @@ function OfflineLibrary({ path, lang, intl, userId, user }: { path: string; lang
   const pathname = path.split("?")[0];
   const query = new URLSearchParams(path.split("?")[1]);
   const selectedPublishers = filterValues(query.getAll("publisher"));
+  const selectedImprints = filterValues(query.getAll("imprint"));
   const selectedAuthors = query.get("author")?.split(",").filter(Boolean) ?? [];
   const selectedGenres = query.get("genre")?.split(",").filter(Boolean) ?? [];
   const selectedTags = query.get("tag")?.split(",").filter(Boolean) ?? [];
@@ -355,10 +381,14 @@ function OfflineLibrary({ path, lang, intl, userId, user }: { path: string; lang
     const writer = typeof volume.metadata.writer === "string" ? volume.metadata.writer.split(",").map((item) => item.trim()) : [];
     const genres = Array.isArray(volume.metadata.genres) ? volume.metadata.genres.map(String) : [];
     const tags = Array.isArray(volume.metadata.tags) ? volume.metadata.tags.map(String) : [];
-    return (!selectedPublishers.length || selectedPublishers.includes(String(volume.metadata.publisher ?? "").trim())) && (!selectedAuthors.length || selectedAuthors.some((author) => writer.includes(author))) && (!selectedGenres.length || selectedGenres.some((genre) => genres.includes(genre))) && (!selectedTags.length || selectedTags.some((tag) => tags.includes(tag)));
+    return (!selectedPublishers.length || selectedPublishers.includes(String(volume.metadata.publisher ?? "").trim()))
+      && (!selectedImprints.length || selectedImprints.includes(String(volume.metadata.imprint ?? "").trim()))
+      && (!selectedAuthors.length || selectedAuthors.some((author) => writer.includes(author)))
+      && (!selectedGenres.length || selectedGenres.some((genre) => genres.includes(genre)))
+      && (!selectedTags.length || selectedTags.some((tag) => tags.includes(tag)));
   });
   const isSeries = pathname.endsWith("/series") || (favorites && !pathname.endsWith("/volumes"));
-  const content = isSeries ? <OfflineSeriesIndex volumes={entries} filterVolumes={scoped} lang={lang} intl={intl} userId={userId} favorites={favorites} section={section} /> : <OfflineVolumesIndex volumes={entries} filterVolumes={scoped} lang={lang} intl={intl} userId={userId} favorites={favorites} section={section} toRead={toRead} />;
+  const content = isSeries ? <OfflineSeriesIndex volumes={entries} filterVolumes={scoped} lang={lang} intl={intl} userId={userId} favorites={favorites} section={section} includeOneshots={!favorites && query.get("includeOneshots") === "true"} /> : <OfflineVolumesIndex volumes={entries} filterVolumes={scoped} lang={lang} intl={intl} userId={userId} favorites={favorites} section={section} toRead={toRead} />;
 
   if (favorites) return <div className="flex flex-col md:flex-row md:h-screen overflow-hidden"><SidebarMisc><h2 className="flex items-center text-onix"><HeartIcon size={28} className="mr-2" />{intl.favorites.title as string}</h2><FavoritesNav intl={intl} /></SidebarMisc><div className="w-full md:w-[60%] lg:w-[68%] xl:w-[73%] 2xl:w-[80%] p-4 overflow-y-auto"><div className="mb-24 md:mb-4">{content}</div></div></div>;
 
