@@ -3,6 +3,7 @@ import { CheckIcon, HeartIcon } from "lucide-react";
 import Pagination from "@/components/ui/Pagination";
 import CatalogConversionAction from "@/components/catalog/CatalogConversionAction";
 import CatalogLibraryActions from "@/components/catalog/CatalogLibraryActions";
+import CatalogLibraryBadge from "@/components/catalog/CatalogLibraryBadge";
 import { getLibrarySeriesHref, getLibraryVolumeHref } from "@/lib/librarySection";
 import { ageRatingMap, normalizeCommaSeparatedText } from "@/lib/utils";
 import type { CatalogLibraryVolume, PaginatedResult } from "@/lib/db/library";
@@ -81,6 +82,13 @@ export default function CatalogLibraryTable({
   lang,
 }: CatalogLibraryTableProps) {
   const conversionLabels = intl.catalog.conversionMessages as Record<string, string>;
+  const libraryLabels: Record<CatalogLibraryVolume["section"], string> = {
+    manga: intl.catalog.mangaColumn as string,
+    comic: intl.catalog.comicWork as string,
+    books: intl.catalog.bookWork as string,
+    others: intl.catalog.othersColumn as string,
+  };
+  const columnCount = (conversion ? 10 : 11) + Number(canManage);
 
   return (
     <>
@@ -91,7 +99,12 @@ export default function CatalogLibraryTable({
               <tr className="font-bold uppercase bg-onix">
                 <th className="p-4 text-center rounded-l-md">{intl.catalog.statusColumn as string}</th>
                 <th className="p-4 text-left">{intl.catalog.titleColumn as string}</th>
-                {!conversion && <th className="p-4 text-left">{intl.catalog.seriesColumn as string}</th>}
+                {!conversion && (
+                  <>
+                    <th className="p-4 text-left">{intl.catalog.seriesColumn as string}</th>
+                    <th className="p-4 text-center">{intl.catalog.libraryColumn as string}</th>
+                  </>
+                )}
                 <th className="p-4 text-center">#</th>
                 <th className="p-4 text-center">{intl.catalog.yearColumn as string}</th>
                 <th className="p-4 text-center">{intl.catalog.writerColumn as string}</th>
@@ -116,7 +129,7 @@ export default function CatalogLibraryTable({
             <tbody>
               {data.items.length === 0 && (
                 <tr>
-                  <td colSpan={canManage ? 11 : 10} className="p-4 text-center">
+                  <td colSpan={columnCount} className="p-4 text-center">
                     {intl.search.noResults as string}
                   </td>
                 </tr>
@@ -147,18 +160,25 @@ export default function CatalogLibraryTable({
                       </div>
                     </td>
                     {!conversion && (
-                      <td className="p-4">
-                        <div className="max-w-[18rem] whitespace-normal break-words leading-snug">
-                          {volume.series ? (
-                            <Link
-                              href={getCatalogSeriesHref(lang, volume.section, volume.seriesSlug)}
-                              className="hover:underline"
-                            >
-                              {volume.series}
-                            </Link>
-                          ) : renderValue(volume.series)}
-                        </div>
-                      </td>
+                      <>
+                        <td className="p-4">
+                          <div className="max-w-[18rem] whitespace-normal break-words leading-snug">
+                            {volume.series ? (
+                              <Link
+                                href={getCatalogSeriesHref(lang, volume.section, volume.seriesSlug)}
+                                className="hover:underline"
+                              >
+                                {volume.series}
+                              </Link>
+                            ) : renderValue(volume.series)}
+                          </div>
+                        </td>
+                        <td className="p-4 text-center">
+                          <div className="flex items-center justify-center">
+                            <CatalogLibraryBadge section={volume.section} label={libraryLabels[volume.section]} />
+                          </div>
+                        </td>
+                      </>
                     )}
                     <td className="p-4 text-center whitespace-nowrap">{renderValue(volume.number)}</td>
                     <td className="p-4 text-center whitespace-nowrap">{renderValue(volume.year)}</td>

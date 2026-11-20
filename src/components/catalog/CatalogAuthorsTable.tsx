@@ -1,4 +1,4 @@
-import Link from "next/link";
+import CatalogLibraryBadge from "@/components/catalog/CatalogLibraryBadge";
 import Pagination from "@/components/ui/Pagination";
 import { normalizeCommaSeparatedText } from "@/lib/utils";
 import type { CatalogAuthorStats, PaginatedResult } from "@/lib/db/library";
@@ -57,13 +57,10 @@ function renderLibraries(
 
   function renderLibrary(
     section: "manga" | "comic" | "others" | "books",
-    label: string,
-    className: string
+    label: string
   ) {
     return (
-      <Link href={buildHref(section)} className={className}>
-        {label}
-      </Link>
+      <CatalogLibraryBadge section={section} label={label} href={buildHref(section)} />
     );
   }
 
@@ -72,29 +69,25 @@ function renderLibraries(
       {hasManga && (
         renderLibrary(
           "manga",
-          intl.catalog.mangaColumn as string,
-          "bg-pearl text-onix px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+          intl.catalog.mangaColumn as string
         )
       )}
       {hasComic && (
         renderLibrary(
           "comic",
-          intl.catalog.comicColumn as string,
-          "bg-neutral-700 px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+          intl.catalog.comicColumn as string
         )
       )}
       {hasBooks && (
         renderLibrary(
           "books",
-          intl.catalog.booksColumn as string,
-          "border border-pearl px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+          intl.catalog.booksColumn as string
         )
       )}
       {hasOthers && (
         renderLibrary(
           "others",
-          intl.catalog.othersColumn as string,
-          "bg-neutral-700 px-2 rounded-full text-xs uppercase transition-opacity hover:opacity-80"
+          intl.catalog.othersColumn as string
         )
       )}
     </div>

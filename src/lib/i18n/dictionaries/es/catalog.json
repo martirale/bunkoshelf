@@ -34,6 +34,8 @@
     "comicColumn": "Cómics",
     "booksColumn": "Libros",
     "othersColumn": "Otros",
+    "comicWork": "Cómic",
+    "bookWork": "Libro",
     "totalColumn": "Total",
     "authorColumn": "Autor",
     "unknownAuthor": "Desconocido",
