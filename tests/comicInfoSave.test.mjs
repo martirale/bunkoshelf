@@ -23,6 +23,10 @@ function loadSave(options = {}) {
   const client = {
     async query(sql) {
       events.push(sql.split(" ")[0]);
+      if (options.busy && sql.startsWith("SELECT")) {
+        assert.match(sql, /FOR UPDATE NOWAIT$/);
+        throw Object.assign(new Error("Volume is locked"), { code: "55P03" });
+      }
       return { rows: sql.startsWith("SELECT") ? [{ full_path: "/library/manga/volume.cbz" }] : [] };
     },
     release() { events.push("release"); },
@@ -111,6 +115,14 @@ test("a stale revision stops before modifying or writing the archive", async () 
   assert.equal(state.writes.length, 0);
 });
 
+test("a concurrent save fails before reading or modifying the archive", async () => {
+  const state = loadSave({ busy: true });
+  const result = await state.save("volume", xml, "original");
+  assert.equal(result.error, "busy");
+  assert.equal(state.logs[0][1].stage, "lockMs");
+  assert.deepEqual(state.events, ["parse", "BEGIN", "SELECT", "ROLLBACK", "release"]);
+});
+
 for (const options of [{ conflict: true }, { databaseError: true }]) {
   test(`restores the previous archive when ${options.conflict ? "storage verification" : "database synchronization"} fails`, async () => {
     const state = loadSave(options);
@@ -119,7 +131,7 @@ for (const options of [{ conflict: true }, { databaseError: true }]) {
     assert.equal(result.error, options.conflict ? "conflict" : "syncError");
     assert.equal(state.writes.length, 2);
     assert.equal(state.writes[1].data, state.original.data);
-    assert.ok(state.events.includes("ROLLBACK"));
+    assert.ok(state.events.indexOf("restore") < state.events.indexOf("ROLLBACK"));
     assert.ok(!state.events.includes("COMMIT"));
     assert.ok(!state.events.includes("invalidate"));
   });

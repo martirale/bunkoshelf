@@ -6,6 +6,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { execFile } from "node:child_process";
 import { createRequire } from "node:module";
+import { Readable } from "node:stream";
 import { RarWriter } from "@bitplane/rars";
 import { createExtractorFromData } from "node-unrar-js";
 import { loadUnrarWasmBinary } from "../src/lib/unrar.ts";
@@ -15,7 +16,10 @@ import { readComicInfoArchive, writeComicInfoArchive } from "../src/lib/comicInf
 import { readStoredComicArchive, writeStoredComicArchive, verifyStoredComicArchive } from "../src/lib/comicInfoStorage.ts";
 import { getComicTitle, getComicSeriesTitle, getComicOriginalTitle } from "../src/lib/comicTitles.ts";
 import r2Client from "../src/lib/r2.ts";
-import { GetObjectCommand, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  AbortMultipartUploadCommand, CompleteMultipartUploadCommand, CreateMultipartUploadCommand,
+  GetObjectCommand, HeadObjectCommand, PutObjectCommand, UploadPartCommand,
+} from "@aws-sdk/client-s3";
 
 const xml = `<?xml version="1.0" encoding="utf-8"?>
 <ComicInfo>
@@ -167,9 +171,10 @@ test("updates cloud archives conditionally and preserves their object metadata",
   context.mock.method(r2Client, "send", async (command: GetObjectCommand | PutObjectCommand | HeadObjectCommand) => {
     requests.push(command);
     if (command instanceof GetObjectCommand) {
-      return { Body: { transformToByteArray: async () => data }, ETag: etag, ContentType: "application/zip", CacheControl: "private", ContentDisposition: "attachment", Metadata: { source: "library" } };
+      if (command.input.IfMatch && command.input.IfMatch !== etag) throw Object.assign(new Error("Stale"), { name: "PreconditionFailed" });
+      return { Body: Readable.from([data]), ContentLength: data.length, ETag: etag, ContentType: "application/zip", CacheControl: "private", ContentDisposition: "attachment", Metadata: { source: "library" } };
     }
-    if (command.input.IfMatch !== etag) throw Object.assign(new Error("The object has changed"), { name: "PreconditionFailed" });
+    if (command.input.IfMatch && command.input.IfMatch !== etag) throw Object.assign(new Error("The object has changed"), { name: "PreconditionFailed", $metadata: { httpStatusCode: 412 } });
     if (command instanceof HeadObjectCommand) return { ETag: etag, ContentLength: data.length };
     calls.push(command);
     data = Buffer.from(command.input.Body as Buffer);
@@ -177,8 +182,7 @@ test("updates cloud archives conditionally and preserves their object metadata",
     return { ETag: etag };
   });
   const original = await readStoredComicArchive("/library/manga/volume.cbz", "cloud");
-  assert.equal(original.data.buffer, data.buffer);
-  assert.equal(original.data.byteOffset, data.byteOffset);
+  assert.deepEqual(original.data, data);
   const saved = await writeStoredComicArchive("/library/manga/volume.cbz", "cloud", original, Buffer.from("Updated archive"));
   await verifyStoredComicArchive("/library/manga/volume.cbz", "cloud", saved);
   assert.equal(requests.filter((command) => command instanceof GetObjectCommand).length, 1);
@@ -189,13 +193,68 @@ test("updates cloud archives conditionally and preserves their object metadata",
   assert.equal(calls[0].input.ContentType, "application/zip");
   assert.equal(calls[0].input.CacheControl, "private");
   assert.equal(calls[0].input.ContentDisposition, "attachment");
-  assert.deepEqual(calls[0].input.Metadata, { source: "library" });
+  assert.equal(calls[0].input.Metadata?.source, "library");
+  await assert.rejects(readStoredComicArchive("/library/manga/volume.cbz", "cloud", original.revision), { name: "PreconditionFailed" });
   await assert.rejects(writeStoredComicArchive("/library/manga/volume.cbz", "cloud", original, original.data), { name: "PreconditionFailed" });
   assert.equal(data.toString(), "Updated archive");
   await writeStoredComicArchive("/library/manga/volume.cbz", "cloud", saved, original.data);
   assert.deepEqual(data, original.data);
   await assert.rejects(writeStoredComicArchive("/library/manga/volume.cbz", "cloud", { ...saved, etag: undefined }, original.data), /conflict/);
 });
+
+for (const scenario of ["success", "lost completion response", "failed part"] as const) {
+  test(`saves large R2 archives with multipart uploads: ${scenario}`, async (context) => {
+    const partSize = 32 * 1024 * 1024;
+    const data = Buffer.allocUnsafe(4 * partSize + 3);
+    const previous = { data: Buffer.from("original"), revision: 'etag:"original"', etag: '"original"', metadata: { source: "library" } };
+    const failure = Object.assign(new Error("Transfer timeout"), { name: "AbortError" });
+    const uploaded: number[] = [];
+    let metadata: Record<string, string> | undefined;
+    let aborted = false;
+    context.mock.method(r2Client, "send", async (command: object, options: { abortSignal: AbortSignal }) => {
+      assert.equal(options.abortSignal.aborted, false);
+      if (command instanceof CreateMultipartUploadCommand) {
+        metadata = command.input.Metadata;
+        assert.equal(metadata?.source, "library");
+        return { UploadId: "upload" };
+      }
+      if (command instanceof UploadPartCommand) {
+        const number = uploaded.length + 1;
+        assert.equal(command.input.PartNumber, number);
+        assert.equal(command.input.UploadId, "upload");
+        assert.equal((command.input.Body as Buffer).buffer, data.buffer);
+        uploaded.push((command.input.Body as Buffer).length);
+        if (scenario === "failed part" && number === 2) throw failure;
+        return { ETag: `"part-${number}"` };
+      }
+      if (command instanceof CompleteMultipartUploadCommand) {
+        assert.equal(command.input.IfMatch, previous.etag);
+        assert.deepEqual(command.input.MultipartUpload?.Parts, uploaded.map((_, index) => ({ PartNumber: index + 1, ETag: `"part-${index + 1}"` })));
+        if (scenario === "lost completion response") throw failure;
+        return { ETag: '"saved"' };
+      }
+      if (command instanceof HeadObjectCommand && scenario === "lost completion response") {
+        assert.equal(aborted, true);
+        return { ETag: '"saved"', Metadata: metadata, ContentLength: data.length };
+      }
+      if (command instanceof AbortMultipartUploadCommand && scenario !== "success") {
+        aborted = true;
+        return {};
+      }
+      assert.fail(`Unexpected command: ${command.constructor.name}`);
+    });
+
+    const write = writeStoredComicArchive("volume.cbz", "cloud", previous, data);
+    if (scenario === "failed part") {
+      await assert.rejects(write, failure);
+      assert.equal(aborted, true);
+      assert.deepEqual(uploaded, [partSize, partSize]);
+    } else {
+      assert.equal((await write).etag, '"saved"');
+      assert.deepEqual(uploaded, [partSize, partSize, partSize, partSize, 3]);
+    }
+  });
+}
 
 async function extractRar(data: Buffer) {
   const wasm = await loadUnrarWasmBinary();

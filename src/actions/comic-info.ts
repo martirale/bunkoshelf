@@ -21,9 +21,12 @@ function memoryUsage() {
 }
 
 function errorCode(error: unknown, fallback: string) {
-  const code = error instanceof Error ? error.message : "";
-  if (["invalidXml", "conflict", "duplicateXml", "unsupportedArchive", "syncError", "restoreError"].includes(code)) return code;
-  if ((error as { name?: string })?.name === "PreconditionFailed") return "conflict";
+  const message = error instanceof Error ? error.message : "";
+  if (["invalidXml", "conflict", "duplicateXml", "unsupportedArchive", "syncError", "restoreError", "writeUncertain"].includes(message)) return message;
+  const details = error as { code?: string; name?: string; $metadata?: { httpStatusCode?: number } } | undefined;
+  if (details?.code === "55P03") return "busy";
+  if (details?.name === "PreconditionFailed" || details?.$metadata?.httpStatusCode === 412) return "conflict";
+  if (details?.name === "AbortError" || details?.name === "TimeoutError") return "storageTimeout";
   return fallback;
 }
 
@@ -56,7 +59,7 @@ export async function saveComicInfo(volumeId: string, xml: string, revision: str
   let original: ComicArchiveSnapshot | undefined;
   let saved: ComicArchiveSnapshot | undefined;
   let filePath: string | undefined;
-  let stage = "lock";
+  let stage = "lockMs";
   const timings: Record<string, number> = {};
   async function measure<T>(name: string, operation: () => Promise<T>): Promise<T> {
     stage = name;
@@ -69,11 +72,13 @@ export async function saveComicInfo(volumeId: string, xml: string, revision: str
   }
   try {
     await client.query("BEGIN");
-    const result = await client.query<{ full_path: string }>("SELECT full_path FROM library_volumes WHERE id = $1 FOR UPDATE", [volumeId]);
+    const result = await measure("lockMs", () => client.query<{ full_path: string }>(
+      "SELECT full_path FROM library_volumes WHERE id = $1 FOR UPDATE NOWAIT", [volumeId],
+    ));
     filePath = result.rows[0]?.full_path;
     if (!filePath || !/\.(cbz|zip|cbr|rar)$/i.test(filePath)) throw new Error("saveError");
     const archivePath = filePath;
-    const snapshot = await measure("readMs", () => readStoredComicArchive(archivePath, provider));
+    const snapshot = await measure("readMs", () => readStoredComicArchive(archivePath, provider, revision));
     original = snapshot;
     if (original.revision !== revision) throw new Error("conflict");
     const { data, document } = await measure("prepareMs", async () => {
@@ -91,16 +96,17 @@ export async function saveComicInfo(volumeId: string, xml: string, revision: str
     });
     console.info("ComicInfo.xml saved:", { volumeId, provider, archiveBytes: data.length, timings, totalMs: Math.round(performance.now() - startedAt), memory: memoryUsage() });
   } catch (error) {
-    await client.query("ROLLBACK").catch(() => {});
-    if (filePath && original && saved) {
-      try {
-        await writeStoredComicArchive(filePath, provider, saved, original.data);
-      } catch (restoreError) {
-        console.error("Failed to restore comic archive:", restoreError);
-        return { ok: false as const, error: "restoreError" };
-      }
-    }
     console.error("Failed to save ComicInfo.xml:", { volumeId, provider, stage, timings, totalMs: Math.round(performance.now() - startedAt), memory: memoryUsage() }, error);
+    try {
+      if (filePath && original && saved) {
+        await writeStoredComicArchive(filePath, provider, saved, original.data);
+      }
+    } catch (restoreError) {
+      console.error("Failed to restore comic archive:", restoreError);
+      return { ok: false as const, error: "restoreError" };
+    } finally {
+      await client.query("ROLLBACK").catch(() => {});
+    }
     return { ok: false as const, error: errorCode(error, saved ? "syncError" : "saveError") };
   } finally {
     client.release();

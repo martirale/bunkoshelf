@@ -65,6 +65,7 @@ export default function ComicInfoEditor({ volumeId, intl, disabled, onOpenChange
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (loading || saving || !revision || xml === original) return;
     setSaving(true);
     setError(null);
     try {
