@@ -1,3 +1,4 @@
+import { getConversionPathFilter } from "@/lib/db/libraryStorageLock";
 import { NextResponse, connection } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
@@ -70,6 +71,9 @@ export async function POST(request: NextRequest) {
       const parsed = JSON.parse(checksumData) as { filesToIndex?: string[] };
       filesToIndex = parsed.filesToIndex || [];
     }
+
+    const isConversionPath = await getConversionPathFilter();
+    filesToIndex = filesToIndex.filter((file) => !isConversionPath(file));
 
     if (filesToIndex.length === 0) {
       return NextResponse.json({

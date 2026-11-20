@@ -1,5 +1,25 @@
 {
   "catalog": {
+    "conversion": "Conversión",
+    "conversionMessages": {
+      "toSeries": "Convertir en serie",
+      "toOneshot": "Convertir en oneshot",
+      "pending": "Convirtiendo…",
+      "confirm": "La carpeta cambiará de {source} a {target}. Se conservarán el progreso y el historial de lectura.",
+      "confirmExistingPath": "La carpeta ya tiene el nombre correcto. Se conservarán el progreso y el historial de lectura.",
+      "done": "Conversión completada.",
+      "cleanupPending": "Conversión completada. Queda pendiente retirar la copia anterior.",
+      "busy": "Hay otra operación de almacenamiento en curso. Inténtalo cuando termine.",
+      "destinationExists": "La carpeta de destino ya existe.",
+      "logicalMember": "Quita la serie de su agrupación lógica antes de convertirla.",
+      "pendingCleanup": "Aún hay archivos pendientes de una conversión anterior para esta carpeta.",
+      "requiresOneVolume": "Solo se pueden convertir en oneshot las series con un único tomo.",
+      "sharedDirectory": "La carpeta contiene registros de otras series o la serie ocupa varias carpetas.",
+      "staleConversion": "La serie cambió. Actualiza la tabla y vuelve a intentarlo.",
+      "storageChanged": "Los archivos de la carpeta no coinciden con el índice o cambiaron durante la conversión.",
+      "unsafeStorage": "La ruta de esta obra no admite conversión.",
+      "unavailable": "No se pudo completar la conversión. Revisa el estado de la obra y vuelve a intentarlo."
+    },
     "title": "Catálogo",
     "library": "Biblioteca",
     "uploadLibrary": "Subir obras",

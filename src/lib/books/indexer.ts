@@ -56,7 +56,7 @@ export async function indexBook(input: {
   const book = await upsertBook({
     seriesTitle,
     seriesPath: input.seriesPath,
-    isOneshot: collection ? false : input.isOneshot ?? /\[oneshot\]/i.test(input.seriesName),
+    isOneshot: input.isOneshot === true || /\[oneshot\]\s*$/i.test(input.seriesName),
     collectionType: collection?.type ?? null,
     volumeNumber: collection?.position ?? null,
     seriesSlug: toBookSlug(seriesTitle),

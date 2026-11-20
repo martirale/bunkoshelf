@@ -226,6 +226,21 @@ test("catalog and library publisher filters execute correctly in PostgreSQL", as
   calls.length = 0;
   await books.listBookLibraryFilters();
   assertions.push(queryAssertion(calls.find((call) => call.sql.includes("BTRIM(bm.publisher) AS id")), ["Other", "Publisher, Inc."]));
+  assertions.push(`
+    DELETE FROM library_volumes WHERE id = 'comic-2';
+    UPDATE library_series SET is_oneshot = TRUE WHERE id = 'manga';
+    UPDATE book_series SET is_oneshot = TRUE WHERE id = 'book';
+    INSERT INTO book_series (id, slug, title, sort_title, path, library_section)
+      VALUES ('mirrored', 'mirrored', 'Mirrored', 'mirrored', '/other', 'other');
+    INSERT INTO book_volumes (id, series_id, slug, title, sort_title, filename, full_path)
+      VALUES ('mirror-1', 'mirrored', 'mirror-1', 'Mirrored', 'mirrored', 'other-1.epub', '/other-1.cbz');
+    INSERT INTO book_metadata (id, volume_id, title, package_path)
+      VALUES ('mirror-1', 'mirror-1', 'Mirrored', 'content.opf');
+  `);
+  calls.length = 0;
+  await library.listPagedCatalogLibraryVolumes({ conversion: true, pageSize: 50 });
+  assertions.push(queryAssertion(calls.find((call) => call.kind === "rows"), ["book-1", "book-2", "comic-1", "manga-1", "manga-2"]));
+  assertions.push(queryAssertion(calls.find((call) => call.kind === "count"), ["5"], "total"));
   const directory = new URL("../src/lib/db/migrations/", import.meta.url);
   const migrations = readdirSync(directory).filter((file) => file.endsWith(".sql")).sort().map((file) => {
     const sql = readFileSync(new URL(file, directory), "utf8");

@@ -1,3 +1,5 @@
+import { recoverLibraryConversions } from "@/lib/db/seriesConversion";
+import { getConversionPathFilter, withLibraryStorageLock } from "@/lib/db/libraryStorageLock";
 import { NextResponse, connection } from "next/server";
 import { verifySession } from "@/lib/auth/verifySession";
 
@@ -6,7 +8,7 @@ import { log } from "@/lib/logger";
 import { revalidateMangaLibraryCache } from "@/lib/mangaLibraryCache";
 import fs from "fs/promises";
 import path from "path";
-import { ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
+import { ListObjectsV2Command, GetObjectCommand, type _Object } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import r2Client, { R2_BUCKET } from "@/lib/r2";
 import {
@@ -32,24 +34,29 @@ interface CloudFileInfo {
 
 async function checksumVerification(): Promise<number> {
   const filesToIndex: string[] = [];
+  const isConversionPath = await getConversionPathFilter();
 
   await fs.mkdir(path.dirname(STATUS_PATH), { recursive: true });
 
   if (LIB_PROVIDER === "cloud") {
     const prefix = "library/manga/";
-    const command = new ListObjectsV2Command({
-      Bucket: R2_BUCKET,
-      Prefix: prefix,
-    });
-
-    const response = await r2Client.send(command);
+    const objects: _Object[] = [];
+    let token: string | undefined;
+    do {
+      const response = await r2Client.send(new ListObjectsV2Command({
+        Bucket: R2_BUCKET, Prefix: prefix, ContinuationToken: token,
+      }));
+      objects.push(...(response.Contents ?? []));
+      token = response.IsTruncated ? response.NextContinuationToken : undefined;
+    } while (token);
     const directoriesWithFiles = new Map<string, CloudFileInfo>();
     const existingVolumePaths = new Set<string>();
     const existingTxtPaths = new Set<string>();
 
-    if (response.Contents) {
-      for (const item of response.Contents) {
-        const relativePath = item.Key!.replace(prefix, "");
+    if (objects.length) {
+      for (const item of objects) {
+        if (!item.Key || isConversionPath(`/${item.Key}`)) continue;
+        const relativePath = item.Key.replace(prefix, "");
         const parts = relativePath.split("/");
 
         if (parts.length < 2) continue;
@@ -137,7 +144,7 @@ async function checksumVerification(): Promise<number> {
     const deletedSeriesIds = new Set<string>();
 
     for (const volume of allDbVolumes) {
-      if (!existingVolumePaths.has(volume.fullPath)) {
+      if (volume.fullPath.startsWith(`/${prefix}`) && !existingVolumePaths.has(volume.fullPath)) {
         await deleteVolumeByFullPath(volume.fullPath);
 
         if (volume.seriesId) {
@@ -163,7 +170,7 @@ async function checksumVerification(): Promise<number> {
     const allDbChecksums = await listAllChecksumPaths();
 
     for (const record of allDbChecksums) {
-      if (record && !existingTxtPaths.has(record)) {
+      if (record.startsWith(`/${prefix}`) && !existingTxtPaths.has(record)) {
         await deleteFileChecksumsByPaths([record]);
       }
     }
@@ -179,6 +186,7 @@ async function checksumVerification(): Promise<number> {
       if (!entry.isDirectory()) continue;
 
       const entryPath = path.join(LIBRARY_PATH, entry.name);
+      if (isConversionPath(entryPath)) continue;
       const files = await fs.readdir(entryPath);
 
       const volumeFiles = files.filter((f) =>
@@ -236,7 +244,7 @@ async function checksumVerification(): Promise<number> {
     const deletedSeriesIds = new Set<string>();
 
     for (const volume of allDbVolumes) {
-      if (!existingVolumePaths.has(volume.fullPath)) {
+      if (volume.fullPath.startsWith(`${LIBRARY_PATH}/`) && !existingVolumePaths.has(volume.fullPath)) {
         await deleteVolumeByFullPath(volume.fullPath);
 
         if (volume.seriesId) {
@@ -262,7 +270,7 @@ async function checksumVerification(): Promise<number> {
     const allDbChecksums = await listAllChecksumPaths();
 
     for (const record of allDbChecksums) {
-      if (record && !existingTxtPaths.has(record)) {
+      if (record.startsWith(`${LIBRARY_PATH}/`) && !existingTxtPaths.has(record)) {
         await deleteFileChecksumsByPaths([record]);
       }
     }
@@ -284,6 +292,7 @@ async function checksumVerification(): Promise<number> {
 }
 
 async function runBackgroundJob() {
+  await recoverLibraryConversions();
   await checksumVerification();
   await mainJob();
 
@@ -311,7 +320,7 @@ export async function POST() {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await runBackgroundJob();
+    await withLibraryStorageLock(runBackgroundJob);
     revalidateMangaLibraryCache();
 
     log({
@@ -328,6 +337,9 @@ export async function POST() {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof Error && error.message === "busy") {
+      return NextResponse.json({ ok: false, error: "Library storage is busy" }, { status: 409 });
+    }
     _err = error as Error;
   } finally {
     if (_err) {

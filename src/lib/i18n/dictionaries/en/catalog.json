@@ -1,5 +1,25 @@
 {
   "catalog": {
+    "conversion": "Conversion",
+    "conversionMessages": {
+      "toSeries": "Convert to series",
+      "toOneshot": "Convert to oneshot",
+      "pending": "Converting…",
+      "confirm": "The folder will move from {source} to {target}. Reading progress and history will be preserved.",
+      "confirmExistingPath": "The folder already has the correct name. Reading progress and history will be preserved.",
+      "done": "Conversion completed.",
+      "cleanupPending": "Conversion completed. The previous copy is pending removal.",
+      "busy": "Another storage operation is in progress. Try again when it finishes.",
+      "destinationExists": "The destination folder already exists.",
+      "logicalMember": "Remove the series from its logical group before converting it.",
+      "pendingCleanup": "Files from a previous conversion of this folder still need to be removed.",
+      "requiresOneVolume": "Only a series with one volume can be converted to a oneshot.",
+      "sharedDirectory": "The folder is shared by multiple series or the series spans multiple folders.",
+      "staleConversion": "The series changed. Refresh the table and try again.",
+      "storageChanged": "The files do not match the index or changed during conversion.",
+      "unsafeStorage": "This item's path cannot be converted.",
+      "unavailable": "Could not complete the conversion. Check the item and try again."
+    },
     "title": "Catalog",
     "library": "Library",
     "uploadLibrary": "Upload works",

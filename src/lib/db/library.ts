@@ -208,6 +208,8 @@ export interface CatalogLibraryVolume {
   gtin: string | null;
   isRead: boolean;
   isFavorite: boolean;
+  seriesPath?: string;
+  isOneshot?: boolean;
 }
 
 export interface CatalogAuthorStats {
@@ -720,7 +722,17 @@ const CATALOG_VOLUMES_SQL = `
       utv.is_read,
       utv.is_favorite,
       ms.sort_title AS series_sort_title,
-      mv.sort_title AS volume_sort_title
+      mv.sort_title AS volume_sort_title,
+      ms.path AS series_path,
+      ms.is_oneshot,
+      CASE WHEN ms.is_oneshot THEN TRUE ELSE (
+        SELECT COUNT(*) = 1 FROM manga_volumes member WHERE member.series_id = ms.id
+      ) AND NOT EXISTS (
+        SELECT 1 FROM book_volumes mirror
+        JOIN book_volumes sibling ON sibling.series_id = mirror.series_id AND sibling.id <> mirror.id
+        WHERE ms.library_section = 'other' AND mirror.full_path = mv.full_path
+      ) END AS convertible,
+      FALSE AS mirrored
     FROM manga_volumes mv
     INNER JOIN manga_series ms ON ms.id = mv.series_id
     LEFT JOIN volume_metadata vm ON vm.id = mv.metadata_id
@@ -760,7 +772,15 @@ const CATALOG_VOLUMES_SQL = `
       utb.is_read,
       utb.is_favorite,
       bs.sort_title AS series_sort_title,
-      bv.sort_title AS volume_sort_title
+      bv.sort_title AS volume_sort_title,
+      bs.path AS series_path,
+      bs.is_oneshot,
+      CASE WHEN bs.is_oneshot THEN TRUE ELSE (
+        SELECT COUNT(*) = 1 FROM book_volumes member WHERE member.series_id = bs.id
+      ) END AS convertible,
+      bs.library_section = 'other' AND EXISTS (
+        SELECT 1 FROM manga_volumes mirror WHERE mirror.full_path = bv.full_path
+      ) AS mirrored
     FROM book_volumes bv
     INNER JOIN book_series bs ON bs.id = bv.series_id
     INNER JOIN book_metadata bm ON bm.volume_id = bv.id
@@ -771,7 +791,7 @@ const CATALOG_VOLUMES_SQL = `
 `;
 
 export async function listPagedCatalogLibraryVolumes(
-  options?: PagedQueryOptions & { userId?: string | null; filters?: CatalogFilters }
+  options?: PagedQueryOptions & { userId?: string | null; filters?: CatalogFilters; conversion?: boolean }
 ): Promise<PaginatedResult<CatalogLibraryVolume>> {
   const pagination = buildPagination(options);
   const policy = await getCurrentContentVisibilityPolicy();
@@ -779,7 +799,10 @@ export async function listPagedCatalogLibraryVolumes(
   const catalogOffset = policy.enabled ? 0 : pagination.offset;
 
   const filterParams: unknown[] = [options?.userId ?? null];
-  const filterSql = buildCatalogFilterSql(options?.filters ?? {}, filterParams);
+  const filters = buildCatalogFilterSql(options?.filters ?? {}, filterParams);
+  const filterSql = options?.conversion
+    ? `${filters || "WHERE TRUE"} AND convertible AND NOT mirrored`
+    : filters;
   const rowParams = [...filterParams];
 
   const [countRow, rows] = await Promise.all([
@@ -797,6 +820,8 @@ export async function listPagedCatalogLibraryVolumes(
       title: string | null;
       series: string | null;
       series_slug: string;
+      series_path: string;
+      is_oneshot: boolean;
       number: number | null;
       year: number | null;
       writer: string | null;
@@ -816,6 +841,8 @@ export async function listPagedCatalogLibraryVolumes(
           title,
           series,
           series_slug,
+          series_path,
+          is_oneshot,
           number,
           year,
           writer,
@@ -851,6 +878,7 @@ export async function listPagedCatalogLibraryVolumes(
       title: row.title,
       series: row.series,
       seriesSlug: row.series_slug,
+      ...(options?.conversion && { seriesPath: row.series_path, isOneshot: row.is_oneshot }),
       number: row.number,
       year: row.year,
       writer: row.writer,

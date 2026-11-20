@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckIcon, HeartIcon } from "lucide-react";
 import Pagination from "@/components/ui/Pagination";
+import CatalogConversionAction from "@/components/catalog/CatalogConversionAction";
 import CatalogLibraryActions from "@/components/catalog/CatalogLibraryActions";
 import { getLibrarySeriesHref, getLibraryVolumeHref } from "@/lib/librarySection";
 import { ageRatingMap, normalizeCommaSeparatedText } from "@/lib/utils";
@@ -11,6 +12,7 @@ interface CatalogLibraryTableProps {
   data: PaginatedResult<CatalogLibraryVolume>;
   intl: Dictionary;
   canManage: boolean;
+  conversion?: boolean;
   lang: Locale;
 }
 
@@ -75,6 +77,7 @@ export default function CatalogLibraryTable({
   data,
   intl,
   canManage,
+  conversion = false,
   lang,
 }: CatalogLibraryTableProps) {
   return (
@@ -170,12 +173,24 @@ export default function CatalogLibraryTable({
                   </td>
                   {canManage && (
                     <td className="p-4 text-center">
-                      <CatalogLibraryActions
-                        intl={intl}
-                        volumeId={volume.id}
-                        volumeSlug={volume.slug}
-                        section={volume.section}
-                      />
+                      {conversion ? (
+                        volume.seriesPath && typeof volume.isOneshot === "boolean" && (
+                          <CatalogConversionAction
+                            intl={intl}
+                            volumeId={volume.id}
+                            section={volume.section}
+                            source={volume.seriesPath}
+                            isOneshot={volume.isOneshot}
+                          />
+                        )
+                      ) : (
+                        <CatalogLibraryActions
+                          intl={intl}
+                          volumeId={volume.id}
+                          volumeSlug={volume.slug}
+                          section={volume.section}
+                        />
+                      )}
                     </td>
                   )}
                 </tr>

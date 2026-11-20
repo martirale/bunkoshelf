@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  ArrowLeftRightIcon,
   DramaIcon,
   LibraryBigIcon,
   TagsIcon,
@@ -31,6 +32,12 @@ export function getCatalogNavLinks({
       href: `/${lang}/catalog/library`,
       icon: LibraryBigIcon,
       isActive: pathname === `/${lang}/catalog/library`,
+    },
+    {
+      label: intl.catalog.conversion as string,
+      href: `/${lang}/catalog/conversion`,
+      icon: ArrowLeftRightIcon,
+      isActive: pathname === `/${lang}/catalog/conversion`,
     },
     {
       label: intl.catalog.authors as string,
