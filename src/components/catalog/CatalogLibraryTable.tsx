@@ -104,6 +104,13 @@ export default function CatalogLibraryTable({
               </tr>
             </thead>
             <tbody>
+              {data.items.length === 0 && (
+                <tr>
+                  <td colSpan={canManage ? 11 : 10} className="p-4 text-center">
+                    {intl.search.noResults as string}
+                  </td>
+                </tr>
+              )}
               {data.items.map((volume) => (
                 <tr key={volume.id}>
                   <td className="p-4 text-center">
