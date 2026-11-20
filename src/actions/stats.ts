@@ -3,6 +3,7 @@
 import { verifySession } from "@/lib/auth/verifySession";
 import type { LibraryScope } from "@/lib/librarySection";
 import { query, queryOne } from "@/lib/db/query";
+import { getReadingCompletions } from "@/lib/db/readingCompletions";
 
 interface GenreStat {
   genre: string;
@@ -163,6 +164,8 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
 
   const scopeCondition = buildScopeCondition(options?.scope);
   const includeBooks = options?.scope === undefined || options.scope === "all";
+  const now = new Date();
+  const year = now.getFullYear();
 
   const volumesRead = await query<{
     id: string;
@@ -260,23 +263,6 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
     [user.id]
   );
 
-  const allFirstReadDates = await query<{ first_read: string | null }>(
-    `
-      SELECT first_read
-      FROM user_to_volumes utv
-      INNER JOIN manga_volumes mv
-        ON mv.id = utv.volume_id
-      INNER JOIN manga_series ms
-        ON ms.id = mv.series_id
-      LEFT JOIN volume_metadata vm
-        ON vm.id = mv.metadata_id
-      WHERE utv.user_id = $1
-        AND utv.first_read IS NOT NULL
-        AND ${scopeCondition}
-    `,
-    [user.id]
-  );
-
   const currentChallenge = await queryOne<{ goal: number }>(
     `
       SELECT goal
@@ -285,10 +271,10 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
         AND year = $2
       LIMIT 1
     `,
-    [user.id, new Date().getFullYear()]
+    [user.id, year]
   );
 
-  const [bookVolumesRead, bookAllReadDates, bookDailyReading, bookTotalVolumes, bookTotalSeries, bookProgressVolumes, bookFirstReadDates] = includeBooks
+  const [bookVolumesRead, bookAllReadDates, bookDailyReading, bookTotalVolumes, bookTotalSeries, bookProgressVolumes] = includeBooks
     ? await Promise.all([
       query<{ id: string; volume_id: string; last_read_at: Date | null }>(`
         SELECT id, volume_id, last_read_at
@@ -312,18 +298,12 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
           AND NOT EXISTS (SELECT 1 FROM logical_book_series_members member WHERE member.series_id = bs.id)
       `),
       query<{ is_read: boolean }>("SELECT is_read FROM user_to_books WHERE user_id = $1", [user.id]),
-      query<{ first_read: string | null }>(`
-        SELECT MIN(read_at)::text AS first_read
-        FROM book_reading_entries
-        WHERE user_id = $1
-        GROUP BY volume_id`, [user.id]),
     ])
-    : [[], [], [], null, null, [], []] as const;
+    : [[], [], [], null, null, []] as const;
 
   const combinedVolumesRead = [...volumesRead, ...bookVolumesRead];
   const combinedReadDates = [...allReadDates, ...bookAllReadDates];
   const combinedProgressVolumes = [...userProgressVolumes, ...bookProgressVolumes];
-  const combinedFirstReadDates = [...allFirstReadDates, ...bookFirstReadDates];
   const readEntries = combinedReadDates;
   const allCompleted = combinedVolumesRead.map(({ id, volume_id }) => ({
     id,
@@ -335,26 +315,12 @@ export async function getReaderStats(options?: ReaderStatsOptions) {
   const combinedTotalVolumes = Number(totalVolumes?.count ?? 0) + Number(bookTotalVolumes?.count ?? 0);
   const totalUnread = combinedTotalVolumes - totalRead;
 
-  const now = new Date();
-  const monthlyReadCount = Array(12).fill(0) as number[];
-
-  for (const entry of combinedFirstReadDates) {
-    if (!entry.first_read) continue;
-    const [yearStr, monthStr] = entry.first_read!.split("-");
-    const year = Number(yearStr);
-    const month = Number(monthStr);
-
-    if (year === now.getFullYear() && month >= 1 && month <= 12) {
-      monthlyReadCount[month - 1]++;
-    }
-  }
-
-  const monthlyReads: MonthlyRead[] = monthlyReadCount
-    .map((count, index) => ({
-      month: index + 1,
-      count,
-    }))
-    .filter((_, index) => index <= now.getMonth());
+  const completions = await getReadingCompletions(user.id, now, options?.scope);
+  const countsByMonth = new Map(completions.filter((entry) => entry.year === year).map((entry) => [entry.month, entry.count]));
+  const monthlyReads: MonthlyRead[] = Array.from({ length: now.getMonth() + 1 }, (_, index) => ({
+    month: index + 1,
+    count: countsByMonth.get(index + 1) ?? 0,
+  }));
 
   const goal = currentChallenge?.goal || 0;
   let monthlyGoal: number | null = null;

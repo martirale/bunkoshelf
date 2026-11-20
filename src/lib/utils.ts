@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { cache } from "react";
-import { query, queryOne } from "./db/query";
+import { queryOne } from "./db/query";
+import { countReadingCompletions, getReadingCompletions } from "./db/readingCompletions";
 import { buildNaturalSortKey } from "./naturalSort";
 import type { Session } from "@/lib/types";
 
@@ -77,7 +78,7 @@ function isTransientDatabaseConnectionError(error: unknown): boolean {
   );
 }
 
-const resolveChallengeData = cache(async (userId: string, currentYear: number) => {
+const resolveChallengeData = cache(async (userId: string, currentYear: number, currentMonth: number) => {
   await connection();
 
   const challenge = await queryOne<{ goal: number }>(
@@ -91,30 +92,9 @@ const resolveChallengeData = cache(async (userId: string, currentYear: number) =
     [userId, currentYear]
   );
 
-  const [userVolumes, userBooks] = await Promise.all([
-    query<{ last_read_at: Date | null }>(
-    `
-      SELECT utv.last_read_at
-      FROM user_to_volumes utv
-      INNER JOIN manga_volumes mv ON mv.id = utv.volume_id
-      INNER JOIN manga_series ms ON ms.id = mv.series_id
-      WHERE utv.user_id = $1
-        AND utv.is_read = TRUE
-        AND ms.library_section IN ('manga', 'comic', 'other')
-    `,
-      [userId]
-    ),
-    query<{ last_read_at: Date | null }>(`
-      SELECT last_read_at
-      FROM user_to_books
-      WHERE user_id = $1 AND is_read = TRUE`, [userId]),
-  ]);
-
   const goal = challenge?.goal ?? 0;
-  const progress = [...userVolumes, ...userBooks].filter((vol) => {
-    if (!vol.last_read_at) return false;
-    return new Date(vol.last_read_at).getFullYear() === currentYear;
-  }).length;
+  const completions = await getReadingCompletions(userId, new Date(currentYear, currentMonth, 1));
+  const progress = countReadingCompletions(completions, currentYear);
   const percentage = goal === 0 ? 0 : Math.min((progress / goal) * 100, 100);
 
   return { goal, progress, percentage };
@@ -123,10 +103,10 @@ const resolveChallengeData = cache(async (userId: string, currentYear: number) =
 export async function getChallengeData(user: Session | null) {
   if (!user) return null;
 
-  const currentYear = new Date().getFullYear();
+  const now = new Date();
 
   try {
-    return await resolveChallengeData(user.id, currentYear);
+    return await resolveChallengeData(user.id, now.getFullYear(), now.getMonth());
   } catch (error) {
     if (isTransientDatabaseConnectionError(error)) {
       console.warn(

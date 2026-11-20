@@ -2,7 +2,8 @@
 
 import { verifySession } from "@/lib/auth/verifySession";
 import { createId } from "@paralleldrive/cuid2";
-import { query, queryOne } from "@/lib/db/query";
+import { queryOne } from "@/lib/db/query";
+import { countReadingCompletions, getReadingCompletions } from "@/lib/db/readingCompletions";
 import type { ReadingChallengeRecord } from "@/lib/types";
 
 interface GetChallengeParams {
@@ -20,19 +21,18 @@ interface ReadingChallengeRow {
   user_id: string;
   year: number;
   goal: number;
-  completed: number;
   notified: boolean;
   created_at: Date;
   updated_at: Date;
 }
 
-function mapChallenge(row: ReadingChallengeRow): ReadingChallengeRecord {
+function mapChallenge(row: ReadingChallengeRow, completed: number): ReadingChallengeRecord {
   return {
     id: row.id,
     userId: row.user_id,
     year: row.year,
     goal: row.goal,
-    completed: row.completed,
+    completed,
     notified: row.notified,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -40,29 +40,7 @@ function mapChallenge(row: ReadingChallengeRow): ReadingChallengeRecord {
 }
 
 async function getCompletedCount(userId: string, year: number) {
-  const [volumesRead, booksRead] = await Promise.all([
-    query<{ last_read_at: Date | null }>(
-    `
-      SELECT utv.last_read_at
-      FROM user_to_volumes utv
-      INNER JOIN manga_volumes mv ON mv.id = utv.volume_id
-      INNER JOIN manga_series ms ON ms.id = mv.series_id
-      WHERE utv.user_id = $1
-        AND utv.is_read = TRUE
-        AND ms.library_section IN ('manga', 'comic', 'other')
-    `,
-      [userId]
-    ),
-    query<{ last_read_at: Date | null }>(`
-      SELECT last_read_at
-      FROM user_to_books
-      WHERE user_id = $1 AND is_read = TRUE`, [userId]),
-  ]);
-
-  return [...volumesRead, ...booksRead].filter((volume) => {
-    if (!volume.last_read_at) return false;
-    return new Date(volume.last_read_at).getFullYear() === year;
-  }).length;
+  return countReadingCompletions(await getReadingCompletions(userId, new Date()), year);
 }
 
 export async function getChallenge({ year }: GetChallengeParams) {
@@ -79,7 +57,7 @@ export async function getChallenge({ year }: GetChallengeParams) {
 
   let challenge = await queryOne<ReadingChallengeRow>(
     `
-      SELECT id, user_id, year, goal, completed, notified, created_at, updated_at
+      SELECT id, user_id, year, goal, notified, created_at, updated_at
       FROM reading_challenges
       WHERE user_id = $1
         AND year = $2
@@ -96,22 +74,17 @@ export async function getChallenge({ year }: GetChallengeParams) {
           user_id,
           year,
           goal,
-          completed,
           notified
         )
-        VALUES ($1, $2, $3, 0, $4, FALSE)
-        RETURNING id, user_id, year, goal, completed, notified, created_at, updated_at
+        VALUES ($1, $2, $3, 0, FALSE)
+        RETURNING id, user_id, year, goal, notified, created_at, updated_at
       `,
-      [createId(), user.id, year, completedCount]
+      [createId(), user.id, year]
     );
   }
 
-  const mappedChallenge = challenge ? mapChallenge(challenge) : null;
-
   return {
-    challenge: mappedChallenge
-      ? { ...mappedChallenge, completed: completedCount }
-      : null,
+    challenge: challenge ? mapChallenge(challenge, completedCount) : null,
   };
 }
 
@@ -133,7 +106,7 @@ export async function updateChallenge({ year, goal, notified }: UpdateChallengeP
 
     let challenge = await queryOne<ReadingChallengeRow>(
       `
-        SELECT id, user_id, year, goal, completed, notified, created_at, updated_at
+        SELECT id, user_id, year, goal, notified, created_at, updated_at
         FROM reading_challenges
         WHERE user_id = $1
           AND year = $2
@@ -148,14 +121,13 @@ export async function updateChallenge({ year, goal, notified }: UpdateChallengeP
       challenge = await queryOne<ReadingChallengeRow>(
         `
           UPDATE reading_challenges
-          SET completed = $2,
-              goal = COALESCE($3, goal),
-              notified = COALESCE($4, notified),
+          SET goal = COALESCE($2, goal),
+              notified = COALESCE($3, notified),
               updated_at = NOW()
           WHERE id = $1
-          RETURNING id, user_id, year, goal, completed, notified, created_at, updated_at
+          RETURNING id, user_id, year, goal, notified, created_at, updated_at
         `,
-        [challenge.id, completedCount, goal ?? null, notified ?? null]
+        [challenge.id, goal ?? null, notified ?? null]
       );
     } else {
       if (goal === undefined) {
@@ -169,17 +141,16 @@ export async function updateChallenge({ year, goal, notified }: UpdateChallengeP
             user_id,
             year,
             goal,
-            completed,
             notified
           )
-          VALUES ($1, $2, $3, $4, $5, $6)
-          RETURNING id, user_id, year, goal, completed, notified, created_at, updated_at
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING id, user_id, year, goal, notified, created_at, updated_at
         `,
-        [createId(), user.id, year, goal, completedCount, notified ?? false]
+        [createId(), user.id, year, goal, notified ?? false]
       );
     }
 
-    return { challenge: challenge ? mapChallenge(challenge) : null };
+    return { challenge: challenge ? mapChallenge(challenge, completedCount) : null };
   } catch (err) {
     error = err as Error;
   } finally {

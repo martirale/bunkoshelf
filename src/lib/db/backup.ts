@@ -81,7 +81,9 @@ async function insertRows(
   rows: BackupRow[]
 ) {
   for (const row of rows) {
-    const entries = Object.entries(row);
+    const entries = Object.entries(row).filter(([column]) =>
+      table !== "reading_challenges" || column !== "completed"
+    );
 
     if (entries.length === 0) {
       continue;

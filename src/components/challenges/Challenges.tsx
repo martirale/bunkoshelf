@@ -4,6 +4,7 @@ import Challenge2025 from "./Challenge2025";
 import Challenge2026 from "./Challenge2026";
 import { verifySession } from "@/lib/auth/verifySession";
 import { query } from "@/lib/db/query";
+import { countReadingCompletions, getReadingCompletions } from "@/lib/db/readingCompletions";
 import type { ReadingChallengeRecord } from "@/lib/types";
 
 interface ChallengesProps {
@@ -16,35 +17,35 @@ export default async function Challenges({ intl }: ChallengesProps) {
 
   if (!user) return null;
 
-  const challengeRows = await query<{
+  const now = new Date();
+  const [challengeRows, completions] = await Promise.all([query<{
     id: string;
     user_id: string;
     year: number;
     goal: number;
-    completed: number;
     notified: boolean;
     created_at: Date;
     updated_at: Date;
   }>(
     `
-      SELECT id, user_id, year, goal, completed, notified, created_at, updated_at
+      SELECT id, user_id, year, goal, notified, created_at, updated_at
       FROM reading_challenges
       WHERE user_id = $1
     `,
     [user.id]
-  );
+  ), getReadingCompletions(user.id, now)]);
   const challenge: ReadingChallengeRecord[] = challengeRows.map((row) => ({
     id: row.id,
     userId: row.user_id,
     year: row.year,
     goal: row.goal,
-    completed: row.completed,
+    completed: countReadingCompletions(completions, row.year),
     notified: row.notified,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }));
   const challenges = (intl.profile as DictionarySection).challenges as DictionarySection;
-  const currentYear = new Date().getFullYear();
+  const currentYear = now.getFullYear();
   const completedYears = new Set(
     challenge
       .filter(({ goal, completed }) => goal > 0 && completed >= goal)

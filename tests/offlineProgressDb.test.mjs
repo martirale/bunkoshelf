@@ -38,7 +38,6 @@ test("PostgreSQL keeps one automatic completion per day and rejects older positi
   });
   const entryCheck = (expected) => `DO $$ BEGIN
     ASSERT (SELECT COUNT(*) FROM reading_entries) = ${expected};
-    ASSERT (SELECT completed FROM reading_challenges WHERE user_id = 'reader' AND year = 2026) = ${expected};
   END $$;`;
   await save(19, "02");
   statements.push(entryCheck(1));
@@ -51,10 +50,18 @@ test("PostgreSQL keeps one automatic completion per day and rejects older positi
     ASSERT (SELECT personal_rating FROM user_to_volumes) = 8.5;
     ASSERT (SELECT first_read FROM user_to_volumes) = '2026-01-02';
     ASSERT (SELECT COUNT(*) FROM daily_reading_logs) = 1;
+    ASSERT (SELECT goal = 100 AND notified FROM reading_challenges WHERE id = 'challenge');
+    ASSERT NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'reading_challenges' AND column_name = 'completed'
+    );
   END $$;`);
   const migrations = readFileSync(new URL("../src/lib/db/migrations/001_initial_schema.sql", import.meta.url), "utf8");
+  const removeCounter = readFileSync(new URL("../src/lib/db/migrations/023_remove_challenge_counter.sql", import.meta.url), "utf8");
   const seed = `
     INSERT INTO users (id, username, password) VALUES ('reader', 'reader', 'unused');
+    INSERT INTO reading_challenges (id, user_id, year, goal, completed, notified)
+    VALUES ('challenge', 'reader', 2026, 100, 58, TRUE);
     INSERT INTO library_series (id, slug, title, path) VALUES ('series', 'series', 'Series', '/series');
     INSERT INTO library_volumes (id, slug, title, filename, full_path, series_id)
     VALUES ('volume', 'volume', 'Volume', 'volume.cbz', '/series/volume.cbz', 'series');
@@ -68,6 +75,6 @@ test("PostgreSQL keeps one automatic completion per day and rejects older positi
       trap 'pg_ctl -D /tmp/bunko-test -m immediate stop >/dev/null' EXIT
       psql -h /tmp -U postgres -v ON_ERROR_STOP=1 -q
     `,
-  ], { input: [migrations, seed, ...statements].join("\n"), encoding: "utf8", timeout: 60000 });
+  ], { input: [migrations, seed, removeCounter, ...statements].join("\n"), encoding: "utf8", timeout: 60000 });
   assert.equal(result.status, 0, result.error?.message ?? result.stderr);
 });

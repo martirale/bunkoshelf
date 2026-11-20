@@ -214,7 +214,6 @@ export async function saveVolumeReadingPosition(
         [createId(), userId, volumeId, date],
         client,
       );
-      if (completed) await incrementChallengeCompleted(userId, Number(date.slice(0, 4)), client);
     }
     await ensureDailyReadingLog(userId, date, client);
     await client.query("COMMIT");
@@ -328,32 +327,6 @@ export async function findOldestReadingEntryDate(
   );
 
   return row?.read_at ?? null;
-}
-
-export async function incrementChallengeCompleted(
-  userId: string,
-  year: number,
-  client?: QueryExecutor,
-): Promise<void> {
-  await execute(
-    `
-      INSERT INTO reading_challenges (
-        id,
-        user_id,
-        year,
-        goal,
-        completed,
-        notified
-      )
-      VALUES ($1, $2, $3, 0, 1, FALSE)
-      ON CONFLICT (user_id, year)
-      DO UPDATE SET
-        completed = reading_challenges.completed + 1,
-        updated_at = NOW()
-    `,
-    [createId(), userId, year],
-    client,
-  );
 }
 
 export async function ensureDailyReadingLog(
