@@ -117,9 +117,10 @@ test("filter URLs preserve publisher punctuation, legacy selections and unrelate
   assert.equal(cleared.toString(), "includeOneshots=true&page=1");
 });
 
-test("catalog filters combine seven categories with parameterized values", async () => {
+test("catalog filters combine categories with parameterized values", async () => {
   const filters = catalogFilters.parseCatalogFilters({
     series: "manga:series", author: ["First", "Second"], year: "2024", publisher: ["Publisher, Inc.", "O'Reilly"], age: "13+", language: "es", type: ["manga", "books"],
+    genre: "Drama", tag: "Adventure",
   });
   const { library, calls } = databaseModules();
   await library.listPagedCatalogLibraryVolumes({ page: 3, pageSize: 1, filters });
@@ -132,7 +133,7 @@ test("catalog filters combine seven categories with parameterized values", async
   assert.equal(rows.params.length, count.params.length + 2);
   assert.ok(rows.sql.indexOf("WHERE library_section ||") < rows.sql.lastIndexOf("LIMIT"));
   assert.match(count.sql, /COUNT\(\*\) AS total FROM catalog_volumes/);
-  assert.match(count.sql, /BTRIM\(author.name\) = ANY/);
+  assert.match(count.sql, /author_names &&/);
   assert.ok(!rows.sql.includes("O'Reilly"));
 });
 
@@ -162,9 +163,9 @@ test("publisher selection reaches paged, cached, unread, series and parental vis
 
 test("catalog options cover every visible work and omit empty values", async () => {
   const rows = [
-    { series_slug: "same", series: "Alternate series", writer: "First, Second", publisher: " Publisher, Inc. ", year: 2024, language_iso: "es", age_rating: "Everyone", library_section: "manga" },
-    { series_slug: "same", series: "Book series", writer: " ", publisher: "Other publisher", year: null, language_iso: "en", age_rating: "0+", library_section: "books" },
-    { series_slug: "adult", series: "Hidden series", writer: "Hidden author", publisher: "Hidden publisher", year: 2025, language_iso: "ja", age_rating: "Adults Only 18+", library_section: "comic" },
+    { series_slug: "same", series: "Alternate series", author_names: ["First", "Second"], publisher: " Publisher, Inc. ", year: 2024, language_iso: "es", age_rating: "Everyone", library_section: "manga", genres: ["Drama"], tags: [" "] },
+    { series_slug: "same", series: "Book series", author_names: ["__unknown__"], publisher: "Other publisher", year: null, language_iso: "en", age_rating: "0+", library_section: "books", genres: ["Drama"], tags: ["Book subject"] },
+    { series_slug: "adult", series: "Hidden series", author_names: ["Hidden author"], publisher: "Hidden publisher", year: 2025, language_iso: "ja", age_rating: "Adults Only 18+", library_section: "comic", genres: ["Hidden genre"], tags: ["Hidden tag"] },
   ];
   const { library, calls } = databaseModules({ rows, policy: { enabled: true, maxAge: 12, allowUnrated: false } });
   const options = await library.listCatalogLibraryFilterOptions();
@@ -172,12 +173,14 @@ test("catalog options cover every visible work and omit empty values", async () 
   assert.deepEqual([...options.author.map((option) => option.value)].sort(), ["First", "Second", "__unknown__"].sort());
   assert.deepEqual([...options.publisher.map((option) => option.value)].sort(), ["Other publisher", "Publisher, Inc."]);
   assert.deepEqual([...options.age.map((option) => option.value)], ["0+"]);
+  assert.deepEqual([...options.genre.map((option) => option.value)], ["Drama"]);
+  assert.deepEqual([...options.tag.map((option) => option.value)], ["Book subject"]);
   assert.ok(!/FROM catalog_volumes\s+LIMIT/.test(calls[0].sql));
 });
 
 test("age filters show unique numeric ages and match equivalent metadata ratings", async () => {
   const ratings = ["0+", "Everyone", "G", "Teen", "13+", "PG", "10+", "M", "16+", "Rating Pending", null];
-  const rows = ratings.map((age_rating) => ({ series_slug: "series", series: "Series", writer: "Writer", publisher: null, year: null, language_iso: "es", age_rating, library_section: "manga" }));
+  const rows = ratings.map((age_rating) => ({ series_slug: "series", series: "Series", author_names: ["Writer"], publisher: null, year: null, language_iso: "es", age_rating, library_section: "manga", genres: [], tags: [] }));
   const { library } = databaseModules({ rows });
   const options = await library.listCatalogLibraryFilterOptions();
   assert.deepEqual([...options.age.map((option) => option.value)], ["0+", "10+", "13+", "16+"]);
@@ -193,27 +196,34 @@ test("age filters show unique numeric ages and match equivalent metadata ratings
   }
 });
 
-test("genre and tag links open the matching library with oneshots included", () => {
-  const { default: RelationsTable } = load("../src/components/catalog/CatalogRelationsTable.tsx", {
+test("catalog links keep authors, genres and tags within the catalog and preserve the work type", () => {
+  const stubs = {
     typescript: ts,
     "react/jsx-runtime": jsxRuntime,
     "lucide-react": { CheckIcon: () => null },
     "@/components/ui/Pagination": { __esModule: true, default: () => null },
-    "next/link": { __esModule: true, default: ({ href, children, ...props }) => createElement("a", { ...props, href: `${href.pathname}?${new URLSearchParams(href.query)}` }, children) },
+    "next/link": { __esModule: true, default: ({ href, children, ...props }) => createElement("a", { ...props, href }, children) },
+    "@/lib/catalogFilters": catalogFilters,
+    "@/lib/utils": { normalizeCommaSeparatedText: (text) => text },
+  };
+  const { default: RelationsTable } = load("../src/components/catalog/CatalogRelationsTable.tsx", stubs);
+  const { default: AuthorsTable } = load("../src/components/catalog/CatalogAuthorsTable.tsx", {
+    ...stubs,
+    "@/components/catalog/CatalogLibraryBadge": load("../src/components/catalog/CatalogLibraryBadge.tsx", stubs),
   });
   for (const lang of ["es", "en"]) {
     const intl = JSON.parse(readFileSync(new URL(`../src/lib/i18n/dictionaries/${lang}/catalog.json`, import.meta.url), "utf8"));
-    for (const filter of ["genre", "tag"]) {
-      const name = "Acción & aventura";
-      const html = renderToStaticMarkup(createElement(RelationsTable, {
+    for (const [filter, name] of [["genre", "Acción & aventura"], ["tag", "Acción & aventura"], ["author", "Autor & Co."], ["author", null]]) {
+      const table = filter === "author" ? AuthorsTable : RelationsTable;
+      const html = renderToStaticMarkup(createElement(table, {
         intl, lang, filter, nameLabel: filter,
-        data: { items: [{ name, hasManga: true, hasComic: true, hasBooks: true, hasOthers: true, total: 4 }], total: 1, pageSize: 50 },
+        data: { items: [{ name, author: name, avgRating: null, hasManga: true, hasComic: true, hasBooks: true, hasOthers: true, total: 4 }], total: 1, pageSize: 50 },
       }));
       const links = [...html.matchAll(/href="([^"]+)"/g)].map((match) => new URL(match[1].replaceAll("&amp;", "&"), "https://bunko.test"));
-      assert.deepEqual(links.map((url) => url.pathname), ["manga", "comic", "books", "others"].map((section) => `/${lang}/${section}/series`));
+      assert.deepEqual(links.map((url) => url.searchParams.get("type")), ["manga", "comic", "books", "other"]);
       for (const url of links) {
-        assert.equal(url.searchParams.get(filter), name);
-        assert.equal(url.searchParams.get("includeOneshots"), "true");
+        assert.equal(url.pathname, `/${lang}/catalog/library`);
+        assert.equal(url.searchParams.get(filter), name ?? "__unknown__");
       }
     }
   }
@@ -240,6 +250,12 @@ test("catalog and library publication filters execute correctly in PostgreSQL", 
     [{ publisher: ["Publisher, Inc."], type: ["manga", "comic"] }, ["comic-1", "manga-1"]],
     [{ series: ["manga:manga"], author: ["Second"], year: ["2024"], publisher: ["Publisher, Inc."], age: ["Teen"], language: ["es"], type: ["manga"] }, ["manga-1"]],
     [{ author: ["__unknown__"], type: ["books"] }, ["book-2"]],
+    [{ author: ["Last, First"], type: ["books"] }, ["book-1"]],
+    [{ genre: ["Drama"], type: ["manga", "books"] }, ["manga-1", "book-1"]],
+    [{ tag: ["Adventure"], type: ["comic"] }, ["comic-2"]],
+    [{ tag: ["Adventure", "Book-only subject"], type: ["books"] }, ["book-1", "book-2"]],
+    [{ genre: ["Drama"], tag: ["Adventure"], type: ["books"] }, ["book-1"]],
+    [{ tag: ["Drama"], type: ["books"] }, []],
     [{ year: ["1900"] }, []],
     [{ age: ["13+"] }, ["manga-1", "book-1"]],
     [{ age: ["10+"] }, ["comic-1"]],

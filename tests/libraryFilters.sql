@@ -20,7 +20,16 @@ SELECT 'book-' || n, 'book', 'book-' || n, 'Book ' || n, 'book ' || n, n || '.ep
 INSERT INTO book_metadata (id, volume_id, title, publisher, published_at, language, age_rating, package_path)
 SELECT id, id, title, CASE WHEN id = 'book-1' THEN 'Publisher, Inc.' ELSE 'Other' END, '2024-01-01', 'es', CASE WHEN id = 'book-1' THEN '13+' ELSE '0+' END, 'content.opf' FROM book_volumes;
 INSERT INTO book_people (id, metadata_id, name, kind, role, position)
-VALUES ('book-author', 'book-1', 'Second', 'creator', 'aut', 0);
+VALUES ('book-author', 'book-1', 'Second', 'creator', 'aut', 0),
+       ('book-author-full', 'book-1', 'Last, First', 'creator', 'aut', 1);
+INSERT INTO genres (id, name) VALUES ('drama', 'Drama');
+INSERT INTO tags (id, name) VALUES ('adventure', 'Adventure');
+INSERT INTO volume_to_genres (id, volume_id, genre_id) VALUES ('drama-manga', 'manga-1', 'drama');
+INSERT INTO volume_to_tags (id, volume_id, tag_id) VALUES ('adventure-comic', 'comic-2', 'adventure');
+INSERT INTO book_subjects (id, metadata_id, name) VALUES
+  ('drama-book', 'book-1', ' drama '),
+  ('adventure-book', 'book-1', 'adventure'),
+  ('book-tag', 'book-2', 'Book-only subject');
 
 UPDATE volume_metadata SET age_rating = CASE id
   WHEN 'comic-1' THEN 'PG'

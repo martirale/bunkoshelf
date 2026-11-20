@@ -1,6 +1,7 @@
 import CatalogLibraryBadge from "@/components/catalog/CatalogLibraryBadge";
 import Pagination from "@/components/ui/Pagination";
 import { normalizeCommaSeparatedText } from "@/lib/utils";
+import { getCatalogLibraryFilterHref } from "@/lib/catalogFilters";
 import type { CatalogAuthorStats, PaginatedResult } from "@/lib/db/library";
 import type { Dictionary, Locale } from "@/lib/types";
 
@@ -44,23 +45,12 @@ function renderLibraries(
 ) {
   const authorParam = author?.trim() ? author.trim() : "__unknown__";
 
-  function buildHref(section: "manga" | "comic" | "others" | "books") {
-    const params = new URLSearchParams({ author: authorParam });
-    if (section === "books") {
-      params.set("includeOneshots", "true");
-      return `/${lang}/books/series?${params.toString()}`;
-    }
-
-    params.set("includeOneshots", "true");
-    return `/${lang}/${section}/series?${params.toString()}`;
-  }
-
   function renderLibrary(
     section: "manga" | "comic" | "others" | "books",
     label: string
   ) {
     return (
-      <CatalogLibraryBadge section={section} label={label} href={buildHref(section)} />
+      <CatalogLibraryBadge section={section} label={label} href={getCatalogLibraryFilterHref(lang, section, "author", authorParam)} />
     );
   }
 

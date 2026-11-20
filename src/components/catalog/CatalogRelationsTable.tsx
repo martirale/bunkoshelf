@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckIcon } from "lucide-react";
 import Pagination from "@/components/ui/Pagination";
+import { getCatalogLibraryFilterHref } from "@/lib/catalogFilters";
 import type { CatalogRelationStats, PaginatedResult } from "@/lib/db/library";
 import type { Dictionary, Locale } from "@/lib/types";
 
@@ -45,7 +46,7 @@ export default function CatalogRelationsTable({
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center">
                       {item.hasManga ? <Link
-                        href={{ pathname: `/${lang}/manga/series`, query: { [filter]: item.name, includeOneshots: "true" } }}
+                        href={getCatalogLibraryFilterHref(lang, "manga", filter, item.name)}
                         aria-label={`${nameLabel}: ${item.name} — ${intl.catalog.mangaColumn}`}
                         className="inline-flex items-center justify-center p-1 hover:text-lilah transition-colors"
                       ><CheckIcon size={18} /></Link> : null}
@@ -54,7 +55,7 @@ export default function CatalogRelationsTable({
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center">
                       {item.hasComic ? <Link
-                        href={{ pathname: `/${lang}/comic/series`, query: { [filter]: item.name, includeOneshots: "true" } }}
+                        href={getCatalogLibraryFilterHref(lang, "comic", filter, item.name)}
                         aria-label={`${nameLabel}: ${item.name} — ${intl.catalog.comicColumn}`}
                         className="inline-flex items-center justify-center p-1 hover:text-lilah transition-colors"
                       ><CheckIcon size={18} /></Link> : null}
@@ -63,7 +64,7 @@ export default function CatalogRelationsTable({
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center">
                       {item.hasBooks ? <Link
-                        href={{ pathname: `/${lang}/books/series`, query: { [filter]: item.name, includeOneshots: "true" } }}
+                        href={getCatalogLibraryFilterHref(lang, "books", filter, item.name)}
                         aria-label={`${nameLabel}: ${item.name} — ${intl.catalog.booksColumn}`}
                         className="inline-flex items-center justify-center p-1 hover:text-lilah transition-colors"
                       ><CheckIcon size={18} /></Link> : null}
@@ -72,7 +73,7 @@ export default function CatalogRelationsTable({
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center">
                       {item.hasOthers ? <Link
-                        href={{ pathname: `/${lang}/others/series`, query: { [filter]: item.name, includeOneshots: "true" } }}
+                        href={getCatalogLibraryFilterHref(lang, "others", filter, item.name)}
                         aria-label={`${nameLabel}: ${item.name} — ${intl.catalog.othersColumn}`}
                         className="inline-flex items-center justify-center p-1 hover:text-lilah transition-colors"
                       ><CheckIcon size={18} /></Link> : null}

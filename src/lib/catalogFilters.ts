@@ -1,10 +1,17 @@
 import { ageRatingMap, comicAgeRatingMinimum } from "./mangaMetadata";
 import { filterValues, type FilterOption } from "./libraryFilters";
+import type { OneshotSection } from "./librarySection";
+import type { Locale } from "./types";
 
-export const catalogFilterKeys = ["series", "author", "year", "publisher", "age", "language", "type"] as const;
+export const catalogFilterKeys = ["series", "author", "year", "publisher", "age", "language", "type", "genre", "tag"] as const;
 export type CatalogFilterKey = typeof catalogFilterKeys[number];
 export type CatalogFilters = Partial<Record<CatalogFilterKey, string[]>>;
 export type CatalogFilterOptions = Record<CatalogFilterKey, FilterOption[]>;
+
+export function getCatalogLibraryFilterHref(lang: Locale, section: OneshotSection, filter: "author" | "genre" | "tag", value: string) {
+  const query = new URLSearchParams({ [filter]: value, type: section === "others" ? "other" : section });
+  return `/${lang}/catalog/library?${query}`;
+}
 
 export function parseCatalogFilters(params: Record<string, string | string[] | undefined>): CatalogFilters {
   return Object.fromEntries(catalogFilterKeys.map((key) => [key, filterValues(params[key])]));
@@ -39,10 +46,15 @@ export function buildCatalogFilterSql(filters: CatalogFilters, params: unknown[]
     if (!values.length) return [];
     params.push(key === "age" ? expandAgeRatings(values) : values);
     if (key === "author") {
+      return [`author_names && $${params.length}::text[]`];
+    }
+    if (key === "genre" || key === "tag") {
+      const column = key === "genre" ? "genres" : "tags";
       return [`EXISTS (
         SELECT 1
-        FROM regexp_split_to_table(COALESCE(NULLIF(BTRIM(writer), ''), '__unknown__'), ',') AS author(name)
-        WHERE BTRIM(author.name) = ANY($${params.length}::text[])
+        FROM unnest(${column}) AS relation(name)
+        INNER JOIN unnest($${params.length}::text[]) AS selected(name)
+          ON LOWER(BTRIM(relation.name)) = LOWER(selected.name)
       )`];
     }
     return [`${columns[key]} = ANY($${params.length}::text[])`];

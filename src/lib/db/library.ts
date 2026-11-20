@@ -712,7 +712,15 @@ function parseCount(value: string | number): number {
 }
 
 const CATALOG_VOLUMES_SQL = `
-  WITH catalog_volumes AS (
+  WITH catalog_genres AS (
+    SELECT DISTINCT name, LOWER(BTRIM(name)) AS normalized_name
+    FROM genres
+    INNER JOIN volume_to_genres ON volume_to_genres.genre_id = genres.id
+  ), catalog_tags AS (
+    SELECT DISTINCT name, LOWER(BTRIM(name)) AS normalized_name
+    FROM tags
+    INNER JOIN volume_to_tags ON volume_to_tags.tag_id = tags.id
+  ), catalog_volumes AS (
     SELECT
       mv.id,
       mv.slug,
@@ -723,11 +731,28 @@ const CATALOG_VOLUMES_SQL = `
       vm.number,
       vm.year,
       vm.writer,
+      ARRAY(
+        SELECT BTRIM(author.name)
+        FROM regexp_split_to_table(COALESCE(NULLIF(BTRIM(vm.writer), ''), '__unknown__'), ',') AS author(name)
+        WHERE BTRIM(author.name) <> ''
+      ) AS author_names,
       vm.publisher,
       vm.language_iso,
       vm.age_rating,
       vm.gtin,
       ms.library_section,
+      ARRAY(
+        SELECT g.name
+        FROM volume_to_genres vtg
+        INNER JOIN genres g ON g.id = vtg.genre_id
+        WHERE vtg.volume_id = mv.id
+      ) AS genres,
+      ARRAY(
+        SELECT t.name
+        FROM volume_to_tags vtt
+        INNER JOIN tags t ON t.id = vtt.tag_id
+        WHERE vtt.volume_id = mv.id
+      ) AS tags,
       utv.is_read,
       utv.is_favorite,
       ms.sort_title AS series_sort_title,
@@ -760,13 +785,8 @@ const CATALOG_VOLUMES_SQL = `
       bs.slug AS series_slug,
       bv.number,
       SUBSTRING(bm.published_at FROM '([0-9]{4})')::integer AS year,
-      (
-        SELECT STRING_AGG(bp.name, ', ' ORDER BY bp.position, bp.id)
-        FROM book_people bp
-        WHERE bp.metadata_id = bm.id
-          AND bp.kind = 'creator'
-          AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
-      ) AS writer,
+      ARRAY_TO_STRING(authors.names, ', ') AS writer,
+      COALESCE(authors.names, ARRAY['__unknown__']) AS author_names,
       bm.publisher,
       bm.language AS language_iso,
       bm.age_rating,
@@ -779,6 +799,21 @@ const CATALOG_VOLUMES_SQL = `
         LIMIT 1
       ) AS gtin,
       'books' AS library_section,
+      ARRAY(
+        SELECT DISTINCT g.name
+        FROM book_subjects subject
+        INNER JOIN catalog_genres g ON g.normalized_name = LOWER(BTRIM(subject.name))
+        WHERE subject.metadata_id = bm.id
+      ) AS genres,
+      ARRAY(
+        SELECT DISTINCT COALESCE(t.name, BTRIM(subject.name))
+        FROM book_subjects subject
+        LEFT JOIN catalog_tags t ON t.normalized_name = LOWER(BTRIM(subject.name))
+        WHERE subject.metadata_id = bm.id AND BTRIM(subject.name) <> ''
+          AND (t.name IS NOT NULL OR NOT EXISTS (
+            SELECT 1 FROM catalog_genres g WHERE g.normalized_name = LOWER(BTRIM(subject.name))
+          ))
+      ) AS tags,
       utb.is_read,
       utb.is_favorite,
       bs.sort_title AS series_sort_title,
@@ -794,6 +829,14 @@ const CATALOG_VOLUMES_SQL = `
     FROM book_volumes bv
     INNER JOIN book_series bs ON bs.id = bv.series_id
     INNER JOIN book_metadata bm ON bm.volume_id = bv.id
+    LEFT JOIN LATERAL (
+      SELECT ARRAY_AGG(BTRIM(bp.name) ORDER BY bp.position, bp.id) AS names
+      FROM book_people bp
+      WHERE bp.metadata_id = bm.id
+        AND bp.kind = 'creator'
+        AND (bp.role IS NULL OR LOWER(bp.role) = 'aut')
+        AND BTRIM(bp.name) <> ''
+    ) authors ON TRUE
     LEFT JOIN user_to_books utb
       ON utb.volume_id = bv.id
      AND utb.user_id = $1
@@ -916,17 +959,20 @@ export async function listCatalogLibraryFilterOptions(): Promise<CatalogFilterOp
   const rows = await query<{
     series_slug: string;
     series: string | null;
-    writer: string | null;
+    author_names: string[];
     year: number | null;
     publisher: string | null;
     age_rating: string | null;
     language_iso: string | null;
     library_section: "manga" | "comic" | "books" | "other";
+    genres: string[];
+    tags: string[];
   }>(`${CATALOG_VOLUMES_SQL}
-    SELECT DISTINCT series_slug, series, writer, year, publisher, age_rating, language_iso, library_section
+    SELECT DISTINCT series_slug, series, author_names, year, publisher, age_rating, language_iso, library_section, genres, tags
     FROM catalog_volumes`, [null]);
   const values: Record<keyof CatalogFilterOptions, Map<string, string>> = {
-    series: new Map(), author: new Map(), year: new Map(), publisher: new Map(), age: new Map(), language: new Map(), type: new Map(),
+    series: new Map(), author: new Map(), year: new Map(), publisher: new Map(), age: new Map(),
+    language: new Map(), type: new Map(), genre: new Map(), tag: new Map(),
   };
   function add(key: keyof CatalogFilterOptions, value: string | number | null, label?: string) {
     const name = String(value ?? "").trim();
@@ -935,13 +981,14 @@ export async function listCatalogLibraryFilterOptions(): Promise<CatalogFilterOp
   for (const row of rows) {
     if (!canViewAgeRating(row.age_rating, row.library_section === "books" ? "book" : "manga", policy)) continue;
     add("series", `${row.library_section}:${row.series_slug}`, row.series?.trim() || row.series_slug);
-    const authors = row.writer?.split(",").map((name) => name.trim()).filter(Boolean) ?? [];
-    for (const author of authors.length ? authors : ["__unknown__"]) add("author", author);
+    for (const author of row.author_names) add("author", author);
     add("year", row.year);
     add("publisher", row.publisher);
     add("age", normalizeCatalogAgeRating(row.age_rating));
     add("language", row.language_iso);
     add("type", row.library_section);
+    for (const genre of row.genres) add("genre", genre);
+    for (const tag of row.tags) add("tag", tag);
   }
   return Object.fromEntries(Object.entries(values).map(([key, items]) => [
     key,

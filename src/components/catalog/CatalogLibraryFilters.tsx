@@ -16,7 +16,7 @@ export default function CatalogLibraryFilters({ intl, options }: {
     books: catalog.booksColumn,
     other: catalog.othersColumn,
   };
-  const names = { series: labels.series, author: labels.authors, year: labels.years, publisher: labels.publishers, age: labels.ages, language: labels.languages, type: labels.types };
+  const names = { series: labels.series, author: labels.authors, year: labels.years, publisher: labels.publishers, age: labels.ages, language: labels.languages, type: labels.types, genre: labels.genres, tag: labels.tags };
   const typeOrder = ["manga", "comic", "books", "other"];
   const groups = catalogFilterKeys.map((key) => ({
     key,
