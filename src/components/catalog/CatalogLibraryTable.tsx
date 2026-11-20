@@ -24,7 +24,7 @@ function renderValue(value: number | string | null | undefined) {
   return String(value);
 }
 
-function renderLanguageBadge(value: string | null | undefined) {
+function renderBadge(value: string | null | undefined) {
   if (value === null || value === undefined || value === "") {
     return "—";
   }
@@ -80,6 +80,8 @@ export default function CatalogLibraryTable({
   conversion = false,
   lang,
 }: CatalogLibraryTableProps) {
+  const conversionLabels = intl.catalog.conversionMessages as Record<string, string>;
+
   return (
     <>
       <div className="bg-blackamber p-4 rounded-lg">
@@ -89,7 +91,7 @@ export default function CatalogLibraryTable({
               <tr className="font-bold uppercase bg-onix">
                 <th className="p-4 text-center rounded-l-md">{intl.catalog.statusColumn as string}</th>
                 <th className="p-4 text-left">{intl.catalog.titleColumn as string}</th>
-                <th className="p-4 text-left">{intl.catalog.seriesColumn as string}</th>
+                {!conversion && <th className="p-4 text-left">{intl.catalog.seriesColumn as string}</th>}
                 <th className="p-4 text-center">#</th>
                 <th className="p-4 text-center">{intl.catalog.yearColumn as string}</th>
                 <th className="p-4 text-center">{intl.catalog.writerColumn as string}</th>
@@ -99,6 +101,11 @@ export default function CatalogLibraryTable({
                 <th className="p-4 text-center">
                   {intl.catalog.gtinColumn as string}
                 </th>
+                {conversion && (
+                  <th className={`p-4 text-center ${canManage ? "" : "rounded-r-md"}`}>
+                    {conversionLabels.type}
+                  </th>
+                )}
                 {canManage && (
                   <th className="p-4 text-center rounded-r-md">
                     {intl.catalog.actionsColumn as string}
@@ -114,87 +121,102 @@ export default function CatalogLibraryTable({
                   </td>
                 </tr>
               )}
-              {data.items.map((volume) => (
-                <tr key={volume.id}>
-                  <td className="p-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      {volume.isRead ? <CheckIcon size={18} /> : null}
-                      {volume.isFavorite ? <HeartIcon size={18} /> : null}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="max-w-[20rem] whitespace-normal break-words leading-snug">
-                      <Link
-                        href={getCatalogVolumeHref(lang, volume.section, volume.slug)}
-                        className="hover:underline"
-                      >
-                        {renderValue(volume.title)}
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="max-w-[18rem] whitespace-normal break-words leading-snug">
-                      {volume.series ? (
+              {data.items.map((volume) => {
+                const showSeriesTitle = conversion && volume.isOneshot === false;
+                const title = showSeriesTitle ? volume.series : volume.title;
+                const titleHref = showSeriesTitle
+                  ? getCatalogSeriesHref(lang, volume.section, volume.seriesSlug)
+                  : getCatalogVolumeHref(lang, volume.section, volume.slug);
+
+                return (
+                  <tr key={volume.id}>
+                    <td className="p-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {volume.isRead ? <CheckIcon size={18} /> : null}
+                        {volume.isFavorite ? <HeartIcon size={18} /> : null}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="max-w-[20rem] whitespace-normal break-words leading-snug">
                         <Link
-                          href={getCatalogSeriesHref(lang, volume.section, volume.seriesSlug)}
+                          href={titleHref}
                           className="hover:underline"
                         >
-                          {volume.series}
+                          {renderValue(title)}
                         </Link>
-                      ) : renderValue(volume.series)}
-                    </div>
-                  </td>
-                  <td className="p-4 text-center whitespace-nowrap">{renderValue(volume.number)}</td>
-                  <td className="p-4 text-center whitespace-nowrap">{renderValue(volume.year)}</td>
-                  <td className="p-4 text-center">
-                    <div className="max-w-[14rem] whitespace-normal break-words leading-snug">
-                      {renderWriter(volume.writer)}
-                    </div>
-                  </td>
-                  <td className="p-4 text-center">
-                    <div className="max-w-[14rem] whitespace-normal break-words leading-snug">
-                      {renderValue(volume.publisher)}
-                    </div>
-                  </td>
-                  <td className="p-4 text-center">
-                    <div className="flex items-center justify-center">
-                      {renderLanguageBadge(volume.languageISO)}
-                    </div>
-                  </td>
-                  <td className="p-4 text-center">
-                    <div className="max-w-[10rem] whitespace-normal break-words leading-snug">
-                      {renderAgeRating(volume.ageRating)}
-                    </div>
-                  </td>
-                  <td className="p-4 text-center">
-                    <div className="max-w-[11rem] whitespace-normal break-words leading-snug">
-                      {renderValue(volume.gtin)}
-                    </div>
-                  </td>
-                  {canManage && (
+                      </div>
+                    </td>
+                    {!conversion && (
+                      <td className="p-4">
+                        <div className="max-w-[18rem] whitespace-normal break-words leading-snug">
+                          {volume.series ? (
+                            <Link
+                              href={getCatalogSeriesHref(lang, volume.section, volume.seriesSlug)}
+                              className="hover:underline"
+                            >
+                              {volume.series}
+                            </Link>
+                          ) : renderValue(volume.series)}
+                        </div>
+                      </td>
+                    )}
+                    <td className="p-4 text-center whitespace-nowrap">{renderValue(volume.number)}</td>
+                    <td className="p-4 text-center whitespace-nowrap">{renderValue(volume.year)}</td>
                     <td className="p-4 text-center">
-                      {conversion ? (
-                        volume.seriesPath && typeof volume.isOneshot === "boolean" && (
-                          <CatalogConversionAction
+                      <div className="max-w-[14rem] whitespace-normal break-words leading-snug">
+                        {renderWriter(volume.writer)}
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <div className="max-w-[14rem] whitespace-normal break-words leading-snug">
+                        {renderValue(volume.publisher)}
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <div className="flex items-center justify-center">
+                        {renderBadge(volume.languageISO)}
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <div className="max-w-[10rem] whitespace-normal break-words leading-snug">
+                        {renderAgeRating(volume.ageRating)}
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <div className="max-w-[11rem] whitespace-normal break-words leading-snug">
+                        {renderValue(volume.gtin)}
+                      </div>
+                    </td>
+                    {conversion && (
+                      <td className="p-4 text-center">
+                        {renderBadge(volume.isOneshot ? conversionLabels.oneshot : intl.catalog.seriesColumn as string)}
+                      </td>
+                    )}
+                    {canManage && (
+                      <td className="p-4 text-center">
+                        {conversion ? (
+                          volume.seriesPath && typeof volume.isOneshot === "boolean" && (
+                            <CatalogConversionAction
+                              intl={intl}
+                              volumeId={volume.id}
+                              section={volume.section}
+                              source={volume.seriesPath}
+                              isOneshot={volume.isOneshot}
+                            />
+                          )
+                        ) : (
+                          <CatalogLibraryActions
                             intl={intl}
                             volumeId={volume.id}
+                            volumeSlug={volume.slug}
                             section={volume.section}
-                            source={volume.seriesPath}
-                            isOneshot={volume.isOneshot}
                           />
-                        )
-                      ) : (
-                        <CatalogLibraryActions
-                          intl={intl}
-                          volumeId={volume.id}
-                          volumeSlug={volume.slug}
-                          section={volume.section}
-                        />
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))}
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

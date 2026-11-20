@@ -2,6 +2,8 @@
   "catalog": {
     "conversion": "Conversion",
     "conversionMessages": {
+      "type": "Type",
+      "oneshot": "Oneshot",
       "toSeries": "Convert to series",
       "toOneshot": "Convert to oneshot",
       "pending": "Converting…",

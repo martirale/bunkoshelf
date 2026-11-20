@@ -709,6 +709,7 @@ const CATALOG_VOLUMES_SQL = `
       mv.id,
       mv.slug,
       COALESCE(NULLIF(BTRIM(vm.alt_title), ''), vm.title) AS title,
+      mv.title AS volume_title,
       COALESCE(NULLIF(BTRIM(vm.alt_series), ''), ms.title) AS series,
       ms.slug AS series_slug,
       vm.number,
@@ -746,6 +747,7 @@ const CATALOG_VOLUMES_SQL = `
       bv.id,
       bv.slug,
       bm.title,
+      bv.title AS volume_title,
       bs.title AS series,
       bs.slug AS series_slug,
       bv.number,
@@ -818,6 +820,7 @@ export async function listPagedCatalogLibraryVolumes(
       id: string;
       slug: string;
       title: string | null;
+      volume_title: string;
       series: string | null;
       series_slug: string;
       series_path: string;
@@ -839,6 +842,7 @@ export async function listPagedCatalogLibraryVolumes(
           id,
           slug,
           title,
+          volume_title,
           series,
           series_slug,
           series_path,
@@ -875,7 +879,7 @@ export async function listPagedCatalogLibraryVolumes(
       section: (row.library_section === "books"
         ? "books"
         : getLibrarySection(row.library_section)) as CatalogLibraryVolume["section"],
-      title: row.title,
+      title: options?.conversion ? row.title?.trim() || row.volume_title : row.title,
       series: row.series,
       seriesSlug: row.series_slug,
       ...(options?.conversion && { seriesPath: row.series_path, isOneshot: row.is_oneshot }),

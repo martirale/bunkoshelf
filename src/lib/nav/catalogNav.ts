@@ -34,12 +34,6 @@ export function getCatalogNavLinks({
       isActive: pathname === `/${lang}/catalog/library`,
     },
     {
-      label: intl.catalog.conversion as string,
-      href: `/${lang}/catalog/conversion`,
-      icon: ArrowLeftRightIcon,
-      isActive: pathname === `/${lang}/catalog/conversion`,
-    },
-    {
       label: intl.catalog.authors as string,
       href: `/${lang}/catalog/authors`,
       icon: UserRoundPenIcon,
@@ -56,6 +50,12 @@ export function getCatalogNavLinks({
       href: `/${lang}/catalog/tags`,
       icon: TagsIcon,
       isActive: pathname === `/${lang}/catalog/tags`,
+    },
+    {
+      label: intl.catalog.conversion as string,
+      href: `/${lang}/catalog/conversion`,
+      icon: ArrowLeftRightIcon,
+      isActive: pathname === `/${lang}/catalog/conversion`,
     },
   ];
 }
