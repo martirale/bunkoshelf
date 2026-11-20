@@ -77,13 +77,7 @@ export default async function WantToRead({
 
   return (
     <>
-      <div className="flex items-center mb-4">
-        <h2 className="flex items-center text-base md:text-lg mr-4">
-          <BookmarkIcon size={28} className="mr-2" />
-          {intl.manga.wantToRead as string}
-        </h2>
-        <FiltersDrawer intl={intl} scope={scope} />
-      </div>
+      <FiltersDrawer intl={intl} lang={lang} scope={scope} icon={<BookmarkIcon size={28} />} title={intl.manga.wantToRead as string} />
 
       <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">
         {entries.map((entry) => {

@@ -92,16 +92,15 @@ export default async function SeriesIndex({
 
   return (
     <>
-      <div className="flex items-center mb-4">
-        <h2 className="flex items-center text-base md:text-lg mr-4">
-          <LibraryBigIcon size={28} className="mr-2" />
-          {section === "others"
+      <FiltersDrawer
+        intl={intl}
+        lang={lang}
+        scope={scope}
+        icon={<LibraryBigIcon size={28} />}
+        title={section === "others"
             ? (intl.libraries.allOtherCollections as string)
             : (intl.manga.allSeries as string)}
-        </h2>
-
-        <FiltersDrawer intl={intl} scope={scope} />
-      </div>
+      />
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
         {entries.map((entry) => {

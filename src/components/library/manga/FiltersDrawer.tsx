@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import FilterDrawer from "@/components/library/FilterDrawer";
 import { getLibraryFilters } from "@/actions/library";
 import { getBookLibraryFilters } from "@/actions/books";
 import { usePwa } from "@/components/pwa/PwaProvider";
 import type { OfflineVolume } from "@/lib/client/offlineLibrary";
 import type { LibraryScope } from "@/lib/librarySection";
-import type { DictionarySection } from "@/lib/types";
+import { getLibraryFilterTitle } from "@/lib/libraryFilters";
+import type { Dictionary, DictionarySection, Locale } from "@/lib/types";
 
 interface FilterItem {
   id: string;
@@ -15,7 +16,10 @@ interface FilterItem {
 }
 
 interface FiltersDrawerProps {
-  intl: DictionarySection;
+  intl: Dictionary;
+  lang: Locale;
+  title: string;
+  icon: ReactNode;
   scope?: LibraryScope;
   library?: "books";
   offlineVolumes?: OfflineVolume[];
@@ -23,6 +27,9 @@ interface FiltersDrawerProps {
 
 export default function FiltersDrawer({
   intl,
+  lang,
+  title,
+  icon,
   scope = "all",
   library,
   offlineVolumes,
@@ -34,9 +41,9 @@ export default function FiltersDrawer({
   const { online } = usePwa();
 
   const filters = intl.filters as DictionarySection;
-  const catalog = intl.catalog as DictionarySection | undefined;
+  const comicTypeLabels = intl.libraries.comicTypes as DictionarySection;
   const unknownAuthorLabel =
-    (catalog?.unknownAuthor as string | undefined) || "Unknown";
+    (intl.catalog?.unknownAuthor as string | undefined) || "Unknown";
 
   useEffect(() => {
     async function fetchFilters() {
@@ -89,5 +96,21 @@ export default function FiltersDrawer({
     { key: "publisher", label: filters.publishers as string, options: publishers.map((item) => ({ value: item.name, label: item.name })) },
   ];
 
-  return <FilterDrawer intl={intl} groups={groups} offline={!online} />;
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+      <FilterDrawer
+        intl={intl}
+        groups={groups}
+        offline={!online}
+        renderHeading={(applied) => (
+          <h2 className="flex min-w-0 items-center gap-2 text-base md:text-lg">
+            <span className="shrink-0" aria-hidden="true">{icon}</span>
+            <span className="min-w-0 wrap-anywhere">
+              {getLibraryFilterTitle(applied, title, lang, library ?? scope, comicTypeLabels, unknownAuthorLabel)}
+            </span>
+          </h2>
+        )}
+      />
+    </div>
+  );
 }

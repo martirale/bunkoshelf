@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRightIcon } from "lucide-react";
 import Accordion from "@/components/ui/Accordion";
@@ -16,9 +16,10 @@ interface FilterDrawerProps {
   intl: DictionarySection;
   groups: FilterGroup[];
   offline?: boolean;
+  renderHeading?: (applied: Record<string, string[]>) => ReactNode;
 }
 
-export default function FilterDrawer({ intl, groups, offline = false }: FilterDrawerProps) {
+export default function FilterDrawer({ intl, groups, offline = false, renderHeading }: FilterDrawerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -58,6 +59,7 @@ export default function FilterDrawer({ intl, groups, offline = false }: FilterDr
 
   return (
     <>
+      {renderHeading?.(applied)}
       <Button
         type="button"
         onClick={open}

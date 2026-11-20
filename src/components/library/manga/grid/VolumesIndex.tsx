@@ -75,16 +75,15 @@ export default async function VolumesIndex({
 
   return (
     <>
-      <div className="flex items-center mb-4">
-        <h2 className="flex items-center text-base md:text-lg mr-4">
-          <BookCopyIcon size={28} className="mr-2" />
-          {section === "others"
+      <FiltersDrawer
+        intl={intl}
+        lang={lang}
+        scope={scope}
+        icon={<BookCopyIcon size={28} />}
+        title={section === "others"
             ? (intl.libraries.allOtherWorks as string)
             : (intl.manga.allVolumes as string)}
-        </h2>
-
-        <FiltersDrawer intl={intl} scope={scope} />
-      </div>
+      />
 
       <section className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4">
         {entries.map((entry) => {

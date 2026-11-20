@@ -237,10 +237,11 @@ export default function OfflineBooks({ path, lang, intl, userId }: OfflineBooksP
     : series ? intl.libraries.series : unread ? intl.libraries.toRead : intl.libraries.books;
   const Icon = series ? LibraryBigIcon : unread ? BookmarkIcon : BookCopyIcon;
   const content = <section className="mb-24 p-4 md:mb-4">
-    <div className="mb-4 flex items-center gap-4">
-      <h2 className="flex items-center text-base md:text-lg"><Icon size={28} className="mr-2" />{title as string}</h2>
-      {!favorites && <FiltersDrawer intl={intl} library="books" offlineVolumes={books} />}
-    </div>
+    {favorites ? (
+      <h2 className="mb-4 flex items-center text-base md:text-lg"><Icon size={28} className="mr-2" />{title as string}</h2>
+    ) : (
+      <FiltersDrawer intl={intl} lang={lang} library="books" offlineVolumes={books} icon={<Icon size={28} />} title={title as string} />
+    )}
     {entries.length
       ? <BookCards entries={entries} lang={lang} intl={intl} series={series} favorites={favorites} />
       : books.length ? <p className="p-4 text-center">{intl.search.noResults as string}</p> : empty}

@@ -50,10 +50,7 @@ export default async function SeriesIndex({
   }, new Map<string, { id: string; slug: string; title: string; isOneshot: boolean; status: string; cover: string | null; firstSlug: string; volumeIds: string[] }>()).values());
 
   return <>
-    <div className="mb-4 flex items-center">
-      <h2 className="mr-4 flex items-center text-base md:text-lg"><LibraryBigIcon size={28} className="mr-2" />{intl.libraries.series as string}</h2>
-      <FiltersDrawer intl={intl} library="books" />
-    </div>
+    <FiltersDrawer intl={intl} lang={lang} library="books" icon={<LibraryBigIcon size={28} />} title={intl.libraries.series as string} />
     <section className="grid grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-7">
       {series.map((item) => {
         const progressRatio = item.volumeIds.length

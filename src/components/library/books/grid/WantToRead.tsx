@@ -28,5 +28,8 @@ export default async function WantToRead({
   const books = await listBookVolumes({ publisherNames: filterValues(publisherFilter), authorNames, genreNames, tagNames });
   const progressById = user ? await listBookProgressByIds(user.id, books.map((book) => book.id)) : {};
   const unread = books.filter((book) => !progressById[book.id]?.isRead);
-  return <><div className="mb-4 flex items-center"><h2 className="mr-4 flex items-center text-base md:text-lg"><BookmarkIcon size={28} className="mr-2" />{intl.libraries.toRead as string}</h2><FiltersDrawer intl={intl} library="books" /></div><BookGrid books={unread} lang={lang} intl={intl} progressById={progressById} /></>;
+  return <>
+    <FiltersDrawer intl={intl} lang={lang} library="books" icon={<BookmarkIcon size={28} />} title={intl.libraries.toRead as string} />
+    <BookGrid books={unread} lang={lang} intl={intl} progressById={progressById} />
+  </>;
 }

@@ -54,6 +54,24 @@ const groups = [
   { key: "publisher" },
 ];
 
+test("library headings use the applied filters and localized shortcut labels", () => {
+  const title = (query, section = "manga", lang = "es") => {
+    const { libraries } = JSON.parse(readFileSync(new URL(`../src/lib/i18n/dictionaries/${lang}/libraries.json`, import.meta.url)));
+    const { catalog } = JSON.parse(readFileSync(new URL(`../src/lib/i18n/dictionaries/${lang}/catalog.json`, import.meta.url)));
+    const selection = libraryFilters.readFilterSelection(new URLSearchParams(query), groups);
+    return libraryFilters.getLibraryFilterTitle(selection, "Default", lang, section, libraries.comicTypes, catalog.unknownAuthor);
+  };
+
+  assert.equal(title("page=2&includeOneshots=true"), "Default");
+  assert.equal(title("tag=shojo&includeOneshots=true"), "Shōjo");
+  assert.equal(title("tag=graphic+novel", "comic"), "Novela Gráfica");
+  assert.equal(title("tag=c%C3%B3mic", "comic", "en"), "Comic");
+  assert.equal(title("author=Milk+Morinaga", "others"), "Milk Morinaga");
+  assert.equal(title("author=__unknown__", "books"), "Desconocido");
+  assert.equal(title("author=Milk+Morinaga&tag=shojo"), "Milk Morinaga y Shōjo");
+  assert.equal(title("genre=romance&publisher=Publisher%2C+Inc.", "books", "en"), "Romance and Publisher, Inc.");
+});
+
 test("filter URLs preserve publisher punctuation, legacy selections and unrelated flags", () => {
   const params = new URLSearchParams("author=First,Second&genre=Drama&includeOneshots=true&page=4");
   params.append("publisher", "Publisher, Inc.");

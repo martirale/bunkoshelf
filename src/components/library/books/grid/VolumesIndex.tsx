@@ -28,5 +28,8 @@ export default async function VolumesIndex({
   const tagNames = tagFilter?.trim() ? tagFilter.split(",").map((tag) => tag.trim()).filter(Boolean) : undefined;
   const books = await listBookVolumes({ publisherNames: filterValues(publisherFilter), authorNames, genreNames, tagNames });
   const progressById = user ? await listBookProgressByIds(user.id, books.map((book) => book.id)) : {};
-  return <><div className="mb-4 flex items-center"><h2 className="mr-4 flex items-center text-base md:text-lg"><BookCopyIcon size={28} className="mr-2" />{intl.libraries.books as string}</h2><FiltersDrawer intl={intl} library="books" /></div><BookGrid books={books} lang={lang} intl={intl} progressById={progressById} /></>;
+  return <>
+    <FiltersDrawer intl={intl} lang={lang} library="books" icon={<BookCopyIcon size={28} />} title={intl.libraries.books as string} />
+    <BookGrid books={books} lang={lang} intl={intl} progressById={progressById} />
+  </>;
 }
